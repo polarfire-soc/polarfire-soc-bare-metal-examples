@@ -1,7 +1,9 @@
 # Bare Metal Examples
 This repository provides bare metal application example projects for SoftConsole toolchain.
 These examples serve as an easy starting point for the users to start exploring PolarFire&reg; SoC.
-Each project provides ready to use build configurations and debug launch configurations.
+
+Each project provides a README.md explaining its functionality and usage instructions.
+All projects provide a set of ready to use build configurations and debug launch configurations. These are detailed in the following sections.
 
 ## Build configurations
 The build configurations configure the projects to work in a specific way. E.g. Optimization level -Os, linking to DDR memory address space etc..
@@ -61,7 +63,7 @@ Both the launchers are configured to use currently _active_ build configuration,
 You may change the existing debug launchers or create your own for your project.
 
 ## Target hardware
-All the projects are tested on the PolarFire SoC Icicle kit. Most of the projects are tested with the latest available PolarFire SoC Reference Libero design or one of it's variants. Please refer **README.md in the root directory of each project** to know more.
+All the projects are tested on the PolarFire SoC Icicle kit. Most of the projects are tested with the latest available PolarFire SoC Reference Libero design or one of it's variants.
 
 ### Further reading
 For the latest releases of the MPFS HAL, peripheral device drivers and default reference platform configurations refer [PolarFire SoC platform](https://github.com/polarfire-soc/platform).
