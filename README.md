@@ -1,6 +1,28 @@
 # Bare Metal Examples
-This repository provides bare metal application example projects for SoftConsole toolchain.
-These examples serve as an easy starting point for the users to start exploring PolarFire&reg; SoC.
+This repository provides bare metal example projects with SoftConsole toolchain.
+
+```
+<repo>
+|-- applications
+|	    |- .
+|	    |- .
+|
+|
+|-- driver-examples
+|		|- mpfs-hal
+|		|- mss-can
+|		|- mss-ethernet-mac
+|		|     .
+|		|     .
+|		|     .
+|		|- mss-mmc
+|		|- mss-watchdog
+
+```
+
+The *applications* directory contains applications ready to be used on the PolarFire&reg SoC Icicle kit.
+
+The *driver-examples* directory contains example projects demonstrating the PolarFire SoC Microprocessor Sub-System (MSS) peripheral device drivers. These examples serve as an easy starting point for the users to start exploring PolarFire SoC.
 
 Each project provides a README.md explaining its functionality and usage instructions.
 All projects provide a set of ready to use build configurations and debug launch configurations. These are detailed in the following sections.
@@ -58,7 +80,7 @@ There are following two preconfigured debug launchers provided with each project
 |_\<project name> hw all-harts debug.launch_ | Intended to be used with xxx-Debug configurations. Resets harts.<br> Downloads the executable and the symbols to the memory. Sets up PC to start location. |
 |_\<project name> hw all-harts attach.launch_ | Intended to be used with xxx-Release configurations. Does not reset harts. <br> Downloads only the symbol information and attaches to harts. Typically used to check the current state of harts. If the project is linked to RAM memory such as DDR, you will be able to put breakpoints and step debug further.                   |
 
-Both the launchers are configured to use currently _active_ build configuration, hence the same launcher can be used with any of the build configuration. Make sure that an appropriate build configuration is set as _active_ to avoid issues. Trying to use _all-harts attach.launch_ while a xxx-Debug build is active may not work.
+Both the launchers are configured to use currently _active_ build configuration, hence the same launcher can be used with any of the build configuration. Make sure that an appropriate build configuration is set as _active_ to avoid issues. Trying to use _all-harts attach.launch_ while a *-Debug build is _active_ may not work.
 
 You may change the existing debug launchers or create your own for your project.
 
