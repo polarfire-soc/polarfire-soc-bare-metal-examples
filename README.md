@@ -4,8 +4,8 @@ This repository provides bare metal example projects with SoftConsole toolchain.
 ```
 <repo>
 |-- applications
-|	    |- .
-|	    |- .
+|		|- .
+|		|- .
 |
 |
 |-- driver-examples
