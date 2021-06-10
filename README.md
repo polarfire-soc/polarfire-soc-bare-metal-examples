@@ -4,19 +4,19 @@ This repository provides bare metal example projects with SoftConsole toolchain.
 ```
 <repo>
 |-- applications
-|		|- .
-|		|- .
+|       |- .
+|       |- .
 |
 |
 |-- driver-examples
-|		|- mpfs-hal
-|		|- mss-can
-|		|- mss-ethernet-mac
-|		|     .
-|		|     .
-|		|     .
-|		|- mss-mmc
-|		|- mss-watchdog
+|       |- mpfs-hal
+|       |- mss-can
+|       |- mss-ethernet-mac
+|       |     .
+|       |     .
+|       |     .
+|       |- mss-mmc
+|       |- mss-watchdog
 
 ```
 
