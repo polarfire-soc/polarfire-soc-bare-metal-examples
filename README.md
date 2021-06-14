@@ -45,10 +45,10 @@ Following sections describe various types of configurations accomplished by the 
 Some of the important project settings are explained in following sections.
 
 #### Debug build configurations
-The Build configurations post-fixed with '-Debug' are intended for the early development and debug phase of the project. By Conventions, the *-Debug configurations uses optimization level -O0 and generate maximum symbol information.
+The Build configurations post-fixed with '-Debug' are intended for the early development and debug phase of the project. By Convention, the *-Debug configurations use optimization level -O0 and generate maximum debug symbol information.
 
 #### Release build configurations
-The Build configurations post-fixed with '-Release' are intended for the final production release where executable stored in non-volatile memory is running after power-on-reset or the executable is launched by a previous stage bootloader. By Conventions, the *-Release configurations uses optimization level (-Os) and does not generate symbol information. It also defines a NDEBUG macro which is used to avoid any debug
+The Build configurations post-fixed with '-Release' are intended for the final production release where executable stored in non-volatile memory is running after power-on-reset or the executable is launched by a previous stage bootloader. By Convention, the *-Release configurations use optimization level (-Os) and does not generate debug symbol information. It also defines a NDEBUG macro which is used to avoid any debug
 code to be excluded from the build.
 
 **Linker scripts:** Each build configuration needs a linker script. The linker script describes the memory layout of the executable. Each build configuration selects an appropriate linker scripts via project settings. E.g. eNVM-Scratchpad-Release uses mpfs-envm-lma-scratchpad-vma.ld.
