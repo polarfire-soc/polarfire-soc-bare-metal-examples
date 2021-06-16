@@ -85,7 +85,7 @@ Both the launchers are configured to use currently _active_ build configuration,
 You may change the existing debug launchers or create your own for your project.
 
 ## Target hardware
-All the projects are tested on the PolarFire SoC Icicle kit. Most of the projects are tested with the latest available PolarFire SoC Reference Libero design or one of it's variants.
+All the projects are tested on the PolarFire SoC Icicle kit. All the projects are tested with the latest available PolarFire SoC [Reference Libero design](https://github.com/polarfire-soc/icicle-kit-reference-design/releases/tag/2021.04) or one of it's variants, unless noted otherwise. Please refer README.md in each project for details.
 
 ### Further reading
 For the latest releases of the MPFS HAL, peripheral device drivers and default reference platform configurations refer [PolarFire SoC platform](https://github.com/polarfire-soc/platform).
