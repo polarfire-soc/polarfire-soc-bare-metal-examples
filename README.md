@@ -46,10 +46,10 @@ The following sections describe the configurations provided by the default build
 Some of the important project settings are explained in following sections.
 
 #### Debug build configurations
-The build configurations post-fixed with '-Debug' are intended for the early development and debug phase of the project. By Convention, the *-Debug configurations use optimization level -O0 and generate maximum debug symbol information.
+The build configurations post-fixed with '-Debug' are intended for the early development and debug phase of the project. By convention, the *-Debug configurations use optimization level -O0 and generate maximum debug symbol information.
 
 #### Release build configurations
-The Build configurations post-fixed with '-Release' are intended for the final production release, where an executable stored in non-volatile memory runs after power-on-reset, or the executable is launched by a previous stage bootloader. By Convention, the *-Release configurations use optimization level (-Os) and do not generate debug symbol information. It also defines a NDEBUG macro which is used to remove any debug code from the build.
+The build configurations post-fixed with '-Release' are intended for the final production release, where an executable stored in non-volatile memory runs after power-on-reset, or the executable is launched by a previous stage bootloader. By convention, the *-Release configurations use optimization level (-Os) and do not generate debug symbol information. It also defines a NDEBUG macro which is used to exclude any debug code from the build.
 
 **Linker scripts:** Each build configuration needs a linker script. The linker script describes the memory layout of the executable. Each build configuration selects an appropriate linker scripts via project settings. For example, eNVM-Scratchpad-Release uses mpfs-envm-lma-scratchpad-vma.ld.
 
@@ -66,7 +66,7 @@ To choose a particular hardware configuration, include an appropriate \<project-
 #### Software configurations
 The default software configurations are stored under the \<project-root>/platform/platform_config_reference folder. If you need to change the default software configurations, you are advised to create a new folder to replicate this folder under the \<project-root>/src/boards/ directory and do the modifications there. It would look like \<project-root>/src/boards/\<target-board>/platform_config
 
-The include files in the "platform_config" folder define the software configurations such as the number of harts are being used in the software, the tick rate of the internal timer of each hart etc.. These configurations have no dependency on the hardware configurations in "fpga_design_config" folder. Note that changing these software configurations may require a change in your application code.
+The include files in the "platform_config" folder define the software configurations such as the number of harts being used in the software, the tick rate of the internal timer of each hart etc.. These configurations have no dependency on the hardware configurations in "fpga_design_config" folder. Note that changing these software configurations may require a change in your application code.
 
 To choose a particular software configuration, include either the platform_config_reference or the project specific \<project-root>/src/boards/\<target-board>/platform_config path via the SoftConsole project settings.
 
