@@ -73,13 +73,6 @@ static uint32_t ddr_write ( volatile uint64_t *DDR_word_ptr,\
 static uint32_t ddr_read ( volatile uint64_t *DDR_word_ptr,\
         uint32_t no_of_access, uint8_t data_ptrn,  DDR_ACCESS_SIZE data_size );
 
-
-__attribute__((weak)) int rand(void)
-{
-    return 0;
-}
-
-
 #ifdef DEBUG_DDR_INIT
 /***************************************************************************//**
  * Setup serial port if DDR debug required during start-up

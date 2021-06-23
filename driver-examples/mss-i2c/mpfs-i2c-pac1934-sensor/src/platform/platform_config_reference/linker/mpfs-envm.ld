@@ -12,8 +12,9 @@
  * Use with Bare metal startup code.
  * Startup code runs from envm on MSS reset
  *
- * You can find details on the PolarFireSoC Memory map here:
- * https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/memory-hierarchy/mpfs-memory-hierarchy.md
+ * You can find details on the PolarFireSoC Memory map in the mpfs-memory-hierarchy.md
+ * which can be found under the link below:
+ * https://github.com/polarfire-soc/polarfire-soc-documentation
  * 
  */
  
@@ -24,17 +25,14 @@ ENTRY(_start)
 
 -- MSS hart Reset vector
 
-The MSS reset vector for each hart is configured by Libero and stored securely
-in the MPFS.
+The MSS reset vector for each hart is stored securely in the MPFS.
 The most common usage will be where the reset vector for each hart will be set
-to the start of the envm at address 0x2022_2000, giving 128K-256B of contiguous
+to the start of the envm at address 0x2022_0100, giving 128K-256B of contiguous
 non-volatile storage. Normally this is where the initial boot-loader will 
-reside. (Note: The first 256B page of envm is used for metadata associated with secure 
-boot)
-Libero outputs the configured reset vector address to the xml file, see 
-LIBERO_SETTING_RESET_VECTOR_HART0 etc in <hw_memory.h>
-See mpfs_envm.ld example linker script when running from envm.
-
+reside. (Note: The first 256B page of envm is used for metadata associated with 
+secure boot. When not using secure boot (mode 0,1), this area is still reserved 
+by convention. It allows easier transition from non-secure to secure boot flow
+during the development process.
 When debugging a bare metal program that is run out of reset from envm, a linker 
 script will be used whereby the program will run from LIM instead of envm.
 In this case, the reset vector in the linker script is normally set to the 
@@ -42,7 +40,6 @@ start of LIM, 0x0800_0000.
 This means you are not continually programming the envm each time you load a 
 program and there is no limitation with break points when debugging.
 See the mpfs-lim.ld example linker script when runing from LIM.
-
 
 ------------------------------------------------------------------------------*/
 
@@ -52,14 +49,14 @@ MEMORY
     /* In this example, our reset vector is set to point to the */
     /* start at page 1 of the envm */
     envm (rx) : ORIGIN  = 0x20220100, LENGTH = 128k - 0x100
-    dtim (rwx) : ORIGIN  = 0x01000000, LENGTH = 7k       /* DTIM */
+    dtim (rwx) : ORIGIN  = 0x01000000, LENGTH = 7k       
     e51_itim (rwx)     : ORIGIN = 0x01800000, LENGTH = 28k
     u54_1_itim (rwx)   : ORIGIN = 0x01808000, LENGTH = 28k
     u54_2_itim (rwx)   : ORIGIN = 0x01810000, LENGTH = 28k
     u54_3_itim (rwx)   : ORIGIN = 0x01818000, LENGTH = 28k
     u54_4_itim (rwx)   : ORIGIN = 0x01820000, LENGTH = 28k
-    l2lim (rwx)        : ORIGIN = 0x08000000, LENGTH = 512k
-    scratchpad(rwx)    :  ORIGIN = 0x0A000000, LENGTH = 512k
+    l2lim (rwx)        : ORIGIN = 0x08000000, LENGTH = 256k
+    scratchpad(rwx)    : ORIGIN = 0x0A000000, LENGTH = 256k
     /* This 1K of DTIM is used to run code when switching the envm clock */
     switch_code_dtim (rx) : ORIGIN = 0x01001c00, LENGTH = 1k 
     /* DDR sections example */
@@ -67,26 +64,31 @@ MEMORY
     ddr_non_cached_32bit (rwx) : ORIGIN  = 0xC0000000, LENGTH = 256M
     ddr_wcb_32bit (rwx) : ORIGIN  = 0xD0000000, LENGTH = 256M
     ddr_cached_38bit (rwx) : ORIGIN  = 0x1000000000, LENGTH = 1024M
-    ddr_non_cached_38bit (rwx) : ORIGIN  = 0x1400000000 + 28M, LENGTH = 0k
-    ddr_wcb_38bit (rwx) : ORIGIN  = 0x1800000000 + 30M , LENGTH  = 0k
+    ddr_non_cached_38bit (rwx) : ORIGIN  = 0x1400000000, LENGTH = 0k
+    ddr_wcb_38bit (rwx) : ORIGIN  = 0x1800000000, LENGTH  = 0k
 }
                                
 HEAP_SIZE           = 8k;   /* needs to be calculated for your application */
 
-/* STACK_SIZE_PER_HART needs to be calculated for your */
-/* application. Must be aligned */
-/* Also Thread local storage (AKA hart local storage) allocated for each hart */
-/* as part of the stack
-/* So memory map will look like once apportion in startup code: */
-/*   */
-/* stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE) */
-/* TLS hart 0   */
-/* stack hart1  */
-/* TLS hart 1   */
-/* etc */
-/* note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h */
-STACK_SIZE_PER_HART = 8k;                     
+/*
+ * There is common area for shared variables, accessed from a pointer in a harts HLS
+ */
+SIZE_OF_COMMON_HART_MEM = 4k;
 
+/* 
+ * The stack size needs to be calculated for your                                
+ * application. It must be Must be aligned                                       
+ * Also Thread local storage (AKA hart local storage) is allocated for each hart 
+ * as part of the stack                                                          
+ * So the memory map will look like once apportion in startup code:              
+ * stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE)  
+ * TLS hart 0                                                                    
+ * stack hart1                                                                   
+ * TLS hart 1                                                                    
+ * etc                                                                           
+ * note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h                       
+ */
+ 
 /*
  * Stack size for each hart's application.
  * These are the stack sizes that will be allocated to each hart before starting
@@ -320,9 +322,23 @@ SECTIONS
         . += STACK_SIZE_U54_4_APPLICATION;
         PROVIDE(__app_stack_top_h4 = .);
         PROVIDE(__stack_top_h4$ = .);
+        
         /* place __start_of_free_lim$ after last allocation of l2_lim */
         . = ALIGN(0x10);
         PROVIDE(__start_of_free_lim$ = .);
+    } > l2lim
+    
+    /* 
+     * memory shared accross harts. 
+     * The boot Hart Local Storage holds a pointer to this area for each hart if 
+     * when enabled by setting MPFS_HAL_SHARED_MEM_ENABLED define in the
+     * mss_sw_config.h
+     */
+    .app_hart_common : /* ALIGN(0x1000) */
+    {
+        PROVIDE(__app_hart_common_start = .);
+        . += SIZE_OF_COMMON_HART_MEM;
+        PROVIDE(__app_hart_common_end = .);
     } > l2lim
 }
 
