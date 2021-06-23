@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
  *
- * Helper function for PolarFire User Crypto- Cryptography service example.
+ * SPDX-License-Identifier: MIT
+ * Helper function for system service example.
  */
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #include "inc/helper.h"
 
 static const uint8_t g_separator[] =
@@ -11,6 +12,7 @@ static const uint8_t g_separator[] =
 ------------------------------------------------------------------------------";
 
 extern mss_uart_instance_t g_mss_uart0_lo;
+extern mss_uart_instance_t g_mss_uart1_lo;
 
 /*==============================================================================
   Function to clear local variable and array.
@@ -136,18 +138,18 @@ void display_output
     uint32_t inc;
     uint8_t byte = 0;
     
-    MSS_UART_polled_tx(&g_mss_uart0_lo, (const uint8_t*)" ", sizeof(" "));
+    MSS_UART_polled_tx(&g_mss_uart1_lo, (const uint8_t*)" ", sizeof(" "));
     for(inc = 0; inc < byte_length; ++inc)
     {
         if((inc > 1u) &&(0u == (inc % 16u)))
         {
-            MSS_UART_polled_tx(&g_mss_uart0_lo, (const uint8_t*)"\r\n ", sizeof("\r\n "));
+            MSS_UART_polled_tx(&g_mss_uart1_lo, (const uint8_t*)"\r\n ", sizeof("\r\n "));
         }
         
         byte = in_buffer[inc];
-        MSS_UART_polled_tx(&g_mss_uart0_lo, &hex_chars[((byte & 0xF0) >> 4) ], 1);
-        MSS_UART_polled_tx(&g_mss_uart0_lo, &hex_chars[(byte & 0x0F)], 1);
-        MSS_UART_polled_tx(&g_mss_uart0_lo, (const uint8_t*)" ", sizeof(" "));
+        MSS_UART_polled_tx(&g_mss_uart1_lo, &hex_chars[((byte & 0xF0) >> 4) ], 1);
+        MSS_UART_polled_tx(&g_mss_uart1_lo, &hex_chars[(byte & 0x0F)], 1);
+        MSS_UART_polled_tx(&g_mss_uart1_lo, (const uint8_t*)" ", sizeof(" "));
     }
 
 }

@@ -1,6 +1,7 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
  *
+ * SPDX-License-Identifier: MIT
  * Helper function public API.
  */
 #ifndef __HELPER_H_

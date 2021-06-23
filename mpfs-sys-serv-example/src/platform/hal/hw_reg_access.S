@@ -1,12 +1,9 @@
-/*******************************************************************************
+/***************************************************************************//**
  * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * MPFS HAL Embedded Software
- *
- */
-/***************************************************************************//**
  *
  * Hardware registers access functions.
  * The implementation of these function is platform and toolchain specific.
@@ -45,7 +42,8 @@ HW_set_32bit_reg:
  * HW_get_32bit_reg is used to read the content of a 32 bits wide peripheral
  * register.
  *
- * R0:   addr_t reg_addr
+ * a0:   addr_t reg_addr
+
  * @return          32 bits value read from the peripheral register.
  */
 HW_get_32bit_reg:
@@ -106,6 +104,7 @@ HW_set_16bit_reg:
  * register.
  *
  * a0:   addr_t reg_addr
+
  * @return          16 bits value read from the peripheral register.
  */
 HW_get_16bit_reg:
@@ -167,6 +166,7 @@ HW_set_8bit_reg:
  * register.
  *
  * a0:   addr_t reg_addr
+
  * @return          8 bits value read from the peripheral register.
  */
 HW_get_8bit_reg:
