@@ -1,39 +1,59 @@
-/* Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
- * common.h
+/*******************************************************************************
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
  *
- *  Created on: Jun 12, 2018
- *
+ * SPDX-License-Identifier: MIT
  */
 
 #ifndef COMMON_H_
 #define COMMON_H_
 
 #include <stdint.h>
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 typedef enum COMMAND_TYPE_
 {
-	CLEAR_COMMANDS        				= 0x00,       	/*!< 0 default behavior              		*/
-	START_HART1_U_MODE        			= 0x01,       	/*!< 1 u mode              					*/
-	START_HART2_S_MODE        			= 0x02,       	/*!< 2 s mode              					*/
-} COMMAND_TYPE;
+    CLEAR_COMMANDS                  = 0x00,       /*!< 0 default behavior */
+    START_HART1_U_MODE              = 0x01,       /*!< 1 u mode */
+    START_HART2_S_MODE              = 0x02,       /*!< 2 s mode */
+}   COMMAND_TYPE;
 
+
+typedef enum MODE_CHOICE_
+{
+    M_MODE              = 0x00,       /*!< 0 m mode */
+    S_MODE              = 0x01,       /*!< s mode */
+}   MODE_CHOICE;
+
+
+typedef struct HART_SHARED_DATA_
+{
+    uint64_t init_marker;
+    volatile long mutex_uart0;
+    mss_uart_instance_t *g_mss_uart0_lo;
+} HART_SHARED_DATA;
 
 /**
  * extern variables
  */
-extern uint32_t menu_command;
-extern uint64_t uart_lock;
 
 /**
  * functions
  */
-void mss_init_mutex(uint64_t address);
-void mss_take_mutex(uint64_t address);
-void mss_release_mutex(uint64_t address);
-void e51(void);
-void u54_1(void);
-void u54_2(void);
-void u54_3(void);
-void u54_4(void);
+void jump_to_application(HLS_DATA* hls, MODE_CHOICE mode_choice, uint64_t next_addr);
+void
+uart_tx_with_mutex
+(
+    mss_uart_instance_t * this_uart,
+    uint64_t mutex_addr,
+    const uint8_t * pbuff,
+    uint32_t tx_size
+);
+void
+uart_tx_string_with_mutex
+(
+    mss_uart_instance_t * this_uart,
+    uint64_t mutex_addr,
+    const uint8_t * pbuff
+);
 
 #endif /* COMMON_H_ */
