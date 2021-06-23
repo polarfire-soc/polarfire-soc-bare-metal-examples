@@ -17,7 +17,7 @@ limitations under the License.
 #include <coremark.h>
 #include <stdarg.h>
 
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 #define ZEROPAD  	(1<<0)	/* Pad with zero */
 #define SIGN    	(1<<1)	/* Unsigned/signed long */

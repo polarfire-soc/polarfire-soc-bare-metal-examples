@@ -40,7 +40,7 @@
 #define __MSS_DDr_DEBUG_H_ 1
 
 #ifdef DEBUG_DDR_INIT
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #endif
 
 #ifdef __cplusplus

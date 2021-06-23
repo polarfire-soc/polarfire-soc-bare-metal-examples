@@ -34,13 +34,6 @@ reside. (Note: The first 256B page of envm is used for metadata associated with
 secure boot. When not using secure boot (mode 0,1), this area is still reserved 
 by convention. It allows easier transition from non-secure to secure boot flow
 during the development process.
-When debugging a bare metal program that is run out of reset from envm, a linker 
-script will be used whereby the program will run from LIM instead of envm.
-In this case, the reset vector in the linker script is normally set to the 
-start of LIM, 0x0800_0000.
-This means you are not continually programming the envm each time you load a 
-program and there is no limitation with break points when debugging.
-See the mpfs-lim.ld example linker script when runing from LIM.
 
 ------------------------------------------------------------------------------*/
 
@@ -68,24 +61,38 @@ MEMORY
 
 HEAP_SIZE = 8k;               /* needs to be calculated for your application if using */
 
-/* STACK_SIZE_PER_HART needs to be calculated for your */
-/* application. Must be aligned */
-/* Also Thread local storage (AKA hart local storage) allocated for each hart */
-/* as part of the stack
-/* So memory map will look like once apportion in startup code: */
-/*   */
-/* stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE) */
-/* TLS hart 0   */
-/* stack hart1  */
-/* TLS hart 1   */
-/* etc */
-/* note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h */
-
 /*
- * Stack size for each hart's application.
- * The startup stack size is used on start-up.
- * The application stack sizes that will be allocated to each hart before starting
- * each hart's application function, e51(), u54_1(), u54_2(), u54_3(), u54_4().
+ * There is common area for shared variables, accessed from a pointer in a harts HLS
+ */
+SIZE_OF_COMMON_HART_MEM = 4k;
+
+/* 
+ * The stack size needs to be calculated for your                                
+ * application. It must be Must be aligned                                       
+ * Also Thread local storage (AKA hart local storage) is allocated for each hart 
+ * as part of the stack                                                          
+ * So the memory map will look like once apportion in startup code:              
+ * stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE)  
+ * TLS hart 0                                                                    
+ * stack hart1                                                                   
+ * TLS hart 1                                                                    
+ * etc                                                                           
+ * note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h                       
+ */
+ 
+/*
+ * STACK_SIZE_xxx_STARTUP
+ * Stack size for each hart's startup code.
+ * Before copying itself to the scratchpad memory area and executing the code from there, the 
+ * startup code is executing from LIM. The scratchpad area is not configured yet. This per-hart 
+ * startup stack area is located in LIM and used during this phase of the startup code.
+ * STACK_SIZE_xxx_APPLICATION
+ * After the startup code executing from LIM configures the scratchpad memory, it configures 
+ * the each hart's SP with this stack area for the respective hart's application function, 
+ * (namely e51(), u54_1(), u54_2(), u54_3(), u54_4() ) to use it.
+ * This per-hart application stack area is located in scratchpad and used by application when 
+ * it is executing from scratchpad.
+ *
  */
 STACK_SIZE_E51_STARTUP = 4k;
 STACK_SIZE_U54_1_STARTUP = 4k;
@@ -326,6 +333,20 @@ SECTIONS
         PROVIDE(__app_stack_bottom_h4 = .);
         . += STACK_SIZE_U54_4_APPLICATION;
         PROVIDE(__app_stack_top_h4 = .);
+    } > scratchpad
+
+    
+    /* 
+     * memory shared accross harts. 
+     * The boot Hart Local Storage holds a pointer to this area for each hart if 
+     * when enabled by setting MPFS_HAL_SHARED_MEM_ENABLED define in the
+     * mss_sw_config.h
+     */
+    .app_hart_common : /* ALIGN(0x1000) */
+    {
+        PROVIDE(__app_hart_common_start = .);
+        . += SIZE_OF_COMMON_HART_MEM;
+        PROVIDE(__app_hart_common_end = .);
         /* place at the end of used scratchpad, used as check to verify enough available in code */
         __l2_scratchpad_vma_end = .; 
     } > scratchpad

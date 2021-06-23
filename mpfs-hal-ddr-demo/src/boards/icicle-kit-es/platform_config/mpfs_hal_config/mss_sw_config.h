@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -49,51 +49,13 @@
 #define MPFS_HAL_LAST_HART   4
 #endif
 
-/*------------------------------------------------------------------------------
- * Markers used to indicate startup status of hart
- */
-#define HLS_DATA_IN_WFI                     0x12345678U
-#define HLS_DATA_PASSED_WFI                 0x87654321U
-
-/*------------------------------------------------------------------------------
- * Define the size of the HLS used
- * In our HAL, we are using Hart Local storage for debug data storage only
- * as well as flags for wfi instruction management.
- * The TLS will take memory from top of the stack if allocated
+/*
+ * IMAGE_LOADED_BY_BOOTLOADER
+ * We set IMAGE_LOADED_BY_BOOTLOADER = 0 if we are a boot-loader
+ * Set IMAGE_LOADED_BY_BOOTLOADER = 1 if loaded by a boot loader
  *
- */
-#define HLS_DEBUG_AREA_SIZE     64
-
-/* define the required tick rate in Milliseconds */
-/* if this program is running on one hart only, only that particular hart value
- * will be used */
-#define HART0_TICK_RATE_MS  5UL
-#define HART1_TICK_RATE_MS  5UL
-#define HART2_TICK_RATE_MS  5UL
-#define HART3_TICK_RATE_MS  5UL
-#define HART4_TICK_RATE_MS  5UL
-
-#define H2F_BASE_ADDRESS 0x20126000     /* or 0x28126000 */
-
-/*
- * define how you want the Bus Error Unit configured
- */
-#define BEU_ENABLE                  0x0ULL
-#define BEU_PLIC_INT                0x0ULL
-#define BEU_LOCAL_INT               0x0ULL
-
-/*
- * Clear memory on startup
- * 0 => do not clear DTIM and L2
- * 1 => Clears memory
- */
-#ifndef MPFS_HAL_CLEAR_MEMORY
-#define MPFS_HAL_CLEAR_MEMORY  1
-#endif
-
-/*
- * MPFS_HAL_HW_CONFIG
- * Conditional compile switch is used to determine if MPFS HAL will perform the
+ * MPFS_HAL_HW_CONFIG is defined if we are a boot-loader. This is a
+ * conditional compile switch is used to determine if MPFS HAL will perform the
  * hardware configurations or not.
  * Defined      => This program acts as a First stage bootloader and performs
  *                 hardware configurations.
@@ -109,13 +71,61 @@
  * - I/O, clock and clock mux's, DDR and SGMII
  * - will start other harts, see text describing MPFS_HAL_FIRST_HART,
  *   MPFS_HAL_LAST_HART above
+ *
  */
-#ifndef MPFS_HAL_HW_CONFIG
+#define IMAGE_LOADED_BY_BOOTLOADER 0
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
 #define MPFS_HAL_HW_CONFIG
 #endif
 
 /*
- * If not using item, comment out line below
+ * If you are using common memory for sharing across harts, make sure it is
+ * allocated in the linker script
+ * See app_hart_common mem section in the platform linker scripts.
+ */
+#ifndef MPFS_HAL_SHARED_MEM_ENABLED
+#define MPFS_HAL_SHARED_MEM_ENABLED
+#endif
+
+/* define the required tick rate in Milliseconds */
+/* if this program is running on one hart only, only that particular hart value
+ * will be used */
+#define HART0_TICK_RATE_MS  5UL
+#define HART1_TICK_RATE_MS  5UL
+#define HART2_TICK_RATE_MS  5UL
+#define HART3_TICK_RATE_MS  5UL
+#define HART4_TICK_RATE_MS  5UL
+
+/*------------------------------------------------------------------------------
+ * Define the size of the HLS used
+ * In our HAL, we are using Hart Local storage for debug data storage only
+ * as well as flags for wfi instruction management.
+ * The TLS will take memory from top of the stack if allocated
+ *
+ */
+#define HLS_DEBUG_AREA_SIZE     64
+
+/*
+ * define how you want the Bus Error Unit configured
+ */
+#define BEU_ENABLE                  0x0ULL
+#define BEU_PLIC_INT                0x0ULL
+#define BEU_LOCAL_INT               0x0ULL
+
+/*
+ * Clear memory on startup
+ * 0 => do not clear DTIM and L2
+ * 1 => Clears memory
+ * Note: If you are the zero stage bootloader, set this to one.
+ */
+#ifndef MPFS_HAL_CLEAR_MEMORY
+#define MPFS_HAL_CLEAR_MEMORY  1
+#endif
+
+/*
+ * If not using item, you can comment out line below.
+ * This is not necessary from an operational point of view as operation dictated
+ * by MSS configurator settings. Comment out to save code space if required.
  */
 #define SGMII_SUPPORT
 #define DDR_SUPPORT
@@ -129,10 +139,10 @@
 
 /*
  * Debug DDR startup through a UART
- * Comment out in normal operation. May be useful for debug purposes in bring-up
- * of a new board design.
+ * Comment out in normal operation. Useful for debug purposes in bring-up of DDR
+ * in a new board design.
  * See the weak function setup_ddr_debug_port(mss_uart_instance_t * uart)
- * If you need to edit this function, make a copy of of the function without the
+ * If you need to edit this function, make a copy of the function without the
  * weak declaration in your application code.
  * */
 #define DEBUG_DDR_INIT

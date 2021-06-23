@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solution.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -17,13 +17,10 @@
 #include "inc/common.h"
 
 #ifndef SIFIVE_HIFIVE_UNLEASHED
-#include "drivers/mss_mmuart/mss_uart.h"
 #else
 #include "drivers/FU540_uart/FU540_uart.h"
 #endif
 
-extern uint64_t uart_lock;
-extern MEM_TYPE mem_area;
 extern uint64_t hart_jump_ddr;
 extern uint64_t ddr_test;
 extern mss_uart_instance_t *g_uart;
@@ -45,10 +42,9 @@ volatile uint32_t count_sw_ints_h1 = 0U;
  */
 void u54_1(void)
 {
-    char info_string[100];
-    uint64_t hartid = read_csr(mhartid);
-    volatile uint32_t icount = 0U;
     uint32_t pattern_offset = 12U;
+    HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
+
 
     /* Clear pending software interrupt in case there was any.
        Enable only the software interrupt so that the E51 core can bring this
@@ -70,37 +66,25 @@ void u54_1(void)
 
     while (1U)
     {
-        icount++;
-        if (0x7FFFFFFFU == icount)
+        if((hart_jump_ddr == 1U) ||
+           (hart_jump_ddr == 12U) ||
+           (hart_jump_ddr == 123U) ||
+           (hart_jump_ddr == 1234U))
         {
-            icount = 0U;
-            sprintf(info_string,\
-                    "Hart %lu, use option 6 and 7 to jump to DDR program\r\n",\
-                        hartid);
-            MSS_UART_polled_tx(g_uart, (const uint8_t*)info_string,(uint32_t)strlen(info_string));
+            jump_to_application(hls, M_MODE, (uint64_t)0x80000000);
         }
-
         if(ddr_test == 1U)
         {
             load_ddr_pattern(DDR_BASE, DDR_SIZE,pattern_offset);
             MSS_UART_polled_tx(g_uart, (const uint8_t*)"Press x to abort DDR test\r\n",(uint32_t)strlen("Press x to abort DDR test\r\n"));
             setup_ddr_segments(DEFAULT_SEG_SETUP);
-        	test_ddr(NO_OF_ITERATIONS, DDR_SIZE);
-        	setup_ddr_segments(LIBERO_SEG_SETUP);
+            test_ddr(NO_OF_ITERATIONS, DDR_SIZE);
+            setup_ddr_segments(LIBERO_SEG_SETUP);
 
-        	if (pattern_offset > MAX_OFFSET)
-        	{
-        	    pattern_offset = MIN_OFFSET;
-        	}
-        }
-
-        if(hart_jump_ddr == 1U)
-        {
-            MSS_UART_polled_tx_string(g_uart,
-                    (const uint8_t*)"We are leaving the boot loader\r\n");
-            MSS_UART_polled_tx_string(g_uart,
-                    (const uint8_t*)"to run in loaded DDR program\r\n");
-            jump_to_application(mem_area);
+            if (pattern_offset > MAX_OFFSET)
+            {
+                pattern_offset = MIN_OFFSET;
+            }
         }
     }
     /* never return */

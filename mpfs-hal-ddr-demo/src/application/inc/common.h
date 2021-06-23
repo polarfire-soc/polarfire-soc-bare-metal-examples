@@ -1,16 +1,22 @@
 /*******************************************************************************
- * (c) Copyright 20019 Microchip-PRO Embedded Systems Solutions.
- * All rights reserved.
- * 
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
  *
- *  
+ * SPDX-License-Identifier: MIT
+ *
+ * MPFS HAL Embedded Software example
+ *
+ */
+/*******************************************************************************
+ *
+ * Used for common defines across application code
+ *
  */
 
 #ifndef COMMON_H_
 #define COMMON_H_
 
 #include <stdint.h>
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 typedef enum COMMAND_TYPE_
 {
@@ -20,14 +26,19 @@ typedef enum COMMAND_TYPE_
 }   COMMAND_TYPE;
 
 
-typedef enum MEM_TYPE_
+typedef enum MODE_CHOICE_
 {
-    E51_DDR_START_NON_CACHE         = 0x00,       /*!< 0 non cached */
-    E51_DDR_START_CACHE             = 0x01,       /*!< cached */
-    U54_1_DDR_START_NON_CACHE       = 0x02,       /*!< 0 non cached */
-    U54_1_DDR_START_CACHE           = 0x03        /*!< cached */
-}   MEM_TYPE;
+    M_MODE              = 0x00,       /*!< 0 m mode */
+    S_MODE              = 0x01,       /*!< s mode */
+}   MODE_CHOICE;
 
+
+typedef struct HART_SHARED_DATA_
+{
+    uint64_t init_marker;
+    volatile long mutex_uart0;
+    mss_uart_instance_t *g_mss_uart0_lo;
+} HART_SHARED_DATA;
 
 /**
  * extern variables
@@ -36,12 +47,7 @@ typedef enum MEM_TYPE_
 /**
  * functions
  */
-void e51(void);
-void u54_1(void);
-void u54_2(void);
-void u54_3(void);
-void u54_4(void);
-void jump_to_application( MEM_TYPE mem_area);
+void jump_to_application(HLS_DATA* hls, MODE_CHOICE mode_choice, uint64_t next_addr);
 void
 uart_tx_with_mutex
 (

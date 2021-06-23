@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solution.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -17,14 +17,11 @@
 #include "inc/common.h"
 
 #ifndef SIFIVE_HIFIVE_UNLEASHED
-#include "drivers/mss_mmuart/mss_uart.h"
 #else
 #include "drivers/FU540_uart/FU540_uart.h"
 #endif
 
 volatile uint32_t count_sw_ints_h4 = 0U;
-extern uint64_t uart_lock;
-extern MEM_TYPE mem_area;
 extern uint64_t hart_jump_ddr;
 extern mss_uart_instance_t *g_uart;
 
@@ -36,9 +33,7 @@ extern mss_uart_instance_t *g_uart;
  */
 void u54_4(void)
 {
-    char info_string[100];
-    uint64_t hartid = read_csr(mhartid);
-    volatile uint32_t icount = 0U;
+    HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
 
     /* Clear pending software interrupt in case there was any.
        Enable only the software interrupt so that the E51 core can bring this
@@ -60,26 +55,9 @@ void u54_4(void)
 
     while (1U)
     {
-        icount++;
-        if (0x7FFFFFFFU == icount)
+        if(hart_jump_ddr == 1234U)
         {
-            icount = 0U;
-            sprintf(info_string,\
-                    "Hart %lu, use option 6 and 8 to jump to DDR program\r\n",\
-                        hartid);
-            mss_take_mutex((uint64_t)&uart_lock);
-            MSS_UART_polled_tx(g_uart, (const uint8_t*)info_string,(uint32_t)strlen(info_string));
-            mss_release_mutex((uint64_t)&uart_lock);
-        }
-        if(hart_jump_ddr == 4U)
-        {
-            mss_take_mutex((uint64_t)&uart_lock);
-            MSS_UART_polled_tx_string(g_uart,
-                    (const uint8_t*)"We are leaving the boot loader\r\n");
-            MSS_UART_polled_tx_string(g_uart,
-                    (const uint8_t*)"to run in loaded DDR program\r\n");
-            mss_release_mutex((uint64_t)&uart_lock);
-            jump_to_application(mem_area);
+            jump_to_application(hls, M_MODE, (uint64_t)0x80000000);
         }
     }
     /* never return */

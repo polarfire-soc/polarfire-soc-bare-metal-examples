@@ -32,14 +32,6 @@ reside. (Note: The first 256B page of envm is used for metadata associated with
 secure boot. When not using secure boot (mode 0,1), this area is still reserved 
 by convention. It allows easier transition from non-secure to secure boot flow
 during the development process.
-When debugging a bare metal program that is run out of reset from envm, a linker 
-script will be used whereby the program will run from LIM instead of envm.
-In this case, the reset vector in the linker script is normally set to the 
-start of LIM, 0x0800_0000.
-This means you are not continually programming the envm each time you load a 
-program and there is no limitation with break points when debugging.
-See the mpfs-lim.ld example linker script when runing from LIM.
-
 
 ------------------------------------------------------------------------------*/
 
@@ -66,19 +58,24 @@ MEMORY
 
 HEAP_SIZE           = 8k;               /* needs to be calculated for your application if using */
 
-/* STACK_SIZE_PER_HART needs to be calculated for your */
-/* application. Must be aligned */
-/* Also Thread local storage (AKA hart local storage) allocated for each hart */
-/* as part of the stack
-/* So memory map will look like once apportion in startup code: */
-/*   */
-/* stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE) */
-/* TLS hart 0   */
-/* stack hart1  */
-/* TLS hart 1   */
-/* etc */
-/* note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h */
-/* STACK_SIZE_PER_HART = 8k; */                     
+/*
+ * There is common area for shared variables, accessed from a pointer in a harts HLS
+ */
+SIZE_OF_COMMON_HART_MEM = 4k;
+
+/* 
+ * The stack size needs to be calculated for your                                
+ * application. It must be Must be aligned                                       
+ * Also Thread local storage (AKA hart local storage) is allocated for each hart 
+ * as part of the stack                                                          
+ * So the memory map will look like once apportion in startup code:              
+ * stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE)  
+ * TLS hart 0                                                                    
+ * stack hart1                                                                   
+ * TLS hart 1                                                                    
+ * etc                                                                           
+ * note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h                       
+ */
 
 /*
  * Stack size for each hart's application.
@@ -90,6 +87,7 @@ STACK_SIZE_U54_1_APPLICATION = 8k;
 STACK_SIZE_U54_2_APPLICATION = 8k;
 STACK_SIZE_U54_3_APPLICATION = 8k;
 STACK_SIZE_U54_4_APPLICATION = 8k;
+
 
 SECTIONS
 {
@@ -293,6 +291,19 @@ SECTIONS
         PROVIDE(__app_stack_top_h4 = .);
         PROVIDE(__stack_top_h4$ = .);
 
+    } > l2lim
+    
+    /* 
+     * memory shared accross harts. 
+     * The boot Hart Local Storage holds a pointer to this area for each hart if 
+     * when enabled by setting MPFS_HAL_SHARED_MEM_ENABLED define in the
+     * mss_sw_config.h
+     */
+    .app_hart_common : /* ALIGN(0x1000) */
+    {
+        PROVIDE(__app_hart_common_start = .);
+        . += SIZE_OF_COMMON_HART_MEM;
+        PROVIDE(__app_hart_common_end = .);
     } > l2lim
 }
 
