@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -35,7 +35,7 @@
   There are two bits associated with setting clk source
 
   Note on North West corner clock mux structure ICB
-  The Fabric reference clock inputs source come from the clock mux’s in the
+  The Fabric reference clock inputs source come from the clock mux's in the
   upper  left corner (regular FPGA corner) that provided clocks that can be
   routed in from various places that will include from IOs, from the FPGA
   fabric, etc.
@@ -203,7 +203,9 @@ extern "C" {
  *         non-volatile registers,  the bit self clears.  i.e. is similar to a
  *         W1P bit
  */
-#define PLL_INIT_AND_OUT_OF_RESET   0x00000003UL
+#define PLL_INIT_AND_OUT_OF_RESET               0x00000003UL
+
+#define PLL_CTRL_REG_POWERDOWN_B_MASK           0x00000001UL
 
 typedef enum RTC_CLK_SOURCE_
 {
@@ -336,6 +338,11 @@ void sgmii_mux_config_via_scb(uint8_t option);
 
  */
 void pre_configure_sgmii_and_ddr_pll_via_scb(uint8_t option);
+
+/******************************************************************************
+ * Public Functions - API                                                      *
+ ******************************************************************************/
+void mss_pll_config(void);
 
 #ifdef __cplusplus
 }

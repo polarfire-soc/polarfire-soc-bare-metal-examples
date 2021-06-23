@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -8,16 +8,10 @@
  */
 
 #include "mpfs_hal/mss_hal.h"
-#include "drivers/mss_watchdog/mss_watchdog.h"
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_watchdog/mss_watchdog.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 volatile uint32_t count_sw_ints_h2 = 0;
-extern uint64_t wd_lock, uart_lock;
-
-extern void uart_tx_with_mutex (mss_uart_instance_t * this_uart,
-                                uint64_t mutex_addr,
-                                const uint8_t * pbuff);
-
 mss_watchdog_config_t wd2lo_config;
 
 /* Main function for the hart2(U54_2 processor).
@@ -56,11 +50,9 @@ void u54_2(void)
     wd2lo_config.mvrp_val = (10000000UL);
     wd2lo_config.time_val = (10000000UL);
 
-    mss_take_mutex((uint64_t)&wd_lock);
     MSS_WD_configure(MSS_WDOG2_LO, &wd2lo_config);
     MSS_WD_reload(MSS_WDOG2_LO);
     MSS_WD_enable_mvrp_irq(MSS_WDOG2_LO);
-    mss_release_mutex((uint64_t)&wd_lock);
 
     __enable_irq();
 
@@ -78,9 +70,6 @@ void u54_2(void)
     /* Enable MVRP Interrupt on PLIC */
     PLIC_SetPriority(WDOG2_TOUT_PLIC, 2);
     PLIC_EnableIRQ(WDOG2_TOUT_PLIC);
-
-    uart_tx_with_mutex (&g_mss_uart0_lo, (uint64_t)&uart_lock,
-                        "\r\nMSS Watchdog2 Configured \r\n");
 
     while (1u)
     {

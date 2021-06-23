@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -29,7 +29,7 @@
   SGMII
   DDR phy
   MSSIO
-  
+
   ==============================================================================
   @section Flow diagram
   ==============================================================================
@@ -80,7 +80,7 @@
                               +-------v---------+
                               |    Finished     |
                               +-----------------+
-  
+
  *//*=========================================================================*/
 #ifndef __MSS_NWC_INIT_H_
 #define __MSS_NWC_INIT_H_ 1

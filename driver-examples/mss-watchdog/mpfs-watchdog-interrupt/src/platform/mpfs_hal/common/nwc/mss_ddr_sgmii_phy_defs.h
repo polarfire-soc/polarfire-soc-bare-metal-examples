@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -19,7 +19,7 @@
 #define MSS_DDR_SGMII_PHY_DEFS_H_
 
 
-#include <mpfs_hal/mss_hal.h>
+#include "mpfs_hal/mss_hal.h"
 
 
 #ifdef __cplusplus
