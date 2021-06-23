@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -15,8 +15,6 @@ volatile uint32_t count_sw_ints_h4 = 0U;
 /* Main function for the hart4(U54_4 processor).
  * Application code running on hart4 is placed here
  *
- * The hart4 goes into WFI. hart0 brings it out of WFI when it raises the first
- * Software interrupt to this hart
  */
 void u54_4(void)
 {
@@ -24,7 +22,7 @@ void u54_4(void)
     volatile uint32_t icount = 0U;
 
     /* Clear pending software interrupt in case there was any.
-     * Enable only the software interrupt so that the E51 core can bring this core
+     * Enable only the software interrupt so that the U54_1 core can bring this core
      * out of WFI by raising a software interrupt. */
     clear_soft_interrupt();
     set_csr(mie, MIP_MSIP);
