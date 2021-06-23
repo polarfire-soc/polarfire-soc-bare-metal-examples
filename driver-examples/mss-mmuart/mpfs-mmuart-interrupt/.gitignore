@@ -1,4 +1,5 @@
-/Debug*/
-/Release*/
+/LIM-Debug*/
+/LIM-Release*/  
+/DDR-Release*/
+/eNVM-Scratchpad-Release*/
 /.settings*/
-/core
