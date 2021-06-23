@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -17,7 +17,8 @@
 
 #ifndef MSS_DDR_SGMII_MSS_SCB_NWC_REGS_H_
 #define MSS_DDR_SGMII_MSS_SCB_NWC_REGS_H_
-#include <mpfs_hal/mss_hal.h>
+
+#include "mpfs_hal/mss_hal.h"
 
 
 #ifdef __cplusplus
@@ -102,13 +103,13 @@ typedef struct
 #define IOSCB_IO_CALIB_DDR_BASE         	(0x3E040000U)         /*!< ( IOSCB_IO_CALIB_SGMII_BASE ) Base Address */
 
 
-extern PLL_TypeDef *MSS_SCB_MSS_PLL;
-extern PLL_TypeDef *MSS_SCB_DDR_PLL;
-extern PLL_TypeDef *MSS_SCB_SGMII_PLL;
-extern IOSCB_CFM_MSS * MSS_SCB_CFM_MSS_MUX;
-extern IOSCB_CFM_SGMII * MSS_SCB_CFM_SGMII_MUX;
-extern IOSCB_IO_CALIB_STRUCT *IOSCB_IO_CALIB_SGMII;
-extern IOSCB_IO_CALIB_STRUCT *IOSCB_IO_CALIB_DDR;
+extern PLL_TypeDef * const MSS_SCB_MSS_PLL;
+extern PLL_TypeDef * const MSS_SCB_DDR_PLL;
+extern PLL_TypeDef * const MSS_SCB_SGMII_PLL;
+extern IOSCB_CFM_MSS * const MSS_SCB_CFM_MSS_MUX;
+extern IOSCB_CFM_SGMII * const MSS_SCB_CFM_SGMII_MUX;
+extern IOSCB_IO_CALIB_STRUCT * const IOSCB_IO_CALIB_SGMII;
+extern IOSCB_IO_CALIB_STRUCT * const IOSCB_IO_CALIB_DDR;
 
 
 #ifdef __cplusplus

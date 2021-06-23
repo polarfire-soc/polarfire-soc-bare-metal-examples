@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -14,8 +14,8 @@
  * @brief CLINT access data structures and functions.
  *
  */
-#include "mpfs_hal/mss_hal.h"
 #include <stdint.h>
+#include "mpfs_hal/mss_hal.h"
 
 static uint64_t g_systick_increment[5] = {0ULL,0ULL,0ULL,0ULL,0ULL};
 

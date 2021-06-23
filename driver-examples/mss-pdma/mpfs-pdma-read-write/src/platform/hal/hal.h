@@ -41,7 +41,7 @@ extern "C" {
 
 #include "cpu_types.h"
 #include "hw_reg_access.h"
-
+#include "hal/hal_assert.h"
 /***************************************************************************//**
  * Enable all interrupts at the processor level.
  */

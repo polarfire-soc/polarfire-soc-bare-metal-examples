@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -27,15 +27,15 @@
  *
  * DDRC blocker - blocks writes to DDR before it is set-up
  * SEG0.CFG[7]
- * Is cleared at reset. When written to ‘1’ disables the blocker function
+ * Is cleared at reset. When written to '1' disables the blocker function
  * Is allowing the L2 cache controller to access the DDRC.
- * Is Once written to ‘1’ the register cannot be written to 0, only an MSS reset
+ * Is Once written to '1' the register cannot be written to 0, only an MSS reset
  * Is will clear the register
  *
  */
 
-#ifndef MPFS_SEG_H
-#define MPFS_SEG_H
+#ifndef MSS_SEG_H
+#define MSS_SEG_H
 
 #include <stdint.h>
 
@@ -51,7 +51,7 @@ typedef struct {
             volatile int32_t    locked : 1;
         } CFG;
         uint32_t raw;
-    } u[8U];
+    } u[8u];
 
     uint32_t fill[64U-8U];
 
@@ -63,4 +63,4 @@ typedef struct {
 }
 #endif
 
-#endif /*MPFS_SEG_H*/
+#endif /*MSS_SEG_H*/
