@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -11,7 +11,7 @@
  * @file newlib_stubs.c
  * @author Microchip-FPGA Embedded Systems Solutions
  * @brief Stubs for Newlib system calls.
- *  
+ *
  */
 #include <sys/times.h>
 #include <sys/stat.h>
@@ -45,9 +45,9 @@
  * Select which MMUART will be used for stdio and what baud rate will be used.
  * Default to 57600 baud if no baud rate is specified using the
  * MICROCHIP_STDIO_BAUD_RATE #define.
- */ 
+ */
 #ifdef MICROCHIP_STDIO_THRU_UART
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 #ifndef MICROCHIP_STDIO_BAUD_RATE
 #define MICROCHIP_STDIO_BAUD_RATE  MSS_UART_115200_BAUD
@@ -234,15 +234,15 @@ int _write_r( void * reent, int file, char * ptr, int len )
         MSS_UART_init(gp_my_uart,
                       MICROCHIP_STDIO_BAUD_RATE,
                       MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY);
-                      
+
         g_stdio_uart_init_done = 1;
     }
-    
+
     /*--------------------------------------------------------------------------
      * Output text to the UART.
      */
     MSS_UART_polled_tx(gp_my_uart, (uint8_t *)ptr, len);
-    
+
     return len;
 #else   /* MICROCHIP_STDIO_THRU_UART */
     return (0);
@@ -253,7 +253,7 @@ int _write_r( void * reent, int file, char * ptr, int len )
  * Increase program data space. As malloc and related functions depend on this,
  * it is useful to have a working implementation. The following suffices for a
  * standalone system; it exploits the symbol _end automatically defined by the
- * GNU linker. 
+ * GNU linker.
  */
 caddr_t _sbrk(int incr);
 caddr_t _sbrk(int incr)
@@ -269,7 +269,7 @@ caddr_t _sbrk(int incr)
 #ifdef DEBUG_HEAP_SIZE
     char * stack_ptr = NULL;
 #endif
-    
+
     /*
      * Did we allocated memory for the heap in the linker script?
      * You need to set HEAP_SIZE to a non-zero value in your linker script if
@@ -281,7 +281,7 @@ caddr_t _sbrk(int incr)
     {
       heap_end = &_end;
     }
-    
+
     prev_heap_end = heap_end;
 
 #ifdef DEBUG_HEAP_SIZE          /* add this define if you want to debug crash due to overflow of  heap */
@@ -308,7 +308,7 @@ caddr_t _sbrk(int incr)
          * _eheap linker script symbol to figure out if there is room left on
          * the heap.
          * Please note that this use case makes sense when the stack is located
-         * in internal eSRAM in the 0x20000000 address range and the heap is 
+         * in internal eSRAM in the 0x20000000 address range and the heap is
          * located in the external memory in the 0xA0000000 memory range.
          * Please note that external memory should not be accessed using the
          * 0x00000000 memory range to read/write variables/data because of the
@@ -316,7 +316,7 @@ caddr_t _sbrk(int incr)
          */
         extern char _heap_end;     /* Defined by the linker */
         char *top_of_heap;
-        
+
         top_of_heap = &_heap_end;
         if(heap_end + incr  > top_of_heap)
         {

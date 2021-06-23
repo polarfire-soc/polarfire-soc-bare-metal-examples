@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -8,13 +8,8 @@
  */
 
 #include "mpfs_hal/mss_hal.h"
-#include "drivers/mss_watchdog/mss_watchdog.h"
-#include "drivers/mss_mmuart/mss_uart.h"
-
-extern uint64_t wd_lock, uart_lock;
-extern void uart_tx_with_mutex (mss_uart_instance_t * this_uart,
-                                uint64_t mutex_addr,
-                                const uint8_t * pbuff);
+#include "drivers/mss/mss_watchdog/mss_watchdog.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 volatile uint32_t count_sw_ints_h1 = 0u;
 extern volatile uint8_t h1_triggered, h1_mvrp, h2_triggered, h2_mvrp;
@@ -30,7 +25,6 @@ mss_watchdog_config_t wd1lo_config;
 void u54_1(void)
 {
     volatile uint32_t icount = 0U;
-
 
     /* Clear pending software interrupt in case there was any.
        Enable only the software interrupt so that the E51 core can bring this
@@ -58,11 +52,9 @@ void u54_1(void)
     wd1lo_config.mvrp_val = (10000000UL);
     wd1lo_config.time_val = (10000000UL);
 
-    mss_take_mutex((uint64_t)&wd_lock);
     MSS_WD_configure(MSS_WDOG1_LO, &wd1lo_config);
     MSS_WD_reload(MSS_WDOG1_LO);
     MSS_WD_enable_mvrp_irq(MSS_WDOG1_LO);
-    mss_release_mutex((uint64_t)&wd_lock);
 
     __enable_irq();
 
@@ -80,10 +72,6 @@ void u54_1(void)
     /* Enable MVRP Interrupt on PLIC */
     PLIC_SetPriority(WDOG1_TOUT_PLIC, 2);
     PLIC_EnableIRQ(WDOG1_TOUT_PLIC);
-
-
-    uart_tx_with_mutex (&g_mss_uart0_lo, (uint64_t)&uart_lock,
-                        "\r\nMSS Watchdog1 Configured \r\n");
 
     while (1u)
     {
@@ -125,7 +113,6 @@ void mvrp_u54_local_IRQHandler_10(void)
         h2_mvrp = 1u;
         MSS_WD_clear_mvrp_irq(MSS_WDOG2_LO);
     }
-
 }
 
 /* hart1 Software interrupt handler */

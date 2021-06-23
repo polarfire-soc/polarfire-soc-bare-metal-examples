@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -19,22 +19,22 @@
 #ifndef SIFIVE_HIFIVE_UNLEASHED
 
 /**
- * We do it this way to avoid multiple LDAR warnings
+ * We do it this way to avoid multiple LDRA warnings
  * alternate it to
  * #define MSS_SCB_MSS_PLL      (IOSCB_CFM_MSS *) )x7xxxxxxx    The actual
  * address * but above results in error every time we use the function
  */
 
-PLL_TypeDef *MSS_SCB_MSS_PLL = ((PLL_TypeDef *) MSS_SCB_MSS_PLL_BASE);
-PLL_TypeDef *MSS_SCB_DDR_PLL = ((PLL_TypeDef *) MSS_SCB_DDR_PLL_BASE);
-PLL_TypeDef *MSS_SCB_SGMII_PLL = ((PLL_TypeDef *) MSS_SCB_SGMII_PLL_BASE);
-IOSCB_CFM_MSS *MSS_SCB_CFM_MSS_MUX          =\
+PLL_TypeDef * const MSS_SCB_MSS_PLL = ((PLL_TypeDef *) MSS_SCB_MSS_PLL_BASE);
+PLL_TypeDef * const MSS_SCB_DDR_PLL = ((PLL_TypeDef *) MSS_SCB_DDR_PLL_BASE);
+PLL_TypeDef * const MSS_SCB_SGMII_PLL = ((PLL_TypeDef *) MSS_SCB_SGMII_PLL_BASE);
+IOSCB_CFM_MSS * const MSS_SCB_CFM_MSS_MUX          =\
         ((IOSCB_CFM_MSS *) MSS_SCB_MSS_MUX_BASE);
-IOSCB_CFM_SGMII *MSS_SCB_CFM_SGMII_MUX =\
+IOSCB_CFM_SGMII * const MSS_SCB_CFM_SGMII_MUX =\
         ((IOSCB_CFM_SGMII *) MSS_SCB_SGMII_MUX_BASE);
-IOSCB_IO_CALIB_STRUCT *IOSCB_IO_CALIB_SGMII =\
+IOSCB_IO_CALIB_STRUCT * const IOSCB_IO_CALIB_SGMII =\
         (IOSCB_IO_CALIB_STRUCT *)IOSCB_IO_CALIB_SGMII_BASE;
-IOSCB_IO_CALIB_STRUCT *IOSCB_IO_CALIB_DDR   =\
+IOSCB_IO_CALIB_STRUCT * const IOSCB_IO_CALIB_DDR   =\
         (IOSCB_IO_CALIB_STRUCT *)IOSCB_IO_CALIB_DDR_BASE;
 
 
@@ -42,10 +42,14 @@ IOSCB_IO_CALIB_STRUCT *IOSCB_IO_CALIB_DDR   =\
  * Symbols from the linker script used to locate the text, data and bss
  * sections.
  ******************************************************************************/
+#ifndef  MPFS_HAL_HW_CONFIG
+uint32_t __sc_load;
+uint32_t __sc_start;
+uint32_t __sc_end;
+#else
 extern uint32_t __sc_load;
 extern uint32_t __sc_start;
 extern uint32_t __sc_end;
-
 
 /*******************************************************************************
  * Local Defines                                                               *
@@ -54,17 +58,13 @@ extern uint32_t __sc_end;
 /*******************************************************************************
  * Local function declarations
  */
-static void copy_switch_code(void);
+__attribute__((weak)) void copy_switch_code(void);
 
 
 /*******************************************************************************
  * Instance definitions                                                        *
  ******************************************************************************/
 
-/******************************************************************************
- * Public Functions - API                                                      *
- ******************************************************************************/
-void mss_pll_config(void);
 void sgmii_mux_config(uint8_t option);
 
 /*******************************************************************************
@@ -74,13 +74,9 @@ void sgmii_mux_config(uint8_t option);
 
 /***************************************************************************//**
  * set_RTC_divisor()
- * Change the RTC clock divisor, so RTC clock is 1MHz
- * When changing the divider the enable should be turned off first, the divider
- * changed and the enable turned back on.
- * @param state source of clock
- * @return
+ * Set the RTC divisor based on MSS Configurator setting
+ * Note: This will always be calculated so RTC clock is 1MHz.
  */
-
 void set_RTC_divisor(void)
 {
 
@@ -175,7 +171,7 @@ static void mss_mux_pre_mss_pll_config(void)
      * From SAC spec:
      * Table 9 1: Each gbim bank clock mux programming in MSS corner
      * The DDRPHY bank clocks bclk_horz<5:0> and bclk_vert<5:0> are driven
-     * from mux’s gbim<5:0> in the MSS corner. Each mux uses 5 configuration
+     * from mux's gbim<5:0> in the MSS corner. Each mux uses 5 configuration
      * bits.
      *
      * BCLK mux selections
@@ -238,7 +234,7 @@ __attribute__((section(".ram_codetext"))) \
              leave */
 
     /*
-    * When you’re changing the eNVM clock frequency, there is a bit
+    * When you're changing the eNVM clock frequency, there is a bit
     * (ENVM_CR_clock_okay) in the eNVM_CR which can be polled to check that
     * the frequency change has happened before bumping up the AHB frequency.
     */
@@ -432,8 +428,7 @@ void mss_pll_config(void)
      *  [0] REG_POWERDOWN_B
      */
 
-    /* MSS PLL - 0x3E001000 - */
-    MSS_SCB_MSS_PLL->PLL_CTRL       = LIBERO_SETTING_MSS_PLL_CTRL;
+    MSS_SCB_MSS_PLL->PLL_CTRL       = LIBERO_SETTING_MSS_PLL_CTRL & ~(PLL_CTRL_REG_POWERDOWN_B_MASK);
 
     /*
      * PLL calibration register
@@ -516,8 +511,7 @@ void ddr_pll_config(REG_LOAD_METHOD option)
              * */
             MSS_SCB_DDR_PLL->SOFT_RESET       = PLL_INIT_AND_OUT_OF_RESET;
 
-            /* MSS PLL - 0x3E001000 - */
-            MSS_SCB_DDR_PLL->PLL_CTRL         = LIBERO_SETTING_DDR_PLL_CTRL;
+            MSS_SCB_DDR_PLL->PLL_CTRL         = LIBERO_SETTING_DDR_PLL_CTRL & ~(PLL_CTRL_REG_POWERDOWN_B_MASK);
             /* PLL calibration register */
 
             /*
@@ -637,8 +631,7 @@ void sgmii_pll_config_scb(uint8_t option)
              * */
             MSS_SCB_SGMII_PLL->SOFT_RESET      = PLL_INIT_AND_OUT_OF_RESET;
 
-            /* MSS PLL - 0x3E001000 - */
-            MSS_SCB_SGMII_PLL->PLL_CTRL      = LIBERO_SETTING_SGMII_PLL_CTRL;
+            MSS_SCB_SGMII_PLL->PLL_CTRL      = LIBERO_SETTING_SGMII_PLL_CTRL & ~(PLL_CTRL_REG_POWERDOWN_B_MASK);
             /* PLL calibration register */
 
             /*
@@ -709,7 +702,7 @@ uint8_t sgmii_pll_lock_scb(void)
  * Copy switch code routine to RAM.
  * Copy locations have been defined in the linker script
  ******************************************************************************/
-static void copy_switch_code(void)
+__attribute__((weak)) void copy_switch_code(void)
 {
     uint32_t * sc_lma = &__sc_load;
     uint32_t * end_sc_vma = &__sc_end;
@@ -725,6 +718,7 @@ static void copy_switch_code(void)
     }
 }
 
+#endif /* MPFS_HAL_HW_CONFIG */
 #endif
 
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -14,17 +14,13 @@
  *
  */
 /*=========================================================================*//**
-  
+
  *//*=========================================================================*/
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 
 #ifndef SIFIVE_HIFIVE_UNLEASHED
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 static uint64_t pmp_get_napot_base_and_range(uint64_t reg, uint64_t *range);
 
@@ -327,12 +323,5 @@ static uint64_t pmp_get_napot_base_and_range(uint64_t reg, uint64_t *range)
     *range = (1LU << numbits);
     return (base << 2U);
 }
-
-#endif
-
-
-#ifdef __cplusplus
-}
-
 
 #endif

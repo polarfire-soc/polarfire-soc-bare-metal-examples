@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -76,7 +76,7 @@ typedef struct IOMUX_CONFIG_ {
     the SCB registers
 
     The MSS IO pad configuration is provided by nineteen system registers
-    each configuring two IO’s using 15-bits per IO
+    each configuring two IO's using 15-bits per IO
     Theses registers are located in the MSS sysreg.
 
     - (mssio_bank*_io_cfg_*_*_cr).
