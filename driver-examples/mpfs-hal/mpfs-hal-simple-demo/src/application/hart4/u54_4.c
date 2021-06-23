@@ -14,15 +14,15 @@
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
+#include "inc/common.h"
 
 #ifndef SIFIVE_HIFIVE_UNLEASHED
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #else
 #include "drivers/FU540_uart/FU540_uart.h"
 #endif
 
 volatile uint32_t count_sw_ints_h4 = 0U;
-extern uint64_t uart_lock;
 
 /* Main function for the HART4(U54_4 processor).
  * Application code running on HART4 is placed here
@@ -35,6 +35,10 @@ void u54_4(void)
     uint8_t info_string[100];
     uint64_t hartid = read_csr(mhartid);
     volatile uint32_t icount = 0U;
+    HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
+#ifdef  MPFS_HAL_SHARED_MEM_ENABLED
+    HART_SHARED_DATA * hart_share = (HART_SHARED_DATA *)hls->shared_mem;
+#endif
 
     /* Clear pending software interrupt in case there was any.
        Enable only the software interrupt so that the E51 core can bring this
@@ -53,12 +57,12 @@ void u54_4(void)
     clear_soft_interrupt();
 
     __enable_irq();
-
-    mss_take_mutex((uint64_t)&uart_lock);
+#ifdef  MPFS_HAL_SHARED_MEM_ENABLED
+    spinlock(&hart_share->mutex_uart0);
     MSS_UART_polled_tx_string(&g_mss_uart0_lo,
                                     "Hello World from u54 core 4 - hart4.\r\n");
-    mss_release_mutex((uint64_t)&uart_lock);
-
+    spinunlock(&hart_share->mutex_uart0);
+#endif
     while (1U)
     {
         icount++;
@@ -66,9 +70,11 @@ void u54_4(void)
         {
             icount = 0U;
             sprintf(info_string,"Hart %d\r\n", hartid);
-            mss_take_mutex((uint64_t)&uart_lock);
+#ifdef  MPFS_HAL_SHARED_MEM_ENABLED
+            spinlock(&hart_share->mutex_uart0);
             MSS_UART_polled_tx(&g_mss_uart0_lo, info_string, strlen(info_string));
-            mss_release_mutex((uint64_t)&uart_lock);
+            spinunlock(&hart_share->mutex_uart0);
+#endif
         }
     }
     /* never return */

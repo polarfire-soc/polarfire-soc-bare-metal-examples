@@ -3656,6 +3656,18 @@ typedef struct _mss_sysreg
     /*Allows the Ethernet interrupts to be directly routed to the U54 CPUS.
     */
      __IO uint32_t FAB_INTEN_MISC;
+    /* Enables the Ethernet MAC0 to interrupt U54_1 directly  */
+    #define FAB_INTEN_MAC0_U54_1_EN_OFFSET      0x01U
+    /* Enables the Ethernet MAC0 to interrupt U54_2 directly  */
+    #define FAB_INTEN_MAC0_U54_2_EN_OFFSET      0x02U
+    /* Enables the Ethernet MAC1 to interrupt U54_3 directly  */
+    #define FAB_INTEN_MAC1_U54_3_EN_OFFSET      0x03U
+    /* Enables the Ethernet MAC1 to interrupt U54_4 directly  */
+    #define FAB_INTEN_MAC1_U54_4_EN_OFFSET      0x04U
+    #define FAB_INTEN_MAC0_U54_1_EN_MASK        0x01U
+    #define FAB_INTEN_MAC0_U54_2_EN_MASK        0x02U
+    #define FAB_INTEN_MAC1_U54_3_EN_MASK        0x04U
+    #define FAB_INTEN_MAC1_U54_4_EN_MASK        0x08U
 
     /*Switches GPIO interrupt from PAD to Fabric GPIO*/
      __IO uint32_t GPIO_INTERRUPT_FAB_CR;

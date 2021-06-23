@@ -19,7 +19,7 @@ Original Author: Shay Gal-on
 #include "core_portme.h"
 
 #include "mpfs_hal/mss_hal.h"
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 mss_uart_instance_t *gp_my_uart;
 

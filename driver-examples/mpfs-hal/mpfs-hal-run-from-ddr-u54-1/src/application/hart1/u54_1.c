@@ -14,21 +14,16 @@
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
-
-#ifndef SIFIVE_HIFIVE_UNLEASHED
-#include "drivers/mss_mmuart/mss_uart.h"
-#else
-#include "drivers/FU540_uart/FU540_uart.h"
-#endif
-
-volatile uint32_t count_sw_ints_h1 = 0U;
-
-extern uint64_t uart_lock;
-mss_uart_instance_t *g_debug_uart= &g_mss_uart1_lo ;
-
-static void ddr_read_write (uint32_t no_access);
+#include "inc/common.h"
+#include "mpfs_hal/common/mss_util.h"
 
 #define small_ver 0x00010000UL
+
+volatile uint32_t count_sw_ints_h1 = 0U;
+mss_uart_instance_t *g_debug_uart= &g_mss_uart1_lo ;
+#ifdef TEST_DDR_ACCESS
+static void ddr_read_write (uint32_t no_access);
+#endif
 
 /* Main function for the HART1(U54_1 processor).
  * Application code running on HART1 is placed here
@@ -41,29 +36,34 @@ void u54_1(void)
     uint8_t info_string[100];
     uint64_t hartid = read_csr(mhartid);
     volatile uint32_t icount = 0U;
+    HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
+#ifdef  MPFS_HAL_SHARED_MEM_ENABLED
+    HART_SHARED_DATA * hart_share = (HART_SHARED_DATA *)hls->shared_mem;
+#endif
 
     /* The hart is out of WFI, clear the SW interrupt. Hear onwards Application
        can enable and use any interrupts as required */
     clear_soft_interrupt();
     //__enable_irq();
 
-    /* Turn on UART0 clock */
-    SYSREG->SUBBLK_CLOCK_CR |= SUBBLK_CLOCK_CR_MMUART1_MASK;
-    /* Remove soft reset */
-    SYSREG->SOFT_RESET_CR   &= ~SOFT_RESET_CR_MMUART1_MASK;
+#ifdef  MPFS_HAL_SHARED_MEM_ENABLED
+    spinlock(&hart_share->mutex_uart0);
+    MSS_UART_polled_tx_string(hart_share->g_mss_uart1_lo,
+            "Hello World from u54 core 1 - hart1 running from DDR\r\n");
+    spinunlock(&hart_share->mutex_uart0);
+#endif
 
-    /* This mutex is used to serialize accesses to UART0 when all harts want to
-       TX/RX on UART0. This mutex is shared across all harts. */
-    //fixme:does not like being called twice- to resolve  mss_init_mutex((uint64_t)&uart_lock);
+    /* Turn on UART1 clock and take out of reset */
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
 
     MSS_UART_init( &g_mss_uart1_lo,
     MSS_UART_115200_BAUD,
     MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
-    //fixme:does not like being called twice- to resolve mss_take_mutex((uint64_t)&uart_lock);
-    MSS_UART_polled_tx_string(&g_mss_uart1_lo,
-            "Hello World from u54 core 1 - hart1 running from DDR\r\n");
-    //fixme:does not like being called twice- to resolve mss_release_mutex((uint64_t)&uart_lock);
+    sprintf(info_string, "\r\nHart %u, HLS mem address 0x%lx, Shared mem 0x%lx\r\n",\
+                                                              hls->my_hart_id, (uint64_t)hls, (uint64_t)hls->shared_mem);
+
+    MSS_UART_polled_tx_string(&g_mss_uart1_lo, (const uint8_t*)info_string);
 
 #ifdef TEST_DDR_ACCESS
             ddr_read_write (small_ver);
@@ -77,9 +77,7 @@ void u54_1(void)
             icount = 0U;
             sprintf(info_string,"Hart = %d, Readtime = %d  running from DDR\r\n"\
                     , hartid, readmtime());
-            mss_take_mutex((uint64_t)&uart_lock);
             MSS_UART_polled_tx(&g_mss_uart1_lo, info_string,strlen(info_string));
-            mss_release_mutex((uint64_t)&uart_lock);
 #ifdef TEST_DDR_ACCESS
             ddr_read_write (small_ver);
 #endif
@@ -98,6 +96,7 @@ void Software_h1_IRQHandler(void)
 /**
  *
  */
+#ifdef TEST_DDR_ACCESS
 static void ddr_read_write (uint32_t no_access)
 {
 #ifdef TEST_NON_CACHE_DDR_PATH
@@ -117,3 +116,4 @@ static void ddr_read_write (uint32_t no_access)
     MSS_UART_polled_tx_string(&g_mss_uart1_lo,(const uint8_t*)"\n\r             Finished ");
     MSS_UART_polled_tx_string(&g_mss_uart1_lo,(const uint8_t*)"\n\n\r ****************************************************** \n\r");
 }
+#endif

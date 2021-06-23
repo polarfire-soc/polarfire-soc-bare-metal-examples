@@ -71,32 +71,18 @@ MEMORY
     ddr_non_cached_38bit (rwx) : ORIGIN  = 0x1400000000, LENGTH = 0k
     ddr_wcb_38bit (rwx) : ORIGIN  = 0x1800000000, LENGTH  = 0k
 }
-
 HEAP_SIZE           = 0k;               /* needs to be calculated for your application if using */
 
-/* STACK_SIZE_PER_HART needs to be calculated for your */
-/* application. Must be aligned */
-/* Also Thread local storage (AKA hart local storage) allocated for each hart */
-/* as part of the stack
-/* So memory map will look like once apportion in startup code: */
-/*   */
-/* stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE) */
-/* TLS hart 0   */
-/* stack hart1  */
-/* TLS hart 1   */
-/* etc */
-/* note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h */
+/*
+ * Stack size for our single hart U54 application.
+ */
+STACK_SIZE_U54_APPLICATION = 8k;
 
 /*
- * Stack size for each hart's application.
- * These are the stack sizes that will be allocated to each hart before starting
- * each hart's application function, e51(), u54_1(), u54_2(), u54_3(), u54_4().
+ * A small amount of unitialised memory used to store information
+ * obtained from the boot-loader on start-up
  */
-STACK_SIZE_E51_APPLICATION = 8k;
-STACK_SIZE_U54_1_APPLICATION = 8k;
-STACK_SIZE_U54_2_APPLICATION = 8k;
-STACK_SIZE_U54_3_APPLICATION = 8k;
-STACK_SIZE_U54_4_APPLICATION = 8k;
+UNITITALISED_MEM = 16B;
 
 /* reset address 0xC0000000 */
 SECTION_START_ADDRESS           = 0x80000000; 
@@ -164,25 +150,6 @@ SECTIONS
         __l2_scratchpad_end = .;
         __l2_scratchpad_vma_end = .;
     } >scratchpad AT> ddr_cached_32bit
-    
-    /* 
-    *   The .ram_code section will contain the code That is run from RAM.
-    *   We are using this code to switch the clocks including eNVM clock.
-    *   This can not be done when running from eNVM
-    *   This will need to be copied to ram, before any of this code is run.
-    */
-    .ram_code :
-    {
-        . = ALIGN (4);
-        __sc_load = LOADADDR (.ram_code);
-        __sc_start = .;
-        *(.ram_codetext)        /* .ram_codetext sections (code) */
-        *(.ram_codetext*)       /* .ram_codetext* sections (code)  */
-        *(.ram_coderodata)      /* read-only data (constants) */
-        *(.ram_coderodata*)
-        . = ALIGN (4);
-        __sc_end = .;
-    } >switch_code AT> ddr_cached_32bit     /* On the MPFS for startup code use,  >switch_code AT>eNVM */
 
     /* short/global data section */
     .sdata : ALIGN(0x10)
@@ -245,35 +212,24 @@ SECTIONS
     /* must be on 4k boundary- corresponds to page size */
     .stack : ALIGN(0x1000)
     {
-        PROVIDE(__stack_bottom_h0$ = .);
-        PROVIDE(__app_stack_bottom_h0 = .);
-        . += STACK_SIZE_E51_APPLICATION;
-        PROVIDE(__app_stack_top_h0 = .);
-        PROVIDE(__stack_top_h0$ = .);
-
-        PROVIDE(__stack_bottom_h1$ = .);
-        PROVIDE(__app_stack_bottom_h1$ = .);
-        . += STACK_SIZE_U54_1_APPLICATION;
-        PROVIDE(__app_stack_top_h1 = .);
-        PROVIDE(__stack_top_h1$ = .);
-
-        PROVIDE(__stack_bottom_h2$ = .);
-        PROVIDE(__app_stack_bottom_h2 = .);
-        . += STACK_SIZE_U54_2_APPLICATION;
-        PROVIDE(__app_stack_top_h2 = .);
-        PROVIDE(__stack_top_h2$ = .);
-
-        PROVIDE(__stack_bottom_h3$ = .);
-        PROVIDE(__app_stack_bottom_h3 = .);
-        . += STACK_SIZE_U54_3_APPLICATION;
-        PROVIDE(__app_stack_top_h3 = .);
-        PROVIDE(__stack_top_h3$ = .);
-
-        PROVIDE(__stack_bottom_h4$ = .);
-        PROVIDE(__app_stack_bottom_h4 = .);
-        . += STACK_SIZE_U54_4_APPLICATION;
-        PROVIDE(__app_stack_top_h4 = .);
-        PROVIDE(__stack_top_h4$ = .);
+        PROVIDE(__app_stack_bottom = .);
+        . += STACK_SIZE_U54_APPLICATION;
+        PROVIDE(__app_stack_top = .);
+    } > ddr_cached_32bit
+    
+    /* 
+     * used by a program loaded by a bootloader to store information passed 
+     * from boot-loader
+     * a0 holds the hart ID
+     * a1 hold pointer to device data, which includes pointer to shared memory
+     * when enabled by setting MPFS_HAL_SHARED_MEM_ENABLED define in the
+     * mss_sw_config.h
+     */
+    .no_init : ALIGN(0x10)
+    {
+        PROVIDE(__uninit_bottom$ = .);
+        . += UNITITALISED_MEM;
+        PROVIDE(__uninit_top_h$ = .);
     } > ddr_cached_32bit
 }
 

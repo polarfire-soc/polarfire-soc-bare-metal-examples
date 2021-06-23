@@ -70,20 +70,25 @@ MEMORY
                                
 HEAP_SIZE           = 8k;   /* needs to be calculated for your application */
 
-/* STACK_SIZE_PER_HART needs to be calculated for your */
-/* application. Must be aligned */
-/* Also Thread local storage (AKA hart local storage) allocated for each hart */
-/* as part of the stack
-/* So memory map will look like once apportion in startup code: */
-/*   */
-/* stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE) */
-/* TLS hart 0   */
-/* stack hart1  */
-/* TLS hart 1   */
-/* etc */
-/* note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h */
-STACK_SIZE_PER_HART = 8k;                     
+/*
+ * There is common area for shared variables, accessed from a pointer in a harts HLS
+ */
+SIZE_OF_COMMON_HART_MEM = 4k;
 
+/* 
+ * The stack size needs to be calculated for your                                
+ * application. It must be Must be aligned                                       
+ * Also Thread local storage (AKA hart local storage) is allocated for each hart 
+ * as part of the stack                                                          
+ * So the memory map will look like once apportion in startup code:              
+ * stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE)  
+ * TLS hart 0                                                                    
+ * stack hart1                                                                   
+ * TLS hart 1                                                                    
+ * etc                                                                           
+ * note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h                       
+ */
+ 
 /*
  * Stack size for each hart's application.
  * These are the stack sizes that will be allocated to each hart before starting
@@ -317,9 +322,23 @@ SECTIONS
         . += STACK_SIZE_U54_4_APPLICATION;
         PROVIDE(__app_stack_top_h4 = .);
         PROVIDE(__stack_top_h4$ = .);
+        
         /* place __start_of_free_lim$ after last allocation of l2_lim */
         . = ALIGN(0x10);
         PROVIDE(__start_of_free_lim$ = .);
+    } > l2lim
+    
+    /* 
+     * memory shared accross harts. 
+     * The boot Hart Local Storage holds a pointer to this area for each hart if 
+     * when enabled by setting MPFS_HAL_SHARED_MEM_ENABLED define in the
+     * mss_sw_config.h
+     */
+    .app_hart_common : /* ALIGN(0x1000) */
+    {
+        PROVIDE(__app_hart_common_start = .);
+        . += SIZE_OF_COMMON_HART_MEM;
+        PROVIDE(__app_hart_common_end = .);
     } > l2lim
 }
 

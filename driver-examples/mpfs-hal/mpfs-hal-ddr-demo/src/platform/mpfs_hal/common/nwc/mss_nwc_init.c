@@ -21,7 +21,7 @@
 #include "simulation.h"
 
 #ifdef DEBUG_DDR_INIT
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 extern mss_uart_instance_t *g_debug_uart ;
 uint32_t setup_ddr_debug_port(mss_uart_instance_t * uart);
 #endif
@@ -360,13 +360,11 @@ uint8_t mss_nwc_init(void)
     return error;
 }
 
+
 /*-------------------------------------------------------------------------*//**
  * delay()
- * @param n
- *
- *  @return
- *   No return value.
- *   //todo: make delay function clock based
+ * Not absolute. Dependency on current clk rate
+ * @param n Number of iterations to wait.
  */
 void delay(uint32_t n)
 {

@@ -30,7 +30,7 @@
 #include "sf2_bl_options.h"
 #include "sf2_bl_defs.h"
 #else
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #endif
 #include "ymodem.h"
 

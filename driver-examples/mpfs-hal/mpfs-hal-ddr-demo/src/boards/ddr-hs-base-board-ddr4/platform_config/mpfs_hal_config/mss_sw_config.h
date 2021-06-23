@@ -99,8 +99,12 @@
 #define DDR_BASE_BOARD
 
 /*
- * MPFS_HAL_HW_CONFIG
- * Conditional compile switch is used to determine if MPFS HAL will perform the
+ * IMAGE_LOADED_BY_BOOTLOADER
+ * We set IMAGE_LOADED_BY_BOOTLOADER = 0 if we are a boot-loader
+ * Set IMAGE_LOADED_BY_BOOTLOADER = 1 if loaded by a boot loader
+ *
+ * MPFS_HAL_HW_CONFIG is defined if we are a boot-loader. This is a
+ * conditional compile switch is used to determine if MPFS HAL will perform the
  * hardware configurations or not.
  * Defined      => This program acts as a First stage bootloader and performs
  *                 hardware configurations.
@@ -116,8 +120,12 @@
  * - I/O, clock and clock mux's, DDR and SGMII
  * - will start other harts, see text describing MPFS_HAL_FIRST_HART,
  *   MPFS_HAL_LAST_HART above
+ *
+ *   IMAGE_LOADED_BY_BOOTLOADER
+ *   The code below sets IMAGE_LOADED_BY_BOOTLOADER to 0 if we are
  */
-#ifndef MPFS_HAL_HW_CONFIG
+#define IMAGE_LOADED_BY_BOOTLOADER 0
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
 #define MPFS_HAL_HW_CONFIG
 #endif
 

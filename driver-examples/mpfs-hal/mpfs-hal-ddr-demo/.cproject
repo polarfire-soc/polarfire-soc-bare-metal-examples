@@ -5,7 +5,7 @@
                 
         <cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262">
                         
-            <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262" moduleId="org.eclipse.cdt.core.settings" name="icicle-kit-release">
+            <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262" moduleId="org.eclipse.cdt.core.settings" name="eNVM-scratchpad-Release-Icicle-Kit">
                                 
                 <externalSettings/>
                                 
@@ -29,7 +29,7 @@
                         
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                                 
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="envm icicile kit" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262" name="icicle-kit-release" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" preannouncebuildStep="Build Icicle kit soc_config folder from MSS Configurator output. Python script takes xml and output folder location as paramaters." prebuildStep="#${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/soc_fpga_design/xml/XML_scratchpad/ICICLE_MSS_mss_cfg.xml   ../src/boards/icicle-kit-es ">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="envm icicile kit" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262" name="eNVM-scratchpad-Release-Icicle-Kit" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" preannouncebuildStep="Build Icicle kit fpga_config folder from MSS Configurator output. Python script takes xml and output folder location as paramaters." prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description   ../src/boards/icicle-kit-es ">
                                         
                     <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262." name="/" resourcePath="">
                                                 
@@ -41,7 +41,7 @@
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.printsize.1457217770" name="Print size" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.printsize" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                                         
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.level.206573326" name="Optimization Level" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.level" useByScannerDiscovery="true" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.level.more" valueType="enumerated"/>
+                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.level.206573326" name="Optimization Level" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.level" useByScannerDiscovery="true" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.level.size" valueType="enumerated"/>
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.messagelength.1154768893" name="Message length (-fmessage-length=0)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.messagelength" useByScannerDiscovery="true" value="true" valueType="boolean"/>
                                                         
@@ -77,9 +77,9 @@
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.base.2057701572" name="Architecture" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.base" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.arch.rv64g" valueType="enumerated"/>
                                                         
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer.2075138832" name="Integer ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.integer.default" valueType="enumerated"/>
+                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer.2075138832" name="Integer ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.integer.lp64" valueType="enumerated"/>
                                                         
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp.443296283" name="Floating point ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.fp.none" valueType="enumerated"/>
+                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp.443296283" name="Floating point ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.fp.double" valueType="enumerated"/>
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.toolchain.id.261681093" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.toolchain.id" useByScannerDiscovery="false" value="-2032619395" valueType="string"/>
                                                         
@@ -91,7 +91,7 @@
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.codemodel.1681876911" name="Code model" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.codemodel" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.codemodel.any" valueType="enumerated"/>
                                                         
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.1043859165" name="Align" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.default" valueType="enumerated"/>
+                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.1043859165" name="Align" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.strict" valueType="enumerated"/>
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.unused.1512636009" name="Warn on various unused elements (-Wunused)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.unused" useByScannerDiscovery="true" value="true" valueType="boolean"/>
                                                         
@@ -113,7 +113,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.1801563061" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.793974522" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.793974522" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.798291187" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -138,6 +138,12 @@
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es/platform_config}&quot;"/>
                                                                     
                                 </option>
+                                                                
+                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.asmlisting.1562226136" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.asmlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+                                                                
+                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.other.123158047" name="Other assembler flags" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.other" useByScannerDiscovery="false" value="--specs=nano.specs" valueType="string"/>
+                                                                
+                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.verbose.1063087016" name="Verbose (-v)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.verbose" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                                                 
                                 <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.input.1001257507" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.input"/>
                                                             
@@ -173,6 +179,8 @@
                                                                 
                                 <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.verbose.1759352562" name="Verbose (-v)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.verbose" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                                                 
+                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.other.777477975" name="Other compiler flags" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.other" useByScannerDiscovery="true" value="--specs=nano.specs" valueType="string"/>
+                                                                
                                 <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.575174871" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input"/>
                                                             
                             </tool>
@@ -185,7 +193,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.290126793" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es/platform_config/linker/mpfs-envm-lma-scratchpad-vma.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-envm-lma-scratchpad-vma.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -245,57 +253,9 @@
                                             
                     </folderInfo>
                                         
-                    <fileInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.321683450" name="mss_l2_cache.c" rcbsApplicability="disable" resourcePath="src/platform/mpfs_hal/common/mss_l2_cache.c" toolsToInvoke="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.1056116109.1002079511">
-                                                
-                        <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.1056116109.1002079511" name="GNU RISC-V Cross C Compiler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.1056116109">
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.otheroptimizations.1185849370" name="Other optimization flags" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.otheroptimizations" useByScannerDiscovery="true" value="-O0" valueType="string"/>
-                                                        
-                            <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.223344195" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input"/>
-                                                    
-                        </tool>
-                                                
-                        <tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.154689266" name="Resource Custom Build Step">
-                                                        
-                            <inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.879733293" name="Resource Custom Build Step Input Type">
-                                                                
-                                <additionalInput kind="additionalinputdependency" paths=""/>
-                                                            
-                            </inputType>
-                                                        
-                            <outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.1833862307" name="Resource Custom Build Step Output Type"/>
-                                                    
-                        </tool>
-                                            
-                    </fileInfo>
-                                        
-                    <fileInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.1616358094" name="system_startup.c" rcbsApplicability="disable" resourcePath="src/platform/mpfs_hal/startup_gcc/system_startup.c" toolsToInvoke="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.1056116109.2056811386">
-                                                
-                        <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.1056116109.2056811386" name="GNU RISC-V Cross C Compiler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.1056116109">
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.otheroptimizations.496107989" name="Other optimization flags" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.otheroptimizations" useByScannerDiscovery="true" value="-O0" valueType="string"/>
-                                                        
-                            <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.963242587" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input"/>
-                                                    
-                        </tool>
-                                                
-                        <tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.2096452471" name="Resource Custom Build Step">
-                                                        
-                            <inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.880588337" name="Resource Custom Build Step Input Type">
-                                                                
-                                <additionalInput kind="additionalinputdependency" paths=""/>
-                                                            
-                            </inputType>
-                                                        
-                            <outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.1759932238" name="Resource Custom Build Step Output Type"/>
-                                                    
-                        </tool>
-                                            
-                    </fileInfo>
-                                        
                     <sourceEntries>
                                                 
-                        <entry excluding="platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+                        <entry excluding="platform/drivers/mss_uart_old|platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
                                             
                     </sourceEntries>
                                     
@@ -311,7 +271,7 @@
                 
         <cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497">
                         
-            <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497" moduleId="org.eclipse.cdt.core.settings" name="icicle_kit_debug">
+            <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497" moduleId="org.eclipse.cdt.core.settings" name="LIM-Debug-Icicle-kit">
                                 
                 <externalSettings/>
                                 
@@ -335,7 +295,7 @@
                         
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                                 
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Debug of the Icicle kit" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497" name="icicle_kit_debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="Build Icicle kit soc_config folder from MSS Configurator output. Python script takes xml and output folder location as paramaters." prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/soc_fpga_design/xml/XML_scratchpad/ICICLE_MSS_mss_cfg.xml   ../src/boards/icicle-kit-es ">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Debug of the Icicle kit" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497" name="LIM-Debug-Icicle-kit" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="Build Icicle kit fpga_config folder from MSS Configurator output. Python script takes xml and output folder location as paramaters." prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description   ../src/boards/icicle-kit-es ">
                                         
                     <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497." name="/" resourcePath="">
                                                 
@@ -381,13 +341,13 @@
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.rm.260537557" name="Remove command" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.rm" useByScannerDiscovery="false" value="rm" valueType="string"/>
                                                         
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer.1012213031" name="Integer ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.integer.default" valueType="enumerated"/>
+                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer.1012213031" name="Integer ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.integer.lp64" valueType="enumerated"/>
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.base.1660995892" name="Architecture" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.base" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.arch.rv64g" valueType="enumerated"/>
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.toerrors.2053311983" name="Generate errors instead of warnings (-Werror)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.toerrors" useByScannerDiscovery="true" value="false" valueType="boolean"/>
                                                         
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp.614883265" name="Floating point ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.fp.none" valueType="enumerated"/>
+                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp.614883265" name="Floating point ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.fp.double" valueType="enumerated"/>
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.toolchain.id.685656783" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.toolchain.id" useByScannerDiscovery="false" value="-2032619395" valueType="string"/>
                                                         
@@ -397,7 +357,7 @@
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.codemodel.1891749455" name="Code model" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.codemodel" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.codemodel.any" valueType="enumerated"/>
                                                         
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.969220098" name="Align" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.default" valueType="enumerated"/>
+                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.969220098" name="Align" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.strict" valueType="enumerated"/>
                                                         
                             <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.compressed.335765415" name="Compressed extension (RVC)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.compressed" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                                         
@@ -437,13 +397,13 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.107543569" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1456340706" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1456340706" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.1774057913" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
                                 <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.usepreprocessor.202287644" name="Use preprocessor" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                                                 
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.other.1437179068" name="Other assembler flags" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.other" useByScannerDiscovery="false" value="" valueType="string"/>
+                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.other.1437179068" name="Other assembler flags" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.other" useByScannerDiscovery="false" value="--specs=nano.specs" valueType="string"/>
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.include.paths.1003026391" name="Include paths (-I)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
                                                                         
@@ -491,6 +451,8 @@
                                                                     
                                 </option>
                                                                 
+                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.other.397192098" name="Other compiler flags" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.other" useByScannerDiscovery="true" value="--specs=nano.specs" valueType="string"/>
+                                                                
                                 <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.1704906076" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input"/>
                                                             
                             </tool>
@@ -503,7 +465,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.1450717782" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es/platform_config/linker/mpfs-lim-lma-scratchpad-vma.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-lim.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -563,57 +525,9 @@
                                             
                     </folderInfo>
                                         
-                    <fileInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.711211610" name="mss_l2_cache.c" rcbsApplicability="disable" resourcePath="src/platform/mpfs_hal/common/mss_l2_cache.c" toolsToInvoke="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.476050423.1997341519">
-                                                
-                        <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.476050423.1997341519" name="GNU RISC-V Cross C Compiler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.476050423">
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.otheroptimizations.297460870" name="Other optimization flags" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.otheroptimizations" useByScannerDiscovery="true" value="-O0" valueType="string"/>
-                                                        
-                            <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.773307323" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input"/>
-                                                    
-                        </tool>
-                                                
-                        <tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.1610184460" name="Resource Custom Build Step">
-                                                        
-                            <inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.168392380" name="Resource Custom Build Step Input Type">
-                                                                
-                                <additionalInput kind="additionalinputdependency" paths=""/>
-                                                            
-                            </inputType>
-                                                        
-                            <outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.240030479" name="Resource Custom Build Step Output Type"/>
-                                                    
-                        </tool>
-                                            
-                    </fileInfo>
-                                        
-                    <fileInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.31149068" name="system_startup.c" rcbsApplicability="disable" resourcePath="src/platform/mpfs_hal/startup_gcc/system_startup.c" toolsToInvoke="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.476050423.32603853">
-                                                
-                        <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.476050423.32603853" name="GNU RISC-V Cross C Compiler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.476050423">
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.otheroptimizations.1803683710" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.otheroptimizations" useByScannerDiscovery="true" value="-O0" valueType="string"/>
-                                                        
-                            <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.87737136" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input"/>
-                                                    
-                        </tool>
-                                                
-                        <tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.1716112960" name="Resource Custom Build Step">
-                                                        
-                            <inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1364038648" name="Resource Custom Build Step Input Type">
-                                                                
-                                <additionalInput kind="additionalinputdependency" paths=""/>
-                                                            
-                            </inputType>
-                                                        
-                            <outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.764773196" name="Resource Custom Build Step Output Type"/>
-                                                    
-                        </tool>
-                                            
-                    </fileInfo>
-                                        
                     <sourceEntries>
                                                 
-                        <entry excluding="src/platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/platform/drivers/mss_uart_old|src/platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                                             
                     </sourceEntries>
                                     
@@ -755,7 +669,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.1826847761" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1914773475" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1914773475" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.1090669588" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -813,7 +727,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.2080327546" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/peripheral-base-board-ddr-x16/platform_config/linker/mpfs-lim.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-lim.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -875,7 +789,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="src/platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/platform/drivers/mss_uart_old|src/platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                                             
                     </sourceEntries>
                                     
@@ -999,7 +913,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.972981879" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1875771458" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1875771458" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.1748696134" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -1063,7 +977,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.1269587848" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/peripheral-base-board-ddr-x16/platform_config/linker/mpfs-envm.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-envm.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -1125,7 +1039,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+                        <entry excluding="platform/drivers/mss_uart_old|platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
                                             
                     </sourceEntries>
                                     
@@ -1163,7 +1077,7 @@
                         
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                                 
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Use this config to debug DDR on your custom board" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.1516082872" name="custom-board-debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="#${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/custom-board/soc_fpga_design/xml/MSS_Aldec_mss_cfg.xml   ../src/boards/custom-board ">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Use this config to debug DDR on your custom board" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.1516082872" name="custom-board-debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="#${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/custom-board/fpga_design/xml/MSS_Aldec_mss_cfg.xml   ../src/boards/custom-board ">
                                         
                     <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.1516082872." name="/" resourcePath="">
                                                 
@@ -1265,7 +1179,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.1540991021" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.800780138" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.800780138" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.2008668687" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -1331,7 +1245,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.292622113" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es/platform_config/linker/mpfs-lim.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-lim.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -1393,7 +1307,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="src/platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/platform/drivers/mss_uart_old|src/platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                                             
                     </sourceEntries>
                                     
@@ -1535,7 +1449,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.502698940" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.641449436" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.641449436" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.1968941593" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -1593,7 +1507,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.740279975" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/peripheral-base-board-ddr-x32/platform_config/linker/mpfs-lim.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-lim.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -1655,7 +1569,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="src/platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/platform/drivers/mss_uart_old|src/platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                                             
                     </sourceEntries>
                                     
@@ -1779,7 +1693,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.1088409257" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1984015105" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1984015105" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.110441250" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -1843,7 +1757,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.1940298719" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/peripheral-base-board-ddr-x32/platform_config/linker/mpfs-envm.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-envm.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -1905,7 +1819,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+                        <entry excluding="platform/drivers/mss_uart_old|platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
                                             
                     </sourceEntries>
                                     
@@ -1943,7 +1857,7 @@
                         
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                                 
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="debug in LIM on ddr hs board with ddr3" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.1715413065" name="ddr-hs-base-board-ddr3-debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="#${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/soc_fpga_design/xml/XML_scratchpad/ICICLE_MSS_mss_cfg.xml   ../src/boards/icicle-kit-es ">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="debug in LIM on ddr hs board with ddr3" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.1715413065" name="ddr-hs-base-board-ddr3-debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="#${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/xml/ICICLE_MSS_eMMC_cfg.xml   ../src/boards/icicle-kit-es ">
                                         
                     <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.1715413065." name="/" resourcePath="">
                                                 
@@ -2045,7 +1959,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.1406210" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.490657882" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.490657882" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.1118545846" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -2111,7 +2025,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.1395230976" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/ddr-hs-base-board-ddr3/platform_config/linker/mpfs-lim.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-lim.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -2173,7 +2087,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="src/platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/platform/drivers/mss_uart_old|src/platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                                             
                     </sourceEntries>
                                     
@@ -2213,7 +2127,7 @@
                         
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                                 
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="ddr hs base board with DDR debug from envm" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.2073371236" name="ddr-hs-base-board-ddr4-release" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" prebuildStep="#${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/soc_fpga_design/xml/XML_scratchpad/ICICLE_MSS_mss_cfg.xml   ../src/boards/icicle-kit-es ">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="ddr hs base board with DDR debug from envm" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.2073371236" name="ddr-hs-base-board-ddr4-release" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" prebuildStep="#${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/xml/ICICLE_MSS_eMMC_cfg.xml   ../src/boards/icicle-kit-es ">
                                         
                     <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.2073371236." name="/" resourcePath="">
                                                 
@@ -2297,7 +2211,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.373800424" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.588142780" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.588142780" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.850494642" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -2369,7 +2283,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.177039313" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/ddr-hs-base-board-ddr4/platform_config/linker/mpfs-envm.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-envm.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -2431,7 +2345,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+                        <entry excluding="platform/drivers/mss_uart_old|platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
                                             
                     </sourceEntries>
                                     
@@ -2471,7 +2385,7 @@
                         
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                                 
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="ddr high speed board with ddr3 targeted at envm" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.1481771366" name="ddr-hs-base-board-ddr3-envm" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" prebuildStep="#${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/soc_fpga_design/xml/XML_scratchpad/ICICLE_MSS_mss_cfg.xml   ../src/boards/icicle-kit-es ">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="ddr high speed board with ddr3 targeted at envm" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.1481771366" name="ddr-hs-base-board-ddr3-envm" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" prebuildStep="#${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/xml/ICICLE_MSS_eMMC_cfg.xml   ../src/boards/icicle-kit-es ">
                                         
                     <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.1481771366." name="/" resourcePath="">
                                                 
@@ -2555,7 +2469,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.1492321950" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1390443546" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1390443546" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.1731356650" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -2627,7 +2541,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.1864399234" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/ddr-hs-base-board-ddr3/platform_config/linker/mpfs-envm.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-envm.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -2689,7 +2603,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+                        <entry excluding="platform/drivers/mss_uart_old|platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
                                             
                     </sourceEntries>
                                     
@@ -2729,7 +2643,7 @@
                         
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                                 
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="ddr has board with ddr4 running from LIM" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.1958400561" name="ddr-hs-base-board-ddr4-debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/soc_fpga_design/xml/XML_scratchpad/ICICLE_MSS_mss_cfg.xml   ../src/boards/icicle-kit-es ">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="ddr has board with ddr4 running from LIM" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.1958400561" name="ddr-hs-base-board-ddr4-debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
                                         
                     <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.1958400561." name="/" resourcePath="">
                                                 
@@ -2831,7 +2745,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.314694313" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1861616798" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1861616798" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.1842222999" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -2897,7 +2811,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.881882012" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/ddr-hs-base-board-ddr4/platform_config/linker/mpfs-lim.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-lim.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -2959,7 +2873,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="src/platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/platform/drivers/mss_uart_old|src/platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                                             
                     </sourceEntries>
                                     
@@ -2999,7 +2913,7 @@
                         
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                                 
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Debug lpddr3 on iof-max board, run from scratchpad" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.78080758" name="iof-max-verification-board-lpddr3-debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/soc_fpga_design/xml/XML_scratchpad/ICICLE_MSS_mss_cfg.xml   ../src/boards/icicle-kit-es ">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Debug lpddr3 on iof-max board, run from scratchpad" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.78080758" name="iof-max-verification-board-lpddr3-debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
                                         
                     <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.78080758." name="/" resourcePath="">
                                                 
@@ -3101,7 +3015,7 @@
                                                         
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.1177654131" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
                                                         
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.361078228" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
+                            <builder buildPath="${workspace_loc:/mpfs-hal-ddr-demo}/Debug" enableCleanBuild="true" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.361078228" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
                                                         
                             <tool command="${cross_prefix}${cross_c}${cross_suffix}" commandLinePattern="${COMMAND} ${cross_toolchain_flags} ${FLAGS} -c ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.891202699" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
                                                                 
@@ -3167,7 +3081,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.257030242" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/iof-max-verification-board-lpddr3/platform_config/linker/mpfs-lim-lma-scratchpad-vma.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-lim-lma-scratchpad-vma.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -3229,7 +3143,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="src/platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/platform/drivers/mss_uart_old|src/platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                                             
                     </sourceEntries>
                                     
@@ -3269,7 +3183,7 @@
                         
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                                 
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="nvm build" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.78080758.1381950860" name="iof-max-verification-board-lpddr3-envm" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/soc_fpga_design/xml/XML_scratchpad/ICICLE_MSS_mss_cfg.xml   ../src/boards/icicle-kit-es ">
+                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="nvm build" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.78080758.1381950860" name="iof-max-verification-board-lpddr3-envm" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
                                         
                     <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1138919497.78080758.1381950860." name="/" resourcePath="">
                                                 
@@ -3437,7 +3351,7 @@
                                                                 
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.1679852334" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
                                                                         
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/iof-max-verification-board-lpddr3/platform_config/linker/mpfs-envm-lma-scratchpad-vma.ld}&quot;"/>
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference/linker/mpfs-envm-lma-scratchpad-vma.ld}&quot;"/>
                                                                     
                                 </option>
                                                                 
@@ -3499,265 +3413,7 @@
                                         
                     <sourceEntries>
                                                 
-                        <entry excluding="src/platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-                                            
-                    </sourceEntries>
-                                    
-                </configuration>
-                            
-            </storageModule>
-                        
-            <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
-                        
-            <storageModule moduleId="ilg.gnumcueclipse.managedbuild.packs"/>
-                    
-        </cconfiguration>
-                
-        <cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.382961076">
-                        
-            <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.382961076" moduleId="org.eclipse.cdt.core.settings" name="icicle-kit-two-contexts-debug">
-                                
-                <externalSettings/>
-                                
-                <extensions>
-                                        
-                    <extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
-                                        
-                    <extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-                                        
-                    <extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-                                        
-                    <extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-                                        
-                    <extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
-                                        
-                    <extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-                                    
-                </extensions>
-                            
-            </storageModule>
-                        
-            <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-                                
-                <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="Please note pmp - one or two contects on Bare Metal are currently not supported in the software flow" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.382961076" name="icicle-kit-two-contexts-debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" preannouncebuildStep="Build Icicle kit soc_config folder from MSS Configurator output. Python script takes xml and output folder location as paramaters." prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/soc_fpga_design/xml/xml_contexts/ICICLE_MSS_mss_cfg.xml   ../src/boards/icicle-kit-es ">
-                                        
-                    <folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1622688262.382961076." name="/" resourcePath="">
-                                                
-                        <toolChain id="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.release.602385324" name="RISC-V Cross GCC" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.release">
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash.817961248" name="Create flash image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createlisting.1653363490" name="Create extended listing" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.printsize.1533733551" name="Print size" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.printsize" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.level.493740668" name="Optimization Level" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.level" useByScannerDiscovery="true" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.level.more" valueType="enumerated"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.messagelength.1647301910" name="Message length (-fmessage-length=0)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.messagelength" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.signedchar.1733267227" name="'char' is signed (-fsigned-char)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.signedchar" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.functionsections.1550799637" name="Function sections (-ffunction-sections)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.functionsections" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.datasections.1988752480" name="Data sections (-fdata-sections)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.optimization.datasections" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.debugging.level.2034533393" name="Debug level" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.debugging.level" useByScannerDiscovery="true" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.debugging.level.max" valueType="enumerated"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.debugging.format.2096890118" name="Debug format" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.debugging.format" useByScannerDiscovery="true"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.toolchain.name.1864486491" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.toolchain.name" useByScannerDiscovery="false" value="RISC-V GCC/Newlib" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.prefix.673130929" name="Prefix" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.prefix" useByScannerDiscovery="false" value="riscv64-unknown-elf-" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.c.453763344" name="C compiler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.c" useByScannerDiscovery="false" value="gcc" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.cpp.1457754619" name="C++ compiler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.cpp" useByScannerDiscovery="false" value="g++" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.ar.1438370548" name="Archiver" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.ar" useByScannerDiscovery="false" value="ar" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.objcopy.114672055" name="Hex/Bin converter" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.objcopy" useByScannerDiscovery="false" value="objcopy" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.objdump.462915117" name="Listing generator" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.objdump" useByScannerDiscovery="false" value="objdump" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.size.1613853413" name="Size command" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.size" useByScannerDiscovery="false" value="size" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.make.702838717" name="Build command" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.make" useByScannerDiscovery="false" value="make" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.rm.1850937467" name="Remove command" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.command.rm" useByScannerDiscovery="false" value="rm" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.base.587294490" name="Architecture" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.base" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.arch.rv64g" valueType="enumerated"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer.2017981940" name="Integer ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.integer" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.integer.default" valueType="enumerated"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp.735574938" name="Floating point ABI" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.abi.fp" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.abi.fp.none" valueType="enumerated"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.toolchain.id.1470632756" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.toolchain.id" useByScannerDiscovery="false" value="-2032619395" valueType="string"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.compressed.430807458" name="Compressed extension (RVC)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.compressed" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.multiply.52302608" name="Multiply extension (RVM)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.multiply" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.atomic.279521742" name="Atomic extension (RVA)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.isa.atomic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.codemodel.68651542" name="Code model" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.codemodel" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.codemodel.any" valueType="enumerated"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.142402860" name="Align" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.target.align.default" valueType="enumerated"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.unused.1249655630" name="Warn on various unused elements (-Wunused)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.unused" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.uninitialized.817959020" name="Warn on uninitialized variables (-Wuninitialised)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.uninitialized" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.allwarn.1926064164" name="Enable all common warnings (-Wall)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.allwarn" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.extrawarn.1193782606" name="Enable extra warnings (-Wextra)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.extrawarn" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.padded.114643906" name="Warn if padding is included (-Wpadded)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.padded" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.shadow.204634284" name="Warn if shadowed variable (-Wshadow)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.shadow" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.logicalop.345048454" name="Warn if suspicious logical ops (-Wlogical-op)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.logicalop" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.agreggatereturn.512489747" name="Warn if struct is returned (-Wagreggate-return)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.agreggatereturn" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.floatequal.1321628773" name="Warn if floats are compared as equal (-Wfloat-equal)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.warnings.floatequal" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                        
-                            <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform.463316768" isAbstract="false" osList="all" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.targetPlatform"/>
-                                                        
-                            <builder buildPath="${workspace_loc:/mpfs-mss-uart-example}/Release" id="ilg.gnumcueclipse.managedbuild.cross.riscv.builder.1594681037" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.builder"/>
-                                                        
-                            <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.1719115996" name="GNU RISC-V Cross Assembler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler">
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.usepreprocessor.1281014778" name="Use preprocessor" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.defs.1689338846" name="Defined symbols (-D)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-                                                                        
-                                    <listOptionValue builtIn="false" value="NDEBUG=1"/>
-                                                                    
-                                </option>
-                                                                
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.include.paths.2004538782" name="Include paths (-I)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/application}&quot;"/>
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/middleware}&quot;"/>
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform}&quot;"/>
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es}&quot;"/>
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es/platform_config}&quot;"/>
-                                                                    
-                                </option>
-                                                                
-                                <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.input.497912293" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.assembler.input"/>
-                                                            
-                            </tool>
-                                                        
-                            <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.924479011" name="GNU RISC-V Cross C Compiler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler">
-                                                                
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.include.paths.2131242595" name="Include paths (-I)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/application}&quot;"/>
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/middleware}&quot;"/>
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform}&quot;"/>
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es}&quot;"/>
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es/platform_config}&quot;"/>
-                                                                    
-                                </option>
-                                                                
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.defs.104917902" name="Defined symbols (-D)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
-                                                                        
-                                    <listOptionValue builtIn="false" value="NDEBUG=1"/>
-                                                                    
-                                </option>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.warning.strictprototypes.668885327" name="Warn if a function has no arg type (-Wstrict-prototypes)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.warning.strictprototypes" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.warning.badfunctioncast.1046470485" name="Warn if wrong cast  (-Wbad-function-cast)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.warning.badfunctioncast" useByScannerDiscovery="true" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.asmlisting.1107553716" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.asmlisting" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.verbose.842874936" name="Verbose (-v)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.compiler.verbose" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.1203014005" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input"/>
-                                                            
-                            </tool>
-                                                        
-                            <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.cpp.compiler.1070313550" name="GNU RISC-V Cross C++ Compiler" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.cpp.compiler"/>
-                                                        
-                            <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.linker.2028516170" name="GNU RISC-V Cross C Linker" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.linker">
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.gcsections.245628513" name="Remove unused sections (-Xlinker --gc-sections)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.gcsections" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile.840692397" name="Script files (-T)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.scriptfile" useByScannerDiscovery="false" valueType="stringList">
-                                                                        
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es/platform_config/linker/mpfs-lim-lma-scratchpad-vma.ld}&quot;"/>
-                                                                    
-                                </option>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.nostart.1628858135" name="Do not use standard start files (-nostartfiles)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.nostart" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.usenewlibnano.1093900072" name="Use newlib-nano (--specs=nano.specs)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.usenewlibnano" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.printmap.1093685469" name="Print link map (-Xlinker --print-map)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.printmap" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.usenewlibnosys.350167287" name="Do not use syscalls (--specs=nosys.specs)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.c.linker.usenewlibnosys" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <inputType id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.linker.input.787827402" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.linker.input">
-                                                                        
-                                    <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
-                                                                        
-                                    <additionalInput kind="additionalinput" paths="$(LIBS)"/>
-                                                                    
-                                </inputType>
-                                                            
-                            </tool>
-                                                        
-                            <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.cpp.linker.610246767" name="GNU RISC-V Cross C++ Linker" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.cpp.linker">
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.cpp.linker.gcsections.1224018608" name="Remove unused sections (-Xlinker --gc-sections)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.cpp.linker.gcsections" value="true" valueType="boolean"/>
-                                                            
-                            </tool>
-                                                        
-                            <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.archiver.1296927852" name="GNU RISC-V Cross Archiver" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.archiver"/>
-                                                        
-                            <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.createflash.1348732886" name="GNU RISC-V Cross Create Flash Image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.createflash">
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createflash.choice.718651347" name="Output file format (-O)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createflash.choice" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createflash.choice.binary" valueType="enumerated"/>
-                                                            
-                            </tool>
-                                                        
-                            <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.createlisting.1639701930" name="GNU RISC-V Cross Create Listing" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.createlisting">
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.source.1948341249" name="Display source (--source|-S)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.source" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.allheaders.2048766583" name="Display all headers (--all-headers|-x)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.allheaders" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.demangle.1930791653" name="Demangle names (--demangle|-C)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.demangle" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.linenumbers.31758549" name="Display line numbers (--line-numbers|-l)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.linenumbers" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.wide.1711875377" name="Wide lines (--wide|-w)" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.createlisting.wide" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-                                                            
-                            </tool>
-                                                        
-                            <tool id="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.printsize.355399173" name="GNU RISC-V Cross Print Size" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.tool.printsize">
-                                                                
-                                <option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.printsize.format.1801002410" name="Size format" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.printsize.format" useByScannerDiscovery="false" value="ilg.gnumcueclipse.managedbuild.cross.riscv.option.printsize.format.sysv" valueType="enumerated"/>
-                                                            
-                            </tool>
-                                                    
-                        </toolChain>
-                                            
-                    </folderInfo>
-                                        
-                    <sourceEntries>
-                                                
-                        <entry excluding="platform/drivers/mss_uart_old" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+                        <entry excluding="src/platform/drivers/mss_uart_old|src/platform/mpfs_hal/startup_gcc/mss_entry_non_bl.S" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                                             
                     </sourceEntries>
                                     
@@ -3775,7 +3431,7 @@
         
     <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 
-        <project id="riscv-g5soc-mss-uart.ilg.gnumcueclipse.managedbuild.cross.riscv.target.elf.329382293" name="Executable" projectType="ilg.gnumcueclipse.managedbuild.cross.riscv.target.elf"/>
+        <project id="mpfs-hal-ddr-demo.ilg.gnumcueclipse.managedbuild.cross.riscv.target.elf.329382293" name="Executable" projectType="ilg.gnumcueclipse.managedbuild.cross.riscv.target.elf"/>
             
     </storageModule>
         
@@ -3783,15 +3439,77 @@
         
     <storageModule moduleId="refreshScope" versionNumber="2">
                 
+        <configuration configurationName="custom-board-debug">
+                        
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
+                    
+        </configuration>
+                
+        <configuration configurationName="peripheral-base-board-x16-envm"/>
+                
+        <configuration configurationName="ddr-hs-base-board-ddr4-release">
+                        
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
+                    
+        </configuration>
+                
+        <configuration configurationName="peripheral-base-board-x16-debug"/>
+                
+        <configuration configurationName="ddr-hs-base-board-ddr3-envm">
+                        
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
+                    
+        </configuration>
+                
+        <configuration configurationName="peripheral-base-board-x32-debug"/>
+                
+        <configuration configurationName="icicle_kit_debug">
+                        
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
+                    
+        </configuration>
+                
+        <configuration configurationName="iof-max-verification-board-lpddr3-debug">
+                        
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
+                    
+        </configuration>
+                
+        <configuration configurationName="icicle-kit-release">
+                        
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
+                    
+        </configuration>
+                
+        <configuration configurationName="peripheral-base-board-x32-envm"/>
+                
+        <configuration configurationName="iof-max-verification-board-lpddr3-envm">
+                        
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
+                    
+        </configuration>
+                
+        <configuration configurationName="ddr-hs-base-board-ddr3-debug">
+                        
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
+                    
+        </configuration>
+                
+        <configuration configurationName="ddr-hs-base-board-ddr4-debug">
+                        
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
+                    
+        </configuration>
+                
         <configuration configurationName="Debug">
                         
-            <resource resourceType="PROJECT" workspacePath="/mpfs-mss-uart-example"/>
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
                     
         </configuration>
                 
         <configuration configurationName="Release">
                         
-            <resource resourceType="PROJECT" workspacePath="/mpfs-mss-uart-example"/>
+            <resource resourceType="PROJECT" workspacePath="/mpfs-hal-ddr-demo"/>
                     
         </configuration>
             
