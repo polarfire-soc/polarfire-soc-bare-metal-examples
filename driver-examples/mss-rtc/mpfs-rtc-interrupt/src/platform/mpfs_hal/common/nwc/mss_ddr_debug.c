@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -14,7 +14,6 @@
  *
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +22,18 @@
 /*******************************************************************************
  * Local Defines
  */
+#define DDR_BASE            0x80000000u
+#define DDR_SIZE            0x40000000u
+
+#define PDMA_CHANNEL0_BASE_ADDRESS  0x3000000ULL
+#define PDMA_CHANNEL1_BASE_ADDRESS  0x3001000ULL
+#define PDMA_CHANNEL2_BASE_ADDRESS  0x3002000ULL
+#define PDMA_CHANNEL3_BASE_ADDRESS  0x3003000ULL
+
+const char *progress[3] = {"|\r", "/\r", "-\r"};
+typedef void(*pattern_fct_t)(void);
+static uint32_t g_test_buffer_cached[765];
+static uint32_t g_test_buffer_not_cached[765];
 
 /*******************************************************************************
  * External Defines
@@ -36,14 +47,23 @@ extern uint8_t sweep_results[MAX_NUMBER_DPC_VS_GEN_SWEEPS]\
                             [MAX_NUMBER_ADDR_CMD_OFFSET_SWEEPS];
 #endif
 #endif
-#ifdef DEBUG_DDR_INIT
-extern mss_uart_instance_t *g_debug_uart;
-#endif
+extern const uint32_t ddr_test_pattern[768];
 
 /*******************************************************************************
  * External function declarations
  */
 extern void delay(uint32_t n);
+extern void pdma_transfer(uint64_t destination, uint64_t source, uint64_t size_in_bytes, uint64_t base_address);
+extern void pdma_transfer_complete( uint64_t base_address);
+
+/*******************************************************************************
+ * Local data declarations
+ */
+#ifdef DEBUG_DDR_INIT
+mss_uart_instance_t *g_debug_uart;
+#endif
+
+uint64_t ddr_test;
 
 /*******************************************************************************
  * Local function declarations
@@ -52,13 +72,6 @@ static uint32_t ddr_write ( volatile uint64_t *DDR_word_ptr,\
         uint32_t no_of_access, uint8_t data_ptrn, DDR_ACCESS_SIZE data_size );
 static uint32_t ddr_read ( volatile uint64_t *DDR_word_ptr,\
         uint32_t no_of_access, uint8_t data_ptrn,  DDR_ACCESS_SIZE data_size );
-
-
-__attribute__((weak)) int rand(void)
-{
-    return 0;
-}
-
 
 #ifdef DEBUG_DDR_INIT
 /***************************************************************************//**
@@ -99,8 +112,6 @@ static void dumpbyte(mss_uart_instance_t * uart, uint8_t b)
 #endif
 }
 
-
-
 /***************************************************************************//**
  *
  * @param uart
@@ -138,6 +149,17 @@ __attribute__((weak))\
 }
 
 /***************************************************************************//**
+ *
+ * @param uart
+ * @param msg
+ */
+__attribute__((weak))\
+        void uprint(mss_uart_instance_t * uart, const char* msg)
+{
+    MSS_UART_polled_tx_string(uart, (const uint8_t *)msg);
+}
+
+/***************************************************************************//**
  * dump a number of 32bit contiguous registers
  * @param uart
  * @param reg_pointer
@@ -158,8 +180,6 @@ void print_reg_array(mss_uart_instance_t * uart, uint32_t *reg_pointer,\
 }
 
 #endif
-
-
 
 /***************************************************************************//**
  * Write data to DDR
@@ -534,7 +554,12 @@ uint32_t tip_register_status (mss_uart_instance_t *g_mss_uart_debug_pt)
     uint32_t t_status = 0U;
     uint32_t MSS_DDR_APB_ADDR;
     uint32_t ddr_lane_sel;
-    uint32_t dq0_dly, dq1_dly, dq2_dly, dq3_dly, dq4_dly, dq5_dly;
+    uint32_t dq0_dly = 0U;
+    uint32_t dq1_dly = 0U;
+    uint32_t dq2_dly = 0U;
+    uint32_t dq3_dly = 0U;
+    uint32_t dq4_dly = 0U;
+    uint32_t dq5_dly = 0U;
 
     /*  MSS_UART_polled_tx_string(g_mss_uart_debug_pt, "\n\n\r TIP register status \n");
     delay(1000);*/
@@ -711,4 +736,188 @@ void sweep_status (mss_uart_instance_t *g_mss_uart_debug_pt)
 }
 #endif
 #endif
+
+
+/**
+ * Load a pattern to DDR
+ */
+void load_ddr_pattern(uint64_t base, uint32_t size, uint8_t pattern_offset)
+{
+    int alive = 0;
+
+    uint8_t *p_ddr = (uint8_t *)base;
+    uint32_t pattern_length = sizeof(ddr_test_pattern) - pattern_offset ;
+
+#ifdef DEBUG_DDR_INIT
+    uprint(g_debug_uart, (const char*)(const uint8_t*)"\r\nLoading test pattern\r\n");
+#endif
+
+    while(((uint64_t)p_ddr + pattern_length) <  (base + size))
+    {
+
+        switch ( ((uint64_t)p_ddr)%8U )
+        {
+            case 0:
+            case 4:
+                pdma_transfer_complete(PDMA_CHANNEL0_BASE_ADDRESS);
+                pdma_transfer((uint64_t)p_ddr, (uint64_t)ddr_test_pattern, pattern_length, PDMA_CHANNEL0_BASE_ADDRESS);
+                break;
+            case 1:
+            case 5:
+                pdma_transfer_complete(PDMA_CHANNEL1_BASE_ADDRESS);
+                pdma_transfer((uint64_t)p_ddr, (uint64_t)ddr_test_pattern, pattern_length, PDMA_CHANNEL1_BASE_ADDRESS);
+                break;
+            case 2:
+            case 6:
+                pdma_transfer_complete(PDMA_CHANNEL2_BASE_ADDRESS);
+                pdma_transfer((uint64_t)p_ddr, (uint64_t)ddr_test_pattern, pattern_length, PDMA_CHANNEL2_BASE_ADDRESS);
+                break;
+            case 3:
+            case 7:
+                pdma_transfer_complete(PDMA_CHANNEL3_BASE_ADDRESS);
+                pdma_transfer((uint64_t)p_ddr, (uint64_t)ddr_test_pattern, pattern_length, PDMA_CHANNEL3_BASE_ADDRESS);
+                break;
+        }
+
+        p_ddr = p_ddr + (pattern_length);
+        alive++;
+        if (alive > 1000)
+        {
+            alive = 0;
+#ifdef DEBUG_DDR_INIT
+            uprint(g_debug_uart, (const char*)".");
+#endif
+        }
+    }
+#ifdef DEBUG_DDR_INIT
+    uprint(g_debug_uart, (const char*)"\r\nFinished loading test pattern\r\n");
+#endif
+
+    pdma_transfer_complete(PDMA_CHANNEL0_BASE_ADDRESS);
+    pdma_transfer_complete(PDMA_CHANNEL1_BASE_ADDRESS);
+    pdma_transfer_complete(PDMA_CHANNEL2_BASE_ADDRESS);
+    pdma_transfer_complete(PDMA_CHANNEL3_BASE_ADDRESS);
+
+}
+
+/**
+ * Run from address
+ * @param start_addr address to run from.
+ */
+void execute_ddr_pattern(uint64_t start_addr)
+{
+    pattern_fct_t p_pattern_fct = (pattern_fct_t)start_addr;
+
+    (*p_pattern_fct)();
+}
+
+/**
+ * Loads DDR with a pattern that triggers read issues if not enough margin.
+ * Used to verify training is successful.
+ * @param p_cached_ddr
+ * @param p_not_cached_ddr
+ * @param length
+ */
+void load_test_buffers(uint32_t * p_cached_ddr, uint32_t * p_not_cached_ddr, uint64_t length)
+{
+    (void)length;
+
+    pdma_transfer((uint64_t)g_test_buffer_cached, (uint64_t)p_cached_ddr, length,  PDMA_CHANNEL0_BASE_ADDRESS);
+    pdma_transfer((uint64_t)g_test_buffer_not_cached, (uint64_t)p_not_cached_ddr, length,  PDMA_CHANNEL1_BASE_ADDRESS);
+    pdma_transfer_complete(PDMA_CHANNEL0_BASE_ADDRESS);
+    pdma_transfer_complete(PDMA_CHANNEL1_BASE_ADDRESS);
+}
+
+/**
+ * test_ddr reads from cached and non cached DDR and compares
+ * @param no_of_iterations
+ * @param size
+ * @return returns 1 if compare fails
+ */
+uint32_t test_ddr(uint32_t no_of_iterations, uint32_t size)
+{
+    uint32_t pattern_length = sizeof(ddr_test_pattern) - (3 * sizeof(uint32_t));
+    uint32_t * p_ddr_cached = (uint32_t *)0x80000000;
+    uint32_t * p_ddr_noncached = (uint32_t *)0x1400000000;
+    uint32_t word_offset;
+    uint32_t alive = 0;
+    uint32_t alive_idx = 0U;
+    uint32_t iteration = 0U;
+    uint32_t error = 0U;
+
+
+#ifdef DEBUG_DDR_INIT
+    uprint(g_debug_uart, (const char*)"\r\nStarting ddr test\r\n");
+#endif
+    while(iteration < no_of_iterations)
+    {
+        int different = 0;
+
+        load_test_buffers(p_ddr_cached, p_ddr_noncached, pattern_length);
+
+        different = memcmp(g_test_buffer_cached, g_test_buffer_not_cached, pattern_length);
+
+        if(different != 0)
+        {
+            for(word_offset = 0; word_offset < (pattern_length / sizeof(uint32_t)); word_offset++)
+            {
+                if(g_test_buffer_cached[word_offset] != g_test_buffer_not_cached[word_offset])
+                {
+#ifdef DEBUG_DDR_INIT
+                    uprint64(g_debug_uart, "  Mismatch, 0x", (uint64_t)p_ddr_cached);
+                    uprint32(g_debug_uart, "  offset:, 0x", (uint64_t)word_offset);
+                    uprint32(g_debug_uart, "  address: 0x", (uint64_t)(p_ddr_cached + word_offset));
+                    uprint32(g_debug_uart, "  expected (non-cached): 0x", g_test_buffer_not_cached[word_offset]);
+                    uprint32(g_debug_uart, "  found  (cached): 0x", (uint64_t)g_test_buffer_cached[word_offset]);
+                    uprint32(g_debug_uart, "  direct cached read: 0x", (uint32_t)*(p_ddr_cached + word_offset));
+                    uprint32(g_debug_uart, "  direct non-cached read: 0x", (uint32_t)*(p_ddr_noncached + word_offset));
+#endif
+                    break;
+                }
+            }
+            error = 1U;
+            return error;
+        }
+
+        if (((uint64_t)p_ddr_cached + ( 2 * pattern_length)) <  (LIBERO_SETTING_DDR_32_CACHE + size))
+        {
+            p_ddr_cached += (pattern_length / sizeof(uint32_t));
+            p_ddr_noncached += (pattern_length / sizeof(uint32_t));
+        }
+        else
+        {
+            p_ddr_cached = (uint32_t *)0x80000000;
+            p_ddr_noncached = (uint32_t *)0x1400000000;
+            iteration++;
+#ifdef DEBUG_DDR_INIT
+            uprint32(g_debug_uart, "  Iteration ", (uint64_t)(unsigned int)iteration);
+#endif
+        }
+
+        alive++;
+        if(alive > 10000U)
+        {
+            alive = 0;
+#ifdef DEBUG_DDR_INIT
+            uprint(g_debug_uart, (const char*)"\r");
+            uprint(g_debug_uart, (const char*)progress[alive_idx]);
+#endif
+            alive_idx++;
+            if(alive_idx >= 3U)
+            {
+                alive_idx = 0;
+            }
+            if(ddr_test == 2U)
+            {
+#ifdef DEBUG_DDR_INIT
+            uprint(g_debug_uart, (const char*)"\r\nEnding ddr test. Press 0 to display the menu\r\n");
+#endif
+                return error;
+            }
+        }
+    }
+    return error;
+}
+
+
 

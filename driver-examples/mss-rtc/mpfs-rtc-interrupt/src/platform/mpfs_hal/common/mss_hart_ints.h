@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -16,8 +16,8 @@
  * Definitions and functions associated with local interrupts for each hart.
  *
  */
-#ifndef MSS_HART_INT_H
-#define MSS_HART_INT_H
+#ifndef MSS_HART_INTS_H
+#define MSS_HART_INTS_H
 
 #include <stdint.h>
 
@@ -105,7 +105,7 @@ typedef struct BEU_Types_
 #define    FABRIC_F2H_62_E51_INT            46
 #define    FABRIC_F2H_63_E51_INT            47
 
-#define    LOCAL_INT_MAX                    47  /* Highest numbered */
+#define    LOCAL_INT_MAX                    47U  /* Highest numbered */
 #define    LOCAL_INT_UNUSED                 127U /* Signifies unused interrupt */
 /*
  * Interrupts associated with
@@ -374,4 +374,4 @@ void fabric_f2h_31_u54_local_IRQHandler_47(void);
 }
 #endif
 
-#endif  /* RISCV_HART_INTS_H */
+#endif  /* MSS_HART_INTS_H */

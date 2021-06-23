@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -11,11 +11,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 volatile uint32_t count_sw_ints_h3 = 0U;
-
-extern uint64_t uart_lock;
 
 /* Main function for the hart3(U54_3 processor).
  * Application code running on hart3 is placed here
@@ -47,10 +45,8 @@ void u54_3(void)
 
     __enable_irq();
 
-    mss_take_mutex((uint64_t)&uart_lock);
     MSS_UART_polled_tx_string(&g_mss_uart0_lo,
-            "Hello World from u54 core 3 - hart3.\r\n");
-    mss_release_mutex((uint64_t)&uart_lock);
+                                    "Hello World from u54 core 4 - hart4.\r\n");
 
     while (1U)
     {
@@ -58,10 +54,6 @@ void u54_3(void)
         if (0x100000U == icount)
         {
             icount = 0U;
-            sprintf(info_string,"Hart %d\r\n", hartid);
-            mss_take_mutex((uint64_t)&uart_lock);
-            MSS_UART_polled_tx(&g_mss_uart0_lo, info_string, strlen(info_string));
-            mss_release_mutex((uint64_t)&uart_lock);
         }
     }
     /* never return */

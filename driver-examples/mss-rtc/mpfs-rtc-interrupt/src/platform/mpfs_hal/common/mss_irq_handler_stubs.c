@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -9,7 +9,7 @@
 
 /*******************************************************************************
  *
- * @file mss_stubs.c
+ * @file mss_irq_handler_stubs.c
  * @author Microchip-FPGA Embedded Systems Solutions
  * @brief MPFS MSS Interrupt Function stubs.
  *
@@ -19,13 +19,8 @@
  * same prototype in the user's application code.
  *
  */
-#include <mpfs_hal/mss_hal.h>
 #include <stdint.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include "mpfs_hal/mss_hal.h"
 
 
 __attribute__((weak)) void handle_m_ext_interrupt(void)
@@ -1666,7 +1661,3 @@ __attribute__((weak))  void fabric_f2h_31_u54_local_IRQHandler_47(void)
 {
 }
 #endif  /* ifndef SIFIVE_HIFIVE_UNLEASHED */
-
-#ifdef __cplusplus
-}
-#endif

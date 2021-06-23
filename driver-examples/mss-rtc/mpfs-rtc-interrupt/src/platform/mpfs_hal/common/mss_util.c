@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -91,6 +91,10 @@ void __disable_local_irq(uint8_t local_interrupt)
     }
 }
 
+/**
+ * readmcycle(void)
+ * @return returns the mcycle count from hart CSR
+ */
 uint64_t readmcycle(void)
 {
     return (read_csr(mcycle));
@@ -106,6 +110,10 @@ void sleep_ms(uint64_t msecs)
     }
 }
 
+/**
+ * sleep_cycles(uint64_t ncycles)
+ * @param number of cycles to sleep
+ */
 void sleep_cycles(uint64_t ncycles)
 {
     uint64_t starttime = readmcycle();
@@ -116,15 +124,10 @@ void sleep_cycles(uint64_t ncycles)
     }
 }
 
-void exit_simulation(void) {
-    uint64_t hartid = read_csr(mhartid);
-    volatile uint32_t * exit_simulation_p = (uint32_t *)0x60000000U;
-
-
-    *exit_simulation_p = 1U;
-	(void)hartid; /* use hartid to avoid compiler warning */
-}
-
+/**
+ * get_program_counter(void)
+ * @return returns the program counter
+ */
 __attribute__((aligned(16))) uint64_t get_program_counter(void)
 {
     uint64_t prog_counter;
@@ -132,11 +135,77 @@ __attribute__((aligned(16))) uint64_t get_program_counter(void)
     return (prog_counter);
 }
 
+/**
+ * get_stack_pointer(void)
+ * @return Return the stack pointer
+ */
 uint64_t get_stack_pointer(void)
 {
-    uint64_t prog_counter;
-    asm volatile ("addi %0, sp, 0" : "=r"(prog_counter));
-    return (prog_counter);
+    uint64_t stack_pointer;
+    asm volatile ("addi %0, sp, 0" : "=r"(stack_pointer));
+    return (stack_pointer);
+}
+
+/**
+ * Return the tp register
+ * The tp register holds the value of the Hart Common memory HLS once not in an
+ * interrupt. If the tp value is used in an interrupt, it is saved first and
+ * restored on exit. This conforms to OpenSBI implementation.
+ *
+ * @return returns the tp register value
+ */
+uint64_t get_tp_reg(void)
+{
+    uint64_t tp_reg_val;
+    asm volatile ("addi %0, tp, 0" : "=r"(tp_reg_val));
+    return (tp_reg_val);
+}
+
+/**
+ * mpfs_sync_bool_compare_and_swap()
+ * this works on the E51 / U54s, and operates equivalently to the
+ * __sync_bool_compare_and_swap() intrinsic.
+ * @param ptr
+ * @param oldval
+ * @param newval
+ * @return
+ */
+bool mpfs_sync_bool_compare_and_swap(volatile long *ptr, long oldval, long newval)
+{
+        static long lock = 0;
+        bool result = false;
+
+        if (!__sync_lock_test_and_set(&lock, 1)) { // amoswap.d.aq
+                if (*ptr == oldval) {
+                        *ptr = newval;
+                }
+
+                __sync_lock_release(&lock); // fence iorw,ow; ampswap.d
+                result = true;
+        }
+
+        return result;
+}
+
+/**
+ * mpfs_sync_val_compare_and_swap()
+ * this works on the E51 / U54s, and operates equivalently to the
+ * __sync_val_compare_and_swap() intrinsic.  It works by using a separate
+ * static lock, and then emulating the behaviour of the lr.w.aq instruction
+ * Required as lr/sr instructions are not supported on the E51 and are only
+ * supported on L1 cached back memory types. These limitations are not present
+ * with this function.
+ * @param ptr
+ * @param oldval
+ * @param newval
+ */
+long mpfs_sync_val_compare_and_swap(volatile long *ptr, long oldval, long newval)
+{
+        long result = *ptr;
+
+        (void)mpfs_sync_bool_compare_and_swap(ptr, oldval, newval);
+
+        return result;
 }
 
 #ifdef PRINTF_DEBUG_SUPPORTED

@@ -10,11 +10,13 @@
 #ifndef CPU_TYPES_H
 #define CPU_TYPES_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
+typedef unsigned long size_t;
 
 /*------------------------------------------------------------------------------
  * addr_t: address type.

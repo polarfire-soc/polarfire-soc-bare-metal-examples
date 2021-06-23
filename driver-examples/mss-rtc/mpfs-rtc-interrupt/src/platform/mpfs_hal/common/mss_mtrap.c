@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -9,7 +9,7 @@
 
 /***************************************************************************
  *
- * @file mss_mtrap.h
+ * @file mss_mtrap.c
  * @author Microchip-FPGA Embedded Systems Solutions
  * @brief trap functions
  *
@@ -728,7 +728,7 @@ void handle_local_interrupt(uint8_t interrupt_no)
  */
 void trap_from_machine_mode(uintptr_t * regs, uintptr_t dummy, uintptr_t mepc)
 {
-    uintptr_t mcause = read_csr(mcause);
+    volatile uintptr_t mcause = read_csr(mcause);
 
     if (((mcause & MCAUSE_INT) == MCAUSE_INT) && ((mcause & MCAUSE_CAUSE)  > 15U)&& ((mcause & MCAUSE_CAUSE)  < 64U))
     {
@@ -748,14 +748,14 @@ void trap_from_machine_mode(uintptr_t * regs, uintptr_t dummy, uintptr_t mepc)
     }
     else
     {
-        uint32_t i;
+        uint32_t i = 0U;
         while(1)
         {
             /* wait for watchdog */
             i++;        /* added some code as SC debugger hangs if in loop doing nothing */
             if(i == 0x1000U)
             {
-                i = 0U;
+                i = mcause; /* so mcause is not optimised out */
             }
         }
         switch(mcause)
