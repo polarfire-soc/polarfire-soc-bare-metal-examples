@@ -1,13 +1,13 @@
 /*******************************************************************************
- * (c) Copyright 2018 Microchip - PRO Embedded Systems Solutions.  All rights reserved.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
- * G5SoC AXI Switch driver for configuring QoS values.
+ * SPDX-License-Identifier: MIT
  *
- * SVN $Revision: 10786 $
- * SVN $Date: 2018-12-31 09:48:13 +0000 (Mon, 31 Dec 2018) $
+ * MPFS HAL Embedded Software
+ *
  */
 /*=========================================================================*//**
-  
+
  *//*=========================================================================*/
 #ifndef __MSS_AXISW_H_
 #define __MSS_AXISW_H_ 1
@@ -98,11 +98,11 @@ typedef enum {
     MSS_AXISW_TXNRATE_BY512     = 0x008,
     MSS_AXISW_TXNRATE_BY256     = 0x010,
     MSS_AXISW_TXNRATE_BY128     = 0x020,
-    MSS_AXISW_TXNRATE_BY64      = 0x040,    
-    MSS_AXISW_TXNRATE_BY32      = 0x080,    
-    MSS_AXISW_TXNRATE_BY16      = 0x100,    
-    MSS_AXISW_TXNRATE_BY8       = 0x200,    
-    MSS_AXISW_TXNRATE_BY4       = 0x400,    
+    MSS_AXISW_TXNRATE_BY64      = 0x040,
+    MSS_AXISW_TXNRATE_BY32      = 0x080,
+    MSS_AXISW_TXNRATE_BY16      = 0x100,
+    MSS_AXISW_TXNRATE_BY8       = 0x200,
+    MSS_AXISW_TXNRATE_BY4       = 0x400,
     MSS_AXISW_TXNRATE_BY2       = 0x800,
     MSS_AXISW_TXNRATE_DISABLE      = 0x0,
 } mss_axisw_rate_t;

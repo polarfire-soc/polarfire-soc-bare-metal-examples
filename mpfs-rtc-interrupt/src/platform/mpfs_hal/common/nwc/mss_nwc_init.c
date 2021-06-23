@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -21,7 +21,7 @@
 #include "simulation.h"
 
 #ifdef DEBUG_DDR_INIT
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 extern mss_uart_instance_t *g_debug_uart ;
 uint32_t setup_ddr_debug_port(mss_uart_instance_t * uart);
 #endif
@@ -29,15 +29,10 @@ uint32_t setup_ddr_debug_port(mss_uart_instance_t * uart);
 /*******************************************************************************
  * Local Defines
  */
-CFG_DDR_SGMII_PHY_TypeDef *CFG_DDR_SGMII_PHY =\
-        ((CFG_DDR_SGMII_PHY_TypeDef *) CFG_DDR_SGMII_PHY_BASE);
-DDR_CSR_APB_TypeDef *DDRCFG =\
-        ((DDR_CSR_APB_TypeDef *)       DDRCFG_BASE);
-IOSCBCFG_TypeDef                *SCBCFG_REGS =\
-        (IOSCBCFG_TypeDef            *)IOSCBCFG_BASE ;
-g5_mss_top_scb_regs_TypeDef     *SCB_REGS    =\
-        (g5_mss_top_scb_regs_TypeDef     *)  SYSREGSCB_BASE;
-
+CFG_DDR_SGMII_PHY_TypeDef       * const CFG_DDR_SGMII_PHY   =  ((CFG_DDR_SGMII_PHY_TypeDef *) CFG_DDR_SGMII_PHY_BASE);
+DDR_CSR_APB_TypeDef             * const DDRCFG              = ((DDR_CSR_APB_TypeDef *)       DDRCFG_BASE);
+IOSCBCFG_TypeDef                * const SCBCFG_REGS         =  (IOSCBCFG_TypeDef            *)IOSCBCFG_BASE ;
+g5_mss_top_scb_regs_TypeDef     * const SCB_REGS            = (g5_mss_top_scb_regs_TypeDef *) SYSREGSCB_BASE;
 
 /*******************************************************************************
  * Local functions
@@ -47,9 +42,6 @@ void delay(uint32_t n);
 /*******************************************************************************
  * extern defined functions
  */
-#ifndef SIFIVE_HIFIVE_UNLEASHED
-extern void mss_pll_config(void);
-#endif
 #ifdef DEBUG_DDR_INIT
 uint32_t setup_ddr_debug_port(mss_uart_instance_t * uart);
 #endif
@@ -254,7 +246,7 @@ uint8_t mss_nwc_init(void)
      *      The APB RPC registers are used in the following ways to configure
      *      the MSS periphery
      *      1)  Load values to SCB registers.
-     *          core_up” and “flash_valid” determines if the SCB registers get
+     *          core_up" and "flash_valid" determines if the SCB registers get
      *          either:
      *               a.  Reset to their hardware default
      *                   (when core_up/flash_valis low)
@@ -263,32 +255,32 @@ uint8_t mss_nwc_init(void)
      *      2)  IO configuration settings
      *          These are fed directly to the static configuration of IOA cells
      *          within the IOG lanes of the DDR and SGMII PHYs, as long as
-     *          “core_up” and “flash_valid” are high.
-     *          a.  To avoid unwanted/intermediate states on IOs, the “core_up”
-     *          and “flash_valid” should be initially 0 on MSS reset. This will
+     *          "core_up" and "flash_valid" are high.
+     *          a.  To avoid unwanted/intermediate states on IOs, the "core_up"
+     *          and "flash_valid" should be initially 0 on MSS reset. This will
      *          select the safe hardware defaults. The RPC registers are written
-     *          in the background and then simultaneously “flashed” as the new
-     *          IO configuration by assertion of “core_up” and “flash_valid”
+     *          in the background and then simultaneously "flashed" as the new
+     *          IO configuration by assertion of "core_up" and "flash_valid"
      *          being asserted.
      *      3)  Training IP settings
      *          These allow the direct control of the training IP via the APB
      *          registers.
      *
      *      Notes:
-     *      1)  When the MSS is reset, the SCB slaves won’t take on the RPC
+     *      1)  When the MSS is reset, the SCB slaves won't take on the RPC
      *      values. They will be reset to their hardware default values.
      *
      *      2)  Although RPC registers are writable in APB space,
      *      they only take effect on the SCB registers whenever there is a
-     *      “virtual re-flash” operation, which involves performing
+     *      "virtual re-flash" operation, which involves performing
      *      a soft reset of an SCB slave (i.e. writing to the NV_MAP register
      *      bit in the SOFT_RESET register in the SCB slave).
      *      This mechanism would only be used if a full new configuration is to
-     *      be applied to the full SCB slave and wouldn’t be used, for example
+     *      be applied to the full SCB slave and wouldn't be used, for example
      *      to change just a clock mux configuration.
      *
      *      3)  To make configuration changes to individual registers, without
-     *      “re-flashing” all registers in an MSS custom SCB slave, it is
+     *      "re-flashing" all registers in an MSS custom SCB slave, it is
      *      necessary to write directly to the SCB registers (via SCB space) in
      *      that slave, rather than writing RPC registers via APB space
      *
@@ -368,13 +360,11 @@ uint8_t mss_nwc_init(void)
     return error;
 }
 
+
 /*-------------------------------------------------------------------------*//**
  * delay()
- * @param n
- *
- *  @return
- *   No return value.
- *   //todo: make delay function clock based
+ * Not absolute. Dependency on current clk rate
+ * @param n Number of iterations to wait.
  */
 void delay(uint32_t n)
 {

@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
- * 
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ *
  */
 /*=========================================================================*//**
   @mainpage PolarFire MSS Frequency Meter Bare Metal Driver.
@@ -21,7 +21,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 
 
@@ -299,6 +299,11 @@ void MSS_CFM_channel_mode(cfmChannelMode  chMode);
   @endcode
  */
 cfm_error_id_t MSS_CFM_get_count(cfm_count_id_t ch, uint32_t *count);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif  /* __COREPLEX_PLATFORM_CFM_H_ */

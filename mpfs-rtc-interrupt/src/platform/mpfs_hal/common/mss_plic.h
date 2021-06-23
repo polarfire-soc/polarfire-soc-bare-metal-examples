@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -11,7 +11,7 @@
  *
  * @file mss_plic.h
  * @author Microchip-FPGA Embedded Systems Solutions
- * @brief MPFS PLIC and PRCI access data structures and functions.
+ * @brief PolarFire SoC MSS PLIC and PRCI access data structures and functions.
  *
  * Definitions and functions associated with PLIC interrupts.
  *
@@ -20,7 +20,10 @@
 #define MSS_PLIC_H
 
 #include <stdint.h>
+#ifndef CONFIG_OPENSBI
 #include "encoding.h"
+#endif
+
 #include "mss_assert.h"
 
 #ifdef __cplusplus
@@ -678,8 +681,8 @@ typedef struct
     volatile uint32_t RESERVED8[(0x0C200000 - 0x0C002480)/4];
 
     /*--- Target Priority threshold and claim/complete---------*/
-    IRQ_Target_Type TARGET[NUM_CLAIM_REGS];   /* See PLIC Register Map or 
-												 TARGET_OFFSET defines below 
+    IRQ_Target_Type TARGET[NUM_CLAIM_REGS];   /* See PLIC Register Map or
+                                                 TARGET_OFFSET defines below
                                                  for offset details */
 
 } PLIC_Type;
@@ -701,7 +704,7 @@ extern const unsigned long plic_hart_lookup[5U];
  */
 #define PLIC_BASE_ADDR 0x0C000000UL
 
-#define PLIC    ((PLIC_Type *)PLIC_BASE_ADDR)
+#define PLIC    ((PLIC_Type * const)PLIC_BASE_ADDR)
 
 /*-------------------------------------------------------------------------*//**
  * The function PLIC_init() initializes the PLIC controller and enables the

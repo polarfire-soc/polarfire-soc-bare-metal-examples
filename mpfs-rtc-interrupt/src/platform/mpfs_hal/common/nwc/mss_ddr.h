@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -161,8 +161,8 @@
   -----------
   VREF (DDR4 + LPDDR4 only) Set Remote VREF via mode register writes (MRW).
   In DDR4 and LPDDR4, VREF training may be done by writing to Mode Register 6 as
-  defined by the JEDEC spec and, for example, Micron’s datasheet for its 4Gb
-  DDR4 RAM’s:
+  defined by the JEDEC spec and, for example, Micron's datasheet for its 4Gb
+  DDR4 RAM's:
 
   MR6 register definition from DDR4 datasheet
 
@@ -365,7 +365,9 @@ typedef enum DDR_MEMORY_ACCESS_
  * For Libero setting, we iterate through these values looking for a
  * Calibration pass */
 #define MIN_LATENCY                     0UL
-#define MAX_LATENCY                     8UL
+#define MAX_LATENCY                     3UL  //ML fixme- agree this value with Alister
+
+#define MTC_TIMEOUT_ERROR               0x02U
 
 #define DDR_MODE_REG_VREF               0xCU
 
@@ -380,8 +382,13 @@ typedef enum DDR_MEMORY_ACCESS_
 #define ABNORMAL_RETRAIN_CA_DECREASE_COUNT          2U
 #define ABNORMAL_RETRAIN_CA_DLY_DECREASE_COUNT      2U
 #define DQ_DQS_NUM_TAPS                             5U
-//#define SW_CONFIG_LPDDR_WR_CALIB_FN
 
+#if !defined (LIBERO_SETTING_MAX_MANUAL_REF_CLK_PHASE_OFFSET)
+#define LIBERO_SETTING_MAX_MANUAL_REF_CLK_PHASE_OFFSET 4U
+#endif
+#if !defined (LIBERO_SETTING_MIN_MANUAL_REF_CLK_PHASE_OFFSET)
+#define LIBERO_SETTING_MIN_MANUAL_REF_CLK_PHASE_OFFSET 2U
+#endif
 #if !defined (LIBERO_SETTING_MANUAL_REF_CLK_PHASE_OFFSET)
 /* If skipping add/cmd training, this value is used */
 /* The value used may be trained. The value here should be determined */
@@ -401,6 +408,41 @@ typedef enum DDR_MEMORY_ACCESS_
 #if !defined (DDR_FULL_32BIT_NC_CHECK_EN)
 #define DDR_FULL_32BIT_NC_CHECK_EN  1
 #endif
+
+#if !defined (DDR_FULL_32BIT_CACHED_CHECK_EN)
+#define DDR_FULL_32BIT_CACHED_CHECK_EN  0
+#endif
+
+#if !defined (NO_PATTERN_IN_CACHE_READS)
+#define NO_PATTERN_IN_CACHE_READS  1
+#endif
+
+#if !defined (SIZE_OF_PATTERN_TEST)
+#define SIZE_OF_PATTERN_TEST 0x02000000UL
+#endif
+
+#if !defined (SIZE_OF_PATTERN_OFFSET)
+#define SIZE_OF_PATTERN_OFFSET  12U
+#endif
+
+#if !defined (DEFAULT_RPC_166_VALUE)
+#define DEFAULT_RPC_166_VALUE  2UL
+#endif
+
+/* set to 0 if you want to turn off tuning */
+#if !defined (TUNE_RPC_166_VALUE)
+#define TUNE_RPC_166_VALUE 1
+#endif
+
+#if !defined (MIN_RPC_166_VALUE)
+#define MIN_RPC_166_VALUE  2UL
+#endif
+
+#if !defined (MAX_RPC_166_VALUE)
+#define MAX_RPC_166_VALUE 4UL
+#endif
+
+#define NUM_RPC_166_VALUES (MAX_RPC_166_VALUE - MIN_RPC_166_VALUE)
 
 /* This is a fixed setting, will move into driver in next commit */
 #if !defined (SW_TRAING_BCLK_SCLK_OFFSET)
@@ -431,6 +473,328 @@ typedef enum DDR_MEMORY_ACCESS_
                                         PATTERN_0x55555555)
 #endif
 
+/*
+ * Sweep offsets
+ * They currently are not coming from MSS Configurator (v12.7 and earlier)
+ * They may at some point
+ *
+ * Determined ( 5th Feb 2021 )
+ * DDR3@1066   = 3,2,1
+ * DDR4@1600   = 7,0,1
+ * LPDDR3@1066 = 7,0,1
+ * LPDDR4@1600 = 5,4,6,3
+ *
+ * DDR3@1333   = 1,7,0,2
+ * DDR4@1333   = 0,7,1
+ * LPDDR3@1333 = 7,0,6
+ * LPDDR4@1333 = 1,2,3
+ *
+ */
+#if !defined (VREF_TRAINING_MIN)
+#define VREF_TRAINING_MIN                               5U
+#endif
+#if !defined (VREF_TRAINING_MAX)
+#define VREF_TRAINING_MAX                              30U
+#endif
+#if !defined (CA_SWEEP_START)
+#define CA_SWEEP_START                                  0U
+#endif
+#if !defined (CA_SWEEP_END)
+#define CA_SWEEP_END                                   30U
+#endif
+#if !defined (CA_SWEEP_INCREMENT)
+#define CA_SWEEP_INCREMENT                              5U
+#endif
+
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1600_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_DDR3_1600_NUM_OFFSETS     3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1600_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_DDR3L_1600_NUM_OFFSETS    3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1600_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_DDR4_1600_NUM_OFFSETS     3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1600_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1600_NUM_OFFSETS   3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1600_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1600_NUM_OFFSETS   4U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1333_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_DDR3_1333_NUM_OFFSETS     4U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1333_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_DDR3L_1333_NUM_OFFSETS    3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1333_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_DDR4_1333_NUM_OFFSETS     3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1333_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1333_NUM_OFFSETS   3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1333_NUM_OFFSETS)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1333_NUM_OFFSETS   3U
+#endif
+
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1600_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_DDR3_1600_OFFSET_0        3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1600_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_DDR3_1600_OFFSET_1        2U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1600_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_DDR3_1600_OFFSET_2        1U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1600_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_DDR3_1600_OFFSET_3        0U
+#endif
+
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1600_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_DDR3L_1600_OFFSET_0       3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1600_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_DDR3L_1600_OFFSET_1       2U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1600_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_DDR3L_1600_OFFSET_2       1U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1600_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_DDR3L_1600_OFFSET_3       0U
+#endif
+
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_0        7U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_1        0U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_2        1U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_3        0U
+#endif
+
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_0      7U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_1      0U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_2      1U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_3      0U
+#endif
+//LPDDR4@1600 = 5,4,6,3 changed to 5,4,6,2 16th Feb Alister
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_0      5U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_1      4U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_2      6U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_3      3U
+#endif
+
+/*
+ * 1333 offset
+ */
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_0        1U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_1        7U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_2        0U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_3        2U
+#endif
+
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1333_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_DDR3L_1333_OFFSET_0       1U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1333_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_DDR3L_1333_OFFSET_1       7U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1333_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_DDR3L_1333_OFFSET_2       0U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR3L_1333_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_DDR3L_1333_OFFSET_3       2U
+#endif
+
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_0        0U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_1        7U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_2        1U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_3        0U
+#endif
+
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1333_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1333_OFFSET_0      7U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1333_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1333_OFFSET_1      0U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1333_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1333_OFFSET_2      6U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1333_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_LPDDR3_1333_OFFSET_3      0U
+#endif
+
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_0)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_0      1U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_1)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_1      2U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_2)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_2      3U
+#endif
+#if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_3)
+#define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_3      0U
+#endif
+
+/* Bit1 == 0 => 1600Mhz   Bit1 == 1 => 1333Mhz          */
+#if !defined (LIBERO_SETTING_DDR_CLK)
+#define LIBERO_SETTING_DDR_CLK                  1600000000
+#endif
+
+#define DDR_1333_MHZ                            1333333333
+#define DDR_1600_MHZ                            1600000000
+
+#ifndef NOT_A_FULL_RETRAIN
+#define NOT_A_FULL_RETRAIN
+#endif
+
+#if !defined (RPC_OVERRIDE_166_LANE_FIFO)
+#define RPC_OVERRIDE_166_LANE_FIFO 0
+#endif
+
+#define ONE_GB_MTC      30U
+#define HALF_GB_MTC     29U
+#define ONE_MB_MTC      20U
+
+
+/*Cached access at 0x00_8000_0000 (-0x80+0x00) */
+#define INIT_SETTING_SEG0_0    0x00007F80UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7F80 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*Cached access at 0x10_0000_000 */
+#define INIT_SETTING_SEG0_1    0x00007000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7000 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*not used */
+#define INIT_SETTING_SEG0_2    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*not used */
+#define INIT_SETTING_SEG0_3    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*not used */
+#define INIT_SETTING_SEG0_4    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*not used */
+#define INIT_SETTING_SEG0_5    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:6]  RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*not used */
+#define INIT_SETTING_SEG0_6    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*not used */
+#define INIT_SETTING_SEG0_7    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*not used */
+#define INIT_SETTING_SEG1_0    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*not used */
+#define INIT_SETTING_SEG1_1    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*Non-Cached access at 0x00_c000_0000 */
+#define INIT_SETTING_SEG1_2    0x00007F40UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7F40 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*Non-Cached access at 0x14_0000_0000 */
+#define INIT_SETTING_SEG1_3    0x00006C00UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x6C00 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*Non-Cached WCB access at 0x00_d000_0000 */
+#define INIT_SETTING_SEG1_4    0x00007F30UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7F30 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*Non-Cached WCB 0x18_0000_0000 */
+#define INIT_SETTING_SEG1_5    0x00006800UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x6800 */
+    /* RESERVED                          [15:6]  RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*Trace - Trace not in use here so can be left as 0 */
+#define INIT_SETTING_SEG1_6    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+/*not used */
+#define INIT_SETTING_SEG1_7    0x00000000UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x0 */
+    /* RESERVED                          [15:16] RW value= 0x0 */
+    /* LOCKED                            [31:1]  RW value= 0x0 */
+
+/***************************************************************************//**
+
+ */
+typedef enum MTC_PATTERN_
+{
+    MTC_COUNTING_PATTERN            = 0x00,              /*!<  */
+    MTC_WALKING_ONE                 = 0x01,              /*!<  */
+    MTC_PSEUDO_RANDOM               = 0x02,              /*!<  */
+    MTC_NO_REPEATING_PSEUDO_RANDOM  = 0x03,              /*!<  */
+    MTC_ALT_ONES_ZEROS              = 0x04,              /*!<  */
+    MTC_ALT_5_A                     = 0x05,              /*!<  */
+    MTC_USER                        = 0x06,              /*!<  */
+    MTC_PSEUDO_RANDOM_16BIT         = 0x07,              /*!<  */
+    MTC_PSEUDO_RANDOM_8BIT          = 0x08,              /*!<  */
+} MTC_PATTERN;
+
+
+
+typedef enum MTC_ADD_PATTERN_
+{
+    MTC_ADD_SEQUENTIAL              = 0x00,              /*!<  */
+    MTC_ADD_RANDOM                 = 0x01,               /*!<  */
+} MTC_ADD_PATTERN;
 
 /***************************************************************************//**
 
@@ -492,6 +856,7 @@ typedef enum DDR_TRAINING_SM_
     DDR_TRAINING_ROTATE_CLK,
     DDR_TRAINING_SET_TRAINING_PARAMETERS,
     DDR_TRAINING_IP_SM_BCLKSCLK_SW,
+    DDR_MANUAL_ADDCMD_TRAINING_SW,
     DDR_TRAINING_IP_SM_START,
     DDR_TRAINING_IP_SM_START_CHECK,
     DDR_TRAINING_IP_SM_BCLKSCLK,
@@ -508,6 +873,8 @@ typedef enum DDR_TRAINING_SM_
     DDR_FULL_MTC_CHECK,
     DDR_FULL_32BIT_NC_CHECK,
     DDR_FULL_32BIT_CACHE_CHECK,
+    DDR_LOAD_PATTERN_TO_CACHE,
+    DDR_VERIFY_PATTERN_IN_CACHE,
     DDR_FULL_32BIT_WRC_CHECK,
     DDR_FULL_64BIT_NC_CHECK,
     DDR_FULL_64BIT_CACHE_CHECK,
@@ -525,6 +892,7 @@ typedef enum DDR_TRAINING_SM_
     DDR_TRAINING_FAIL_SM_BCLKSCLK,
     DDR_TRAINING_FAIL_BCLKSCLK_SW,
     DDR_TRAINING_FAIL_FULL_32BIT_NC_CHECK,
+    DDR_TRAINING_FAIL_32BIT_CACHE_CHECK,
     DDR_TRAINING_FAIL_MIN_LATENCY,
     DDR_TRAINING_FAIL_START_CHECK,
     DDR_TRAINING_FAIL_PLL_LOCK,
@@ -583,6 +951,16 @@ typedef enum {
 /***************************************************************************//**
 
  */
+typedef enum SEG_SETUP_{
+    DEFAULT_SEG_SETUP    = 0x00,
+    LIBERO_SEG_SETUP
+} SEG_SETUP;
+
+
+
+/***************************************************************************//**
+
+ */
 typedef struct mss_ddr_fpga_vref_{
     uint32_t    status_lower;
     uint32_t    status_upper;
@@ -590,6 +968,29 @@ typedef struct mss_ddr_fpga_vref_{
   uint32_t  upper;
   uint32_t    vref_result;
 } mss_ddr_vref;
+
+/**
+ * \brief dll sgmii SCB regs
+ */
+typedef struct IOSCB_BANKCONT_DDR_ {
+                                    /* bit0 - This when asserted resets all the non-volatile register bits e.g. RW-P bits, the bit self clears i.e. is similar to a W1P bit */
+                                    /* bit1 - This when asserted resets all the register bits apart from the non-volatile registers, the bit self clears. i.e. is similar to a W1P bit */
+    __IO uint32_t soft_reset;       /* bit8 - This asserts the functional reset of the block. It is asserted at power up. When written is stays asserted until written to 0.       */
+
+    __IO uint32_t dpc_bits;         /* bit 3:0:  dpc_vs   bank voltage select for pvt calibration             */
+                                    /*  :  dpc_vrgen_h                  */
+                                    /*  :  dpc_vrgen_en_h               */
+                                    /*  :  dpc_move_en_h                */
+                                    /*  :  dpc_vrgen_v                  */
+                                    /*  :  dpc_vrgen_en_v               */
+                                    /*  :  dpc_move_en_v                */
+    __IO uint32_t bank_status;      /* bit 0: Bank power on complete (active low for polling)                */
+                                    /* bit 1: Bank calibration complete (active low for polling)             */
+} IOSCB_BANKCONT_DDR_STRUCT;
+
+
+#define IOSCB_BANKCONT_DDR_BASE  0x3E020000UL
+#define IOSCB_BANKCONT_DDR  ((volatile IOSCB_BANKCONT_DDR_STRUCT *) IOSCB_BANKCONT_DDR_BASE)
 
 /***************************************************************************//**
 
@@ -700,6 +1101,26 @@ void
 debug_read_ddrcfg
 (
     void
+);
+
+/***************************************************************************//**
+  The setup_ddr_segments() sets up seg regs
+
+  @return
+    none
+
+  Example:
+  @code
+
+      setup_ddr_segments(DEFAULT_SEG_SETUP);
+
+  @endcode
+
+ */
+void
+setup_ddr_segments
+(
+    SEG_SETUP option
 );
 
 

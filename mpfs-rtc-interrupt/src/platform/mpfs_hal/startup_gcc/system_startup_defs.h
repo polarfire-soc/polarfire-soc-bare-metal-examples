@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -43,4 +43,4 @@ extern "C" {
 }
 #endif
 
-#endif /* SYSTEM_STARTUP_H */
+#endif /* SYSTEM_STARTUP_DESF_H */

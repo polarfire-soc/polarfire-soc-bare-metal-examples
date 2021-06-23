@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -8,85 +8,66 @@
  * PolarFire SoC MSS RTC interrupt example project
  */
 
+#include <stdio.h>
+#include <string.h>
 #include "mpfs_hal/mss_hal.h"
-#include "drivers/mss_mmuart/mss_uart.h"
-#include "drivers/mss_rtc/mss_rtc.h"
+#include "inc/common.h"
 
-/* Constant used for setting RTC control register. */
-#define BIT_SET 0x00010000U
-
-/* 1MHz clock is RTC clock source. */
-#define RTC_PERIPH_PRESCALER              (1000000u - 1u)
-
-uint64_t uart_lock;
-
-/******************************************************************************
- *  Greeting messages displayed over the UART terminal.
- */
-const uint8_t g_greeting_msg[] =
-"\r\n\r\n\t  ******* PolarFire SoC RTC Interrupt Example *******\n\n\n\r\
-The example project demonstrate the periodic RTC interrupt. The UART\r\n\
-message will be printed at each RTC interrupt occurrence. \r\n\n\n\
-";
-
-/* RTC wakeup PLIC handler.
- */
-uint8_t rtc_wakeup_plic_IRQHandler(void)
-{
-    /* Trigger the arrow display function. */
-    MSS_UART_polled_tx_string(&g_mss_uart0_lo, "RTC interrupt\n\r");
-
-    /* Clear RTC match interrupt. */
-    MSS_RTC_clear_irq();
-
-    return EXT_IRQ_KEEP_ENABLED;
-}
+volatile uint32_t count_sw_ints_h0 = 0U;
 
 /* Main function for the hart0(E51 processor).
- * Application code running on hart0 is placed here.
+ * Application code running on hart0 is placed here
+ *
+ * The hart0 is used in the application for bootup and wakeup the U54_1 when
+ * the application is running from LIM/eNVM memory. In case of DDR the
+ * bootloader application will perform the booting and start executing this
+ * application from U54_1.
  */
 void e51(void)
 {
-    uint32_t alarm_period = 1u;
-    uint32_t temp;
+    volatile uint32_t icount = 0U;
+    uint64_t hartid = read_csr(mhartid);
+    uint32_t pattern_offset = 12U;
+    HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
+    HART_SHARED_DATA * hart_share = (HART_SHARED_DATA *)hls->shared_mem;
 
-    PLIC_init();
-    __enable_irq();
-    PLIC_SetPriority(RTC_WAKEUP_PLIC, 2);
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
 
-    SYSREG->SUBBLK_CLOCK_CR = 0xffffffff;
-    SYSREG->SOFT_RESET_CR &= ~((1u << 5u) | (1u << 18u)) ; /* RTC and MMUART0 */
+    /* Clear pending software interrupt in case there was any. */
+    clear_soft_interrupt();
+    set_csr(mie, MIP_MSIP);
 
-    MSS_UART_init(&g_mss_uart0_lo,
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART0, (uint8_t) MPFS_HAL_FIRST_HART,
+                                                           PERIPHERAL_ON);
+
+    MSS_UART_init( &g_mss_uart0_lo,
             MSS_UART_115200_BAUD,
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
-    MSS_UART_polled_tx_string(&g_mss_uart0_lo, g_greeting_msg);
+    MSS_UART_polled_tx_string(&g_mss_uart0_lo ,
+            (const uint8_t*)"\r\nPlease observe UART-1 for application messages\r\n");
 
-    temp = BIT_SET;
-    SYSREG->RTC_CLOCK_CR &= ~BIT_SET;
-    SYSREG->RTC_CLOCK_CR = LIBERO_SETTING_MSS_EXT_SGMII_REF_CLK / LIBERO_SETTING_MSS_RTC_TOGGLE_CLK;
-    SYSREG->RTC_CLOCK_CR |= BIT_SET;
+    /* Raise software interrupt to wake hart 1 */
+    raise_soft_interrupt(1U);
 
-    /* Initialize RTC. */
-    MSS_RTC_init(MSS_RTC_LO_BASE, MSS_RTC_BINARY_MODE, RTC_PERIPH_PRESCALER);
+    __enable_irq();
+#endif
 
-    /* Set initial RTC count and match values. */
-    MSS_RTC_reset_counter();
-    MSS_RTC_set_binary_count_alarm(alarm_period, MSS_RTC_PERIODIC_ALARM);
-
-    /* Enable RTC wakeup interrupt. */
-    MSS_RTC_enable_irq();
-
-    /* Enable RTC to start incrementing. */
-    MSS_RTC_start();
-
-    /* The RTC periodic alarm is now set. You should be able to see
-     * that the rtc_wakeup_plic_IRQHandler is getting called periodically.
-     */
-    for (;;)
+    while (1U)
     {
+        icount++;
 
+        if (0x100000U == icount)
+        {
+            icount = 0U;
+        }
     }
+    /* never return */
+}
 
+/* hart0 Software interrupt handler */
+void Software_h0_IRQHandler(void)
+{
+    uint64_t hart_id = read_csr(mhartid);
+    count_sw_ints_h0++;
 }
