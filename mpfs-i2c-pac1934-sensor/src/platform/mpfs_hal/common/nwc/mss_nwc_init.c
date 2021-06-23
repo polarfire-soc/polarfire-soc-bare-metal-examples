@@ -21,7 +21,7 @@
 #include "simulation.h"
 
 #ifdef DEBUG_DDR_INIT
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 extern mss_uart_instance_t *g_debug_uart ;
 uint32_t setup_ddr_debug_port(mss_uart_instance_t * uart);
 #endif
@@ -29,15 +29,10 @@ uint32_t setup_ddr_debug_port(mss_uart_instance_t * uart);
 /*******************************************************************************
  * Local Defines
  */
-CFG_DDR_SGMII_PHY_TypeDef *CFG_DDR_SGMII_PHY =\
-        ((CFG_DDR_SGMII_PHY_TypeDef *) CFG_DDR_SGMII_PHY_BASE);
-DDR_CSR_APB_TypeDef *DDRCFG =\
-        ((DDR_CSR_APB_TypeDef *)       DDRCFG_BASE);
-IOSCBCFG_TypeDef                *SCBCFG_REGS =\
-        (IOSCBCFG_TypeDef            *)IOSCBCFG_BASE ;
-g5_mss_top_scb_regs_TypeDef     *SCB_REGS    =\
-        (g5_mss_top_scb_regs_TypeDef     *)  SYSREGSCB_BASE;
-
+CFG_DDR_SGMII_PHY_TypeDef       * const CFG_DDR_SGMII_PHY   =  ((CFG_DDR_SGMII_PHY_TypeDef *) CFG_DDR_SGMII_PHY_BASE);
+DDR_CSR_APB_TypeDef             * const DDRCFG              = ((DDR_CSR_APB_TypeDef *)       DDRCFG_BASE);
+IOSCBCFG_TypeDef                * const SCBCFG_REGS         =  (IOSCBCFG_TypeDef            *)IOSCBCFG_BASE ;
+g5_mss_top_scb_regs_TypeDef     * const SCB_REGS            = (g5_mss_top_scb_regs_TypeDef *) SYSREGSCB_BASE;
 
 /*******************************************************************************
  * Local functions
@@ -365,13 +360,11 @@ uint8_t mss_nwc_init(void)
     return error;
 }
 
+
 /*-------------------------------------------------------------------------*//**
  * delay()
- * @param n
- *
- *  @return
- *   No return value.
- *   //todo: make delay function clock based
+ * Not absolute. Dependency on current clk rate
+ * @param n Number of iterations to wait.
  */
 void delay(uint32_t n)
 {

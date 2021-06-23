@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -7,9 +7,8 @@
  *
  */
 
+#include "inc/common.h"
 #include "mpfs_hal/mss_hal.h"
-
-volatile uint32_t count_sw_ints_h4 = 0U;
 
 /* Main function for the hart4(U54_4 processor).
  * Application code running on hart4 is placed here
@@ -19,7 +18,6 @@ volatile uint32_t count_sw_ints_h4 = 0U;
  */
 void u54_4(void)
 {
-    uint8_t info_string[100];
     uint64_t hartid = read_csr(mhartid);
     volatile uint32_t icount = 0U;
 
@@ -54,8 +52,8 @@ void u54_4(void)
 }
 
 /* hart4 software interrupt handler */
+
 void Software_h4_IRQHandler(void)
 {
     uint64_t hart_id = read_csr(mhartid);
-    count_sw_ints_h4++;
 }

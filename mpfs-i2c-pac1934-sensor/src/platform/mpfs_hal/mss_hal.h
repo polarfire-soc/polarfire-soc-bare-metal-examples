@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -47,7 +47,7 @@ typedef long            ssize_t;
 #include "common/atomic.h"
 #include "common/bits.h"
 #include "common/encoding.h"
-#include "fpga_config/hw_platform.h"
+#include "fpga_design_config/fpga_design_config.h"
 #include "common/nwc/mss_ddr.h"
 #include "common/mss_clint.h"
 #include "common/mss_h2f.h"
@@ -61,6 +61,7 @@ typedef long            ssize_t;
 #include "common/mss_mtrap.h"
 #include "common/mss_l2_cache.h"
 #include "common/mss_axiswitch.h"
+#include "common/mss_peripherals.h"
 #include "common/nwc/mss_cfm.h"
 #include "common/nwc/mss_ddr.h"
 #include "common/nwc/mss_sgmii.h"
