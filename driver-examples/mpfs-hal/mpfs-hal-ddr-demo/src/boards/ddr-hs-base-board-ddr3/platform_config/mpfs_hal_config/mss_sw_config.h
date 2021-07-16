@@ -157,7 +157,39 @@
 //#define DEBUG_DDR_DDRCFG
 
 /* set to 6 for DDR3/DDR4 */
-#define SW_TRAING_BCLK_SCLK_OFFSET                  0x00000006UL
+#define SW_TRAING_BCLK_SCLK_OFFSET                   0x00000006UL
+
+#define LIBERO_SETTING_TRAINING_SKIP_SETTING         0x00000002UL
+
+/*
+ * We need to redefine the following AXI address range if set incorrectly
+ * This is the case for Libero 12.5 and Libero 12.6
+ *
+ * LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_0
+ * is the definition for cached axi addrress
+ * LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0
+ * is the address for non-cached Libero address
+ * 0x7FFFFFFFUL => 2 GB address range
+ *
+ */
+#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_0    0x7FFFFFFFUL
+#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_1    0x00000000UL
+#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0    0x7FFFFFFFUL
+#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_1    0x00000000UL
+
+ /*
+  * Changes are fixes to data mismatches seen when applying the new
+  * DDR workload identified by the Linux boot failures on the icicle kit.
+  * CFG_MIN_READ_IDLE helped it pass in DDR3/DDR4, and CFG_READ_TO_WRITE fixed
+  * a different issue where 0's were being read back with the same workload on
+  * LPDDR3.
+  */
+#define LIBERO_SETTING_CFG_MIN_READ_IDLE             0x00000007UL
+
+/* For LPDDR3 only: */
+//#define LIBERO_SETTING_CFG_READ_TO_WRITE             0x00000006UL
+//#define LIBERO_SETTING_CFG_READ_TO_WRITE_ODT         0x00000006UL
+
 
 #endif
 

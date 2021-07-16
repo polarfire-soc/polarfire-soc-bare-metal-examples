@@ -69,7 +69,7 @@ void u54_4(void)
         if (0x100000U == icount)
         {
             icount = 0U;
-            sprintf(info_string,"Hart %d\r\n", hartid);
+            sprintf(info_string,"This is a message from HartID: %d, \r\n", hartid);
 #ifdef  MPFS_HAL_SHARED_MEM_ENABLED
             spinlock(&hart_share->mutex_uart0);
             MSS_UART_polled_tx(&g_mss_uart0_lo, info_string, strlen(info_string));

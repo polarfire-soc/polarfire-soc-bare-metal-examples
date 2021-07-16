@@ -69,6 +69,7 @@ void e51(void)
     HART_SHARED_DATA * hart_share = (HART_SHARED_DATA *)hls->shared_mem;
     /* set point for sharing across harts */
     hart_share->g_mss_uart0_lo = &g_mss_uart0_lo;
+    hart_share->mutex_uart0 = 0U; /* Init spinlock mutex */
 
     MSS_UART_init( hart_share->g_mss_uart0_lo,
             MSS_UART_115200_BAUD,

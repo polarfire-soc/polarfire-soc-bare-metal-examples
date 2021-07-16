@@ -138,10 +138,16 @@
 //#define SIMULATION_TEST_FEEDBACK
 //#define E51_ENTER_SLEEP_STATE
 
+#define LIBERO_SETTING_TRAINING_SKIP_SETTING        0x00000002UL
+
 /* set to 6 for DDR3/DDR4 */
 #define SW_TRAING_BCLK_SCLK_OFFSET                  0x00000006UL
 /* Issue with 64 bit access with DDR4- root cause being debugged */
 #define TEST_64BIT_ACCESS 0
+
+#define LIBERO_SETTING_CFG_VREFDQ_TRN_ENABLE        0x00000000UL
+#define LIBERO_SETTING_CFG_VREFDQ_TRN_RANGE         0x00000000UL
+#define LIBERO_SETTING_CFG_VREFDQ_TRN_VALUE         0x00000018UL //75.6%, Range 0, 60.6% Range 1
 
 #endif /* USER_CONFIG_MSS_USER_CONFIG_H_ */
 
