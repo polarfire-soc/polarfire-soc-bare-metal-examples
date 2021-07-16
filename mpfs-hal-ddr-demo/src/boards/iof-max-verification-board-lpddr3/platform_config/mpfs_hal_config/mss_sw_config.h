@@ -141,7 +141,7 @@
  * */
 #define DEBUG_DDR_INIT
 #define DEBUG_DDR_RD_RW_FAIL
-//#define DEBUG_DDR_RD_RW_PASS
+#define DEBUG_DDR_RD_RW_PASS
 //#define DEBUG_DDR_CFG_DDR_SGMII_PHY
 //#define DEBUG_DDR_DDRCFG
 
@@ -151,7 +151,7 @@
  * e.g. Define how you want SEG registers configured, if you want to change from
  * the default settings
  */
-
+#if 0 //old settings
 #define LIBERO_SETTING_SEG0_0     (-(0x0080000000LL >> 24U))
 #define LIBERO_SETTING_SEG0_1     (-(0x1000000000LL >> 24U))
 #define LIBERO_SETTING_SEG1_2     (-(0x00C0000000LL >> 24U))
@@ -221,6 +221,36 @@
  * settings
  */
 #define LIBERO_SETTING_DDR_32_NON_CACHE 0xC0000000ULL
+
+/*
+  * Changes are fixes to data mismatches seen when applying the new
+  * DDR workload identified by the Linux boot failures on the icicle kit.
+  * CFG_MIN_READ_IDLE helped it pass in DDR3/DDR4, and CFG_READ_TO_WRITE fixed
+  * a different issue where 0's were being read back with the same workload on
+  * LPDDR3.
+  */
+#define LIBERO_SETTING_CFG_MIN_READ_IDLE             0x00000007UL
+
+/* For LPDDR3 only: */
+#define LIBERO_SETTING_CFG_READ_TO_WRITE             0x00000006UL
+#define LIBERO_SETTING_CFG_READ_TO_WRITE_ODT         0x00000006UL
+#else //new settings april 2021
+
+#if 0
+#define LIBERO_SETTING_DDR_PLL_REF_FB    0x00001900UL
+    /* RFDIV                             [8:6]   RW value= 0x19 */
+//#define LIBERO_SETTING_DDR_SSCG_REG_2    0x0000029AUL // 666 is 1333Mbps
+#define LIBERO_SETTING_DDR_SSCG_REG_2    0x00000215UL // 533 is 1066Mbps
+    /* INTIN                             [0:12]  RW value= 0x29A */
+#define LIBERO_SETTING_MSS_PLL_FRACN    0x00000001UL
+#endif
+
+
+#define LIBERO_SETTING_CFG_CL    0x00000012UL
+#define LIBERO_SETTING_CFG_READ_TO_WRITE    0x00000005UL
+#define LIBERO_SETTING_PHY_RESET_CONTROL    0x00008001UL
+
+#endif // end new settings april 2021
 
 #endif /* USER_CONFIG_MSS_USER_CONFIG_H_ */
 

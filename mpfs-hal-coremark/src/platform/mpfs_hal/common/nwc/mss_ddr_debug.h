@@ -126,6 +126,23 @@ uint64_t d
 );
 
 /***************************************************************************//**
+  The uprint() function is used to print to the designated debug port
+
+  Example:
+  @code
+
+  (void)uprint(g_debug_uart, "\n\r DDR_TRAINING_FAIL: ");
+
+  @endcode
+ */
+void
+uprint
+(
+mss_uart_instance_t * uart,
+const char* msg
+);
+
+/***************************************************************************//**
   The error_status() function is used to print to the designated debug port
 
   Example:

@@ -177,9 +177,9 @@
  *  used.
  *  using 2MB ( Icicle kit)
 */
-/* DCT diff's from Libero, uncomment to use */
-//#define USE_DCT_SETTINGS
-#if USE_DCT_SETTINGS
+/* Uncomment if pre 2021.2, otherwise you can remove */
+#define USE_IF_2021_1_OR_EARLIER
+#ifdef USE_IF_2021_1_OR_EARLIER
 #define LIBERO_SETTING_TIP_CFG_PARAMS               0x07CFE02FUL
     /* ADDCMD_OFFSET                     [0:3]   RW value= 0x2 changed to 3*/
     /* BCKLSCLK_OFFSET                   [3:3]   RW value= 0x5 */
@@ -189,7 +189,16 @@
 
 /* from HW_DDR_IO_BANK_H_ */
 
-#define LIBERO_SETTING_DPC_BITS                     0x00050422UL
+//#define LIBERO_SETTING_DPC_BITS                     0x00050422UL //DPC_VRGEN_H = 2
+//#define LIBERO_SETTING_DPC_BITS                     0x00050432UL //DPC_VRGEN_H = 3
+//#define LIBERO_SETTING_DPC_BITS                     0x00050442UL //DPC_VRGEN_H = 4
+//#define LIBERO_SETTING_DPC_BITS                     0x00050452UL //DPC_VRGEN_H = 5
+//#define LIBERO_SETTING_DPC_BITS                     0x00050462UL //DPC_VRGEN_H = 6
+//#define LIBERO_SETTING_DPC_BITS                     0x00050472UL //DPC_VRGEN_H = 7
+//#define LIBERO_SETTING_DPC_BITS                     0x00050402UL //DPC_VRGEN_H = 0
+//#define LIBERO_SETTING_DPC_BITS                     0x00050412UL //DPC_VRGEN_H = 1
+//Latest configurations - Start
+#define LIBERO_SETTING_DPC_BITS                     0x00050422UL //DPC_VRGEN_H = 2
     /* DPC_VS                            [0:4]   RW value= 0x2 */
     /* DPC_VRGEN_H                       [4:6]   RW value= 0x2 */
     /* DPC_VRGEN_EN_H                    [10:1]  RW value= 0x1 */
@@ -199,9 +208,17 @@
     /* DPC_MOVE_EN_V                     [19:1]  RW value= 0x0 */
     /* RESERVE01                         [20:12] RSVD */
 
-#define LIBERO_SETTING_RPC_ODT_DQ                   0x00000006UL
-#define LIBERO_SETTING_RPC_ODT_DQS                  0x00000006UL   //4 2
-#endif
+#define LIBERO_SETTING_RPC_ODT_DQ                   0x00000005UL
+#define LIBERO_SETTING_RPC_ODT_DQS                  0x00000006UL
+/* Enabling VREFDQ training
+ * Configuring the VREFDQ training range to be one
+ * Configuring the VREFDQ value as 31.2%
+ */
+#define LIBERO_SETTING_CFG_VREFDQ_TRN_ENABLE    0x00000001UL
+#define LIBERO_SETTING_CFG_VREFDQ_TRN_RANGE    0x00000001UL
+#define LIBERO_SETTING_CFG_VREFDQ_TRN_VALUE    0x00000017UL
+
+#endif /* USE_IF_2021_1_OR_EARLIER */
 
 /*
  * We need to redefine the following AXI address range if set incorrectly
@@ -219,6 +236,19 @@
 #define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_1    0x00000000UL
 #define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0    0x7FFFFFFFUL
 #define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_1    0x00000000UL
+
+/*
+  * Changes are fixes to data mismatches seen when applying the new
+  * DDR workload identified by the Linux boot failures on the icicle kit.
+  * CFG_MIN_READ_IDLE helped it pass in DDR3/DDR4, and CFG_READ_TO_WRITE fixed
+  * a different issue where 0's were being read back with the same workload on
+  * LPDDR3.
+  */
+#define LIBERO_SETTING_CFG_MIN_READ_IDLE             0x00000007UL
+
+/* For LPDDR3 only: */
+//#define LIBERO_SETTING_CFG_READ_TO_WRITE             0x00000006UL
+//#define LIBERO_SETTING_CFG_READ_TO_WRITE_ODT         0x00000006UL
 
 /*
  * The following three setting disable Data Mask and enable Read Write Modify

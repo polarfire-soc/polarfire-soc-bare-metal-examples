@@ -15,15 +15,20 @@ from pathlib import Path
 # --------------------------------------------------------------------------------------------
 # mpfs_configuration_generator.py version
 #
-# 0.6.3 bug fix related to multiple xml file selection. and added libero design information 
-# constants in fpga_design_config.h/ removed date,version and design information from all the files
-# except fpga_design_config.h
+# 0.6.4 Added the following generated files:
+#            hw_mssio_mux_alternate.h
+#            hw_nvm_map.h
+# 0.6.3 target folder name change from "fpga_config" -> fpga_design config, filename 
+#       hw_platform.h changed to fpga_design_config.h ,
+#       bug fix related to multiple xml file selection and added libero design information 
+#       constants in fpga_design_config.h/ removed date,version and design information from all the files
+#       except fpga_design_config.h
 #
 # 0.6.2 added support for multiple xml file found in input folder
 #       /empty xml file check/ xml filename arg in current folder/
 #       if multiple files are there then the file with the latest time stamp will 
 #       be selected. 
-# 0.6.1 changed target folder name from soc_config to fpga_design_config
+# 0.6.1 changed target folder name from soc_config to fpga_config
 #
 # 0.5.2 Aries Embedded Feedback: remove trailing spaces.
 # 0.5.1 Added check that the source XML document is more recent than content of already existing
@@ -47,7 +52,7 @@ def get_script_ver():
     get_xml_ver()
     :return: script version
     '''
-    return "0.6.3"
+    return "0.6.4"
 
 
 
@@ -69,6 +74,8 @@ xml_tag_file = 'hardware_des_xml,src_example,mpfs_hw_tag_reference.xml'
 # Please note: The tag in the first column ( mss_xxx) is the same as the
 # directory name (/fpga_design_config/mss_xxx)
 # the fourth item lets program know how to format info in header file
+#         fm_reg - appears as reg with fields
+#         fm_define - appears as define with value, no fields
 # the six item lets program know how to format value, decimal or hex
 # -----------------------------------------------------------------------------
 xml_tags = ('mss_memory_map,map,mem_elements,fm_define,none,hex',
@@ -89,7 +96,9 @@ xml_tags = ('mss_memory_map,map,mem_elements,fm_define,none,hex',
             'mss_memory_map,mpu_mmc,registers,fm_struct,MMC_,hex64',
             'mss_memory_map,mpu_scb,registers,fm_struct,SCB_,hex64',
             'mss_memory_map,mpu_trace,registers,fm_struct,TRACE_,hex64',
+            'mss_memory_map,nvm_map,registers,fm_define,none,decimal',
             'mss_io,io_mux,registers,fm_reg,none,hex',
+            'mss_io,io_mux_alt,registers,fm_reg,none,hex',
             'mss_io,hsio,registers,fm_reg,none,hex',
             'mss_sgmii,tip,registers,fm_reg,none,hex',
             'mss_ddr,options,registers,fm_reg,none,hex',
@@ -110,7 +119,7 @@ xml_tags = ('mss_memory_map,map,mem_elements,fm_define,none,hex',
 
 # -----------------------------------------------------------------------------
 #  Header files to generate
-# -----------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 header_files = ('fpga_design_config,memory_map,hw_memory.h',
                 'fpga_design_config,memory_map,hw_apb_split.h',
                 'fpga_design_config,memory_map,hw_cache.h',
@@ -129,7 +138,9 @@ header_files = ('fpga_design_config,memory_map,hw_memory.h',
                 'fpga_design_config,memory_map,hw_mpu_mmc.h',
                 'fpga_design_config,memory_map,hw_mpu_scb.h',
                 'fpga_design_config,memory_map,hw_mpu_trace.h',
+                'fpga_design_config,memory_map,hw_nvm_map.h',
                 'fpga_design_config,io,hw_mssio_mux.h',
+                'fpga_design_config,io,hw_mssio_mux_alternate.h',
                 'fpga_design_config,io,hw_hsio_mux.h',
                 'fpga_design_config,sgmii,hw_sgmii_tip.h',
                 'fpga_design_config,ddr,hw_ddr_options.h',
@@ -415,14 +426,18 @@ def generate_header( file, real_root, root, file_name, tags):
         WriteCopyright(real_root, headerFile, file_name, creator)
         start_define(headerFile, file_name)
         start_cplus(headerFile, file_name)
-        for child in root:
-            if child.tag == "registers":
-                generate_register(headerFile, child, tags)
-            if child.tag == "mem_elements":
-                generate_mem_elements(headerFile, child, tags)
-            for child2 in child:
-                if child2.tag == "registers":
-                    generate_register(headerFile, child2, tags)
+        if tags != None :
+            for child in root:
+                if child.tag == "registers":
+                    generate_register(headerFile, child, tags)
+                if child.tag == "mem_elements":
+                    generate_mem_elements(headerFile, child, tags)
+                for child2 in child:
+                    if child2.tag == "registers":
+                        generate_register(headerFile, child2, tags)
+        else:
+            headerFile.write('/* No content from MSS Configurator generated for this file. */\n')
+            headerFile.write('/* An older version of MSS Configurator has been used.       */\n')
         end_cplus(headerFile, file_name)
         end_define(headerFile, file_name)
 
@@ -525,6 +540,8 @@ def generate_header_files(output_header_files, input_xml_file, input_xml_tags):
         #
         if found_match == 1:
             generate_header(file_dir, root, child1, file_name, ref_tags)
+        else:
+            generate_header(file_dir, root, child1, file_name, None)
         index += 1
 
     '''

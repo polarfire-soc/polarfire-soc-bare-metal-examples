@@ -161,53 +161,6 @@ uint64_t get_tp_reg(void)
     return (tp_reg_val);
 }
 
-/**
- * mpfs_sync_bool_compare_and_swap()
- * this works on the E51 / U54s, and operates equivalently to the
- * __sync_bool_compare_and_swap() intrinsic.
- * @param ptr
- * @param oldval
- * @param newval
- * @return
- */
-bool mpfs_sync_bool_compare_and_swap(volatile long *ptr, long oldval, long newval)
-{
-        static long lock = 0;
-        bool result = false;
-
-        if (!__sync_lock_test_and_set(&lock, 1)) { // amoswap.d.aq
-                if (*ptr == oldval) {
-                        *ptr = newval;
-                }
-
-                __sync_lock_release(&lock); // fence iorw,ow; ampswap.d
-                result = true;
-        }
-
-        return result;
-}
-
-/**
- * mpfs_sync_val_compare_and_swap()
- * this works on the E51 / U54s, and operates equivalently to the
- * __sync_val_compare_and_swap() intrinsic.  It works by using a separate
- * static lock, and then emulating the behaviour of the lr.w.aq instruction
- * Required as lr/sr instructions are not supported on the E51 and are only
- * supported on L1 cached back memory types. These limitations are not present
- * with this function.
- * @param ptr
- * @param oldval
- * @param newval
- */
-long mpfs_sync_val_compare_and_swap(volatile long *ptr, long oldval, long newval)
-{
-        long result = *ptr;
-
-        (void)mpfs_sync_bool_compare_and_swap(ptr, oldval, newval);
-
-        return result;
-}
-
 #ifdef PRINTF_DEBUG_SUPPORTED
 void display_address_of_interest(uint64_t * address_of_interest, int nb_locations) {
   uint64_t * p_addr_of_interest = address_of_interest;

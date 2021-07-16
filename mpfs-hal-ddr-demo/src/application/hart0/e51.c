@@ -206,6 +206,7 @@ void e51(void)
 
     /* set point for sharing across harts */
     hart_share->g_mss_uart0_lo = &g_mss_uart0_lo;
+    hart_share->mutex_uart0 = 0U; /* Init spinlock mutex */
 
     sprintf(info_string, "\r\nHart %u, HLS mem address 0x%lx, Shared mem 0x%lx\r\n",\
                                                           hls->my_hart_id, (uint64_t)hls, (uint64_t)hls->shared_mem);
