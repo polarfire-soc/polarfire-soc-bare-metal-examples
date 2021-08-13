@@ -1,0 +1,53 @@
+# Projects build files
+/*/Debug
+/*/Release
+
+# Workspace files
+
+/RemoteSystemsTempFiles
+/*/.settings
+
+# .lock and write.lock and others
+/.metadata/**/.lock
+/.metadata/**/*.lock
+
+# .log and foo.log
+/.metadata/**/.log
+/.metadata/**/*.log
+/.metadata/**/log
+
+# history/index folders and history/index files
+/.metadata/**/.history/*
+/.metadata/**/*.history
+/.metadata/**/*.index
+/.metadata/**/.indexes
+
+# mylyn, oomph and refactorings plugins
+/.metadata/.plugins/org.eclipse.oomph.*/
+/.metadata/**/.mylyn
+/.metadata/**/.refactorings
+
+# eGit settings
+/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.egit.core.prefs
+
+# crash recovery snapshots
+/.metadata/**/.snap
+/.metadata/**/*.snap
+
+# History of last used launchers
+/.metadata/.plugins/org.eclipse.debug.ui/launchConfigurationHistory.xml
+
+# Last settings of GME
+/.metadata/.plugins/org.eclipse.core.runtime/.settings/ilg.gnumcueclipse.debug.gdbjtag.openocd.perfs
+
+
+#ignoring trees and pdom might cause the workspace to lose the projects
+# tree files
+#/.metadata/**/*.tree
+
+# pdom files (index data for a project)
+#/.metadata/**/*.pdom
+
+# Ignore spec.c and spec.C
+/.metadata/.plugins/org.eclipse.cdt.managedbuilder.core/spec.*
+/.metadata/
