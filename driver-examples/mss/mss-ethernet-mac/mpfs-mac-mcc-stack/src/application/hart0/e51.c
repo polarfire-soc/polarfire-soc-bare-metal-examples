@@ -1,5 +1,5 @@
 /***********************************************************************************
- * Copyright 2020 Microchip Corporation.
+ * Copyright 2021 Microchip Corporation.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -29,7 +29,7 @@
 #include <string.h>
 
 #include "mpfs_hal/mss_hal.h"
-#include "mpfs_hal/nwc/mss_nwc_init.h"
+#include "mpfs_hal/common/nwc/mss_nwc_init.h"
 
 #if PSE
 #include "drivers/mss_gpio/mss_gpio.h"
@@ -266,7 +266,7 @@ static void Init_Service_Handlers(void)
 
 /* Define this if you are using the other harts... */
 /* #define USE_OTHER_HARTS */
-
+#if 0
 int main_first_hart(void)
 {
     uint64_t hartid = read_csr(mhartid);
@@ -427,7 +427,7 @@ int main_first_hart(void)
     return (0);
 }
 
-
+#endif
 /**============================================================================
  *
  */

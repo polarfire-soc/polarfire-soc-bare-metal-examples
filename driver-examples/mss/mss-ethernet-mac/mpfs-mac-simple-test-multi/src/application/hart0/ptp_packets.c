@@ -1,5 +1,5 @@
 /***********************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -18,18 +18,18 @@
 #include "mpfs_hal/mss_hal.h"
 
 #if PSE
-#include "drivers/mss_gpio/mss_gpio.h"
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_gpio/mss_gpio.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #else
 #include "drivers/FU540_uart/FU540_uart.h"
 #endif
 
-#include "drivers/mss_ethernet_mac/mss_ethernet_registers.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_regs.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_regs.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
 
-#include "drivers/mss_ethernet_mac/phy.h"
+#include "drivers/mss/mss_ethernet_mac/phy.h"
 
 /* Kernel includes. */
 #include "support/bm_rv_port.h"

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -27,13 +27,13 @@ typedef long            ssize_t;
 #endif
 #endif
 
-#include "mss_assert.h"
-#include "mpfs_hal/nwc/mss_ddr_defs.h"
-#include "mpfs_hal/nwc/mss_ddr_SGMII_regs.h"
-#include "mpfs_hal/nwc/mss_io_config.h"
-#include "mpfs_hal/nwc/mss_pll.h"
-#include "mpfs_hal/nwc/mss_scb_nwc_regs.h"
-#include "mpfs_hal/nwc/mss_scb_nwc_regs.h"
+#include "common/mss_assert.h"
+#include "common/nwc/mss_ddr_defs.h"
+#include "common/nwc/mss_ddr_sgmii_regs.h"
+#include "common/nwc/mss_io_config.h"
+#include "common/nwc/mss_pll.h"
+#include "common/nwc/mss_scb_nwc_regs.h"
+#include "common/nwc/mss_scb_nwc_regs.h"
 /*
  * mss_sw_config.h may be edited as required and should be located outside the
  * mpfs_hal folder
@@ -44,31 +44,29 @@ typedef long            ssize_t;
  * mss_sw_config.h. This allows defines in hw_platform.h be overload from
  * mss_sw_config.h if necessary.
  * */
-#include "atomic.h"
-#include "bits.h"
-#include "encoding.h"
-#include "soc_config/hw_platform.h"
-#include "mpfs_hal/nwc/mss_ddr.h"
-#include "mss_clint.h"
-#include "mss_coreplex.h"
-#include "mss_h2f.h"
-#include "mss_hart_ints.h"
-#include "mss_ints.h"
-#include "mss_mpu.h"
-#include "mss_peripheral_base_add.h"
-#include "mss_plic.h"
-#include "mss_prci.h"
-#include "mss_seg.h"
-#include "mss_sysreg.h"
-#include "mss_util.h"
-#include "mtrap.h"
-#include "mss_l2_cache.h"
-#include "mss_axiswitch.h"
-#include "nwc/mss_cfm.h"
-#include "nwc/mss_ddr.h"
-#include "nwc/mss_sgmii.h"
-#include "system_startup.h"
-#include "nwc/mss_ddr_debug.h"
+#include "common/atomic.h"
+#include "common/bits.h"
+#include "common/encoding.h"
+#include "fpga_design_config/fpga_design_config.h"
+#include "common/nwc/mss_ddr.h"
+#include "common/mss_clint.h"
+#include "common/mss_h2f.h"
+#include "common/mss_hart_ints.h"
+#include "common/mss_mpu.h"
+#include "common/mss_pmp.h"
+#include "common/mss_plic.h"
+#include "common/mss_seg.h"
+#include "common/mss_sysreg.h"
+#include "common/mss_util.h"
+#include "common/mss_mtrap.h"
+#include "common/mss_l2_cache.h"
+#include "common/mss_axiswitch.h"
+#include "common/mss_peripherals.h"
+#include "common/nwc/mss_cfm.h"
+#include "common/nwc/mss_ddr.h"
+#include "common/nwc/mss_sgmii.h"
+#include "startup_gcc/system_startup.h"
+#include "common/nwc/mss_ddr_debug.h"
 #ifdef SIMULATION_TEST_FEEDBACK
 #include "nwc/simulation.h"
 #endif
@@ -76,9 +74,6 @@ typedef long            ssize_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-uint32_t SysTick_Config(void);
-void disable_systick(void);
 
 #ifdef __cplusplus
 }
