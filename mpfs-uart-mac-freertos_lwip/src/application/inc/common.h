@@ -1,5 +1,5 @@
 /***********************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  * 
@@ -25,10 +25,6 @@ typedef enum COMMAND_TYPE_
 /**
  * functions
  */
-void e51(void);
-void u54_1(void);
-void u54_2(void);
-void u54_3(void);
-void u54_4(void);
+void free_rtos(void);
 
 #endif /* COMMON_H_ */

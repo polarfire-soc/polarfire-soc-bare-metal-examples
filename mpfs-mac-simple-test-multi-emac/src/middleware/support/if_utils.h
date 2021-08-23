@@ -40,7 +40,7 @@
 #ifdef _ZL303XX_CORE_TSE
 #include "core_tse.h"
 #else
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
 #endif
 /* Kernel includes. */
 //#include "FreeRTOS.h"

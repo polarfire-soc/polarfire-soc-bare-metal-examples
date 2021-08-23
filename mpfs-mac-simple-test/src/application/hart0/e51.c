@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -26,9 +26,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
-#include "mpfs_hal/nwc/mss_nwc_init.h"
+#include "mpfs_hal/common/nwc/mss_nwc_init.h"
 
 #if PSE
 #include "drivers/mss_gpio/mss_gpio.h"
@@ -43,6 +45,7 @@
 #include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
 #include "drivers/mss_ethernet_mac/phy.h"
 #include "drivers/mss_gpio/mss_gpio.h"
+#include "inc/common.h"
 
 #if defined(MSS_MAC_USE_DDR) && (MSS_MAC_USE_DDR == MSS_MAC_MEM_CRYPTO)
 /*
@@ -57,7 +60,7 @@
 #if defined(TARGET_ALOE)
 #define PRINT_STRING(x)MSS_FU540_UART_polled_tx(&g_mss_FU540_uart0, x, strlen(x));
 #else
-#define PRINT_STRING(x) MSS_UART_polled_tx_string(&g_mss_uart0_lo, (uint8_t *)x);
+#define PRINT_STRING(x) MSS_UART_polled_tx_string(&g_mss_uart1_lo, (uint8_t *)x);
 #endif
 
 /* Not really public driver function but we need it for some test commands...*/
@@ -120,11 +123,6 @@ mss_mac_cfg_t g_mac_config;
  */
 
 
-#define TEST_SW_INT 1
-
-#ifdef TEST_SW_INT
-volatile uint32_t count_sw_ints_h0 = 0;
-#endif
 extern void init_memory( void);
 
 typedef struct aligned_tx_buf
@@ -227,9 +225,9 @@ mss_mac_instance_t *g_test_mac = &g_mac1;
 /* Define this if you are using the other harts... */
 /* #define USE_OTHER_HARTS */
 
-int main_first_hart(void)
+int main_first_hart(HLS_DATA* hls)
 {
-    uint64_t hartid = read_csr(mhartid);
+    uint64_t hartid = hls->my_hart_id;
 #if defined(USE_OTHER_HARTS)
     HLS_DATA* hls;
 #endif
@@ -419,7 +417,7 @@ int main_first_hart(void)
 #endif
 #endif  /* MPFS_HAL_HW_CONFIG */
 
-        main_other_hart();
+        main_other_hart(hls);
     }
 
     /* should never get here */
@@ -904,7 +902,7 @@ low_level_init(void)
 #endif
     g_test_mac = &g_mac0;
 #endif
-
+    g_mac_config.use_local_ints        = MSS_MAC_ENABLE;
 #if ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_EMUL_GMII) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_EMUL_GMII_GEM1) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_EMUL_GMII_LOCAL))
@@ -1088,15 +1086,13 @@ void prvLinkStatusTask(void)
  */
 void SysTick_Handler_h0_IRQHandler(void)
 {
-    g_tick_counter += HART0_TICK_RATE_MS;
+
 }
 
 
 /*==============================================================================
  * SSCG
  */
-
-void e51_task( void *pvParameters );
 
 void e51(void);
 void e51(void)
@@ -1111,7 +1107,6 @@ void e51(void)
     PLIC_init();
 
 #if MSS_MAC_HW_PLATFORM  == MSS_MAC_DESIGN_EMUL_GMII_LOCAL
-    SYSREG->FAB_INTEN_U54_2 = 0x000001F8;
     SYSREG->FAB_INTEN_MISC  = 0x00000002;
     SysTick_Config();  /* Let hart 0 run the timer */
 
@@ -1122,7 +1117,7 @@ void e51(void)
         ix++;
     }
 #else
-    e51_task(0);
+    mac_task(0);
 #endif
 }
 
@@ -1138,7 +1133,7 @@ void u54_2(void)
     write_csr(mepc, 0);
 
     PLIC_init();
-    e51_task(0);
+    mac_task(0);
 
     while (1)
     {
@@ -1375,6 +1370,15 @@ static void print_help(void)
         PRINT_STRING(info_string);
         sprintf(info_string,"]/[ Inc/Dec PHY SGMII drive offset --------(%d)\n\r",
                 (int)((*reg_ptr >> 2) & 0x00000003UL));
+        PRINT_STRING(info_string);
+    }
+    if((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) ||
+       (MSS_MAC_DEV_PHY_VSC8541 == g_test_mac->phy_type) ||
+       (MSS_MAC_DEV_PHY_VSC8575 == g_test_mac->phy_type))
+    {
+        sprintf(info_string,"( - Display PHY register value.\n\r    Use 4 digit hex register number with page in top\n\r    8 bits and register in low 8 bits\n\r");
+        PRINT_STRING(info_string);
+        sprintf(info_string,") - Edit PHY register value.\n\r    Use 4 digit hex register number with page in top\n\r    8 bits and register in low 8 bits\n\r");
         PRINT_STRING(info_string);
     }
     sprintf(info_string,"2/3/4/5/6/7/8 select speed mode of Autonegotiate,\n\r");
@@ -2167,7 +2171,7 @@ void display_clocks(void)
 #define ATHENA_CR ((volatile uint32_t *) (0x20127000u))
 #define ATHENA_CR_CSRMERRS ((volatile uint32_t *) (0x2200600C))
 
-void e51_task( void *pvParameters )
+void mac_task( void *pvParameters )
 {
     static uint32_t add_on = 0;
     //init_memory();
@@ -2621,7 +2625,7 @@ void e51_task( void *pvParameters )
     /* Enable UART Interrupt on PLIC */
 PLIC_EnableIRQ(USART0_PLIC_4);
 #else
-    MSS_UART_init( &g_mss_uart0_lo,
+    MSS_UART_init( &g_mss_uart1_lo,
                     MSS_UART_115200_BAUD,
                     MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 #endif
@@ -2635,26 +2639,20 @@ PLIC_EnableIRQ(USART0_PLIC_4);
     *ATHENA_CR = SYSREG_ATHENACR_RESET | SYSREG_ATHENACR_RINGOSCON;
     *ATHENA_CR = SYSREG_ATHENACR_RINGOSCON;
     CALIni();
-    MSS_UART_polled_tx_string(&g_mss_uart0_lo, "CALIni() done..\n\r");
+    MSS_UART_polled_tx_string(&g_mss_uart1_lo, "CALIni() done..\n\r");
 #endif
 
     low_level_init();
 
     display_clocks();
 
-/*
+    /*
      * Startup the other harts
      */
-#ifdef TEST_SW_INT
-    raise_soft_interrupt((uint32_t)1); /* get hart1 out of wfi */
-#endif
 
     while (1)
     {
         prvLinkStatusTask();
-#ifdef TEST_SW_INT
-        raise_soft_interrupt((uint32_t)1);
-#endif
 
         if(PACKET_DONE == g_capture)
         {
@@ -2690,7 +2688,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
         rx_size = MSS_FU540_UART_get_rx(&g_mss_FU540_uart0,
                                         rx_buff, sizeof(rx_buff));
 #else
-        rx_size = MSS_UART_get_rx(&g_mss_uart0_lo, rx_buff,
+        rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, rx_buff,
                                   (uint8_t)sizeof(rx_buff));
 #endif
         if(rx_size > 0)
@@ -3264,7 +3262,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
                 {
                     if(0 == (q_loops % 1000000))
                     {
-                        rx_size = MSS_UART_get_rx(&g_mss_uart0_lo, rx_buff,
+                        rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, rx_buff,
                                                   (uint8_t)sizeof(rx_buff));
                         if(rx_size > 0)
                         {
@@ -4050,6 +4048,130 @@ PLIC_EnableIRQ(USART0_PLIC_4);
 
                 *reg_ptr = temp_ctl;
             }
+            else if(((rx_buff[0] == '(') || (rx_buff[0] == ')')) &&
+                    ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) ||
+                    (MSS_MAC_DEV_PHY_VSC8541 == g_test_mac->phy_type) ||
+                    (MSS_MAC_DEV_PHY_VSC8575 == g_test_mac->phy_type)))
+            {
+                uint8_t input_char = 0;
+                uint8_t number_buf[5];
+                int str_index = 0;
+                uint32_t number = 0;
+                uint16_t reg_val;
+                uint8_t  reg_number;
+                uint16_t page_number;
+                uint16_t old_page;
+
+                PRINT_STRING("Enter PHY register number (decimal): ");
+
+                for(;;)
+                {
+                    rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, &input_char, 1);
+                    if(rx_size > 0)
+                    {
+                        if(27 == input_char)
+                        {
+                            PRINT_STRING("\n\rCancelled\n\r");
+                            break;
+                        }
+                        else if(isdigit(input_char))
+                        {
+                            MSS_UART_polled_tx(&g_mss_uart1_lo, (uint8_t *)&input_char, 1);
+                            number_buf[str_index] = input_char;
+                            str_index++;
+                        }
+                        else if(13 == input_char)
+                        {
+                            number_buf[str_index] = 0;
+                            str_index = 4;
+                        }
+                    }
+
+                    number_buf[str_index] = 0;
+                    if(27 == input_char)
+                    {
+                        break;
+                    }
+
+                    if(str_index == 4)
+                    {
+                        number = (uint32_t)strtoul((char *)number_buf, 0, 10);
+                        break;
+                    }
+                }
+                if(27 != input_char)
+                {
+                    /* Separate out page and register address parts */
+                    reg_number = (uint8_t)(number % 100);
+                    reg_number %= 32;
+                    page_number = (uint16_t)(number / 100);
+
+                    if((page_number != 0) && (page_number != 1) &&   (page_number != 16))
+                    {
+                         page_number = 0;
+                    }
+
+                    old_page = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, page_number);
+
+                    reg_val = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, reg_number);
+                    sprintf(info_string,"\r\nPage %u, Register %u = %04X\n\r", page_number, reg_number, reg_val);
+                    PRINT_STRING(info_string);
+
+                    if(rx_buff[0] == ')')
+                    {
+                        str_index  = 0;
+                        number     = 0;
+                        input_char = 0;
+                        PRINT_STRING("Enter new reg value (hex): ");
+
+                        for(;;)
+                        {
+                            rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, &input_char, 1);
+                            if(rx_size > 0)
+                            {
+                                if(27 == input_char)
+                                {
+                                    PRINT_STRING("\n\rCancelled\n\r");
+                                    break;
+                                }
+                                else if(isxdigit(input_char))
+                                {
+                                    MSS_UART_polled_tx(&g_mss_uart1_lo, (uint8_t *)&input_char, 1);
+                                    number_buf[str_index] = input_char;
+                                    str_index++;
+                                }
+                                else if(13 == input_char)
+                                {
+                                    number_buf[str_index] = 0;
+                                    str_index = 4;
+                                }
+                            }
+
+                            number_buf[str_index] = 0;
+                            if(27 == input_char)
+                            {
+                                break;
+                            }
+
+                            if(str_index == 4)
+                            {
+                                number = (uint32_t)strtoul((char *)number_buf, 0, 16);
+                                break;
+                            }
+                        }
+                        if(27 != input_char)
+                        {
+                            MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, reg_number, (uint16_t)number);
+                            reg_val = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, reg_number);
+                            sprintf(info_string,"\r\nPage %u, Register %u = %04X\n\r", page_number, reg_number, reg_val);
+                            PRINT_STRING(info_string);
+                        }
+
+                        MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, old_page);
+                    }
+                }
+            }
             else if((rx_buff[0] >= '2') && (rx_buff[0] <= '8'))
             {
                 mss_mac_speed_mode_t speed = (mss_mac_speed_mode_t)(rx_buff[0] - '2');
@@ -4064,26 +4186,10 @@ PLIC_EnableIRQ(USART0_PLIC_4);
 #if defined(TARGET_ALOE)
                 MSS_FU540_UART_polled_tx(&g_mss_FU540_uart0, rx_buff, rx_size);
 #else
-                MSS_UART_polled_tx(&g_mss_uart0_lo, rx_buff, (uint32_t)rx_size);
+                MSS_UART_polled_tx(&g_mss_uart1_lo, rx_buff, (uint32_t)rx_size);
 #endif
             }
         }
     }
 }
 
-
-#ifdef TEST_SW_INT
-/*==============================================================================
- *
- */
-
-void Software_h0_IRQHandler(void);
-void Software_h0_IRQHandler(void)
-{
-    uint32_t hart_id = read_csr(mhartid);
-    if(hart_id == 0)
-    {
-        count_sw_ints_h0++;
-    }
-}
-#endif

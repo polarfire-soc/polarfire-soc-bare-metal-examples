@@ -1,9 +1,9 @@
 /***********************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * code running on U54 second hart
+ * Application code running on U54 second hart
  *
  */
 
@@ -11,23 +11,14 @@
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
-#include "drivers/mss_mmuart/mss_uart.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_registers.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_regs.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_regs.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
 
 #if !(MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_EMUL_GMII_LOCAL)
-/*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
- *
- * SPDX-License-Identifier: MIT
- *
- * Application code running on U54_2
- *
- */
 
-#include "mpfs_hal/mss_hal.h"
 
 volatile uint32_t count_sw_ints_h2 = 0U;
 

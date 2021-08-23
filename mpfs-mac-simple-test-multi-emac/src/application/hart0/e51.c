@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -30,22 +30,22 @@
 #include <inttypes.h>
 
 #include "mpfs_hal/mss_hal.h"
-#include "mpfs_hal/nwc/mss_nwc_init.h"
+//#include "mpfs_hal/nwc/mss_nwc_init.h"
 
 #if PSE
-#include "drivers/mss_gpio/mss_gpio.h"
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_gpio/mss_gpio.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #else
-#include "drivers/FU540_uart/FU540_uart.h"
+#include "drivers/mss/FU540_uart/FU540_uart.h"
 #endif
 
 
-#include "drivers/mss_ethernet_mac/mss_ethernet_registers.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_regs.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_regs.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
 
-#include "drivers/mss_ethernet_mac/phy.h"
+#include "drivers/mss/mss_ethernet_mac/phy.h"
 
 #include "ptp_packets.h"
 #if defined(MSS_MAC_USE_DDR) && (MSS_MAC_USE_DDR == MSS_MAC_MEM_CRYPTO)
@@ -320,6 +320,7 @@ mss_mac_instance_t *g_test_mac = &g_mac1; /* Start out with MAC 1 as we have the
 /* Define this if you are using the other harts... */
 /* #define USE_OTHER_HARTS */
 
+#if 0 /* todo: remove */
 int main_first_hart(void)
 {
     uint64_t hartid = read_csr(mhartid);
@@ -518,7 +519,7 @@ int main_first_hart(void)
 
     return (0);
 }
-
+#endif
 
 /**============================================================================
  *

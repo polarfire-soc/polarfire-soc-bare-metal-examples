@@ -1,46 +1,28 @@
 /***********************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * code running on U54 second hart
+ * Application code running on U54 second hart
  *
  */
+
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
+#if ((MPFS_HAL_FIRST_HART == 2) && (MPFS_HAL_LAST_HART ==2))
 #include "drivers/mss_mmuart/mss_uart.h"
 #include "drivers/mss_ethernet_mac/mss_ethernet_registers.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "platform_config_hw/drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
 #include "drivers/mss_ethernet_mac/mss_ethernet_mac_regs.h"
 #include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "inc/common.h"
 
 #if !(MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_EMUL_GMII_LOCAL)
-/*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
- *
- * SPDX-License-Identifier: MIT
- *
- * Application code running on U54_2
- *
- */
-
-#include "mpfs_hal/mss_hal.h"
 
 volatile uint32_t count_sw_ints_h2 = 0U;
-
-static uint64_t uart2_lock;
-static uint8_t g_rx_buff2[5] = {0};
-
-void u54_2_uart0_rx_handler (mss_uart_instance_t * this_uart)
-{
-    mss_take_mutex((uint64_t)&uart2_lock);
-    MSS_UART_get_rx(&g_mss_uart2_lo, g_rx_buff2, sizeof(g_rx_buff2));
-    MSS_UART_polled_tx_string(&g_mss_uart2_lo, "hart2 MMUART2 local IRQ.\r\n");
-    mss_release_mutex((uint64_t)&uart2_lock);
-}
 
 /* Main function for the hart2(U54_2 processor).
  * Application code running on hart4 is placed here
@@ -72,32 +54,26 @@ void u54_2(void)
 
     __enable_irq();
 
-    mss_init_mutex((uint64_t)&uart2_lock);
-
     MSS_UART_init(&g_mss_uart2_lo, MSS_UART_115200_BAUD,
                    MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY);
 
     MSS_UART_polled_tx_string(&g_mss_uart2_lo,
                               "Hello World from U54_2\r\n");
 
-    MSS_UART_set_rx_handler(&g_mss_uart2_lo,
-                            u54_2_uart0_rx_handler,
-                            MSS_UART_FIFO_SINGLE_BYTE);
 
-    MSS_UART_enable_local_irq(&g_mss_uart2_lo);
+    SYSREG->FAB_INTEN_MISC  = FAB_INTEN_MAC0_U54_2_EN_MASK;
 
     while(1U)
     {
         icount++;
-
+        mac_task(0);
         if(0x100000U == icount)
         {
             icount = 0U;
             sprintf(info_string,"hart %d\r\n", hartid);
-            mss_take_mutex((uint64_t)&uart2_lock);
             MSS_UART_polled_tx(&g_mss_uart2_lo, info_string,
                                strlen(info_string));
-            mss_release_mutex((uint64_t)&uart2_lock);
+
         }
     }
 
@@ -107,8 +83,19 @@ void u54_2(void)
 /* hart2 software interrupt handler */
 void Software_h2_IRQHandler(void)
 {
-    uint64_t hart_id = read_csr(mhartid);
     count_sw_ints_h2++;
 }
+
+extern volatile uint64_t g_tick_counter;
+/*==============================================================================
+ *
+ */
+void SysTick_Handler_h2_IRQHandler(void)
+{
+    g_tick_counter += HART2_TICK_RATE_MS;
+}
+
+
 #endif
+#endif /* ((MPFS_HAL_FIRST_HART == 2) && (MPFS_HAL_LAST_HART ==2)) */
 

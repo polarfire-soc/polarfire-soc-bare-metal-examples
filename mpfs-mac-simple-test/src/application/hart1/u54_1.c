@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -10,20 +10,11 @@
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
+#if ((MPFS_HAL_FIRST_HART == 1) && (MPFS_HAL_LAST_HART ==1))
 #include "drivers/mss_mmuart/mss_uart.h"
+#include "inc/common.h"
 
 volatile uint32_t count_sw_ints_h1 = 0U;
-
-static uint64_t uart1_lock;
-static uint8_t g_rx_buff1[5] = {0};
-
-void u54_1_uart0_rx_handler (mss_uart_instance_t * this_uart)
-{
-    mss_take_mutex((uint64_t)&uart1_lock);
-    MSS_UART_get_rx(&g_mss_uart1_lo, g_rx_buff1, sizeof(g_rx_buff1));
-    MSS_UART_polled_tx_string(&g_mss_uart1_lo, "hart1 MMUART1 local IRQ.\r\n");
-    mss_release_mutex((uint64_t)&uart1_lock);
-}
 
 /* Main function for the hart1(U54_1 processor).
  * Application code running on hart1 is placed here
@@ -55,7 +46,6 @@ void u54_1(void)
 
     __enable_irq();
 
-    mss_init_mutex((uint64_t)&uart1_lock);
 
     MSS_UART_init(&g_mss_uart1_lo,
                    MSS_UART_115200_BAUD,
@@ -64,24 +54,26 @@ void u54_1(void)
     MSS_UART_polled_tx_string(&g_mss_uart1_lo,
                               "Hello World from U54_1\r\n");
 
-    MSS_UART_set_rx_handler(&g_mss_uart1_lo,
-                            u54_1_uart0_rx_handler,
-                            MSS_UART_FIFO_SINGLE_BYTE);
+    /*
+     * Enable mac local interrupts to hart 1, U54 1
+     */
+    SYSREG->FAB_INTEN_MISC  = FAB_INTEN_MAC0_U54_1_EN_MASK;
+    //SysTick_Config();  /* Let hart 0 run the timer */
 
-    MSS_UART_enable_local_irq(&g_mss_uart1_lo);
+    //CLINT->MSIP[2] = 1; /* Kick start hart 2 */
+    __enable_irq();
 
     while(1U)
     {
         icount++;
+        mac_task(0);
 
         if(0x100000U == icount)
         {
             icount = 0U;
             sprintf(info_string,"hart %d\r\n", hartid);
-            mss_take_mutex((uint64_t)&uart1_lock);
             MSS_UART_polled_tx(&g_mss_uart1_lo, info_string,
                                strlen(info_string));
-            mss_release_mutex((uint64_t)&uart1_lock);
         }
     }
 
@@ -91,6 +83,16 @@ void u54_1(void)
 /* hart1 software interrupt handler */
 void Software_h1_IRQHandler(void)
 {
-    uint64_t hart_id = read_csr(mhartid);
     count_sw_ints_h1++;
 }
+
+
+extern volatile uint64_t g_tick_counter;
+/*==============================================================================
+ *
+ */
+void SysTick_Handler_h1_IRQHandler(void)
+{
+    g_tick_counter += HART1_TICK_RATE_MS;
+}
+#endif /* ((MPFS_HAL_FIRST_HART == 1) && (MPFS_HAL_LAST_HART ==1)) */
