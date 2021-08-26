@@ -9,9 +9,9 @@
 /***************************************************************************//**
  * 
  * Hardware registers access functions.
- * The implementation of these function is platform and toolchain specific.
+ * The implementation of these function is platform and tool-chain specific.
  * The functions declared here are implemented using assembler as part of the 
- * processor/toolchain specific HAL.
+ * processor/tool-chain specific HAL.
  * 
  */
 #ifndef HW_REG_ACCESS

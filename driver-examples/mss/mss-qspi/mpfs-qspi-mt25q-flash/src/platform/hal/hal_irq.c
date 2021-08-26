@@ -14,11 +14,7 @@
  */
 #include <stdio.h>
 #include "hal/hal.h"
-#include "mpfs_hal/atomic.h"
-#include "mpfs_hal/encoding.h"
-#include "mpfs_hal/mcall.h"
-#include "mpfs_hal/mss_util.h"
-#include "mpfs_hal/mtrap.h"
+#include "mpfs_hal/common/mss_util.h"
 
 #ifdef __cplusplus
 extern "C" {
