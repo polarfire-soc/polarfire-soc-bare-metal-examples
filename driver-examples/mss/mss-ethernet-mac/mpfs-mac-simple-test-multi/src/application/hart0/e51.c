@@ -150,7 +150,7 @@ mss_mac_cfg_t g_mac_config;
  */
 
 
-#define TEST_SW_INT 1
+//#define TEST_SW_INT 1
 
 #ifdef TEST_SW_INT
 volatile uint32_t count_sw_ints_h0 = 0;
