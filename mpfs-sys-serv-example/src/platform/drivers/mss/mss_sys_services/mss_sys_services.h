@@ -96,10 +96,8 @@
   -----------------------------------------------------------------------------
   Design Services
   -----------------------------------------------------------------------------
-  The PolarFire SoC system service driver can be used to execute UIC script and
-  perform bitstream authentication using the following functions.
-    -  MSS_SYS_execute_UIC_script_service()
-    -  MSS_SYS_UIC_bitstream_authenticate_service()
+  The PolarFire SoC system service driver can be used to perform bitstream 
+  authentication using the following functions.
     -  MSS_SYS_bitstream_authenticate_service()
     -  MSS_SYS_IAP_image_authenticate_service()
 
@@ -250,61 +248,6 @@ extern "C" {
   Page digest mismatches. Parameter values still returned
    */
 #define MSS_SYS_ENVM_DIGEST_ERROR                              1u
-
-/*-------------------------------------------------------------------------*//**
-  Execute UIC script and UIC bitstream authentication error codes
-
-  EXECUTE_UIC_SPI_MAX_FRAME_ERR
-    Maximum number for Frames have been exceeded during SPI UIC execution
-
-  EXECUTE_UIC_POLL_TIMEOUT
-    Timeout occurred during the Poll instruction.
-
-  EXECUTE_UIC_SPI_AUTHEN_ERR
-    Authentication error occurred during UIC SPI Authenticated mode
-
-  EXECUTE_UIC_SPI_DECRYPT_ERR
-    Decryption error occurred during UIC SPI Authenticated mode
-
-  EXECUTE_UIC_SPI_NOTMASTER_ERR
-    SPI isn’t set as the master
-
-  EXECUTE_UIC_FABRIC_APB_ERR
-    A Fabric APB Error was detected during UIC execution
-
-  EXECUTE_UIC_SCB_ERR
-    A SCB Error was detected during UIC execution
-
-  EXECUTE_UIC_PNVM_ENCRYPT_ERR
-    An Encrypted SNVM page was detected during UIC execution
-
-  EXECUTE_UIC_ADDR_OUTOFRANGE_ERR
-    An illegal script address was detected during UIC execution
-
-  EXECUTE_UIC_JUMP_MAX_ERR
-    The maximum number of Jump executions was exceeded. Current max is 1000.
-
-  EXECUTE_UIC_UNEXPECTED_FORMAT_ERR
-    Fields within the instruction that were expected to be all 0 were not.
-
-  EXECUTE_UIC_SCRIPT_TIMEOUT_ERR
-    UIC Script took longer than the specified UIC_SCRIPT_TIMEOUT
-    parameter (in seconds)
-
-*/
-#define  MSS_SYS_EXECUTE_UIC_SUCCESS                            0u
-#define  MSS_SYS_EXECUTE_UIC_SPI_MAX_FRAME_ERR                  1u
-#define  MSS_SYS_EXECUTE_UIC_POLL_TIMEOUT                       2u
-#define  MSS_SYS_EXECUTE_UIC_SPI_AUTHEN_ERR                     3u
-#define  MSS_SYS_EXECUTE_UIC_SPI_DECRYPT_ERR                    4u
-#define  MSS_SYS_EXECUTE_UIC_SPI_NOTMASTER_ERR                  5u
-#define  MSS_SYS_EXECUTE_UIC_FABRIC_APB_ERR                     6u
-#define  MSS_SYS_EXECUTE_UIC_SCB_ERR                            7u
-#define  MSS_SYS_EXECUTE_UIC_PNVM_ENCRYPT_ERR                   8u
-#define  MSS_SYS_EXECUTE_UIC_ADDR_OUTOFRANGE_ERR                9u
-#define  MSS_SYS_EXECUTE_UIC_JUMP_MAX_ERR                       10u
-#define  MSS_SYS_EXECUTE_UIC_UNEXPECTED_FORMAT_ERR              11u
-#define  MSS_SYS_EXECUTE_UIC_SCRIPT_TIMEOUT_ERR                 12u
 
 /*-------------------------------------------------------------------------*//**
   bitstream authentication and IAP bitstream authentication error codes
@@ -751,8 +694,6 @@ extern "C" {
 */
 #define MSS_SYS_BITSTREAM_AUTHENTICATE_CMD                      0x23u
 #define MSS_SYS_IAP_BITSTREAM_AUTHENTICATE_CMD                  0x22u
-#define MSS_SYS_UIC_EXECUTE_SCRIPT_CMD                          0x24u
-#define MSS_SYS_UIC_BITSTREAM_AUTHENTICATE_CMD                  0x25u
 
 /*-------------------------------------------------------------------------*//**
   Data security services request command opcodes
@@ -819,8 +760,6 @@ extern "C" {
 #define MSS_SYS_NON_AUTHENTICATED_TEXT_DATA_LEN                 256u
 
 #define MSS_SYS_SECURE_NVM_READ_DATA_LEN                        16u
-#define MSS_SYS_EXECUTE_UIC_SCRIPT_DATA_LEN                     8u
-#define MSS_SYS_UIC_BITSTREAM_AUTHENTICATE_DATA_LEN             4u
 #define MSS_SYS_BITSTREAM_AUTHENTICATE_DATA_LEN                 4u
 #define MSS_SYS_DIGEST_CHECK_DATA_LEN                           4u
 #define MSS_SYS_IAP_SERVICE_DATA_LEN                            4u
@@ -925,25 +864,6 @@ extern "C" {
 /*-------------------------------------------------------------------------*//**
  * Options for system services
 */
-/*Execute UIC script source peripheral options
-
-  UIC_SOURCE_PERIPH_UPROM
-    Execute UIC from uPROM
-
-  UIC_SOURCE_PERIPH_NONAUTHEN_SPIFLASH
-    Execute UIC from SPI flash (Not Authenticated)
-
-  UIC_SOURCE_PERIPH_SNVM
-    Execute UIC from sNVM
-
-  UIC_SOURCE_PERIPH_AUTHEN_SPIFLASH
-    Execute UIC from SPI flash (Authenticated)
-*/
-#define MSS_SYS_UIC_SOURCE_PERIPH_UPROM                         0x01u
-#define MSS_SYS_UIC_SOURCE_PERIPH_NONAUTHEN_SPIFLASH            0x02u
-#define MSS_SYS_UIC_SOURCE_PERIPH_SNVM                          0x03u
-#define MSS_SYS_UIC_SOURCE_PERIPH_AUTHEN_SPIFLASH               0x06u
-
 /*   Permitted key modes for one way Pass-code service
  *   *NS -- Not Supported
  */
@@ -1372,142 +1292,6 @@ uint16_t
 MSS_SYS_read_envm_parameter
 (
     uint8_t * p_envm_param,
-    uint16_t mb_offset
-);
-
-/*-------------------------------------------------------------------------*//**
-  The MSS_SYS_execute_uic_script() function is used to execute UCI script
-  service. This service allows the user to invoke a UIC script stored in any of
-  the available non-volatile memory sources.
-  This function is non-blocking in the interrupt mode , in that, it will exit
-  immediately after requesting the service. In polling mode, it becomes a
-  blocking function. It will block until the the service is completed and a
-  response is received from the system controller.
-
-  @param src_periph_type
-                    The src_periph_type parameter specifies the type of
-                    non-volatile memory in which the UIC script is stored.
-                    Below is the list of all available peripheral options.
-
-                           SRC        Location
-                           0           Reserved
-                           1           PROM
-                           2           SPI flash (Not Authenticated)
-                           3           SNVM
-                           4           Reserved
-                           5           Reserved
-                           6           SPI flash (Authenticated)
-                           7           Reserved
-  @param periph_address
-                    The periph_address parameter specifies the address within the
-                    selected non-volatile memory where the UIC script is stored.
-                    The address format is different for different peripherals.
-                    Below is the list of peripherals and corresponding addresses.
-
-                    uPROM memory --  IP Segment/Block Address
-                    SNVM memory  --  SNVM Module number.
-                    SPI FLash (Authenticated or NonAuthenticated) - 24 or 32 bit
-                                                                    address.
-
-                    This function will adjust the provided value to fit into the
-                    format expected by system controller.
-  @param mb_offset
-                    The mb_offset parameter specifies the offset from the start
-                    of mailbox where the data related to this service is
-                    available. All accesses to the mailbox are of word length
-                    (4 bytes). A value 10 (decimal) of this parameter would
-                    mean that the data access area for this service, in the
-                    mailbox starts from 11th word (offset 10).
-  @return
-                    This function returns a value to indicate whether the
-                    service was executed successfully or not. A zero value
-                    indicates that the service was executed successfully. A
-                    non-zero value can indicate that either the driver was not
-                    able to kick-start the service or that the driver was able
-                    to kick-start the service and receive a status response code
-                    from the system controller.
-                    See theory of operations section for detailed information
-                    about the return status.
-                    The following table lists the service status code from
-                    system controller.
-
-                   | STATUS  |  Description                    |
-                   |---------|---------------------------------|
-                   |   0     |  Successful completion          |
-                   |   1     |  SPI Max Frame Error            |
-                   |   2     |  Poll Time out                  |
-                   |   3     |  SPI Authentication Error       |
-                   |   4     |  SPI Decryption Error           |
-                   |   5     |  SPI Not Master Error           |
-                   |   6     |  Fabric APB Error               |
-                   |   7     |  SCB Error                      |
-                   |   8     |  PNVM Encrypted Error           |
-                   |   9     |  Address out of Range Error     |
-                   |   10    |  Jump Max Error                 |
-                   |   11    |  Unexpected Format Error        |
-                   |   12    |  Script Time out Error          |
-*/
-uint16_t
-MSS_SYS_execute_uic_script
-(
-        uint8_t src_periph_type,
-        uint32_t periph_address,
-        uint16_t mb_offset
-);
-
-/*-------------------------------------------------------------------------*//**
-  The MSS_SYS_authenticate_uic_bitstream() function is used to authenticate
-  the UIC Bitstream which is located in SPI through a system service routine.
-  This service is applicable to UIC scripts stored in SPI Flash memory only.
-  This function is non-blocking in the interrupt mode , in that, it will exit
-  immediately after requesting the service. In polling mode, it becomes a
-  blocking function. It will block until the the service is completed and a
-  response is received from the system controller.
-
-  @param spi_flash_address
-               The spi_flash_address parameter specifies the address within
-               SPI Flash memory where the UIC script is stored.
-  @param mb_offset
-                    The mb_offset parameter specifies the offset from the start
-                    of mailbox where the data related to this service is
-                    available. All accesses to the mailbox are of word length
-                    (4 bytes). A value 10 (decimal) of this parameter would
-                    mean that the data access area for this service, in the
-                    mailbox starts from 11th word (offset 10).
-  @return
-                    This function returns a value to indicate whether the
-                    service was executed successfully or not. A zero value
-                    indicates that the service was executed successfully. A
-                    non-zero value can indicate that either the driver was not
-                    able to kick-start the service or that the driver was able
-                    to kick-start the service and receive a status response code
-                    from the system controller.
-                    See theory of operations section for detailed information
-                    about the return status.
-                    The following table lists the service status code from
-                    system controller.
-
-                   | STATUS  |  Description                    |
-                   |---------|---------------------------------|
-                   |   0     |  Successful completion          |
-                   |   1     |  SPI Max Frame Error            |
-                   |   2     |  Poll Time out                  |
-                   |   3     |  SPI Authentication Error       |
-                   |   4     |  SPI Decryption Error           |
-                   |   5     |  SPI Not Master Error           |
-                   |   6     |  Fabric APB Error               |
-                   |   7     |  SCB Error                      |
-                   |   8     |  PNVM Encrypted Error           |
-                   |   9     |  Address out of Range Error     |
-                   |   10    |  Jump Max Error                 |
-                   |   11    |  Unexpected Format Error        |
-                   |   12    |  Script Time out Error          |
-
-*/
-uint16_t
-MSS_SYS_authenticate_uic_bitstream
-(
-    uint32_t spi_flash_address,
     uint16_t mb_offset
 );
 

@@ -120,6 +120,11 @@ MSS_SYS_get_serial_number
 )
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
+    
+    if (p_serial_number == NULL_BUFFER)
+    {
+        return status;
+    }
 
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
     {
@@ -160,6 +165,11 @@ MSS_SYS_get_user_code
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
 
+    if (p_user_code == NULL_BUFFER)
+    {
+        return status;
+    }
+
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
     {
         status = execute_ss_interrupt_mode(
@@ -198,6 +208,11 @@ MSS_SYS_get_design_info
 )
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
+
+    if (p_design_info  == NULL_BUFFER)
+    {
+        return status;
+    }
 
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
     {
@@ -238,6 +253,11 @@ MSS_SYS_get_device_certificate
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
 
+    if (p_device_certificate  == NULL_BUFFER)
+    {
+        return status;
+    }
+
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
     {
         status = execute_ss_interrupt_mode(
@@ -276,6 +296,11 @@ MSS_SYS_read_digest
 )
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
+
+    if (p_digest  == NULL_BUFFER)
+    {
+        return status;
+    }
 
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
     {
@@ -317,6 +342,11 @@ MSS_SYS_query_security
     uint16_t status = MSS_SYS_PARAM_ERR;
     uint8_t idx=0;
     uint8_t buf[36] = {0};
+
+    if (p_security_locks  == NULL_BUFFER)
+    {
+        return status;
+    }
 
     /* Actual QUERY_SECURITY_RESP_LEN is 9 but CoreSysService_PF IP needs number
      * of words instead of number of bytes to be written to or read from 
@@ -366,6 +396,11 @@ MSS_SYS_read_debug_info
 
     uint16_t status = MSS_SYS_PARAM_ERR;
 
+    if (p_debug_info  == NULL_BUFFER)
+    {
+        return status;
+    }
+
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
     {
         status = execute_ss_interrupt_mode(
@@ -404,8 +439,12 @@ MSS_SYS_read_envm_parameter
     uint16_t mb_offset
 )
 {
-
     uint16_t status = MSS_SYS_PARAM_ERR;
+
+    if (p_envm_param  == NULL_BUFFER)
+    {
+        return status;
+    }
 
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
     {
@@ -449,6 +488,11 @@ MSS_SYS_puf_emulation_service
     uint16_t status = MSS_SYS_PARAM_ERR;
     uint8_t mb_format[20] = {0x00};
     uint8_t index = 0u;
+
+    if((p_response  == NULL_BUFFER) || (p_challenge == NULL_BUFFER))
+    {
+        return status;
+    }
 
     /* Frame the data required for mailbox */
     mb_format[index] = op_type;
@@ -498,6 +542,11 @@ MSS_SYS_digital_signature_service
 )
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
+
+    if((p_hash  == NULL_BUFFER) || (p_response == NULL_BUFFER))
+    {
+        return status;
+    }
 
     if (format == MSS_SYS_DIGITAL_SIGNATURE_RAW_FORMAT_REQUEST_CMD)
     {
@@ -576,6 +625,19 @@ MSS_SYS_secure_nvm_write
     ASSERT(!(NULL_BUFFER == p_data));
     ASSERT(!(NULL_BUFFER == p_user_key));
     ASSERT(!(snvm_module >= 221u));
+
+    if((p_data  == NULL_BUFFER) || (p_user_key == NULL_BUFFER)
+                                || (snvm_module >= 221))
+    {
+        return status;
+    }
+
+    if ((format != MSS_SYS_SNVM_NON_AUTHEN_TEXT_REQUEST_CMD)
+      || (format !=  MSS_SYS_SNVM_AUTHEN_TEXT_REQUEST_CMD)
+      || (format != MSS_SYS_SNVM_AUTHEN_CIPHERTEXT_REQUEST_CMD))
+    {
+        return status;
+    }
 
     *p_frame = snvm_module; /* SNVMADDR - SNVM module */
     p_frame += 4; /* Next 3 bytes RESERVED - For alignment */
@@ -686,6 +748,13 @@ MSS_SYS_secure_nvm_read
 
     ASSERT((data_len == 236u) || (data_len == 252u));
 
+    if((p_data  == NULL_BUFFER) || (snvm_module >= 221) ||
+       (p_admin == NULL_BUFFER))
+    {
+        return status;
+    }
+
+
     *p_frame = snvm_module; /* SNVMADDR - SNVM module */
     p_frame += 4u; /* RESERVED - For alignment */
 
@@ -761,6 +830,11 @@ MSS_SYS_nonce_service
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
 
+    if (p_nonce  == NULL_BUFFER)
+    {
+        return status;
+    }
+
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
     {
         status = execute_ss_interrupt_mode(
@@ -782,110 +856,6 @@ MSS_SYS_nonce_service
                 (uint16_t)MSS_SYS_NONCE_SERVICE_RESP_LEN,
                 mb_offset,
                 MSS_SYS_COMMON_RET_OFFSET);
-    }
-
-    return status;
-}
-
-/***************************************************************************//**
- * MSS_SYS_execute_uic_script()
- * See "mss_sysservices.h" for details of how to use this function.
- */
-uint16_t
-MSS_SYS_execute_uic_script
-(
-    uint8_t src_periph_type,
-    uint32_t periph_address,
-    uint16_t mb_offset
-)
-{
-    uint16_t status = MSS_SYS_PARAM_ERR;
-    uint8_t input_data[8];
-    uint32_t l_periph_addr = periph_address;
-
-    if (src_periph_type == MSS_SYS_UIC_SOURCE_PERIPH_SNVM)
-    {
-        l_periph_addr &= 0x000000FFu;   /* only first 8 bits are valid */
-    }
-    else if ((src_periph_type == MSS_SYS_UIC_SOURCE_PERIPH_NONAUTHEN_SPIFLASH )||
-            (src_periph_type == MSS_SYS_UIC_SOURCE_PERIPH_AUTHEN_SPIFLASH ))
-    {
-        l_periph_addr &= 0xFFFFFFFFu;   /* only first 24 or 32 bits are valid */
-    }
-    else if (src_periph_type == MSS_SYS_UIC_SOURCE_PERIPH_UPROM)
-    {
-        l_periph_addr &= 0x000000FFu;   /* only first 8 bits are valid */
-        l_periph_addr = (l_periph_addr << 14u);
-    }
-    else
-    {
-        return status;
-    }
-
-    *(uint32_t*)input_data = l_periph_addr;
-    input_data[4] = src_periph_type;
-
-    if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
-    {
-        status = execute_ss_interrupt_mode(
-                 (uint8_t)MSS_SYS_UIC_EXECUTE_SCRIPT_CMD,
-                 &input_data[0],
-                 (uint16_t)MSS_SYS_EXECUTE_UIC_SCRIPT_DATA_LEN,
-                 NULL_BUFFER,
-                 MSS_SYS_NO_RESPONSE_LEN,
-                 mb_offset,
-                 MSS_SYS_COMMON_RET_OFFSET);
-    }
-    else
-    {
-        status = execute_ss_polling_mode(
-                 (uint8_t)MSS_SYS_UIC_EXECUTE_SCRIPT_CMD,
-                 &input_data[0],
-                 (uint16_t)MSS_SYS_EXECUTE_UIC_SCRIPT_DATA_LEN,
-                 NULL_BUFFER,
-                 MSS_SYS_NO_RESPONSE_LEN,
-                 mb_offset,
-                 MSS_SYS_COMMON_RET_OFFSET);
-    }
-
-    return status;
-}
-
-/***************************************************************************//**
- * MSS_SYS_authenticate_uic_bitstream()
- * See "mss_sysservices.h" for details of how to use this function.
- */
-uint16_t
-MSS_SYS_authenticate_uic_bitstream
-(
-    uint32_t spi_flash_address,
-    uint16_t mb_offset
-)
-{
-    uint16_t status = MSS_SYS_PARAM_ERR;
-    uint32_t l_spi_flash_address = spi_flash_address;
-
-    if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
-    {
-        status = execute_ss_interrupt_mode(
-                 (uint8_t)MSS_SYS_UIC_BITSTREAM_AUTHENTICATE_CMD,
-                 (uint8_t* )&l_spi_flash_address,
-                 (uint16_t)MSS_SYS_UIC_BITSTREAM_AUTHENTICATE_DATA_LEN,
-                 NULL_BUFFER,
-                 MSS_SYS_NO_RESPONSE_LEN,
-                 mb_offset,
-                 MSS_SYS_COMMON_RET_OFFSET);
-    }
-    else
-    {
-        status = execute_ss_polling_mode(
-                 (uint8_t)MSS_SYS_UIC_BITSTREAM_AUTHENTICATE_CMD,
-                 (uint8_t* )&l_spi_flash_address,
-                 (uint16_t)MSS_SYS_UIC_BITSTREAM_AUTHENTICATE_DATA_LEN,
-                 NULL_BUFFER,
-                 MSS_SYS_NO_RESPONSE_LEN,
-                 mb_offset,
-                 MSS_SYS_COMMON_RET_OFFSET);
     }
 
     return status;
@@ -944,6 +914,11 @@ MSS_SYS_authenticate_iap_image
     uint16_t status = MSS_SYS_PARAM_ERR;
 
     ASSERT(!(spi_idx == 1u));
+
+    if (spi_idx == 1u)
+    {
+        return status;
+    }
 
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
     {
@@ -1029,7 +1004,7 @@ MSS_SYS_execute_iap
     if ((MSS_SYS_IAP_PROGRAM_BY_SPIIDX_CMD == iap_cmd)
     || (MSS_SYS_IAP_VERIFY_BY_SPIIDX_CMD == iap_cmd))
     {
-        ASSERT(!(1u == spiaddr));
+        return status;
     }
 
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
@@ -1075,15 +1050,15 @@ MSS_SYS_spi_copy
      uint16_t status = MSS_SYS_PARAM_ERR;
      uint8_t mb_format[17];
 
-     *(uint64_t *)mb_format         = mss_dest_addr;
-     *(uint32_t *)(mb_format + 8u)  = mss_spi_flash;
-     *(uint32_t *)(mb_format + 12u) = n_bytes;
-     mb_format[16] = options;
-     
      if ((options < 1U) || (options > 3U))
      {
          return MSS_SYS_PARAM_ERR;
      }
+
+     *(uint64_t *)mb_format         = mss_dest_addr;
+     *(uint32_t *)(mb_format + 8u)  = mss_spi_flash;
+     *(uint32_t *)(mb_format + 12u) = n_bytes;
+     mb_format[16] = options;
      
 
      if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
@@ -1130,6 +1105,11 @@ MSS_SYS_spi_copy
      uint8_t mb_format[2];
      uint16_t service_data = 0u;
      uint8_t l_resp_offset = resp_offset;
+
+     if (prdata == NULL_BUFFER)
+     {
+         return status;
+     }
 
      service_data = iprow_addr;
      service_data = service_data << 6u;
@@ -1308,6 +1288,11 @@ MSS_SYS_debug_select_mem
     uint16_t status = MSS_SYS_PARAM_ERR;
     uint8_t mb_format[6] = {0};
     uint16_t service_data = 0u;
+
+    if ((memlock_mode >= 4u) || (timeout > 8193u))
+    {
+        return status;
+    }
 
     service_data = ipblk_addr;
 
@@ -1613,6 +1598,11 @@ MSS_SYS_otp_generate
     uint8_t mb_format[20] = {0};
     uint8_t index = 0u;
 
+    if ((n_user = NULL_BUFFER) || (n_fpga == NULL_BUFFER))
+    {
+        return status;
+    }
+
     mb_format[index] = keymode;
 
     for (index = 0u; index < 16u; index++ )
@@ -1662,6 +1652,11 @@ uint16_t MSS_SYS_otp_match
     uint16_t status = MSS_SYS_PARAM_ERR;
     uint8_t mb_format[80] = {0};
     uint8_t index = 0u;
+
+    if ((user_id == NULL_BUFFER) || (validator == NULL_BUFFER))
+    {
+        return status;
+    }
 
     for (index = 0u; index < 80u; index++)
     {
@@ -1720,6 +1715,11 @@ MSS_SYS_unlock_debug_passcode
     uint16_t status = MSS_SYS_PARAM_ERR;
     uint8_t mb_format[32] = {0};
     uint8_t index = 0u;
+
+    if (cmd_data == NULL_BUFFER)
+    {
+        return status;
+    }
 
     for (index = 0u; index < 32u; index++)
     {
