@@ -79,11 +79,11 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_MSS_PLL_DIV_0_1)
 /*PLL 0/1 division registers */
-#define LIBERO_SETTING_MSS_PLL_DIV_0_1    0x01000200UL
+#define LIBERO_SETTING_MSS_PLL_DIV_0_1    0x01000100UL
     /* VCO0PH_SEL                        [0:3]   RO */
     /* DIV0_START                        [3:3]   RW value= 0x0 */
     /* RESERVE18                         [6:2]   RSVD */
-    /* POST0DIV                          [8:7]   RW value= 0x2 */
+    /* POST0DIV                          [8:7]   RW value= 0x1 */
     /* RESERVE19                         [15:1]  RSVD */
     /* VCO1PH_SEL                        [16:3]  RO */
     /* DIV1_START                        [19:3]  RW value= 0x0 */
@@ -93,16 +93,16 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_MSS_PLL_DIV_2_3)
 /*PLL 2/3 division registers */
-#define LIBERO_SETTING_MSS_PLL_DIV_2_3    0x0F000600UL
+#define LIBERO_SETTING_MSS_PLL_DIV_2_3    0x4B000300UL
     /* VCO2PH_SEL                        [0:3]   RO */
     /* DIV2_START                        [3:3]   RW value= 0x0 */
     /* RESERVE22                         [6:2]   RSVD */
-    /* POST2DIV                          [8:7]   RW value= 0x6 */
+    /* POST2DIV                          [8:7]   RW value= 0x3 */
     /* RESERVE23                         [15:1]  RSVD */
     /* VCO3PH_SEL                        [16:3]  RO */
     /* DIV3_START                        [19:3]  RW value= 0x0 */
     /* RESERVE24                         [22:2]  RSVD */
-    /* POST3DIV                          [24:7]  RW value= 0xF */
+    /* POST3DIV                          [24:7]  RW value= 0x4B */
     /* CKPOST3_SEL                       [31:1]  RW value= 0x0 */
 #endif
 #if !defined (LIBERO_SETTING_MSS_PLL_CTRL2)
@@ -160,8 +160,8 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_MSS_SSCG_REG_2)
 /*SSCG registers 2 */
-#define LIBERO_SETTING_MSS_SSCG_REG_2    0x000000C0UL
-    /* INTIN                             [0:12]  RW value= 0xC0 */
+#define LIBERO_SETTING_MSS_SSCG_REG_2    0x00000060UL
+    /* INTIN                             [0:12]  RW value= 0x60 */
     /* INTMOD                            [12:12] RO */
     /* RESERVE02                         [24:8]  RSVD */
 #endif
