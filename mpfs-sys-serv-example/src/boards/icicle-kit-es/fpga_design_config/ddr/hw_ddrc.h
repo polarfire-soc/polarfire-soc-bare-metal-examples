@@ -1509,8 +1509,8 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_CFG_RMW_EN)
 /*IP Blk = RMW Access=RW */
-#define LIBERO_SETTING_CFG_RMW_EN    0x00000000UL
-    /* CFG_RMW_EN                        [0:32]  RW value= 0x0 */
+#define LIBERO_SETTING_CFG_RMW_EN    0x00000001UL
+    /* CFG_RMW_EN                        [0:32]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_CFG_ECC_CORRECTION_EN)
 /*IP Blk = ECC Access=RW */
