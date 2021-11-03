@@ -47,7 +47,7 @@ extern  "C" {
     /* REG_DLL_ADJ_CODE                  [10:4]  RW value= 0x9 */
     /* REG_CH0_CDR_RESET_B               [14:1]  RW value= 0x1 */
     /* REG_CH1_CDR_RESET_B               [15:1]  RW value= 0x1 */
-    /* REG_BC_VRGEN                      [16:6]  RW value= 0x00 */
+    /* REG_BC_VRGEN                      [16:6]  RW value= 0x0 */
     /* REG_CDR_MOVE_STEP                 [22:1]  RW value= 0x1 */
     /* REG_REFCLK_EN_RDIFF               [23:1]  RW value= 0x1 */
     /* REG_BC_VS                         [24:4]  RW value= 0x8 */

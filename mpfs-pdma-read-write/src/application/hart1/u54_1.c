@@ -16,6 +16,13 @@
 #include "drivers/mss/mss_pdma/mss_pdma.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 
+/* Enable this constant to use the PDMA in interrupt mode.
+ *
+ * Set enable_done_int and enable_err_int to '1' in pdma_channel_config to
+ * configure the pdma channel in interrupt mode.
+ */
+#define MSS_PDMA_INTERRUPT_MODE 1u
+
 /* Local buffers to store the destination and source address data. */
 uint8_t g_src_arr[1024] = {0};
 uint8_t g_dst_arr[1024] = {0};
@@ -31,12 +38,34 @@ static uint8_t verify(uint8_t* g_dst_arr,uint8_t* g_src_arr,uint32_t num_loops);
  * mismatch in the data is reported to the main function. */
 static void check_pdma_error(uint8_t g_pdma_error_code);
 
+#ifdef MSS_PDMA_INTERRUPT_MODE
+
+/* This callback function will handle the application specific isr operations.
+ * The pdma_isr() function is registered to the driver with a call to
+ * pdma_setup_transfer() and it will get called when the pdma transfer complete
+ * and/or error interrupt event occurs.
+ */
+static void pdma_isr(uint8_t interrupt_type);
+
+/* Track received pdma interrupts  */
+uint8_t g_pdma_interrupt = 0xFFu;
+
+#endif
+
 /* Debug mask to track interrupt processing. */
 uint8_t g_done_int_processed = 0u;
 uint8_t g_err_int_processed = 0u;
 
 uint64_t uart_lock;
 mss_uart_instance_t *g_uart= &g_mss_uart1_lo;
+
+/* Void NULL pointer for polling mode
+ * The interrupts are disabled in polling mode.
+ * It is not mandatory that in polling mode user should pass the handler
+ * function as a parameter to pdma_setup_transfer().
+ */
+void *g_null_ptr = (( uint8_t* ) 0);
+
 /******************************************************************************
  *  Greeting messages displayed over the UART.
  */
@@ -125,14 +154,14 @@ void u54_1(void)
     /* Setup the channel configuration structure.
      * Simple memory to memory transaction.
      */
-    mss_pdma_channel_config_t pdma_config_ch0;
-    pdma_config_ch0.src_addr  = (uint64_t) &g_src_arr;
-    pdma_config_ch0.dest_addr = (uint64_t)&g_dst_arr;
-    pdma_config_ch0.num_bytes = 1024u;
-    pdma_config_ch0.enable_done_int = 1u;
-    pdma_config_ch0.enable_err_int = 1u;
-    pdma_config_ch0.force_order = 0u;
-    pdma_config_ch0.repeat = 0u;
+    mss_pdma_channel_config_t pdma_config_ch;
+    pdma_config_ch.src_addr  = (uint64_t) &g_src_arr;
+    pdma_config_ch.dest_addr = (uint64_t)&g_dst_arr;
+    pdma_config_ch.num_bytes = 1024u;
+    pdma_config_ch.enable_done_int = 1u;
+    pdma_config_ch.enable_err_int = 1u;
+    pdma_config_ch.force_order = 0u;
+    pdma_config_ch.repeat = 0u;
 
     while(1)
     {
@@ -143,13 +172,20 @@ void u54_1(void)
             memset(g_dst_arr, 0x00, sizeof(g_dst_arr));
 
             /* Every Loop set correct Source and Destination */
-            pdma_config_ch0.src_addr  = (uint64_t) &g_src_arr;
-            pdma_config_ch0.dest_addr = (uint64_t)&g_dst_arr;
+            pdma_config_ch.src_addr  = (uint64_t) &g_src_arr;
+            pdma_config_ch.dest_addr = (uint64_t)&g_dst_arr;
 
             if (rx_buff[0] == '0')
             {
+#ifdef MSS_PDMA_INTERRUPT_MODE
                 g_pdma_error_code = MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_0,
-                                                          &pdma_config_ch0);
+                                                          &pdma_config_ch,
+                                                          pdma_isr);
+#else
+                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_0,
+                                        &pdma_config_ch,
+                                        g_null_ptr);
+#endif
                 if (g_pdma_error_code != 0u)
                 {
                     check_pdma_error(g_pdma_error_code);
@@ -165,22 +201,46 @@ void u54_1(void)
             }
             else if (rx_buff[0] == '1')
             {
-                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_1, &pdma_config_ch0);
+#ifdef MSS_PDMA_INTERRUPT_MODE
+                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_1,
+                                        &pdma_config_ch,
+                                        pdma_isr);
+#else
+                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_1,
+                                        &pdma_config_ch,
+                                        g_null_ptr);
+#endif
                 MSS_PDMA_start_transfer(MSS_PDMA_CHANNEL_1);
 
                 MSS_UART_polled_tx_string (g_uart, "DMA CH '1' ");
             }
             else if (rx_buff[0] == '2')
             {
-                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_2, &pdma_config_ch0);
+#ifdef MSS_PDMA_INTERRUPT_MODE
+                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_2,
+                                        &pdma_config_ch,
+                                        pdma_isr);
+#else
+                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_2,
+                                        &pdma_config_ch,
+                                        g_null_ptr);
+#endif
+
                 MSS_PDMA_start_transfer(MSS_PDMA_CHANNEL_2);
 
                 MSS_UART_polled_tx_string (g_uart, "DMA CH '2' ");
-
             }
             else if (rx_buff[0] == '3')
             {
-                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_3, &pdma_config_ch0);
+#ifdef MSS_PDMA_INTERRUPT_MODE
+                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_3,
+                                        &pdma_config_ch,
+                                        pdma_isr);
+#else
+                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_3,
+                                        &pdma_config_ch,
+                                        g_null_ptr);
+#endif
                 MSS_PDMA_start_transfer(MSS_PDMA_CHANNEL_3);
 
                 MSS_UART_polled_tx_string (g_uart, "DMA CH '3' ");
@@ -190,6 +250,76 @@ void u54_1(void)
                 MSS_UART_polled_tx_string (g_uart, "Please Select Correct Channel  \n\r");
             }
         }
+
+#ifdef MSS_PDMA_INTERRUPT_MODE
+
+        if (g_pdma_interrupt != 0xFF)
+        {
+            errors = verify((uint8_t*)&g_dst_arr[0], (uint8_t*)&g_src_arr[0],
+                                                      sizeof(g_dst_arr));
+            if(errors == 0)
+            {
+                MSS_UART_polled_tx_string (g_uart,
+                        "\n\rMemory to Memory DMA Transaction successful \n\r");
+            }
+            else
+            {   MSS_UART_polled_tx_string (g_uart,
+                    "\n\rMemory to Memory DMA Transaction failed \n\r");
+            }
+
+            if (g_pdma_interrupt == 0x0u)
+            {
+                g_pdma_interrupt = 0xFFu;
+                MSS_UART_polled_tx_string (g_uart,
+                        "PDMA CH0 Done Int\n\r");
+            }
+
+            else if (g_pdma_interrupt == 0x1u)
+            {
+                g_pdma_interrupt = 0xFFu;
+                MSS_UART_polled_tx_string (g_uart,
+                        "PDMA CH1 Done Int\n\r");
+            }
+
+            else if (g_pdma_interrupt == 0x2u)
+            {
+
+                g_pdma_interrupt = 0xFFu;
+                MSS_UART_polled_tx_string (g_uart,
+                        "PDMA CH2 Done Int\n\r");
+            }
+            else if (g_pdma_interrupt == 0x3u)
+            {
+                g_pdma_interrupt = 0xFFu;
+                MSS_UART_polled_tx_string (g_uart,
+                        "PDMA CH3 Done Int\n\r");
+            }
+            else if (g_pdma_interrupt == 0x10u)
+            {
+                g_pdma_interrupt = 0xFFu;
+                MSS_UART_polled_tx_string (g_uart,
+                        "PDMA CH0 Err Int\n\r");
+            }
+            else if (g_pdma_interrupt == 0x11u)
+            {
+                g_pdma_interrupt = 0xFFu;
+                MSS_UART_polled_tx_string (g_uart,
+                        "PDMA CH1 Err Int\n\r");
+            }
+            else if (g_pdma_interrupt == 0x12u)
+            {
+                g_pdma_interrupt = 0xFFu;
+                MSS_UART_polled_tx_string (g_uart,
+                        "PDMA CH2 Err Int\n\r");
+            }
+            else if (g_pdma_interrupt == 0x13u)
+            {
+                g_pdma_interrupt = 0xFFu;
+                MSS_UART_polled_tx_string (g_uart,
+                        "PDMA CH3 Err Int\n\r");
+            }
+        }
+#else
 
         /* Poll to get to see did we get the done interrupt flag, and report
          * status.
@@ -310,6 +440,7 @@ void u54_1(void)
                         "PDMA CH3 Err Int\n\r");
              }
          }
+#endif
     }
 }
 
@@ -374,3 +505,26 @@ check_pdma_error
         MSS_UART_polled_tx_string (g_uart, "Last ID\n\r");
     }
 }
+
+#ifdef MSS_PDMA_INTERRUPT_MODE
+static void
+pdma_isr( uint8_t interrupt_type)
+{
+
+    g_pdma_interrupt = interrupt_type;
+
+    /* Clear DONE interrupt flag */
+    if ((interrupt_type >= PDMA_CH0_DONE_INT) && (interrupt_type <= PDMA_CH3_DONE_INT))
+    {
+        MSS_PDMA_clear_transfer_complete_status(interrupt_type);
+    }
+
+    /* Clear ERROR interrupt flag */
+    else if((interrupt_type >= PDMA_CH0_ERROR_INT) && (interrupt_type <= PDMA_CH3_ERROR_INT))
+    {
+        interrupt_type &= (interrupt_type << 4u);
+
+        MSS_PDMA_clear_transfer_error_status(interrupt_type);
+    }
+}
+#endif

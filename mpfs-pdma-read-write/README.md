@@ -2,7 +2,8 @@
 
 This example project demonstrates the use of the PolarFire SoC MSS Platform
 DMA driver to configure the DMA channel and initiate the transaction between
-source and destination memory locations.
+source and destination memory locations for polling mode and interrupt mode of
+operation.
 Success and error status in the transactions are reported by respective
 interrupts.
 
@@ -21,6 +22,12 @@ User need to select the appropriate DMA channel(0 - 3) and the driver will
 configure the selected channel. Once the channel is successfully configured,
 transaction will initiate. Error or Success status of the transaction is
 displayed over the UART terminal.
+
+The application can be used to demonstrate the PDMA channel 0-3 in polling or
+interrupt mode. User will have to enable the MSS_PDMA_INTERRUPT_MODE macro from
+application and configure the interrupt bits in channel configuration properly
+to use it in interrupt mode.
+
 User can repeat the process to verify the transactions on different DMA channel.
 
 This project provides build configurations and debug launchers as explained
