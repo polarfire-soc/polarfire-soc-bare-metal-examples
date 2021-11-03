@@ -216,6 +216,12 @@
                         </toolChain>
                         					
                     </folderInfo>
+                    					
+                    <sourceEntries>
+                        						
+                        <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+                        					
+                    </sourceEntries>
                     				
                 </configuration>
                 			
@@ -954,6 +960,18 @@
     <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
     	
     <storageModule moduleId="refreshScope" versionNumber="2">
+        		
+        <configuration configurationName="LIM-Release"/>
+        		
+        <configuration configurationName="DDR-Release"/>
+        		
+        <configuration configurationName="LIM-Debug">
+            			
+            <resource resourceType="PROJECT" workspacePath="/mpfs-pdma-read-write"/>
+            		
+        </configuration>
+        		
+        <configuration configurationName="eNVM-Scratchpad-Release"/>
         		
         <configuration configurationName="Debug">
             			

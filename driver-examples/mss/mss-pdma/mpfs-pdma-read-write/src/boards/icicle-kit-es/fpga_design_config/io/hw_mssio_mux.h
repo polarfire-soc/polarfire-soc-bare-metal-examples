@@ -57,15 +57,15 @@ EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies
 I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved
 (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies
 Logic 0,0xE implies Logic 1, 0xF implies Tristate */
-#define LIBERO_SETTING_IOMUX1_CR    0x11111111UL
-    /* PAD0                              [0:4]   RW value= 0x1 */
-    /* PAD1                              [4:4]   RW value= 0x1 */
-    /* PAD2                              [8:4]   RW value= 0x1 */
-    /* PAD3                              [12:4]  RW value= 0x1 */
-    /* PAD4                              [16:4]  RW value= 0x1 */
-    /* PAD5                              [20:4]  RW value= 0x1 */
-    /* PAD6                              [24:4]  RW value= 0x1 */
-    /* PAD7                              [28:4]  RW value= 0x1 */
+#define LIBERO_SETTING_IOMUX1_CR    0x00000000UL
+    /* PAD0                              [0:4]   RW value= 0x0 */
+    /* PAD1                              [4:4]   RW value= 0x0 */
+    /* PAD2                              [8:4]   RW value= 0x0 */
+    /* PAD3                              [12:4]  RW value= 0x0 */
+    /* PAD4                              [16:4]  RW value= 0x0 */
+    /* PAD5                              [20:4]  RW value= 0x0 */
+    /* PAD6                              [24:4]  RW value= 0x0 */
+    /* PAD7                              [28:4]  RW value= 0x0 */
 #endif
 #if !defined (LIBERO_SETTING_IOMUX2_CR)
 /*Configures the IO Mux structure for each IO pad. 0 implies SD/SDIO, 1 implies
@@ -73,13 +73,13 @@ EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies
 I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved
 (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies
 Logic 0,0xE implies Logic 1, 0xF implies Tristate */
-#define LIBERO_SETTING_IOMUX2_CR    0x00FF1111UL
-    /* PAD8                              [0:4]   RW value= 0x1 */
-    /* PAD9                              [4:4]   RW value= 0x1 */
-    /* PAD10                             [8:4]   RW value= 0x1 */
-    /* PAD11                             [12:4]  RW value= 0x1 */
-    /* PAD12                             [16:4]  RW value= 0xF */
-    /* PAD13                             [20:4]  RW value= 0xF */
+#define LIBERO_SETTING_IOMUX2_CR    0x00000000UL
+    /* PAD8                              [0:4]   RW value= 0x0 */
+    /* PAD9                              [4:4]   RW value= 0x0 */
+    /* PAD10                             [8:4]   RW value= 0x0 */
+    /* PAD11                             [12:4]  RW value= 0x0 */
+    /* PAD12                             [16:4]  RW value= 0x0 */
+    /* PAD13                             [20:4]  RW value= 0x0 */
 #endif
 #if !defined (LIBERO_SETTING_IOMUX3_CR)
 /*Configures the IO Mux structure for each IO pad. 0 implies SD/SDIO, 1 implies
@@ -132,12 +132,12 @@ Logic 0,0xE implies Logic 1, 0xF implies Tristate */
 #if !defined (LIBERO_SETTING_IOMUX6_CR)
 /*Sets whether the MMC/SD Voltage select lines are inverted on entry to the
 IOMUX structure */
-#define LIBERO_SETTING_IOMUX6_CR    0x00000000UL
-    /* VLT_SEL                           [0:1]   RW value= 0x0 */
+#define LIBERO_SETTING_IOMUX6_CR    0x0000001DUL
+    /* VLT_SEL                           [0:1]   RW value= 0x1 */
     /* VLT_EN                            [1:1]   RW value= 0x0 */
-    /* VLT_CMD_DIR                       [2:1]   RW value= 0x0 */
-    /* VLT_DIR_0                         [3:1]   RW value= 0x0 */
-    /* VLT_DIR_1_3                       [4:1]   RW value= 0x0 */
+    /* VLT_CMD_DIR                       [2:1]   RW value= 0x1 */
+    /* VLT_DIR_0                         [3:1]   RW value= 0x1 */
+    /* VLT_DIR_1_3                       [4:1]   RW value= 0x1 */
     /* SD_LED                            [5:1]   RW value= 0x0 */
     /* SD_VOLT_0                         [6:1]   RW value= 0x0 */
     /* SD_VOLT_1                         [7:1]   RW value= 0x0 */
@@ -325,10 +325,10 @@ implies default is SD). The eMMC configuration is always defined in xml tag
 (io_mux, the SD configuration is always defined in xml tag (io_mux_alt). All
 other elements in the (o_mux) and (io_mux_alt) not releating to eMMC/SD
 differences should be the same values. */
-#define LIBERO_SETTING_MSSIO_CONFIGURATION_OPTIONS    0x00000000UL
-    /* EMMC_CONFIGURED                   [0:1]   RW value= 0x0 */
-    /* SD_CONFIGURED                     [1:1]   RW value= 0x0 */
-    /* DEFAULT_ON_START                  [2:1]   RW value= 0x0 */
+#define LIBERO_SETTING_MSSIO_CONFIGURATION_OPTIONS    0x00000007UL
+    /* EMMC_CONFIGURED                   [0:1]   RW value= 0x1 */
+    /* SD_CONFIGURED                     [1:1]   RW value= 0x1 */
+    /* DEFAULT_ON_START                  [2:1]   RW value= 0x1 */
 #endif
 
 #ifdef __cplusplus
