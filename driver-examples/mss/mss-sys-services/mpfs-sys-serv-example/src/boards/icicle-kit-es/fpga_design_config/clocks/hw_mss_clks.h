@@ -32,6 +32,11 @@
 extern  "C" {
 #endif
 
+#if !defined (LIBERO_SETTING_MSS_CLKS_VERSION)
+/*This version incrments when change to format of this file */
+#define LIBERO_SETTING_MSS_CLKS_VERSION    1
+    /* VERSION                           [0:32]  RW value= 0x1 */
+#endif
 #if !defined (LIBERO_SETTING_MSS_EXT_SGMII_REF_CLK)
 /*Ref Clock rate in MHz */
 #define LIBERO_SETTING_MSS_EXT_SGMII_REF_CLK    125000000
@@ -61,6 +66,11 @@ extern  "C" {
 /*AXI Clock rate in MHz static power. */
 #define LIBERO_SETTING_MSS_APB_AHB_CLK    150000000
     /* MSS_APB_AHB_CLK                   [0:32]  RW value= 150000000 */
+#endif
+#if !defined (LIBERO_SETTING_DDR_CLK)
+/*DDR clock rate in MHz (clk rate x 2) */
+#define LIBERO_SETTING_DDR_CLK    1600000000
+    /* DDR_CLK                           [0:32]  RW value= 1600000000 */
 #endif
 
 #ifdef __cplusplus
