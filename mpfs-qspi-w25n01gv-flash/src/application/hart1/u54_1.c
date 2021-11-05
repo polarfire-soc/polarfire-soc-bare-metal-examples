@@ -157,6 +157,10 @@ normal mode now.\r\n");
         g_flash_rd_buf[loop_count] = 0x00;
     }
 
+    MSS_UART_polled_tx_string (g_uart, "\r\nREADID: ");
+    Flash_readid(g_rd_buf);
+    display_output(g_rd_buf, 3);
+
     MSS_UART_polled_tx_string (g_uart, "\r\n\r\n MSS QSPI Normal mode demo: \r\n");
     Flash_init(MSS_QSPI_NORMAL);
     MSS_UART_polled_tx_string (g_uart, "\r\nREADID: ");
@@ -197,7 +201,7 @@ normal mode now.\r\n");
     MSS_UART_polled_tx_string (g_uart, "\r\n\r\nDATA\r\n");
     display_output(g_flash_rd_buf, 10);
 
- /*****************************************************************************
+  /*****************************************************************************
   * MSS QSPI Quad full mode operation
   */
     /* Initialize the write and read buffers */
@@ -221,38 +225,6 @@ normal mode now.\r\n");
     display_output((uint8_t*)&error, 1);
     MSS_UART_polled_tx_string (g_uart, "\r\n\r\nDATA\r\n");
     display_output(g_flash_rd_buf, 10);
-
-/******************************************************************************
- * MSS QSPI XIP Mode
- * This mode is not tested yet.
- */
-#ifdef XIP
-    MSS_UART_polled_tx_string (g_uart, "\r\nEnter XIP\r\n");
-    /* Enter XIP mode */
-    Flash_enter_xip();
-
-    /* As we are in XIP mode, the AHB access to the QSPI memory space will now
-     * return the flash memory data which was previously written by
-     * Flash_program(). Monitor the values of xip_read[].
-     * Note that we are in 3 byte mode so only first 3 bytes of the 32 bit
-     * address will be fetched from the flash memory*/
-    xip_read[0] = *(uint32_t*)0x21000000;
-    xip_read[1] = *(uint32_t*)0x21000004;
-    MSS_UART_polled_tx_string (g_uart, "\r\nXIP Data\r\n");
-    display_output((uint8_t*)&xip_read, 8);
-
-    /* Exit XIP mode */
-    Flash_exit_xip();
-    MSS_UART_polled_tx_string (g_uart, "\r\nExit XIP\r\n");
-
-    /* Now we are back to normal mode. Now the AHB access will return the QSPI
-     * register values. */
-    xip_read[0] = *(uint32_t*)0x21000000;
-    xip_read[1] = *(uint32_t*)0x21000004;
-
-    MSS_UART_polled_tx_string (g_uart, "\r\nAHB Access Data\r\n");
-    display_output((uint8_t*)&xip_read, 8);
-#endif
 
     MSS_UART_polled_tx_string (g_uart,
             "\r\n\r\n\r\n MSS QSPI Test Complete \r\n");
