@@ -26,6 +26,7 @@
                 </extensions>
                 			
             </storageModule>
+            			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
                 <configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Download to and debug from LIM memory. Not-optimized (-O0). (Could be used with boot mode 0)" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297" name="LIM-Debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/icicle-kit-es. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es">
@@ -130,9 +131,9 @@
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform}&quot;"/>
                                     									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference}&quot;"/>
-                                    									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference}&quot;"/>
                                     								
                                 </option>
                                 								
@@ -230,7 +231,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="src/platform/drivers/mss/mss_i2c|src/platform/drivers/mss/mss_watchdog|src/platform/drivers/mss_rtc|src/platform/drivers/mss/mss_qspi|src/platform/drivers/mss/mss_mmc|src/platform/drivers/mss/mss_pdma|src/platform/drivers/mss/pf_pcie|src/platform/drivers/mss_i2c|src/platform/drivers/mss/mss_ethernet_mac|src/platform/drivers/mss/mss_can|src/platform/drivers/mss/mss_spi|src/platform/drivers/mss/mss_usb|src/platform/drivers/mss_timer|src/platform/drivers/mss/mss_timer|src/platform/drivers/mss_qspi|src/platform/drivers/mss_mmc|src/platform/drivers/mss_sys_services|src/platform/drivers/mss_pdma|src/platform/drivers/mss/mss_sys_services|src/platform/drivers/mss/mss_rtc|src/platform/drivers/pf_pcie|src/platform/drivers/mss_ethernet_mac|src/platform/drivers/mss_can|src/platform/drivers/mss_spi|src/platform/drivers/mss_usb|src/platform/drivers/mss_watchdog" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="platform/drivers/mss/pf_pcie|platform/drivers/mss/mss_watchdog|platform/drivers/mss/mss_usb|platform/drivers/mss/mss_timer|platform/drivers/mss/mss_sys_services|platform/drivers/mss/mss_spi|platform/drivers/mss/mss_rtc|platform/drivers/mss/mss_qspi|platform/drivers/mss/mss_pdma|platform/drivers/mss/mss_mmc|platform/drivers/mss/mss_i2c|platform/drivers/mss/mss_gpio|platform/drivers/mss/mss_ethernet_mac|platform/drivers/mss/mss_can" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
                         					
                     </sourceEntries>
                     				
@@ -374,9 +375,9 @@
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform}&quot;"/>
                                     									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference}&quot;"/>
-                                    									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference}&quot;"/>
                                     								
                                 </option>
                                 								
@@ -470,7 +471,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="src/platform/drivers/mss/mss_i2c|src/platform/drivers/mss/mss_watchdog|src/platform/drivers/mss_rtc|src/platform/drivers/mss/mss_qspi|src/platform/drivers/mss/mss_mmc|src/platform/drivers/mss/mss_pdma|src/platform/drivers/mss/pf_pcie|src/platform/drivers/mss_i2c|src/platform/drivers/mss/mss_ethernet_mac|src/platform/drivers/mss/mss_can|src/platform/drivers/mss/mss_spi|src/platform/drivers/mss/mss_usb|src/platform/drivers/mss_timer|src/platform/drivers/mss/mss_timer|src/platform/drivers/mss_qspi|src/platform/drivers/mss_mmc|src/platform/drivers/mss_sys_services|src/platform/drivers/mss_pdma|src/platform/drivers/mss/mss_sys_services|src/platform/drivers/mss/mss_rtc|src/platform/drivers/pf_pcie|src/platform/drivers/mss_ethernet_mac|src/platform/drivers/mss_can|src/platform/drivers/mss_spi|src/platform/drivers/mss_usb|src/platform/drivers/mss_watchdog" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="platform/drivers/mss/pf_pcie|platform/drivers/mss/mss_watchdog|platform/drivers/mss/mss_usb|platform/drivers/mss/mss_timer|platform/drivers/mss/mss_sys_services|platform/drivers/mss/mss_spi|platform/drivers/mss/mss_rtc|platform/drivers/mss/mss_qspi|platform/drivers/mss/mss_pdma|platform/drivers/mss/mss_mmc|platform/drivers/mss/mss_i2c|platform/drivers/mss/mss_gpio|platform/drivers/mss/mss_ethernet_mac|platform/drivers/mss/mss_can" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
                         					
                     </sourceEntries>
                     				
@@ -610,11 +611,11 @@
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/application}&quot;"/>
                                     									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es/platform_config}&quot;"/>
-                                    									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform}&quot;"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es/platform_config}&quot;"/>
                                     								
                                 </option>
                                 								
@@ -712,7 +713,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="src/platform/drivers/mss/mss_i2c|src/platform/drivers/mss/mss_watchdog|src/platform/drivers/mss_rtc|src/platform/drivers/mss/mss_qspi|src/platform/drivers/mss/mss_mmc|src/platform/drivers/mss/mss_pdma|src/platform/drivers/mss/pf_pcie|src/platform/drivers/mss_i2c|src/platform/drivers/mss/mss_ethernet_mac|src/platform/drivers/mss/mss_can|src/platform/drivers/mss/mss_spi|src/platform/drivers/mss/mss_usb|src/platform/drivers/mss_timer|src/platform/drivers/mss/mss_timer|src/platform/drivers/mss_qspi|src/platform/drivers/mss_mmc|src/platform/drivers/mss_sys_services|src/platform/drivers/mss_pdma|src/platform/drivers/mss/mss_sys_services|src/platform/drivers/mss/mss_rtc|src/platform/drivers/pf_pcie|src/platform/drivers/mss_ethernet_mac|src/platform/drivers/mss_can|src/platform/drivers/mss_spi|src/platform/drivers/mss_usb|src/platform/drivers/mss_watchdog" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="platform/drivers/mss/pf_pcie|platform/drivers/mss/mss_watchdog|platform/drivers/mss/mss_usb|platform/drivers/mss/mss_timer|platform/drivers/mss/mss_sys_services|platform/drivers/mss/mss_spi|platform/drivers/mss/mss_rtc|platform/drivers/mss/mss_qspi|platform/drivers/mss/mss_pdma|platform/drivers/mss/mss_mmc|platform/drivers/mss/mss_i2c|platform/drivers/mss/mss_gpio|platform/drivers/mss/mss_ethernet_mac|platform/drivers/mss/mss_can" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
                         					
                     </sourceEntries>
                     				
@@ -854,9 +855,9 @@
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform}&quot;"/>
                                     									
-                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference}&quot;"/>
-                                    									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/boards/icicle-kit-es}&quot;"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src/platform/platform_config_reference}&quot;"/>
                                     								
                                 </option>
                                 								
@@ -954,7 +955,7 @@
                     					
                     <sourceEntries>
                         						
-                        <entry excluding="src/platform/drivers/mss/mss_i2c|src/platform/drivers/mss/mss_watchdog|src/platform/drivers/mss_rtc|src/platform/drivers/mss/mss_qspi|src/platform/drivers/mss/mss_mmc|src/platform/drivers/mss/mss_pdma|src/platform/drivers/mss/pf_pcie|src/platform/drivers/mss_i2c|src/platform/drivers/mss/mss_ethernet_mac|src/platform/drivers/mss/mss_can|src/platform/drivers/mss/mss_spi|src/platform/drivers/mss/mss_usb|src/platform/drivers/mss_timer|src/platform/drivers/mss/mss_timer|src/platform/drivers/mss_qspi|src/platform/drivers/mss_mmc|src/platform/drivers/mss_sys_services|src/platform/drivers/mss_pdma|src/platform/drivers/mss/mss_sys_services|src/platform/drivers/mss/mss_rtc|src/platform/drivers/pf_pcie|src/platform/drivers/mss_ethernet_mac|src/platform/drivers/mss_can|src/platform/drivers/mss_spi|src/platform/drivers/mss_usb|src/platform/drivers/mss_watchdog" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="platform/drivers/mss/pf_pcie|platform/drivers/mss/mss_watchdog|platform/drivers/mss/mss_usb|platform/drivers/mss/mss_timer|platform/drivers/mss/mss_sys_services|platform/drivers/mss/mss_spi|platform/drivers/mss/mss_rtc|platform/drivers/mss/mss_qspi|platform/drivers/mss/mss_pdma|platform/drivers/mss/mss_mmc|platform/drivers/mss/mss_i2c|platform/drivers/mss/mss_gpio|platform/drivers/mss/mss_ethernet_mac|platform/drivers/mss/mss_can" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
                         					
                     </sourceEntries>
                     				
@@ -980,13 +981,29 @@
     	
     <storageModule moduleId="refreshScope" versionNumber="2">
         		
-        <configuration configurationName="LIM-Release"/>
+        <configuration configurationName="LIM-Release">
+            			
+            <resource resourceType="PROJECT" workspacePath="/mpfs-mmuart-interrupt"/>
+            		
+        </configuration>
         		
-        <configuration configurationName="DDR-Release"/>
+        <configuration configurationName="DDR-Release">
+            			
+            <resource resourceType="PROJECT" workspacePath="/mpfs-mmuart-interrupt"/>
+            		
+        </configuration>
         		
-        <configuration configurationName="LIM-Debug"/>
+        <configuration configurationName="LIM-Debug">
+            			
+            <resource resourceType="PROJECT" workspacePath="/mpfs-mmuart-interrupt"/>
+            		
+        </configuration>
         		
-        <configuration configurationName="eNVM-Scratchpad-Release"/>
+        <configuration configurationName="eNVM-Scratchpad-Release">
+            			
+            <resource resourceType="PROJECT" workspacePath="/mpfs-mmuart-interrupt"/>
+            		
+        </configuration>
         		
         <configuration configurationName="Debug">
             			
@@ -1006,6 +1023,22 @@
     	
     <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
     	
-    <storageModule moduleId="scannerConfiguration"/>
+    <storageModule moduleId="scannerConfiguration">
+        		
+        <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+        		
+        <scannerConfigBuildInfo instanceId="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.317520301;ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.317520301.;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.1302065814;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.2138771823">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+            		
+        </scannerConfigBuildInfo>
+        		
+        <scannerConfigBuildInfo instanceId="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1909915256;ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1909915256.;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.353851626;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.256977001">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+            		
+        </scannerConfigBuildInfo>
+        	
+    </storageModule>
     
 </cproject>

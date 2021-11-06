@@ -9,8 +9,8 @@
  *
  */
 
-#include <drivers/mss/mss_gpio/mss_gpio.h>
 #include "mpfs_hal/mss_hal.h"
+#include "mss_gpio.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -210,8 +210,6 @@ void MSS_GPIO_set_output
     uint8_t value
 )
 {
-    uint32_t gpio_setting;
-    
     if (0U == gpio_number_validate(gpio, port_id))
     {
         /* Setting the bit in GPIO_SET_BITS (offset 0xA4) sets the corresponding
@@ -245,7 +243,6 @@ void MSS_GPIO_drive_inout
     mss_gpio_inout_state_t inout_state
 )
 {
-    uint32_t outputs_state;
     uint32_t config;
     
     if (0U == gpio_number_validate(gpio, port_id))
