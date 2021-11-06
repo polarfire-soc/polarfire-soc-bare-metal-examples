@@ -118,6 +118,8 @@ void portable_init(core_portable *p, int *argc, char *argv[])
 {
     uint32_t hartid = read_csr(mhartid);
 
+#ifdef TEST_CORE_U54_1
+
     SYSREG->SOFT_RESET_CR &= ~( SOFT_RESET_CR_ENVM_MASK | SOFT_RESET_CR_TIMER_MASK | SOFT_RESET_CR_MMUART0_MASK);
 
     SYSREG->SUBBLK_CLOCK_CR |= SUBBLK_CLOCK_CR_ENVM_MASK | SUBBLK_CLOCK_CR_TIMER_MASK | SUBBLK_CLOCK_CR_MMUART0_MASK;
@@ -127,6 +129,44 @@ void portable_init(core_portable *p, int *argc, char *argv[])
     MSS_UART_init( &g_mss_uart0_lo,
                    MSS_UART_115200_BAUD,
                    MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
+#endif
+
+#ifdef TEST_CORE_U54_2
+    SYSREG->SOFT_RESET_CR &= ~( SOFT_RESET_CR_ENVM_MASK | SOFT_RESET_CR_TIMER_MASK | SOFT_RESET_CR_MMUART1_MASK);
+
+    SYSREG->SUBBLK_CLOCK_CR |= SUBBLK_CLOCK_CR_ENVM_MASK | SUBBLK_CLOCK_CR_TIMER_MASK | SUBBLK_CLOCK_CR_MMUART1_MASK;
+
+    gp_my_uart = &g_mss_uart1_lo;
+
+    MSS_UART_init( &g_mss_uart1_lo,
+                   MSS_UART_115200_BAUD,
+                   MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
+#endif
+
+#ifdef TEST_CORE_U54_3
+    SYSREG->SOFT_RESET_CR &= ~( SOFT_RESET_CR_ENVM_MASK | SOFT_RESET_CR_TIMER_MASK | SOFT_RESET_CR_MMUART2_MASK);
+
+    SYSREG->SUBBLK_CLOCK_CR |= SUBBLK_CLOCK_CR_ENVM_MASK | SUBBLK_CLOCK_CR_TIMER_MASK | SUBBLK_CLOCK_CR_MMUART2_MASK;
+
+    gp_my_uart = &g_mss_uart2_lo;
+
+    MSS_UART_init( &g_mss_uart2_lo,
+                   MSS_UART_115200_BAUD,
+                   MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
+#endif
+
+#ifdef TEST_CORE_U54_4
+    SYSREG->SOFT_RESET_CR &= ~( SOFT_RESET_CR_ENVM_MASK | SOFT_RESET_CR_TIMER_MASK | SOFT_RESET_CR_MMUART3_MASK);
+
+    SYSREG->SUBBLK_CLOCK_CR |= SUBBLK_CLOCK_CR_ENVM_MASK | SUBBLK_CLOCK_CR_TIMER_MASK | SUBBLK_CLOCK_CR_MMUART3_MASK;
+
+    gp_my_uart = &g_mss_uart3_lo;
+
+    MSS_UART_init( &g_mss_uart3_lo,
+                   MSS_UART_115200_BAUD,
+                   MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
+#endif
+
 
 //<Microchip>	#error "Call board initialization routines in portable init (if needed), in particular initialize UART!\n"
 	if (sizeof(ee_ptr_int) != sizeof(ee_u8 *)) {

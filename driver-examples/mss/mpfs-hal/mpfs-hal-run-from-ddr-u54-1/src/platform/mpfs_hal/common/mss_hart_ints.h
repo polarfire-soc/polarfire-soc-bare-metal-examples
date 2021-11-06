@@ -107,6 +107,7 @@ typedef struct BEU_Types_
 
 #define    LOCAL_INT_MAX                    47U  /* Highest numbered */
 #define    LOCAL_INT_UNUSED                 127U /* Signifies unused interrupt */
+
 /*
  * Interrupts associated with
  * MAINTENANCE_E51_INT
@@ -375,3 +376,4 @@ void fabric_f2h_31_u54_local_IRQHandler_47(void);
 #endif
 
 #endif  /* MSS_HART_INTS_H */
+
