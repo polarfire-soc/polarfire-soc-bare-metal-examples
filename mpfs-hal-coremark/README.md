@@ -9,7 +9,11 @@ This example project runs the Cormark performace test.
 
 To use this example you will need to obtain the coremark source files from the
 Embedded Microprocessor Benchmark Consortium (EEMBC). These are placed in the 
-coremark directory
+coremark directory.
+This will be done automatically using gitsubmodule, once you clone the repo using 
+git and then run the git submodule command
+**git submodule update --init --recursive\n**
+
 
 To use this project you will need a UART terminal configured as below:
     - 115200 baud
@@ -430,8 +434,18 @@ Example 5
 	
 	
 	
-## Loading the Payload binary
-	
-When the project configuration <Icicle-kit-payload-u54-1> is selected, the resulting binary requires loading using a boot-loader.
+## Loading the Payload binary when using DDR
+
+When using the folloing build configurations a boot-loader progam must be used to load the binary or elf:
+    -    Icicle-kit-payload-u54-1
+	-    Icicle-kit-payload-u54-2
+	-    Icicle-kit-payload-u54-3
+	-    Icicle-kit-payload-u54-4
+
 The MPFS HAL DDR DEMO program bundled with this example can be used. Load the MPFS HAL DDR DEMO binary to envm and use the CLI menu to load the binary.
-	
+For payload 2 to 4, the default load address of 0x80000000 will need to be changed to match the required load address 0x800A0000 for U54-2, 0x80140000 for U54-3 or 0x801E0000 for U54-4.
+
+The HSS can also be used. Please find the details here:
+[HSS payloads](https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/software-development/hss-payloads.md)
+The entry points for the yaml file need to match the entry point used in each elf. These are :
+{u54_1: '0x80000000', u54_2: '0x800A0000', u54_3: '0x80140000', u54_4: '0x801E0000'}
