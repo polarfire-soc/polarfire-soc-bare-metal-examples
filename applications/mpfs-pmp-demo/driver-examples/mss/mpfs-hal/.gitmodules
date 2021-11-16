@@ -1,0 +1,3 @@
+[submodule "mpfs-hal-coremark/src/middleware/coremark"]
+	path = mpfs-hal-coremark/src/middleware/coremark
+	url = https://github.com/eembc/coremark.git
