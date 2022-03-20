@@ -1,10 +1,10 @@
   <mss xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="mpfs_hw_description.xsd">
     <design_information>
-      <libero_version>2021.1</libero_version>
+      <libero_version>2021.2</libero_version>
       <design_name>ICICLE_MSS</design_name>
       <mpfs_part_no>MPFS250T_ES</mpfs_part_no>
       <mpfs_package>FCVG484</mpfs_package>
-      <creation_date_time>08-09-2021_12:57:05</creation_date_time>
+      <creation_date_time>08-04-2021_12:27:51</creation_date_time>
       <xml_format_version>0.5.6</xml_format_version>
     </design_information>
     <mss_memory_map>
@@ -1249,22 +1249,22 @@
             <field Type="RW" name="MDIO1_FABRIC" offset="13" width="1">0x0</field>
           </register>
           <register address="0x00000204" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="IOMUX1_CR">
-            <field Type="RW" name="PAD0" offset="0" width="4">0x1</field>
-            <field Type="RW" name="PAD1" offset="4" width="4">0x1</field>
-            <field Type="RW" name="PAD2" offset="8" width="4">0x1</field>
-            <field Type="RW" name="PAD3" offset="12" width="4">0x1</field>
-            <field Type="RW" name="PAD4" offset="16" width="4">0x1</field>
-            <field Type="RW" name="PAD5" offset="20" width="4">0x1</field>
-            <field Type="RW" name="PAD6" offset="24" width="4">0x1</field>
-            <field Type="RW" name="PAD7" offset="28" width="4">0x1</field>
+            <field Type="RW" name="PAD0" offset="0" width="4">0x0</field>
+            <field Type="RW" name="PAD1" offset="4" width="4">0x0</field>
+            <field Type="RW" name="PAD2" offset="8" width="4">0x0</field>
+            <field Type="RW" name="PAD3" offset="12" width="4">0x0</field>
+            <field Type="RW" name="PAD4" offset="16" width="4">0x0</field>
+            <field Type="RW" name="PAD5" offset="20" width="4">0x0</field>
+            <field Type="RW" name="PAD6" offset="24" width="4">0x0</field>
+            <field Type="RW" name="PAD7" offset="28" width="4">0x0</field>
           </register>
           <register address="0x00000208" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="IOMUX2_CR">
-            <field Type="RW" name="PAD8" offset="0" width="4">0x1</field>
-            <field Type="RW" name="PAD9" offset="4" width="4">0x1</field>
-            <field Type="RW" name="PAD10" offset="8" width="4">0x1</field>
-            <field Type="RW" name="PAD11" offset="12" width="4">0x1</field>
-            <field Type="RW" name="PAD12" offset="16" width="4">0xF</field>
-            <field Type="RW" name="PAD13" offset="20" width="4">0xF</field>
+            <field Type="RW" name="PAD8" offset="0" width="4">0x0</field>
+            <field Type="RW" name="PAD9" offset="4" width="4">0x0</field>
+            <field Type="RW" name="PAD10" offset="8" width="4">0x0</field>
+            <field Type="RW" name="PAD11" offset="12" width="4">0x0</field>
+            <field Type="RW" name="PAD12" offset="16" width="4">0x0</field>
+            <field Type="RW" name="PAD13" offset="20" width="4">0x0</field>
           </register>
           <register address="0x0000020C" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="IOMUX3_CR">
             <field Type="RW" name="PAD14" offset="0" width="4">0x4</field>
@@ -1297,11 +1297,11 @@
             <field Type="RW" name="PAD37" offset="28" width="4">0xF</field>
           </register>
           <register address="0x00000218" description="Sets whether the MMC/SD Voltage select lines are inverted on entry to the IOMUX structure" name="IOMUX6_CR">
-            <field Type="RW" name="VLT_SEL" offset="0" width="1">0x0</field>
+            <field Type="RW" name="VLT_SEL" offset="0" width="1">0x1</field>
             <field Type="RW" name="VLT_EN" offset="1" width="1">0x0</field>
-            <field Type="RW" name="VLT_CMD_DIR" offset="2" width="1">0x0</field>
-            <field Type="RW" name="VLT_DIR_0" offset="3" width="1">0x0</field>
-            <field Type="RW" name="VLT_DIR_1_3" offset="4" width="1">0x0</field>
+            <field Type="RW" name="VLT_CMD_DIR" offset="2" width="1">0x1</field>
+            <field Type="RW" name="VLT_DIR_0" offset="3" width="1">0x1</field>
+            <field Type="RW" name="VLT_DIR_1_3" offset="4" width="1">0x1</field>
             <field Type="RW" name="SD_LED" offset="5" width="1">0x0</field>
             <field Type="RW" name="SD_VOLT_0" offset="6" width="1">0x0</field>
             <field Type="RW" name="SD_VOLT_1" offset="7" width="1">0x0</field>
@@ -1437,76 +1437,76 @@
           </register>
           <register address="0x0000027C" description="Indicates if eMMC is configured for use (bit 0 == 1), If SD is configued for use (bit 1 == 1). Bit 2 indicates which one should be used by default on MSS embedded software startup ( bit2 == 0,  implies  default is eMMC, bit2 == 1,  implies  default is SD). The eMMC configuration is always defined in xml tag (io_mux, the SD configuration is always defined in xml tag (io_mux_alt). All other elements in the (o_mux) and (io_mux_alt) not releating to eMMC/SD differences should be the same values." name="MSSIO_CONFIGURATION_OPTIONS">
             <field Type="RW" name="EMMC_CONFIGURED" offset="0" width="1">0x1</field>
-            <field Type="RW" name="SD_CONFIGURED" offset="1" width="1">0x0</field>
-            <field Type="RW" name="DEFAULT_ON_START" offset="2" width="1">0x0</field>
+            <field Type="RW" name="SD_CONFIGURED" offset="1" width="1">0x1</field>
+            <field Type="RW" name="DEFAULT_ON_START" offset="2" width="1">0x1</field>
           </register>
         </registers>
       </io_mux>
       <io_mux_alt>
         <registers>
           <register address="0x00000200" description="Selects whether the peripheral is connected to the Fabric or IOMUX structure." name="ALT_IOMUX0_CR">
-            <field Type="RW" name="SPI0_FABRIC" offset="0" width="1">0x0</field>
+            <field Type="RW" name="SPI0_FABRIC" offset="0" width="1">0x1</field>
             <field Type="RW" name="SPI1_FABRIC" offset="1" width="1">0x0</field>
-            <field Type="RW" name="I2C0_FABRIC" offset="2" width="1">0x0</field>
-            <field Type="RW" name="I2C1_FABRIC" offset="3" width="1">0x0</field>
-            <field Type="RW" name="CAN0_FABRIC" offset="4" width="1">0x0</field>
+            <field Type="RW" name="I2C0_FABRIC" offset="2" width="1">0x1</field>
+            <field Type="RW" name="I2C1_FABRIC" offset="3" width="1">0x1</field>
+            <field Type="RW" name="CAN0_FABRIC" offset="4" width="1">0x1</field>
             <field Type="RW" name="CAN1_FABRIC" offset="5" width="1">0x0</field>
             <field Type="RW" name="QSPI_FABRIC" offset="6" width="1">0x0</field>
-            <field Type="RW" name="MMUART0_FABRIC" offset="7" width="1">0x0</field>
-            <field Type="RW" name="MMUART1_FABRIC" offset="8" width="1">0x0</field>
-            <field Type="RW" name="MMUART2_FABRIC" offset="9" width="1">0x0</field>
-            <field Type="RW" name="MMUART3_FABRIC" offset="10" width="1">0x0</field>
-            <field Type="RW" name="MMUART4_FABRIC" offset="11" width="1">0x0</field>
+            <field Type="RW" name="MMUART0_FABRIC" offset="7" width="1">0x1</field>
+            <field Type="RW" name="MMUART1_FABRIC" offset="8" width="1">0x1</field>
+            <field Type="RW" name="MMUART2_FABRIC" offset="9" width="1">0x1</field>
+            <field Type="RW" name="MMUART3_FABRIC" offset="10" width="1">0x1</field>
+            <field Type="RW" name="MMUART4_FABRIC" offset="11" width="1">0x1</field>
             <field Type="RW" name="MDIO0_FABRIC" offset="12" width="1">0x0</field>
             <field Type="RW" name="MDIO1_FABRIC" offset="13" width="1">0x0</field>
           </register>
           <register address="0x00000204" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="ALT_IOMUX1_CR">
-            <field Type="RW" name="PAD0" offset="0" width="4">0x0</field>
-            <field Type="RW" name="PAD1" offset="4" width="4">0x0</field>
-            <field Type="RW" name="PAD2" offset="8" width="4">0x0</field>
-            <field Type="RW" name="PAD3" offset="12" width="4">0x0</field>
-            <field Type="RW" name="PAD4" offset="16" width="4">0x0</field>
-            <field Type="RW" name="PAD5" offset="20" width="4">0x0</field>
-            <field Type="RW" name="PAD6" offset="24" width="4">0x0</field>
-            <field Type="RW" name="PAD7" offset="28" width="4">0x0</field>
+            <field Type="RW" name="PAD0" offset="0" width="4">0x1</field>
+            <field Type="RW" name="PAD1" offset="4" width="4">0x1</field>
+            <field Type="RW" name="PAD2" offset="8" width="4">0x1</field>
+            <field Type="RW" name="PAD3" offset="12" width="4">0x1</field>
+            <field Type="RW" name="PAD4" offset="16" width="4">0x1</field>
+            <field Type="RW" name="PAD5" offset="20" width="4">0x1</field>
+            <field Type="RW" name="PAD6" offset="24" width="4">0x1</field>
+            <field Type="RW" name="PAD7" offset="28" width="4">0x1</field>
           </register>
           <register address="0x00000208" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="ALT_IOMUX2_CR">
-            <field Type="RW" name="PAD8" offset="0" width="4">0x0</field>
-            <field Type="RW" name="PAD9" offset="4" width="4">0x0</field>
-            <field Type="RW" name="PAD10" offset="8" width="4">0x0</field>
-            <field Type="RW" name="PAD11" offset="12" width="4">0x0</field>
-            <field Type="RW" name="PAD12" offset="16" width="4">0x0</field>
-            <field Type="RW" name="PAD13" offset="20" width="4">0x0</field>
+            <field Type="RW" name="PAD8" offset="0" width="4">0x1</field>
+            <field Type="RW" name="PAD9" offset="4" width="4">0x1</field>
+            <field Type="RW" name="PAD10" offset="8" width="4">0x1</field>
+            <field Type="RW" name="PAD11" offset="12" width="4">0x1</field>
+            <field Type="RW" name="PAD12" offset="16" width="4">0xF</field>
+            <field Type="RW" name="PAD13" offset="20" width="4">0xF</field>
           </register>
           <register address="0x0000020C" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="ALT_IOMUX3_CR">
-            <field Type="RW" name="PAD14" offset="0" width="4">0x0</field>
-            <field Type="RW" name="PAD15" offset="4" width="4">0x0</field>
-            <field Type="RW" name="PAD16" offset="8" width="4">0x0</field>
-            <field Type="RW" name="PAD17" offset="12" width="4">0x0</field>
-            <field Type="RW" name="PAD18" offset="16" width="4">0x0</field>
-            <field Type="RW" name="PAD19" offset="20" width="4">0x0</field>
-            <field Type="RW" name="PAD20" offset="24" width="4">0x0</field>
-            <field Type="RW" name="PAD21" offset="28" width="4">0x0</field>
+            <field Type="RW" name="PAD14" offset="0" width="4">0x4</field>
+            <field Type="RW" name="PAD15" offset="4" width="4">0x4</field>
+            <field Type="RW" name="PAD16" offset="8" width="4">0x4</field>
+            <field Type="RW" name="PAD17" offset="12" width="4">0x4</field>
+            <field Type="RW" name="PAD18" offset="16" width="4">0x4</field>
+            <field Type="RW" name="PAD19" offset="20" width="4">0x4</field>
+            <field Type="RW" name="PAD20" offset="24" width="4">0x4</field>
+            <field Type="RW" name="PAD21" offset="28" width="4">0x4</field>
           </register>
           <register address="0x00000210" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="ALT_IOMUX4_CR">
-            <field Type="RW" name="PAD22" offset="0" width="4">0x0</field>
-            <field Type="RW" name="PAD23" offset="4" width="4">0x0</field>
-            <field Type="RW" name="PAD24" offset="8" width="4">0x0</field>
-            <field Type="RW" name="PAD25" offset="12" width="4">0x0</field>
-            <field Type="RW" name="PAD26" offset="16" width="4">0x0</field>
-            <field Type="RW" name="PAD27" offset="20" width="4">0x0</field>
-            <field Type="RW" name="PAD28" offset="24" width="4">0x0</field>
-            <field Type="RW" name="PAD29" offset="28" width="4">0x0</field>
+            <field Type="RW" name="PAD22" offset="0" width="4">0x4</field>
+            <field Type="RW" name="PAD23" offset="4" width="4">0x4</field>
+            <field Type="RW" name="PAD24" offset="8" width="4">0x4</field>
+            <field Type="RW" name="PAD25" offset="12" width="4">0x4</field>
+            <field Type="RW" name="PAD26" offset="16" width="4">0xC</field>
+            <field Type="RW" name="PAD27" offset="20" width="4">0xC</field>
+            <field Type="RW" name="PAD28" offset="24" width="4">0x8</field>
+            <field Type="RW" name="PAD29" offset="28" width="4">0x8</field>
           </register>
           <register address="0x00000214" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="ALT_IOMUX5_CR">
-            <field Type="RW" name="PAD30" offset="0" width="4">0x0</field>
-            <field Type="RW" name="PAD31" offset="4" width="4">0x0</field>
-            <field Type="RW" name="PAD32" offset="8" width="4">0x0</field>
-            <field Type="RW" name="PAD33" offset="12" width="4">0x0</field>
-            <field Type="RW" name="PAD34" offset="16" width="4">0x0</field>
-            <field Type="RW" name="PAD35" offset="20" width="4">0x0</field>
-            <field Type="RW" name="PAD36" offset="24" width="4">0x0</field>
-            <field Type="RW" name="PAD37" offset="28" width="4">0x0</field>
+            <field Type="RW" name="PAD30" offset="0" width="4">0x2</field>
+            <field Type="RW" name="PAD31" offset="4" width="4">0x2</field>
+            <field Type="RW" name="PAD32" offset="8" width="4">0x2</field>
+            <field Type="RW" name="PAD33" offset="12" width="4">0x2</field>
+            <field Type="RW" name="PAD34" offset="16" width="4">0x7</field>
+            <field Type="RW" name="PAD35" offset="20" width="4">0x7</field>
+            <field Type="RW" name="PAD36" offset="24" width="4">0x7</field>
+            <field Type="RW" name="PAD37" offset="28" width="4">0xF</field>
           </register>
           <register address="0x00000218" description="Sets whether the MMC/SD Voltage select lines are inverted on entry to the IOMUX structure" name="ALT_IOMUX6_CR">
             <field Type="RW" name="VLT_SEL" offset="0" width="1">0x0</field>

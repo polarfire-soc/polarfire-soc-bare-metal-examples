@@ -71,6 +71,8 @@ void u54_1(void)
     /* The hart is out of WFI, clear the SW interrupt. Hear onwards Application
      * can enable and use any interrupts as required */
     clear_soft_interrupt();
+    /* Reset FPGA to access the SDIO register at FIC3 */
+    SYSREG->SOFT_RESET_CR   &= (uint32_t)~(SOFT_RESET_CR_FPGA_MASK);
 
     mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) 1, PERIPHERAL_ON);
     mss_config_clk_rst(MSS_PERIPH_EMMC, (uint8_t) 1, PERIPHERAL_ON);
@@ -101,12 +103,21 @@ void u54_1(void)
                                    MPU_MODE_READ_ACCESS|MPU_MODE_WRITE_ACCESS|MPU_MODE_EXEC_ACCESS,
                                    MSS_MPU_AM_NAPOT,
                                    0u);
+
+    ASSERT(mss_does_xml_ver_support_switch() == true)
+
+    if (switch_mssio_config(EMMC_MSSIO_CONFIGURATION) == false)
+    {
+        while(1u);
+    }
+    switch_external_mux(EMMC_MSSIO_CONFIGURATION);
+
     /* Configure eMMC */
     g_mmc.clk_rate = MSS_MMC_CLOCK_50MHZ;
     g_mmc.card_type = MSS_MMC_CARD_TYPE_MMC;
     g_mmc.bus_speed_mode = MSS_MMC_MODE_SDR;
-    g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
-    g_mmc.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
+    g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_8BIT;
+    g_mmc.bus_voltage = MSS_MMC_1_8V_BUS_VOLTAGE;
 
     ret_status = MSS_MMC_init(&g_mmc);
     if (ret_status == MSS_MMC_INIT_SUCCESS)

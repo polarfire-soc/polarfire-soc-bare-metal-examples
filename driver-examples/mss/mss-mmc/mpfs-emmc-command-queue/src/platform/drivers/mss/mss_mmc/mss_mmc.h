@@ -1297,7 +1297,56 @@ MSS_MMC_cq_read
     uint8_t *dest,
     uint32_t size
 );
+/*-------------------------------------------------------------------------*//**
+  The MSS_MMC_erase() function is used to erase the eMMC/SD device blocks.
+  
+  @param start
+  Specifies the sector number in the eMMC/SD device from where the data is
+  to be erased.
 
+  @param count
+  Specifies the number of sectors to be erased.
+  
+  @return
+  This function returns a value of type mss_mmc_status_t which specifies the
+  status of the operation.
+
+  Example:
+  The following example shows how to initialize the device and perform a erase
+  functionality.
+
+  @code
+
+    #define SECT_NUMBER 0x01u
+    #define NUMBER_OF_SECTORS 0x100u
+    
+    mss_mmc_cfg_t g_mmc0;
+    mss_mmc_status_t ret_status;
+    
+    g_mmc0.clk_rate = MSS_MMC_CLOCK_25MHZ;
+    g_mmc0.card_type = MSS_MMC_CARD_TYPE_MMC;
+    g_mmc0.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
+    g_mmc0.bus_speed_mode = MSS_MMC_MODE_LEGACY;
+    g_mmc0.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
+    
+    
+    ret_status = MSS_MMC_init(&g_mmc0);
+    if (MSS_MMC_INIT_SUCCESS == ret_status)
+    {
+        ret_status = MSS_MMC_erase(SECT_NUMBER, NUMBER_OF_SECTORS);
+        if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
+        {
+            //erase success
+        }
+    }
+  @endcode
+ */
+mss_mmc_status_t
+MSS_MMC_erase
+(
+    uint32_t start,
+    uint32_t count
+);
 #ifdef __cplusplus
 }
 #endif
