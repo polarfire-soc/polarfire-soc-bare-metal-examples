@@ -21,9 +21,6 @@ volatile uint32_t count_sw_ints_h0 = 0U;
 void e51(void)
 {
     volatile uint32_t icount = 0U;
-    uint64_t hartid = read_csr(mhartid);
-    HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
-    HART_SHARED_DATA * hart_share = (HART_SHARED_DATA *)hls->shared_mem;
 
     /* Clear pending software interrupt in case there was any. */
     clear_soft_interrupt();
@@ -42,6 +39,7 @@ void e51(void)
     raise_soft_interrupt(1U);
 
     __enable_irq();
+
     while (1U)
     {
 

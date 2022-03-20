@@ -18,7 +18,6 @@ on the eMMC device using command queues. Status messages are displayed on the UA
 
 This example is tested on the PolarFire SoC Icicle kit with the latest released
 [reference design](https://github.com/polarfire-soc/icicle-kit-reference-design/releases).
-Refer [eMMC and SD Cards](https://github.com/polarfire-soc/icicle-kit-reference-design#emmc-sd) to know more about how to interface with the on-board eMMC and/or SD device.
 
 This project provides build configurations and debug launchers as explained [here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md).
 Following changes are made to the default build configurations for this project:

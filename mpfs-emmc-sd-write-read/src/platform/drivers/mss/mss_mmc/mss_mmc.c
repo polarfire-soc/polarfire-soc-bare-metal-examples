@@ -171,6 +171,8 @@ static uint8_t g_mmc_cq_init_complete;
 static uint8_t g_mmc_is_multi_blk = MMC_CLEAR;
 static uint8_t g_sdio_fun_num;
 static uint8_t g_device_hpi_suport;
+/* eMMC - 0, SD card - 1 */
+static uint8_t g_mmc_card_sd;
 
 #ifdef MSS_MMC_INTERNAL_APIS
 static uint8_t g_device_hpi_set = MMC_CLEAR;
@@ -315,6 +317,7 @@ MSS_MMC_init
     g_transfer_complete_handler_t = NULL_POINTER;
     g_mmc_init_complete = MMC_CLEAR;
     g_sdio_fun_num = MMC_CLEAR;
+    g_mmc_card_sd = MMC_CLEAR;
     g_mmc_trs_status.state = MSS_MMC_NOT_INITIALISED;
     /* Set RCA default value */
     sdcard_RCA = RCA_VALUE;
@@ -670,6 +673,7 @@ MSS_MMC_init
 
             if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
             {
+                g_mmc_card_sd = MMC_SET;
                 ret_status = MSS_MMC_INIT_SUCCESS;
                 g_mmc_trs_status.state = MSS_MMC_INIT_SUCCESS;
             }
@@ -821,6 +825,7 @@ MSS_MMC_single_block_read
             /* Abort if any errors*/
             if ((SRS12_ERROR_STATUS_MASK & isr_errors) == MMC_CLEAR)
             {
+                mmc_delay(MASK_8BIT);
                 /*
                  * Ensure no error fields in Card Status register are set and
                  * that the device is idle before this function returns.
@@ -1701,7 +1706,72 @@ mss_mmc_status_t MSS_MMC_sdio_single_block_write
     }
     return (ret_status);
 }
+/*-------------------------------------------------------------------------*//**
+ * See "mss_mmc.h" for details of how to use this function.
+ */
+mss_mmc_status_t MSS_MMC_erase
+(
+    uint32_t start,
+    uint32_t count
+)
+{
+    uint32_t start_address;
+    uint32_t end_address;
+    uint32_t start_cmd;
+    uint32_t end_cmd;
 
+    cif_response_t response_status = TRANSFER_IF_FAIL;
+    mss_mmc_status_t ret_status = MSS_MMC_TRANSFER_FAIL;
+
+    if (g_mmc_init_complete ==  MMC_SET)
+    {
+        if (g_mmc_card_sd == MMC_CLEAR) /* eMMC*/
+        {
+            start_cmd = MMC_CMD_35_ERASE_GROUP_START;
+            end_cmd = MMC_CMD_36_ERASE_GROUP_END;
+        }
+        else /* SD Card */
+        {
+            start_cmd = SD_CMD_32_ERASE_WR_BLK_START;
+            end_cmd = SD_CMD_33_ERASE_WR_BLK_END;
+        }
+        start_address = start;
+        end_address = start + count - MMC_SET;
+
+        response_status = cif_send_cmd(start_address,
+                                        start_cmd,
+                                        MSS_MMC_RESPONSE_R1);
+
+        if (TRANSFER_IF_SUCCESS == response_status)
+        {
+            response_status = cif_send_cmd(end_address,
+                                            end_cmd,
+                                            MSS_MMC_RESPONSE_R1);
+            if (TRANSFER_IF_SUCCESS == response_status)
+            {
+                response_status = cif_send_cmd(MMC_CLEAR,
+                                    MMC_CMD_38_ERASE,
+                                    MSS_MMC_RESPONSE_R1B);
+
+                if (TRANSFER_IF_FAIL != response_status)
+                {
+                    response_status = check_device_status(response_status);
+                }
+
+                if (TRANSFER_IF_SUCCESS == response_status)
+                {
+                    ret_status = MSS_MMC_TRANSFER_SUCCESS;
+                }
+            }
+        }
+    }
+    else
+    {
+        ret_status = MSS_MMC_NOT_INITIALISED;
+    }
+
+    return ret_status;
+}
 /*-------------------------------------------------------------------------*//**
  * See "mss_mmc.h" for details of how to use this function.
  */
@@ -1847,7 +1917,7 @@ mss_mmc_status_t MSS_MMC_cq_init(void)
     }
     else
     {
-        ret_status = MSS_MMC_CQ_INIT_FAILURE;
+        ret_status = MSS_MMC_NOT_INITIALISED;
     }
     return ret_status;
 }
@@ -2214,9 +2284,9 @@ uint8_t  mmc_main_plic_IRQHandler(void)
         address = (uint32_t)address64;
         highaddr = (uint32_t)(address64 >> MMC_64BIT_UPPER_ADDR_SHIFT);
 
+        MMC->SRS12 = SRS12_DMA_INTERRUPT;
         MMC->SRS22 = address;
         MMC->SRS23 = highaddr;
-        MMC->SRS12 = SRS12_DMA_INTERRUPT;
     }
     else if ((trans_status_isr & SRS12_CMD_QUEUING_INT) != MMC_CLEAR)
     {

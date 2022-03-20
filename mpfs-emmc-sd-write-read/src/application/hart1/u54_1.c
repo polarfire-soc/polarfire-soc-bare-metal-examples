@@ -20,7 +20,8 @@
 #define BUFFER_SIZE             4096u // multiple block data size
 #define USE_SDMA                0u
 #define USE_ADMA2               1u
-#define RX_BUFF_SIZE            10U
+#define RX_BUFF_SIZE            10u
+#define BLOCK_SIZE              512u
 
 uint8_t g_mmc_rx_buff[BUFFER_SIZE] = {1};
 uint8_t g_mmc_tx_buff[BUFFER_SIZE] = {1};
@@ -30,11 +31,12 @@ volatile uint32_t count_sw_ints_h1 = 0U;
 
 volatile uint8_t g_rx_size = 0u;
 mss_uart_instance_t *g_uart= &g_mss_uart1_lo;
+static uint8_t g_mmc_initialized = 0u;
 
 const uint8_t g_greeting_msg[] =
-"\r\n\r\n\t  ******* PolarFire SoC MSS eMMC/SD Driver Example *******\n\n\n\r\
+"\r\n\r\n\t******* PolarFire SoC MSS eMMC/SD Driver Example *******\n\n\n\r\
 Data transfer status:\n\r\
- 0  = Success \n\r\
+  0 = Success \n\r\
  -1 = Wrong DMA mode selected.(multi-block transfers only) \n\r\
  -2 = Read buffer did not match written values \r\n\
  status > 0 = Transfer failed. Refer mss_mmc_status_t in mss_mmc.h \r\n\n\
@@ -45,14 +47,13 @@ Menu:\r\n\
 \r\n2. Execute data transfers on SD card\r\n";
 
 static int8_t verify_write(uint8_t* write_buff, uint8_t* read_buff, uint32_t size);
+static int8_t mmc_init_sdcard(void);
+static int8_t mmc_init_emmc(void);
+static int8_t multi_block_transfer(uint32_t sector_number);
+static int8_t multi_block_wr_rd(uint32_t sector_number, uint8_t dma_type);
+static int8_t single_block_wr_rd(uint32_t sector_number);
+static void report_status(int8_t status);
 void transfer_complete_handler(uint32_t status);
-static int8_t single_block_mmc(uint32_t sector_number);
-static int8_t multi_block_mmc(uint32_t sector_number);
-static int8_t single_block_sd(uint32_t sector_number);
-static int8_t multi_block_sd(uint32_t sector_number);
-int8_t multi_block_wr_rd(uint32_t sector_number, uint8_t dma_type);
-int8_t single_block_wr_rd(uint32_t sector_number);
-void report_status(int8_t status);
 
 /* Main function for the hart1(U54_1 processor).
  * Application code running on hart1 is placed here
@@ -85,6 +86,8 @@ void u54_1(void)
     /* The hart is out of WFI, clear the SW interrupt. Hear onwards Application
      * can enable and use any interrupts as required */
     clear_soft_interrupt();
+    /* Reset FPGA to access the SDIO register at FIC3 */
+    SYSREG->SOFT_RESET_CR   &= (uint32_t)~(SOFT_RESET_CR_FPGA_MASK);
 
     mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) 1, PERIPHERAL_ON);
     mss_config_clk_rst(MSS_PERIPH_EMMC, (uint8_t) 1, PERIPHERAL_ON);
@@ -125,33 +128,58 @@ void u54_1(void)
             switch (g_rx_buff[0u])
             {
                 case '1':
-                    MSS_UART_polled_tx_string(g_uart,
+                    status = mmc_init_emmc();
+                    if (status == MSS_MMC_INIT_SUCCESS)
+                    {
+
+                        MSS_UART_polled_tx_string(g_uart,
                             (const uint8_t*)"\r\nExecuting data transfers on eMMC device\r\n");
 
-                    status = single_block_mmc(sector_number);
-                    sprintf(p_buff,"\r\neMMC - SINGLE block transfer status = %d", status);
-                    MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                    report_status(status);
+                        status = single_block_wr_rd(sector_number);
+                        sprintf(p_buff,"\r\neMMC - SINGLE block transfer status = %d", status);
+                        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
+                        report_status(status);
 
-                    status = multi_block_mmc(sector_number);
-                    sprintf(p_buff,"\r\neMMC - MULTI block transfer status = %d", status);
-                    MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                    report_status(status);
-
+                        if (!status)
+                        {
+                            status = multi_block_transfer(sector_number);
+                            sprintf(p_buff,"\r\neMMC - MULTI block transfer status = %d", status);
+                            MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
+                            report_status(status);
+                        }
+                    }
+                    else
+                    {
+                        MSS_UART_polled_tx_string(g_uart,
+                            (const uint8_t*)"\r\neMMC ... Failed\r\n");
+                    }
                     break;
 
                 case '2':
-                    MSS_UART_polled_tx_string(g_uart,
+                    status = mmc_init_sdcard();
+                    if (status == MSS_MMC_INIT_SUCCESS)
+                    {
+                        MSS_UART_polled_tx_string(g_uart,
                             (const uint8_t*)"\r\nExecuting data transfers on SD card\r\n");
-                    status = single_block_sd(sector_number);
-                    sprintf(p_buff,"\r\nSD card - SINGLE block transfer status = %d", status);
-                    MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                    report_status(status);
 
-                    status = multi_block_sd(sector_number);
-                    sprintf(p_buff,"\r\nSD card - MULTI block transfer status = %d", status);
-                    MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                    report_status(status);
+                        status = single_block_wr_rd(sector_number);
+                        sprintf(p_buff,"\r\nSD card - SINGLE block transfer status = %d", status);
+                        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
+                        report_status(status);
+
+                        if (!status)
+                        {
+                            status = multi_block_transfer(sector_number);
+                            sprintf(p_buff,"\r\nSD card - MULTI block transfer status = %d", status);
+                            MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
+                            report_status(status);
+                        }
+                    }
+                    else
+                    {
+                        MSS_UART_polled_tx_string(g_uart,
+                            (const uint8_t*)"\r\nSD Card ... Failed\r\n");
+                    }
 
                     break;
 
@@ -182,123 +210,125 @@ void transfer_complete_handler(uint32_t status)
     }
 }
 
-int8_t single_block_mmc(uint32_t sector_number)
+static void mmc_reset_block(void)
 {
-    int8_t status = 0u;
-
-    /* Configure eMMC */
-    g_mmc.clk_rate = MSS_MMC_CLOCK_50MHZ;
-    g_mmc.card_type = MSS_MMC_CARD_TYPE_MMC;
-    g_mmc.bus_speed_mode = MSS_MMC_MODE_SDR;
-    g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_8BIT;
-    g_mmc.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
-
-    status = MSS_MMC_init(&g_mmc);
-
-    if (status == MSS_MMC_INIT_SUCCESS)
-    {
-        status = single_block_wr_rd(sector_number);
-    }
-
-    return (status);
+    SYSREG->SUBBLK_CLOCK_CR |= (uint32_t)(SUBBLK_CLOCK_CR_MMC_MASK);
+    SYSREG->SOFT_RESET_CR |= (uint32_t)(SOFT_RESET_CR_MMC_MASK);
+    SYSREG->SOFT_RESET_CR &= ~(uint32_t)(SOFT_RESET_CR_MMC_MASK);
 }
 
-int8_t single_block_sd(uint32_t sector_number)
+static int8_t mmc_init_emmc(void)
 {
-    int8_t status = 0u;
+    mss_mmc_status_t ret_status;
 
-    /* Configure SD card */
-    g_mmc.clk_rate = MSS_MMC_CLOCK_50MHZ;
-    g_mmc.card_type = MSS_MMC_CARD_TYPE_SD;
-    g_mmc.bus_speed_mode = MSS_SDCARD_MODE_HIGH_SPEED;
-    g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
-
-    status = MSS_MMC_init(&g_mmc);
-
-    if (status == MSS_MMC_INIT_SUCCESS)
+    if (g_mmc_initialized == 1u)
     {
-        status = single_block_wr_rd(sector_number);
+        ret_status = MSS_MMC_INIT_SUCCESS;
     }
+    else
+    {
+        ASSERT(mss_does_xml_ver_support_switch() == true)
 
-    return (status);
+        if (switch_mssio_config(EMMC_MSSIO_CONFIGURATION) == false)
+        {
+            while(1u);
+        }
+        switch_external_mux(EMMC_MSSIO_CONFIGURATION);
+        /* eMMC configuration */
+        g_mmc.clk_rate = MSS_MMC_CLOCK_50MHZ;
+        g_mmc.card_type = MSS_MMC_CARD_TYPE_MMC;
+        g_mmc.bus_speed_mode = MSS_MMC_MODE_SDR;
+        g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_8BIT;
+        g_mmc.bus_voltage = MSS_MMC_1_8V_BUS_VOLTAGE;
+
+        mmc_reset_block();
+
+        ret_status = MSS_MMC_init(&g_mmc);
+        if (ret_status == MSS_MMC_INIT_SUCCESS)
+        {
+            g_mmc_initialized = 1u;
+        }
+    }
+    return ret_status;
 }
 
-int8_t multi_block_mmc(uint32_t sector_number)
+static int8_t mmc_init_sdcard(void)
+{
+    mss_mmc_status_t ret_status;
+
+    if (g_mmc_initialized == 2u)
+    {
+        ret_status = MSS_MMC_INIT_SUCCESS;
+    }
+    else
+    {
+        ASSERT(mss_does_xml_ver_support_switch() == true)
+
+        if (switch_mssio_config(SD_MSSIO_CONFIGURATION) == false)
+        {
+            while(1u);
+        }
+        switch_external_mux(SD_MSSIO_CONFIGURATION);
+        /* SD Card configuration */
+        g_mmc.card_type = MSS_MMC_CARD_TYPE_SD;
+        g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
+        g_mmc.bus_speed_mode = MSS_SDCARD_MODE_HIGH_SPEED;
+        g_mmc.clk_rate = MSS_MMC_CLOCK_50MHZ;
+
+        mmc_reset_block();
+
+        ret_status = MSS_MMC_init(&g_mmc);
+        if (ret_status == MSS_MMC_INIT_SUCCESS)
+        {
+            g_mmc_initialized = 2u;
+        }
+    }
+    return ret_status;
+}
+
+static int8_t single_block_wr_rd(uint32_t sector_number)
 {
     int8_t status = 0u;
-
-    /* Configure eMMC */
-    g_mmc.clk_rate = MSS_MMC_CLOCK_50MHZ;
-    g_mmc.card_type = MSS_MMC_CARD_TYPE_MMC;
-    g_mmc.bus_speed_mode = MSS_MMC_MODE_SDR;
-    g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_8BIT;
-    g_mmc.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
-
-    status = MSS_MMC_init(&g_mmc);
-
-    MSS_MMC_set_handler(transfer_complete_handler);
-
-    if (status == MSS_MMC_INIT_SUCCESS)
-    {
-        status = multi_block_wr_rd(sector_number, USE_SDMA);
-    }
-
+    /* Erase single block */
+    status = MSS_MMC_erase(sector_number, 1u);
     if (status == MSS_MMC_TRANSFER_SUCCESS)
     {
-        status = multi_block_wr_rd(sector_number, USE_ADMA2);
-    }
-
-    return (status);
-}
-
-int8_t multi_block_sd(uint32_t sector_number)
-{
-    int8_t status = 0u;
-
-    /* Configure SD card */
-    g_mmc.clk_rate = MSS_MMC_CLOCK_50MHZ;
-    g_mmc.card_type = MSS_MMC_CARD_TYPE_SD;
-    g_mmc.bus_speed_mode = MSS_SDCARD_MODE_HIGH_SPEED;
-    g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
-
-    status = MSS_MMC_init(&g_mmc);
-    MSS_MMC_set_handler(transfer_complete_handler);
-
-    if (status == MSS_MMC_INIT_SUCCESS)
-    {
-        status = multi_block_wr_rd(sector_number, USE_SDMA);
-    }
-
-    if (status == MSS_MMC_TRANSFER_SUCCESS)
-    {
-        status = multi_block_wr_rd(sector_number, USE_ADMA2);
-    }
-
-    return (status);
-}
-
-int8_t single_block_wr_rd(uint32_t sector_number)
-{
-    int8_t status = 0u;
-
-    /* Single Block - write */
-    status = MSS_MMC_single_block_write((uint32_t *)g_mmc_tx_buff, sector_number);
-
-    if (status == MSS_MMC_TRANSFER_SUCCESS)
-    {
-        /* Single Block - read */
-        status = MSS_MMC_single_block_read(sector_number, (uint32_t *)g_mmc_rx_buff);
-
+        /* Single Block - write */
+        status = MSS_MMC_single_block_write((uint32_t *)g_mmc_tx_buff, sector_number);
         if (status == MSS_MMC_TRANSFER_SUCCESS)
         {
-            status = verify_write(g_mmc_tx_buff, g_mmc_rx_buff, 512); //single block
+            /* Single Block - read */
+            status = MSS_MMC_single_block_read(sector_number, (uint32_t *)g_mmc_rx_buff);
+            if (status == MSS_MMC_TRANSFER_SUCCESS)
+            {
+                status = verify_write(g_mmc_tx_buff, g_mmc_rx_buff, BLOCK_SIZE); //single block
+            }
         }
     }
 
     return (status);
 }
 
-int8_t multi_block_wr_rd(uint32_t sector_number, uint8_t dma_type)
+static int8_t multi_block_transfer(uint32_t sector_number)
+{
+    int8_t status = 0u;
+    /* Erase multi block */
+    status = MSS_MMC_erase(sector_number, BUFFER_SIZE/BLOCK_SIZE);
+    if (status == MSS_MMC_TRANSFER_SUCCESS)
+    {
+        MSS_MMC_set_handler(transfer_complete_handler);
+
+        status = multi_block_wr_rd(sector_number, USE_SDMA);
+        if (status == MSS_MMC_TRANSFER_SUCCESS)
+        {
+            status = multi_block_wr_rd(sector_number, USE_ADMA2);
+        }
+    }
+
+    return (status);
+}
+
+static int8_t multi_block_wr_rd(uint32_t sector_number, uint8_t dma_type)
 {
     int8_t status = 0u;
 
@@ -382,7 +412,7 @@ void Software_h1_IRQHandler(void)
     count_sw_ints_h1++;
 }
 
-void report_status(int8_t status)
+static void report_status(int8_t status)
 {
     if(0 == status)
     {
@@ -394,5 +424,4 @@ void report_status(int8_t status)
         MSS_UART_polled_tx_string(g_uart,
                 (const uint8_t*)"\r\nTransfer failed \r\n");
     }
-
 }
