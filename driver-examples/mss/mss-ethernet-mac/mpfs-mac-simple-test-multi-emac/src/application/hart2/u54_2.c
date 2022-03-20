@@ -22,15 +22,12 @@
 
 volatile uint32_t count_sw_ints_h2 = 0U;
 
-static uint64_t uart2_lock;
 static uint8_t g_rx_buff2[5] = {0};
 
 void u54_2_uart0_rx_handler (mss_uart_instance_t * this_uart)
 {
-    mss_take_mutex((uint64_t)&uart2_lock);
     MSS_UART_get_rx(&g_mss_uart2_lo, g_rx_buff2, sizeof(g_rx_buff2));
     MSS_UART_polled_tx_string(&g_mss_uart2_lo, "hart2 MMUART2 local IRQ.\r\n");
-    mss_release_mutex((uint64_t)&uart2_lock);
 }
 
 /* Main function for the hart2(U54_2 processor).
@@ -63,8 +60,6 @@ void u54_2(void)
 
     __enable_irq();
 
-    mss_init_mutex((uint64_t)&uart2_lock);
-
     MSS_UART_init(&g_mss_uart2_lo, MSS_UART_115200_BAUD,
                    MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY);
 
@@ -85,10 +80,8 @@ void u54_2(void)
         {
             icount = 0U;
             sprintf(info_string,"hart %d\r\n", hartid);
-            mss_take_mutex((uint64_t)&uart2_lock);
             MSS_UART_polled_tx(&g_mss_uart2_lo, info_string,
                                strlen(info_string));
-            mss_release_mutex((uint64_t)&uart2_lock);
         }
     }
 

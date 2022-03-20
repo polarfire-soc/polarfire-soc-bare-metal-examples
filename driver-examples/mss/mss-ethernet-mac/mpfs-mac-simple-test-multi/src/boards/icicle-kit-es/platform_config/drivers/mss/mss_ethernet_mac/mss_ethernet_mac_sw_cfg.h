@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2020 Microchip Corporation.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_7_107_CONFIGURATION_HEADER
-#define MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_7_107_CONFIGURATION_HEADER
+#ifndef MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_8_102_CONFIGURATION_HEADER
+#define MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_8_102_CONFIGURATION_HEADER
 
 
 /***************************************************************************//**
@@ -58,7 +58,7 @@
 #define CORE_VENDOR "Microsemi"
 #define CORE_LIBRARY "Firmware"
 #define CORE_NAME "PolarFire_SoC_MSS_Ethernet_MAC_Driver"
-#define CORE_VERSION "1.7.107"
+#define CORE_VERSION "1.8.102"
 
 
 /***************************************************************************//**

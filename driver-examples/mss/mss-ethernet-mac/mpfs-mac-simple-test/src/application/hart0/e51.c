@@ -33,18 +33,18 @@
 #include "mpfs_hal/common/nwc/mss_nwc_init.h"
 
 #if PSE
-#include "drivers/mss_gpio/mss_gpio.h"
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_gpio/mss_gpio.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #else
-#include "drivers/FU540_uart/FU540_uart.h"
+#include "drivers/mss/FU540_uart/FU540_uart.h"
 #endif
 
-#include "drivers/mss_ethernet_mac/mss_ethernet_registers.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_regs.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
-#include "drivers/mss_ethernet_mac/phy.h"
-#include "drivers/mss_gpio/mss_gpio.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_regs.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/phy.h"
+#include "drivers/mss/mss_gpio/mss_gpio.h"
 #include "inc/common.h"
 
 #if defined(MSS_MAC_USE_DDR) && (MSS_MAC_USE_DDR == MSS_MAC_MEM_CRYPTO)
@@ -60,7 +60,7 @@
 #if defined(TARGET_ALOE)
 #define PRINT_STRING(x)MSS_FU540_UART_polled_tx(&g_mss_FU540_uart0, x, strlen(x));
 #else
-#define PRINT_STRING(x) MSS_UART_polled_tx_string(&g_mss_uart1_lo, (uint8_t *)x);
+#define PRINT_STRING(x) MSS_UART_polled_tx_string(&g_mss_uart0_lo, (uint8_t *)x);
 #endif
 
 /* Not really public driver function but we need it for some test commands...*/
@@ -224,7 +224,7 @@ mss_mac_instance_t *g_test_mac = &g_mac1;
 
 /* Define this if you are using the other harts... */
 /* #define USE_OTHER_HARTS */
-
+#if 0 /* To be removed... */
 int main_first_hart(HLS_DATA* hls)
 {
     uint64_t hartid = hls->my_hart_id;
@@ -431,7 +431,7 @@ int main_first_hart(HLS_DATA* hls)
 
     return (0);
 }
-
+#endif /* To be removed... */
 
 /**============================================================================
  *
@@ -902,7 +902,7 @@ low_level_init(void)
 #endif
     g_test_mac = &g_mac0;
 #endif
-    g_mac_config.use_local_ints        = MSS_MAC_ENABLE;
+//    g_mac_config.use_local_ints        = MSS_MAC_ENABLE;
 #if ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_EMUL_GMII) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_EMUL_GMII_GEM1) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_EMUL_GMII_LOCAL))
@@ -2625,11 +2625,10 @@ void mac_task( void *pvParameters )
     /* Enable UART Interrupt on PLIC */
 PLIC_EnableIRQ(USART0_PLIC_4);
 #else
-    MSS_UART_init( &g_mss_uart1_lo,
+    MSS_UART_init( &g_mss_uart0_lo,
                     MSS_UART_115200_BAUD,
                     MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 #endif
-
     PRINT_STRING("PolarFire MSS Ethernet MAC Test program\n\r");
 
     PRINT_STRING("Polling method for TXRX. Typed characters will be echoed.\n\r");
@@ -2639,7 +2638,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
     *ATHENA_CR = SYSREG_ATHENACR_RESET | SYSREG_ATHENACR_RINGOSCON;
     *ATHENA_CR = SYSREG_ATHENACR_RINGOSCON;
     CALIni();
-    MSS_UART_polled_tx_string(&g_mss_uart1_lo, "CALIni() done..\n\r");
+    MSS_UART_polled_tx_string(&g_mss_uart0_lo, "CALIni() done..\n\r");
 #endif
 
     low_level_init();
@@ -2688,7 +2687,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
         rx_size = MSS_FU540_UART_get_rx(&g_mss_FU540_uart0,
                                         rx_buff, sizeof(rx_buff));
 #else
-        rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, rx_buff,
+        rx_size = MSS_UART_get_rx(&g_mss_uart0_lo, rx_buff,
                                   (uint8_t)sizeof(rx_buff));
 #endif
         if(rx_size > 0)
@@ -2892,6 +2891,10 @@ PLIC_EnableIRQ(USART0_PLIC_4);
                 sprintf(info_string,"1000Base-T status  = %08X\n\r", VSC8662_reg_0[10]);
                 PRINT_STRING(info_string);
                 sprintf(info_string,"Aux control/status = %08X\n\r", VSC8662_reg_0[28]);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"AN Advertisment    = %08X\n\r", VSC8662_reg_0[4]);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"AN LP Ability      = %08X\n\r", VSC8662_reg_0[5]);
                 PRINT_STRING(info_string);
 #if 0
                 PRINT_STRING("\n\rMSSIO Control Info\n\r");
@@ -3262,7 +3265,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
                 {
                     if(0 == (q_loops % 1000000))
                     {
-                        rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, rx_buff,
+                        rx_size = MSS_UART_get_rx(&g_mss_uart0_lo, rx_buff,
                                                   (uint8_t)sizeof(rx_buff));
                         if(rx_size > 0)
                         {
@@ -3448,8 +3451,16 @@ PLIC_EnableIRQ(USART0_PLIC_4);
             }
             else if(rx_buff[0] == 's')
             {
-                sprintf(info_string, "Link is currently %s, Duplex = %s, ",
-                        g_test_linkup ? "Up" : "Down", g_test_fullduplex ? "Full" : "Half");
+                if(&g_mac1 == g_test_mac)
+                {
+                    sprintf(info_string, "GEM1 - Link is currently %s, Duplex = %s, ",
+                            g_test_linkup ? "Up" : "Down", g_test_fullduplex ? "Full" : "Half");
+                }
+                else
+                {
+                    sprintf(info_string, "GEM0 - Link is currently %s, Duplex = %s, ",
+                            g_test_linkup ? "Up" : "Down", g_test_fullduplex ? "Full" : "Half");
+                }
                 PRINT_STRING(info_string);
                 if(MSS_MAC_1000MBPS == g_test_speed)
                 {
@@ -4066,7 +4077,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
 
                 for(;;)
                 {
-                    rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, &input_char, 1);
+                    rx_size = MSS_UART_get_rx(&g_mss_uart0_lo, &input_char, 1);
                     if(rx_size > 0)
                     {
                         if(27 == input_char)
@@ -4076,7 +4087,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
                         }
                         else if(isdigit(input_char))
                         {
-                            MSS_UART_polled_tx(&g_mss_uart1_lo, (uint8_t *)&input_char, 1);
+                            MSS_UART_polled_tx(&g_mss_uart0_lo, (uint8_t *)&input_char, 1);
                             number_buf[str_index] = input_char;
                             str_index++;
                         }
@@ -4127,7 +4138,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
 
                         for(;;)
                         {
-                            rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, &input_char, 1);
+                            rx_size = MSS_UART_get_rx(&g_mss_uart0_lo, &input_char, 1);
                             if(rx_size > 0)
                             {
                                 if(27 == input_char)
@@ -4137,7 +4148,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
                                 }
                                 else if(isxdigit(input_char))
                                 {
-                                    MSS_UART_polled_tx(&g_mss_uart1_lo, (uint8_t *)&input_char, 1);
+                                    MSS_UART_polled_tx(&g_mss_uart0_lo, (uint8_t *)&input_char, 1);
                                     number_buf[str_index] = input_char;
                                     str_index++;
                                 }
@@ -4186,7 +4197,7 @@ PLIC_EnableIRQ(USART0_PLIC_4);
 #if defined(TARGET_ALOE)
                 MSS_FU540_UART_polled_tx(&g_mss_FU540_uart0, rx_buff, rx_size);
 #else
-                MSS_UART_polled_tx(&g_mss_uart1_lo, rx_buff, (uint32_t)rx_size);
+                MSS_UART_polled_tx(&g_mss_uart0_lo, rx_buff, (uint32_t)rx_size);
 #endif
             }
         }

@@ -51,9 +51,9 @@ MICROCHIP PROVIDES THIS SOFTWARE CONDITIONALLY UPON YOUR ACCEPTANCE OF THESE TER
 
 #include "mpfs_hal/mss_hal.h"
 #if PSE
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #else
-#include "drivers/FU540_uart/FU540_uart.h"
+#include "drivers/mss/FU540_uart/FU540_uart.h"
 #endif
 
 #if defined(TARGET_ALOE)

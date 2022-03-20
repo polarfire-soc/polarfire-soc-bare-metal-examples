@@ -11,7 +11,7 @@
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #if ((MPFS_HAL_FIRST_HART == 1) && (MPFS_HAL_LAST_HART ==1))
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #include "inc/common.h"
 
 volatile uint32_t count_sw_ints_h1 = 0U;

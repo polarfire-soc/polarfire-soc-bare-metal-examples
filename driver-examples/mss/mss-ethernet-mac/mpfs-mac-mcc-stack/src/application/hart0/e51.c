@@ -32,18 +32,18 @@
 #include "mpfs_hal/common/nwc/mss_nwc_init.h"
 
 #if PSE
-#include "drivers/mss_gpio/mss_gpio.h"
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_gpio/mss_gpio.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 #else
-#include "drivers/FU540_uart/FU540_uart.h"
+#include "drivers/mss/FU540_uart/FU540_uart.h"
 #endif
 
-#include "drivers/mss_ethernet_mac/mss_ethernet_registers.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_regs.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
-#include "drivers/mss_ethernet_mac/phy.h"
-#include "drivers/mss_gpio/mss_gpio.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_regs.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/phy.h"
+#include "drivers/mss/mss_gpio/mss_gpio.h"
 
 /* TCP/IP stack */
 #include "mcc_tcpip_lite/tcpip_types.h"
