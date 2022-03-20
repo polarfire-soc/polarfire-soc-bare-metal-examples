@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2020 Microchip Corporation.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -242,29 +242,19 @@ static void vsc8662_10t_performance_fix(const mss_mac_instance_t *this_mac)
 
 
 /**************************************************************************//**
- * 
+ *
  */
 void MSS_MAC_VSC8662_phy_init(/* mss_mac_instance_t*/ const void *v_this_mac, uint8_t phy_addr)
 {
     uint16_t temp_reg;
     volatile uint16_t phy_reg;
     const mss_mac_instance_t *this_mac = (const mss_mac_instance_t *)v_this_mac;
-    mss_mac_instance_t *phy_mac;
     volatile uint32_t sgmii_aneg_timeout = 100000U;
     uint16_t autoneg_complete;
-    volatile uint64_t timer_count = 1000000;
+    volatile uint64_t timer_count = 1000000U;
 
     /* Do hardware reset if possible/necessary */
 
-    /* Phy is actually attached to another MAC... */
-    if((struct mss_mac_instance *)0UL != this_mac->phy_controller)
-    {
-        phy_mac = (mss_mac_instance_t *)this_mac->phy_controller;
-    }
-    else
-    {
-        phy_mac = (mss_mac_instance_t *)this_mac;
-    }
 #if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
     if(0 == phy_mac->phy_hard_reset_done)
     {
@@ -323,16 +313,19 @@ void MSS_MAC_VSC8662_phy_init(/* mss_mac_instance_t*/ const void *v_this_mac, ui
      * PHY again
      */
     while(0 != timer_count)
-        {
+    {
         --timer_count;
-        }
+    }
 
-    /* First take care of all the fixes and adjustments from the data sheet */
-    vsc8662_post_reset_step_01(this_mac);
-    vsc8662_enable_LED_blink(this_mac);
-    vsc8662_100tx_1000t_amplitude_fix(this_mac);
-    vsc8662_10t_performance_fix(this_mac);
-
+    if(((struct mss_mac_instance *)v_this_mac == this_mac->phy_controller) ||
+       ((struct mss_mac_instance *)0L         == this_mac->phy_controller))
+    {
+        /* First take care of all the fixes and adjustments from the data sheet */
+        vsc8662_post_reset_step_01(this_mac);
+        vsc8662_enable_LED_blink(this_mac);
+        vsc8662_100tx_1000t_amplitude_fix(this_mac);
+        vsc8662_10t_performance_fix(this_mac);
+    }
     /* Select standard registers page */
     MSS_MAC_write_phy_reg(this_mac, phy_addr, 31, 0x0000U);
 
@@ -439,7 +432,7 @@ void MSS_MAC_VSC8662_phy_init(/* mss_mac_instance_t*/ const void *v_this_mac, ui
 
 
 /**************************************************************************//**
- * 
+ *
  */
 void MSS_MAC_VSC8662_phy_set_link_speed(/* mss_mac_instance_t */ void *v_this_mac, uint32_t speed_duplex_select, mss_mac_speed_mode_t speed_mode)
 {
@@ -449,9 +442,9 @@ void MSS_MAC_VSC8662_phy_set_link_speed(/* mss_mac_instance_t */ void *v_this_ma
     uint32_t speed_select;
     const uint16_t mii_advertise_bits[4] = {ADVERTISE_10FULL, ADVERTISE_10HALF,
                                             ADVERTISE_100FULL, ADVERTISE_100HALF};
-    
+
     this_mac->speed_mode = speed_mode;
-    
+
     if(MSS_MAC_SPEED_AN == speed_mode) /* Set auto-negotiation advertisement. */
     {
         /* Set 10Mbps and 100Mbps advertisement. */
@@ -472,7 +465,7 @@ void MSS_MAC_VSC8662_phy_set_link_speed(/* mss_mac_instance_t */ void *v_this_ma
         }
 
         MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_ADVERTISE, phy_reg);
-    
+
         /* Set 1000Mbps advertisement. */
         phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000);
         phy_reg &= (uint16_t)(~(ADVERTISE_1000FULL | ADVERTISE_1000HALF));
@@ -529,7 +522,7 @@ void MSS_MAC_VSC8662_phy_set_link_speed(/* mss_mac_instance_t */ void *v_this_ma
 
 
 /**************************************************************************//**
- * 
+ *
  */
 void MSS_MAC_VSC8662_phy_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac)
 {
@@ -537,14 +530,15 @@ void MSS_MAC_VSC8662_phy_autonegotiate(/* mss_mac_instance_t */ const void *v_th
     volatile uint16_t phy_reg;
     uint16_t autoneg_complete;
     volatile uint32_t copper_aneg_timeout = 100000U;
-    
+
     if(MSS_MAC_SPEED_AN == this_mac->speed_mode) /* Only do if allowed */
     {
-        phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, 2U);
-        phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, 3U);
+        /* Select standard registers page */
+        MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, 31, 0x0000U);
 
-        /* Enable auto-negotiation. */
-        phy_reg = 0x1340U;
+        /* Start off auto-negotiation. */
+        phy_reg  = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMCR);
+        phy_reg |= 0x0200U;
         MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMCR, phy_reg);
 
         /* Wait for copper auto-negotiation to complete. */
@@ -558,7 +552,7 @@ void MSS_MAC_VSC8662_phy_autonegotiate(/* mss_mac_instance_t */ const void *v_th
 
 
 /**************************************************************************//**
- * 
+ *
  */
 void MSS_MAC_VSC8662_mac_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac)
 {
@@ -606,19 +600,19 @@ uint8_t MSS_MAC_VSC8662_phy_get_link_status
 
     phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMSR);
     link_up = phy_reg & BMSR_LSTATUS;
-    
+
     if(link_up != MSS_MAC_LINK_DOWN)
     {
         uint16_t duplex;
         uint16_t speed_field;
-        
+
         /* Link is up. */
         link_status = MSS_MAC_LINK_UP;
-        
+
         phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, 0x1CU); /* Device Auxillary Control and Status */
         duplex = phy_reg & 0x0020U;
         speed_field = phy_reg & 0x0018U;
-        
+
         if(MSS_MAC_HALF_DUPLEX == duplex)
         {
             *fullduplex = MSS_MAC_HALF_DUPLEX;
@@ -627,21 +621,21 @@ uint8_t MSS_MAC_VSC8662_phy_get_link_status
         {
             *fullduplex = MSS_MAC_FULL_DUPLEX;
         }
-        
+
         switch(speed_field >> 3)
         {
             case 0U:
                 *speed = MSS_MAC_10MBPS;
             break;
-            
+
             case 1U:
                 *speed = MSS_MAC_100MBPS;
             break;
-            
+
             case 2U:
                 *speed = MSS_MAC_1000MBPS;
             break;
-            
+
             default:
                 link_status = (uint8_t)MSS_MAC_LINK_DOWN;
             break;
@@ -736,9 +730,3 @@ void dump_vsc8662_regs(const mss_mac_instance_t * this_mac)
 #endif
 
 /******************************** END OF FILE ******************************/
-
-
-
-
-
-

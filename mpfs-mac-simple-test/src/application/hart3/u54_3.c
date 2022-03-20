@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
-#include "drivers/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 volatile uint32_t count_sw_ints_h3 = 0U;
 

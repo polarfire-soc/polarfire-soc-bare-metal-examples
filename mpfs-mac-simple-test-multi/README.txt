@@ -77,8 +77,10 @@ C - Arms the single packet capture feature for time stamped packets. A hex dump
     of the next received packet will be displayed via the serial port.
 d - Toggle TX Cutthru. The default is disabled.
 D - Toggle RX Cutthru. The default is disabled.
+e - Display contents of various PHY, MAC and MSS registers for debug purposes
 g - Display MSS GPIO 2 input values.
 h - Display command help information.
+H - Display link speed change history (if DEBUG_SPEED_CHANGE defined)
 i - Increments the GEM statistics counters using the test feature in the Network
     Control Register.
 j - Toggle Jumbo Packet Mode. The default is disabled. If Jumbo packet mode is

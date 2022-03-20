@@ -54,9 +54,9 @@ MICROCHIP PROVIDES THIS SOFTWARE CONDITIONALLY UPON YOUR ACCEPTANCE OF THESE TER
 #include "ip_database.h"
 
 #include "mpfs_hal/mss_hal.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_registers.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
 
 #ifdef ENABLE_NETWORK_DEBUG
 #define logMsg(msg, msgSeverity, msgLogDest)    logMessage(msg, LOG_KERN, msgSeverity, msgLogDest)  

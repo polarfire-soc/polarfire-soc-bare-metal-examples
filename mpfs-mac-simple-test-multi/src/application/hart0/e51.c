@@ -780,7 +780,15 @@ low_level_init(void)
     MSS_MAC_cfg_struct_def_init(&g_mac_config);
 
     g_mac_config.jumbo_frame_enable = MSS_MAC_JUMBO_FRAME_ENABLE;
-    g_mac_config.speed_duplex_select =  MSS_MAC_ANEG_ALL_SPEEDS;//get_user_eth_speed_choice();
+
+    /*
+     *  Use the following to select 100MB FDX on the line by limiting AN choices.
+     * trying to do it by forcing a fixed 100MB FDX connection the obvious way
+     * only ends up with HDX operation due to the way AN works...
+     *
+     * g_mac_config.speed_duplex_select =  MSS_MAC_ANEG_100M_FD | MSS_MAC_ANEG_100M_HD;
+     */
+    g_mac_config.speed_duplex_select =  MSS_MAC_ANEG_ALL_SPEEDS;
    /* g_mac_config.interface = GMII; */
 
     g_mac_config.mac_addr[0] = 0x00;
@@ -1107,7 +1115,7 @@ void prvLinkStatusTask(void)
 {
     if(g_tick_counter >= link_status_timer)
     {
-        /* Run through loop every 500 milliseconds. */
+        /* Run through loop every 250 milliseconds. */
         g_test_linkup0 = MSS_MAC_get_link_status(&g_mac0, &g_test_speed0,  &g_test_fullduplex0);
         g_test_linkup1 = MSS_MAC_get_link_status(&g_mac1, &g_test_speed1,  &g_test_fullduplex1);
         link_status_timer = g_tick_counter + 250;
@@ -1208,11 +1216,17 @@ static void print_help(void)
     sprintf(info_string,"D - Toggle RX Cutthru ---------------------(%s)\n\r", temp_cutthru ? "enabled" : "disabled");
     PRINT_STRING(info_string);
 #if defined(TARGET_G5_SOC)
+    sprintf(info_string,"e - Display various registers\n\r");
+    PRINT_STRING(info_string);
     sprintf(info_string,"g - Display MSS GPIO 2 input values\n\r");
     PRINT_STRING(info_string);
 #endif
     sprintf(info_string,"h - Display this help information\n\r");
     PRINT_STRING(info_string);
+#if defined(DEBUG_SPEED_CHANGE)
+    sprintf(info_string,"H - Display link speed change history\n\r");
+    PRINT_STRING(info_string);
+#endif
     sprintf(info_string,"i - Increment all GEM stats counter registers\n\r");
     PRINT_STRING(info_string);
     sprintf(info_string,"j - Toggle Jumbo Packet Mode --------------(%s)\n\r", MSS_MAC_get_jumbo_frames_mode(g_test_mac) ? "enabled" : "disabled");
@@ -2704,6 +2718,117 @@ void e51_task( void *pvParameters )
                     MSS_MAC_set_rx_cutthru(g_test_mac, 0);
                 }
             }
+#if defined(TARGET_G5_SOC)
+            else if(rx_buff[0] == 'e')
+            {
+                if(MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type)
+                {
+                    PRINT_STRING("SGMII Info\n\r");
+
+                    sprintf(info_string,"SOFT RESET DDR PHY = %08X  ", CFG_DDR_SGMII_PHY->SOFT_RESET_DDR_PHY.SOFT_RESET_DDR_PHY);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"BANK STATUS        = %08X\n\r", CFG_DDR_SGMII_PHY->BANK_STATUS.BANK_STATUS);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SOFT RESET SGMII   = %08X  ", CFG_DDR_SGMII_PHY->SOFT_RESET_SGMII.SOFT_RESET_SGMII);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII MODE         = %08X\n\r", CFG_DDR_SGMII_PHY->SGMII_MODE.SGMII_MODE);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII PLL CNTL     = %08X  ", CFG_DDR_SGMII_PHY->PLL_CNTL.PLL_CNTL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII CH0 CNTL     = %08X\n\r", CFG_DDR_SGMII_PHY->CH0_CNTL.CH0_CNTL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII CH1 CNTL     = %08X  ", CFG_DDR_SGMII_PHY->CH1_CNTL.CH1_CNTL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII RECAL CNTL   = %08X\n\r", CFG_DDR_SGMII_PHY->RECAL_CNTL.RECAL_CNTL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII CLK CNTL     = %08X  ", CFG_DDR_SGMII_PHY->CLK_CNTL.CLK_CNTL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII DYN CTL      = %08X\n\r", CFG_DDR_SGMII_PHY->DYN_CNTL.DYN_CNTL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII PVT STAT     = %08X  ", CFG_DDR_SGMII_PHY->PVT_STAT.PVT_STAT);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII SPARE CNTL   = %08X\n\r", CFG_DDR_SGMII_PHY->SPARE_CNTL.SPARE_CNTL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SGMII SPARE STAT   = %08X\n\r", CFG_DDR_SGMII_PHY->SPARE_STAT.SPARE_STAT);
+                    PRINT_STRING(info_string);
+
+                    PRINT_STRING("\n\rSCB MSS PLL Info\n\r");
+                    sprintf(info_string,"SOFT RESET         = %08X\n\r", MSS_SCB_MSS_PLL->SOFT_RESET);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PLL CAL            = %08X  ", MSS_SCB_MSS_PLL->PLL_CAL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PLL CTRL           = %08X\n\r", MSS_SCB_MSS_PLL->PLL_CTRL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PLL CTRL2          = %08X  ", MSS_SCB_MSS_PLL->PLL_CTRL2);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PLL DIV 0 1        = %08X\n\r", MSS_SCB_MSS_PLL->PLL_DIV_0_1);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PLL DIV 2 3        = %08X  ", MSS_SCB_MSS_PLL->PLL_DIV_2_3);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PLL FRACN          = %08X\n\r", MSS_SCB_MSS_PLL->PLL_FRACN);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PLL PHADJ          = %08X  ", MSS_SCB_MSS_PLL->PLL_PHADJ);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PLL REF FB         = %08X\n\r", MSS_SCB_MSS_PLL->PLL_REF_FB);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SSCG REG 0         = %08X  ", MSS_SCB_MSS_PLL->SSCG_REG_0);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SSCG REG 1         = %08X\n\r", MSS_SCB_MSS_PLL->SSCG_REG_1);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SSCG REG 2         = %08X  ", MSS_SCB_MSS_PLL->SSCG_REG_2);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SSCG REG 3         = %08X\n\r", MSS_SCB_MSS_PLL->SSCG_REG_3);
+                    PRINT_STRING(info_string);
+
+                    PRINT_STRING("\n\rMAC PCS Info\n\r");
+                    sprintf(info_string,"PCS CONTROL        = %08X\n\r", g_test_mac->mac_base->PCS_CONTROL);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PCS status         = %08X  ", g_test_mac->mac_base->PCS_STATUS);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PCS AN ADV         = %08X\n\r", g_test_mac->mac_base->PCS_AN_ADV);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PCS AN LP Base     = %08X  ", g_test_mac->mac_base->PCS_AN_LP_BASE);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"PCS AN EX Stat     = %08X\n\r", g_test_mac->mac_base->PCS_AN_EXT_STATUS);
+                    PRINT_STRING(info_string);
+
+                    PRINT_STRING("\n\rEthernet PHY SGMII Info\n\r");
+                    dump_vsc8662_regs(g_test_mac);
+                    sprintf(info_string,"MAC I/F Ctrl&Stat  = %08X\n\r", VSC8662_reg_0[27]);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"SERDES MAC STATUS  = %08X\n\r", VSC8662_reg_1[12]);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"Extended PHY CTL3  = %08X\n\r", VSC8662_reg_1[4]);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string,"Bypass Control     = %08X\n\r", VSC8662_reg_0[18]);
+                    PRINT_STRING(info_string);
+                }
+
+                PRINT_STRING("\n\rEthernet PHY Media Info\n\r");
+                dump_vsc8662_regs(g_test_mac);
+                sprintf(info_string,"Media control      = %08X\n\r", VSC8662_reg_0[0]);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"Media status       = %08X\n\r", VSC8662_reg_0[1]);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"1000Base-T control = %08X\n\r", VSC8662_reg_0[9]);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"1000Base-T status  = %08X\n\r", VSC8662_reg_0[10]);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"Aux control/status = %08X\n\r", VSC8662_reg_0[28]);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"AN Advertisment    = %08X\n\r", VSC8662_reg_0[4]);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"AN LP Ability      = %08X\n\r", VSC8662_reg_0[5]);
+                PRINT_STRING(info_string);
+                
+                PRINT_STRING("\n\rMAC Info\n\r");
+                sprintf(info_string,"NET CONTROL        = %08X\n\r", g_test_mac->mac_base->NETWORK_CONTROL);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"NET CONFIG         = %08X\n\r", g_test_mac->mac_base->NETWORK_CONFIG);
+                PRINT_STRING(info_string);
+                sprintf(info_string,"NET STATUS         = %08X\n\r", g_test_mac->mac_base->NETWORK_STATUS);
+                PRINT_STRING(info_string);
+            }
             else if(rx_buff[0] == 'g')
             {
                 volatile uint32_t temp_in;
@@ -2739,10 +2864,44 @@ void e51_task( void *pvParameters )
                     PRINT_STRING(info_string);
                 }
             }
+#endif
             else if(rx_buff[0] == 'h')
             {
                 print_help();
             }
+#if defined(DEBUG_SPEED_CHANGE) 
+            else if(rx_buff[0] == 'H')
+            {
+                uint32_t count;
+                uint32_t limit;
+                uint32_t start;
+                PRINT_STRING("Link Speed History\n\r");
+
+                if(mac_speed_history_count > MAX_SPEED_HISTORY)
+                {
+                    limit = MAX_SPEED_HISTORY;
+                    start = (mac_speed_history_count) % MAX_SPEED_HISTORY;
+                }
+                else
+                {
+                    limit = mac_speed_history_count;
+                    start = 0;
+                }
+
+                for(count = 0; count != limit; count++, start++)
+                {
+                    sprintf(info_string, "%03u %010lu %s %01u %01u %01u %01u\n\r", count,
+                            mac_speed_history[start % MAX_SPEED_HISTORY].time_stamp,
+                            mac_speed_history[start % MAX_SPEED_HISTORY].mac_ref == &g_mac0 ? "GEM0" : "GEM1",
+                            (uint32_t)mac_speed_history[start % MAX_SPEED_HISTORY].location,
+                            (uint32_t)mac_speed_history[start % MAX_SPEED_HISTORY].link_state,
+                            (uint32_t)mac_speed_history[start % MAX_SPEED_HISTORY].duplex,
+                            (uint32_t)mac_speed_history[start % MAX_SPEED_HISTORY].speed
+                            );
+                    PRINT_STRING(info_string);
+                }
+            }
+#endif
             else if(rx_buff[0] == 'i')
             {
                 PRINT_STRING("Incrementing stats counters\n\r");

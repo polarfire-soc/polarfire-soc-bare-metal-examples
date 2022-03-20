@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2020 Microchip Corporation.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -489,6 +489,12 @@ MSS_MAC_update_hw_address
 /******************************************************************************
  * 
  */
+#if defined(DEBUG_SPEED_CHANGE)
+mac_speed_info_t mac_speed_history[MAX_SPEED_HISTORY];
+uint32_t mac_speed_history_count = 0;
+#endif
+
+
 static void update_mac_cfg(const mss_mac_instance_t *this_mac)
 {
     mss_mac_speed_t speed;
@@ -497,7 +503,15 @@ static void update_mac_cfg(const mss_mac_instance_t *this_mac)
     uint32_t temp_cr;
     
     link_up = this_mac->phy_get_link_status(this_mac, &speed, &fullduplex);
-
+#if defined(DEBUG_SPEED_CHANGE)
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].time_stamp = g_tick_counter;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].mac_ref    = this_mac;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].speed      = speed;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].location   = 0;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].link_state = link_up;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].duplex     = fullduplex;
+    mac_speed_history_count++;
+#endif
     if(link_up != MSS_MAC_LINK_DOWN)
     {
         if(0U != this_mac->is_emac)
@@ -558,6 +572,11 @@ static void update_mac_cfg(const mss_mac_instance_t *this_mac)
 /******************************************************************************
  * See mss_ethernet_mac.h for details of how to use this function.
  */
+static mss_mac_speed_t previous_speed_0 = INVALID_SPEED;
+static mss_mac_speed_t previous_speed_1 = INVALID_SPEED;
+static uint8_t previous_duplex_0 = 0xAAU;
+static uint8_t previous_duplex_1 = 0xAAU;
+
 uint8_t MSS_MAC_get_link_status
 (
     const mss_mac_instance_t *this_mac,
@@ -565,27 +584,55 @@ uint8_t MSS_MAC_get_link_status
     uint8_t *     fullduplex
 )
 {
-    /* Todo: These statics will only work for the single MAC Aloe case... */
-    static mss_mac_speed_t previous_speed = INVALID_SPEED;
-    static uint8_t previous_duplex = 0xAAU;
     mss_mac_speed_t link_speed;
     uint8_t link_fullduplex;
     uint8_t link_up;
+    mss_mac_speed_t *previous_speed;
+    uint8_t *previous_duplex;
+
+    if((this_mac == &g_mac0) || (this_mac == &g_emac0))
+    {
+        previous_speed  = &previous_speed_0;
+        previous_duplex = &previous_duplex_0;
+    }
+    else
+    {
+        previous_speed  = &previous_speed_1;
+        previous_duplex = &previous_duplex_1;
+    }
     
     link_up = MSS_MAC_LINK_DOWN; /* Default condition in case we are not active yet */
     
     if(MSS_MAC_AVAILABLE == this_mac->mac_available)
     {
         link_up = this_mac->phy_get_link_status(this_mac, &link_speed, &link_fullduplex);
+#if defined(DEBUG_SPEED_CHANGE)
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].time_stamp = g_tick_counter;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].mac_ref    = this_mac;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].speed      = link_speed;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].location   = 1;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].link_state = link_up;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].duplex     = link_fullduplex;
+        mac_speed_history_count++;
+#endif
 
         if(link_up != MSS_MAC_LINK_DOWN)
         {
             /*----------------------------------------------------------------------
              * Update MAC configuration if link characteristics changed.
              */
-            if((link_speed != previous_speed) || (link_fullduplex != previous_duplex))
+            if((link_speed != *previous_speed) || (link_fullduplex != *previous_duplex))
             {
                 uint32_t temp_cr;
+#if defined(DEBUG_SPEED_CHANGE)
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].time_stamp = g_tick_counter;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].mac_ref    = this_mac;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].speed      = link_speed;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].location   = 2;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].link_state = link_up;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].duplex     = link_fullduplex;
+                mac_speed_history_count++;
+#endif
 
                 if(0U != this_mac->is_emac)
                 {
@@ -640,8 +687,8 @@ uint8_t MSS_MAC_get_link_status
                 }
             }
 
-            previous_speed = link_speed;
-            previous_duplex = link_fullduplex;
+            *previous_speed = link_speed;
+            *previous_duplex = link_fullduplex;
             
             /*----------------------------------------------------------------------
              * Return current link speed and duplex mode.
@@ -3364,7 +3411,7 @@ void MSS_MAC_change_speed
     if(MSS_MAC_AVAILABLE == this_mac->mac_available)
     {
         /* Only change HW settings if there is a change in status */
-        if((this_mac->speed_duplex_select |= speed_duplex_select) || (this_mac->speed_mode != speed_mode))
+        if((this_mac->speed_duplex_select != speed_duplex_select) || (this_mac->speed_mode != speed_mode))
         {
             this_mac->speed_duplex_select = speed_duplex_select;
             this_mac->speed_mode = speed_mode;

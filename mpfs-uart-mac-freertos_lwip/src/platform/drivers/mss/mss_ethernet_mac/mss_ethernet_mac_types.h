@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2020 Microchip Corporation.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -1348,6 +1348,25 @@ typedef struct mss_mac_instance
  */
 #define MSS_MAC_AVAILABLE (0XAAF1D055U)
 
+//#define DEBUG_SPEED_CHANGE
+#if defined(DEBUG_SPEED_CHANGE)
+typedef struct mac_speed_info
+{
+    uint64_t             time_stamp;
+    mss_mac_instance_t  *mac_ref;
+    mss_mac_speed_t      speed;
+    uint8_t              location;
+    uint8_t              duplex;
+    uint8_t              link_state;
+} mac_speed_info_t;
+
+#define MAX_SPEED_HISTORY 200
+extern volatile uint64_t g_tick_counter;
+
+extern mac_speed_info_t mac_speed_history[];
+extern uint32_t mac_speed_history_count;
+
+#endif
 #ifdef __cplusplus
 }
 #endif

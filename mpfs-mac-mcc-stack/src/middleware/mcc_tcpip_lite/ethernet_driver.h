@@ -46,9 +46,9 @@ MICROCHIP PROVIDES THIS SOFTWARE CONDITIONALLY UPON YOUR ACCEPTANCE OF THESE TER
 #include <stdint.h>
 #include "mpfs_hal/mss_hal.h"
 #include "mac_address.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_registers.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
 
 
 typedef union

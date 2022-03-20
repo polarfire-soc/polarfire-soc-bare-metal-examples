@@ -109,7 +109,7 @@
  * linker scripts.
  */
 
-#define MPFS_HAL_SHARED_MEM_ENABLED
+/* #define MPFS_HAL_SHARED_MEM_ENABLED */
 
 
 /* define the required tick rate in Milliseconds */

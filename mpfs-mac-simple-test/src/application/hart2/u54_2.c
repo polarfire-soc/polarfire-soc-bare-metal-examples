@@ -13,11 +13,11 @@
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #if ((MPFS_HAL_FIRST_HART == 2) && (MPFS_HAL_LAST_HART ==2))
-#include "drivers/mss_mmuart/mss_uart.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_mmuart/mss_uart.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
 #include "platform_config_hw/drivers/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac_regs.h"
-#include "drivers/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_regs.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
 #include "inc/common.h"
 
 #if !(MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_EMUL_GMII_LOCAL)
