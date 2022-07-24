@@ -51,7 +51,11 @@ The build configurations post-fixed with '-Debug' are intended for the early dev
 #### Release build configurations
 The build configurations post-fixed with '-Release' are intended for the final production release, where an executable stored in non-volatile memory runs after power-on-reset, or the executable is launched by a previous stage bootloader. By convention, the *-Release configurations use optimization level (-Os) and do not generate debug symbol information. It also defines a NDEBUG macro which is used to exclude any debug code from the build.
 
+![optimization-debug.png](./images/optimization-debug.png) 
+
 **Linker scripts:** Each build configuration needs a linker script. The linker script describes the memory layout of the executable. Each build configuration selects an appropriate linker scripts via project settings. For example, eNVM-Scratchpad-Release uses mpfs-envm-lma-scratchpad-vma.ld.
+
+![linker-script.png](./images/linker-script.png)
 
 There are several other settings that are required for a project. For complete project settings go to \<proect-name>->Properties->settings->Tool settings.
 
@@ -63,6 +67,7 @@ The hardware configurations are located in the \<project-root>/src/boards/\<targ
 
 To choose a particular hardware configuration, include an appropriate \<project-root>/src/boards/\<target-board> folder path via the SoftConsole project settings.
 
+
 #### Software configurations
 The default software configurations are stored under the \<project-root>/platform/platform_config_reference folder. If you need to change the default software configurations, you are advised to create a new folder to replicate this folder under the \<project-root>/src/boards/ directory and do the modifications there. It would look like \<project-root>/src/boards/\<target-board>/platform_config
 
@@ -70,11 +75,22 @@ The include files in the "platform_config" folder define the software configurat
 
 To choose a particular software configuration, include either the platform_config_reference or the project specific \<project-root>/src/boards/\<target-board>/platform_config path via the SoftConsole project settings.
 
+![include-paths.png](./images/include-paths.png)
+
+*MPFS_HAL_FIRST_HART and MPFS_HAL_LAST_HART:*
+
+Select the number of harts your application wants to use. Typical usecase is when you are developing the software to run from eNVM as bootloader which copies application executable to the DDR memory and wakes-up U54_1 to execute that application 
+In this case you choose MPFS_HAL_FIRST_HART = 0 and MPFS_HAL_LAST_HART = 1.
+
+![confgi1.png](./images/confgi1.png)
+
 *IMAGE_LOADED_BY_BOOTLOADER:*
 
 One of the important software configurations is to configure IMAGE_LOADED_BY_BOOTLOADER in the mss_sw_config.h. We set IMAGE_LOADED_BY_BOOTLOADER = 0 when no previous stage bootloader is used. For example, when an application stored in non-volatile memory starts running after reset. The default software configuration uses this setting.
 
 Set IMAGE_LOADED_BY_BOOTLOADER = 1 when you want the application's executable image to be loaded by a previous stage bootloader. The DDR-Release is one such configuration which uses this setting. The modified mss_sw_config.h can be found  under the \<project-root>/src/boards/\<icicle-kit-es>/platform_config folder.
+
+![confgi2.png](./images/confgi2.png)
 
 ## Debug launchers
 The following two pre-configured debug launchers are provided with each project.
@@ -83,6 +99,8 @@ The following two pre-configured debug launchers are provided with each project.
 |---------------------------|------------------------------------------------------------------------------------------------------------|
 |_\<project name> hw all-harts debug.launch_ | Intended to be used with *-Debug configurations. Resets harts.<br> Downloads the executable and the symbols to the memory. Sets up PC to start location. |
 |_\<project name> hw all-harts attach.launch_ | Intended to be used with *-Release configurations. Does not reset harts. <br> Downloads only the symbol information and attaches to harts. Typically used to check the current state of harts. If the project is linked to RAM memory such as DDR, you will be able to put breakpoints and step debug further.                   |
+
+![debug-configs.png](./images/debug-configs.png)
 
 Both launchers are configured to use the currently _active_ build configuration, hence the same launcher can be used with any of the build configurations. Make sure that an appropriate build configuration is set as _active_ to avoid issues. Trying to use _all-harts attach.launch_ while a *-Debug build is _active_ may not work.
 
