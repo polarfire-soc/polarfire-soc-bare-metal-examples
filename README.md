@@ -3,20 +3,20 @@ This repository provides bare metal embedded software example projects with Micr
 
 ```
 <repo>
-|-- applications
-|       |- .
-|       |- .
-|
-|
-|-- driver-examples
-|       |- mpfs-hal
-|       |- mss-can
-|       |- mss-ethernet-mac
-|       |     .
-|       |     .
-|       |     .
-|       |- mss-mmc
-|       |- mss-watchdog
+  |-- applications
+  |       |- .
+  |       |- .
+  |
+  |
+  |-- driver-examples
+  |       |- mpfs-hal
+  |       |- mss-can
+  |       |- mss-ethernet-mac
+  |       |     .
+  |       |     .
+  |       |     .
+  |       |- mss-mmc
+  |       |- mss-watchdog
 
 ```
 
