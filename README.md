@@ -1,6 +1,16 @@
 # PolarFire SoC Bare Metal Examples
 This repository provides bare metal embedded software example projects with Microchip's SoftConsole IDE.
 
+  - [Repo organization](#Repo-organization)
+  - [Build configurations](#Build-configurations)
+  - [Debug launchers](#Debug-launchers)
+  - [Target hardware](#Target-hardware)
+  - [Updating example projects](#Updating-example-projects)
+  - [References](#References)
+
+<a name="Repo-organization"></a>
+## Repo organization
+
 ```
 <repo>
   |-- applications
@@ -27,6 +37,7 @@ The *driver-examples* directory contains example projects demonstrating the Pola
 Each project provides a README.md explaining its functionality and usage instructions.
 All projects provide a set of ready to use build configurations and debug launch configurations. These are detailed in the following sections.
 
+<a name="Build-configurations"></a>
 ## Build configurations
 The build configurations configure the projects to build in a specific way. For example, Optimization level -Os, linking to DDR memory address space etc..
 Below is the list of all the build configurations provided by default with each project. You may use these build configurations or create your own to suit your project.
@@ -92,6 +103,7 @@ Set IMAGE_LOADED_BY_BOOTLOADER = 1 when you want the application's executable im
 
 ![confgi2.png](./images/confgi2.png)
 
+<a name="Debug-launchers"></a>
 ## Debug launchers
 The following two pre-configured debug launchers are provided with each project.
 
@@ -106,14 +118,17 @@ Both launchers are configured to use the currently _active_ build configuration,
 
 You may change the existing debug launchers or create your own launcher to suit your project.
 
+<a name="Target-hardware"></a>
 ## Target hardware
 All of the projects are tested on the PolarFire SoC Icicle kit. All the projects are tested with the latest available Icicle kit [Reference Libero design](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design) or one of it's variants, unless noted otherwise. Please refer README.md in each project for details.
 
+<a name="Updating-example-projects"></a>
 ## Updating example projects
 Some of the example projects under in this repository may not contain all or latest versions of all the drivers. In such cases, please download the _platform_ repository and replace the src/platform repository in the example project with it.
 When you update the _platform_ repository in your project, you must make sure that the reference design (and the xml configuration) is compatible with it.
 
-### Further reading
+<a name="References"></a>
+## References
 For the latest releases of the MPFS HAL, peripheral device drivers and default reference platform configurations refer [PolarFire SoC platform](https://mi-v-ecosystem.github.io/redirects/repo-platform).
 
 For more details on the SoftConsole Bare metal software project folder structure refer to the [Bare Metal Software Projects Structure](https://mi-v-ecosystem.github.io/redirects/bare-metal-project-structure_bare-metal-software-project-structure).
