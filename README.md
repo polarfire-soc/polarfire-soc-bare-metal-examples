@@ -89,16 +89,18 @@ Both launchers are configured to use the currently _active_ build configuration,
 You may change the existing debug launchers or create your own launcher to suit your project.
 
 ## Target hardware
-All of the projects are tested on the PolarFire SoC Icicle kit. All the projects are tested with the latest available Icicle kit [Reference Libero design](https://github.com/polarfire-soc/icicle-kit-reference-design/releases/tag/2021.04) or one of it's variants, unless noted otherwise. Please refer README.md in each project for details.
+All of the projects are tested on the PolarFire SoC Icicle kit. All the projects are tested with the latest available Icicle kit [Reference Libero design](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design) or one of it's variants, unless noted otherwise. Please refer README.md in each project for details.
+
+## Updating example projects
+Some of the example projects under in this repository may not contain all or latest versions of all the drivers. In such cases, please download the _platform_ repository and replace the src/platform repository in the example project with it.
+When you update the _platform_ repository in your project, you must make sure that the reference design (and the xml configuration) is compatible with it.
 
 ### Further reading
-For the latest releases of the MPFS HAL, peripheral device drivers and default reference platform configurations refer [PolarFire SoC platform](https://github.com/polarfire-soc/platform).
+For the latest releases of the MPFS HAL, peripheral device drivers and default reference platform configurations refer [PolarFire SoC platform](https://mi-v-ecosystem.github.io/redirects/repo-platform).
 
-For more details on the PolarFire SoC Hardware abstraction layer (MPFS HAL) refer [MPFS HAL documentation](https://github.com/polarfire-soc/polarfire-soc-documentation/bare-metal-documentation).
+For more details on the SoftConsole Bare metal software project folder structure refer to the [Bare Metal Software Projects Structure](https://mi-v-ecosystem.github.io/redirects/bare-metal-project-structure_bare-metal-software-project-structure).
 
-For more details on the SoftConsole Bare metal software project folder structure refer [Bare Metal Software Projects Structure](https://github.com/polarfire-soc/polarfire-soc-documentation/bare-metal-documentation).
-
-For more information on boot modes [PolarFire SoC Boot Modes](https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/fundamentals/boot-modes/boot-modes-fundamentals.md).
+For more information on boot modes [PolarFire SoC Boot Modes](https://mi-v-ecosystem.github.io/redirects/boot-modes_boot-modes-fundamentals).
 
 ___
 Libero&reg; and PolarFire&reg; are the property of Microchip Technology Inc. (MCHP).
