@@ -191,20 +191,21 @@ extern "C" {
 /*--------------------------------Public constants----------------------------*/
 
 /*-------------------------------------------------------------------------*//**
-  ## System services Generic constants
+  System services Generic constants
+  ============================
 
   These constants are used to communicate the outcome of a system services
   request. These status codes are used across all types of services. The
   following table lists the system service driver generic constants.
 
-  ### MSS_SYS_SUCCESS
+  ## MSS_SYS_SUCCESS
     System service executed successfully.
 
-  ### MSS_SYS_BUSY
+  ## MSS_SYS_BUSY
     system controller is busy executing system service which was initiated using
     its AMBA interface.
 
-  ### MSS_SYS_PARAM_ERR
+  ## MSS_SYS_PARAM_ERR
     System service cannot be executed as one or more parameters are not as
     expected by this driver.
 
@@ -214,16 +215,17 @@ extern "C" {
 #define MSS_SYS_PARAM_ERR                                     0xFFu
 
 /*-------------------------------------------------------------------------*//**
-  ## System service execution mode macros
+  System service execution mode macros
+  ============================
 
   The following defines are used in MSS_SYS_service_mode() function to select
   whether to execute services in interrupt mode or polling mode.
 
-  ### MSS_SYS_SERVICE_INTERRUPT_MODE
+  ## MSS_SYS_SERVICE_INTERRUPT_MODE
      Parameter used in MSS_SYS_service_mode() function to execute the services in
      interrupt mode
 
-  ### MSS_SYS_SERVICE_POLLING_MODE
+  ## MSS_SYS_SERVICE_POLLING_MODE
      Parameter used in MSS_SYS_service_mode() function to execute the services in
      polling mode
  */
@@ -231,19 +233,22 @@ extern "C" {
 #define MSS_SYS_SERVICE_POLLING_MODE                            0u
 
 /*-------------------------------------------------------------------------*//**
-  ## System service error codes
+  System service error codes
+  ============================
 
   The following constants list the success/error code for each system service.
+*/
 
-  ### Device Certificate Service error codes
+/*-------------------------------------------------------------------------*//**
+  ## Device Certificate Service error codes
 
-  #### MSS_SYS_DCF_DEVICE_MISMATCH
+  ### MSS_SYS_DCF_DEVICE_MISMATCH
     Public key or FSN do not match device
 
-  #### MSS_SYS_DCF_INVALID_SIGNATURE
+  ### MSS_SYS_DCF_INVALID_SIGNATURE
     Certificate signature is invalid
 
-  #### MSS_SYS_DCF_SYSTEM_ERROR
+  ### MSS_SYS_DCF_SYSTEM_ERROR
     PUF or storage failure
 */
 #define MSS_SYS_DCF_DEVICE_MISMATCH                            1u
@@ -251,121 +256,121 @@ extern "C" {
 #define MSS_SYS_DCF_SYSTEM_ERROR                               3u
 
 /*------------------------------------------------------------------------*//**
-  ### Read ENVM parameters service error codes
+  ## Read ENVM parameters service error codes
 
-  #### MSS_SYS_ENVM_DIGEST_ERROR
+  ### MSS_SYS_ENVM_DIGEST_ERROR
   Page digest mismatches. Parameter values still returned
 */
 #define MSS_SYS_ENVM_DIGEST_ERROR                              1u
 
 /*-------------------------------------------------------------------------*//**
-  #### Bitstream Authentication and IAP Bitstream Authentication Error Codes
+  ## Bitstream Authentication and IAP Bitstream Authentication Error Codes
 
-  #### BSTREAM_AUTH_CHAINING_MISMATCH_ERR
+  ### BSTREAM_AUTH_CHAINING_MISMATCH_ERR
     Validator or hash chaining mismatch. Incorrectly constructed bitstream or
     wrong key used.
 
-  #### BSTREAM_AUTH_UNEXPECTED_DATA_ERR
+  ### BSTREAM_AUTH_UNEXPECTED_DATA_ERR
     Unexpected data received.
     Additional data received after end of EOB component
 
-  #### BSTREAM_AUTH_INVALID_ENCRY_KEY_ERR
+  ### BSTREAM_AUTH_INVALID_ENCRY_KEY_ERR
     Invalid/corrupt encryption key.
     The requested key mode is disabled or the key could not be read/reconstructed
 
-  #### BSTREAM_AUTH_INVALID_HEADER_ERR
+  ### BSTREAM_AUTH_INVALID_HEADER_ERR
     Invalid component header
 
-  #### BSTREAM_AUTH_BACK_LEVEL_NOT_SATISFIED_ERR
+  ### BSTREAM_AUTH_BACK_LEVEL_NOT_SATISFIED_ERR
     Back level not satisfied
 
-  #### BSTREAM_AUTH_ILLEGAL_BITSTREAM_MODE_ERR
+  ### BSTREAM_AUTH_ILLEGAL_BITSTREAM_MODE_ERR
     Illegal bitstream mode.
     Requested bitstream mode is disabled by user security
 
-  #### BSTREAM_AUTH_DNS_BINDING_MISMATCH_ERR
+  ### BSTREAM_AUTH_DNS_BINDING_MISMATCH_ERR
     DSN binding mismatch
 
-  #### BSTREAM_AUTH_ILLEGAL_COMPONENT_SEQUENCE_ERR
+  ### BSTREAM_AUTH_ILLEGAL_COMPONENT_SEQUENCE_ERR
     Illegal component sequence
 
-  #### BSTREAM_AUTH_INSUFF_DEVICE_CAPAB_ERR
+  ### BSTREAM_AUTH_INSUFF_DEVICE_CAPAB_ERR
     Insufficient device capabilities
 
-  #### BSTREAM_AUTH_INCORRECT_DEVICEID_ERR
+  ### BSTREAM_AUTH_INCORRECT_DEVICEID_ERR
     Incorrect DEVICEID
 
-  #### BSTREAM_AUTH_PROTOCOL_VERSION_ERR
+  ### BSTREAM_AUTH_PROTOCOL_VERSION_ERR
     Unsupported bitstream protocol version (regeneration required)
 
-  #### BSTREAM_AUTH_VERIFY_ERR
+  ### BSTREAM_AUTH_VERIFY_ERR
     Verify not permitted on this bitstream
 
-  #### BSTREAM_AUTH_INVALID_DEV_CERT_ERR
+  ### BSTREAM_AUTH_INVALID_DEV_CERT_ERR
     Invalid Device Certificate.
     Device SCAC is invalid or not present
 
-  #### BSTREAM_AUTH_INVALID_DIB_ERR
+  ### BSTREAM_AUTH_INVALID_DIB_ERR
     Invalid DIB
 
-  #### BSTREAM_AUTH_SPI_NOT_MASTER_ERR
+  ### BSTREAM_AUTH_SPI_NOT_MASTER_ERR
     Device not in SPI Master Mode.
     Error may occur only when bitstream is executed through IAP mode
 
-  #### BSTREAM_AUTH_AUTOIAP_NO_VALID_IMAGE_ERR
+  ### BSTREAM_AUTH_AUTOIAP_NO_VALID_IMAGE_ERR
     No valid images found.
     Error may occur when bitstream is executed through Auto Update mode.
     Occurs when No valid image pointers are found.
 
-  #### BSTREAM_AUTH_INDEXIAP_NO_VALID_IMAGE_ERR
+  ### BSTREAM_AUTH_INDEXIAP_NO_VALID_IMAGE_ERR
     No valid images found.
     Error may occur when bitstream is executed through IAP mode via Index Mode.
     Occurs when No valid image pointers are found.
 
-  #### BSTREAM_AUTH_NEWER_DESIGN_VERSION_ERR
+  ### BSTREAM_AUTH_NEWER_DESIGN_VERSION_ERR
     Programmed design version is newer than AutoUpdate image found.
     Error may occur when bitstream is executed through Auto Update mode
 
-  #### BSTREAM_AUTH_INVALID_IMAGE_ERR
+  ### BSTREAM_AUTH_INVALID_IMAGE_ERR
     Selected image was invalid and no recovery was performed due to valid design
     in device.
     Error may occur only when bitstream is executed through Auto Update or IAP
     mode (This error is here for completeness but only can be observed by
     running the READ_DEBUG_INFO instruction and looking at IAP Error code field)
 
-  #### BSTREAM_AUTH_IMAGE_PROGRAM_FAILED_ERR
+  ### BSTREAM_AUTH_IMAGE_PROGRAM_FAILED_ERR
     Selected and Recovery image failed to program.
     Error may occur only when bitstream is executed through Auto Update or
     IAP mode
     (This error is here for completeness but only can be observed by running the
     READ_DEBUG_INFO instruction and looking at IAP Error code field)
 
-  #### BSTREAM_AUTH_ABORT_ERR
+  ### BSTREAM_AUTH_ABORT_ERR
     Abort.
     Non-bitstream instruction executed during bitstream loading.
 
-  #### BSTREAM_AUTH_NVMVERIFY_ERR
+  ### BSTREAM_AUTH_NVMVERIFY_ERR
     Fabric/UFS verification failed (min or weak limit)
 
-  #### BSTREAM_AUTH_PROTECTED_ERR
+  ### BSTREAM_AUTH_PROTECTED_ERR
     Device security prevented modification of non-volatile memory
 
-  #### BSTREAM_AUTH_NOTENA
+  ### BSTREAM_AUTH_NOTENA
     Programming mode not enabled
 
-  #### BSTREAM_AUTH_PNVMVERIFY
+  ### BSTREAM_AUTH_PNVMVERIFY
     pNVM verify operation failed
 
-  #### BSTREAM_AUTH_SYSTEM
+  ### BSTREAM_AUTH_SYSTEM
     System hardware error (PUF or DRBG)
 
-  #### BSTREAM_AUTH_BADCOMPONENT
+  ### BSTREAM_AUTH_BADCOMPONENT
     An internal error was detected in a component payload
 
-  #### BSTREAM_AUTH_HVPROGERR
+  ### BSTREAM_AUTH_HVPROGERR
     HV programming subsystem failure (pump failure)
 
-  #### BSTREAM_AUTH_HVSTATE
+  ### BSTREAM_AUTH_HVSTATE
     HV programming subsystem in unexpected state (internal error)
 */
 #define MSS_SYS_BSTREAM_AUTH_CHAINING_MISMATCH_ERR                1u
@@ -400,15 +405,15 @@ extern "C" {
 #define MSS_SYS_BSTREAM_AUTH_HVSTATE                              135u
 
 /*-------------------------------------------------------------------------*//**
- ### Digital Signature Service error code
+ ## Digital Signature Service error code
 
-  #### DIGITAL_SIGNATURE_FEK_FAILURE_ERROR
+  ### DIGITAL_SIGNATURE_FEK_FAILURE_ERROR
     Error retrieving FEK
 
-  #### DIGITAL_SIGNATURE_DRBG_ERROR
+  ### DIGITAL_SIGNATURE_DRBG_ERROR
     Failed to generate nonce
 
-  #### DIGITAL_SIGNATURE_ECDSA_ERROR
+  ### DIGITAL_SIGNATURE_ECDSA_ERROR
     ECDSA failed
 */
 #define MSS_SYS_DIGITAL_SIGNATURE_FEK_FAILURE_ERROR             0x01u
@@ -416,18 +421,18 @@ extern "C" {
 #define MSS_SYS_DIGITAL_SIGNATURE_ECDSA_ERROR                   0x03u
 
 /*-------------------------------------------------------------------------*//**
-  ### Secure NVM write error codes
+  ## Secure NVM write error codes
 
-  #### SNVM_WRITE_INVALID_SNVMADDR
+  ### SNVM_WRITE_INVALID_SNVMADDR
     Illegal page address
 
-  #### SNVM_WRITE_FAILURE
+  ### SNVM_WRITE_FAILURE
     PNVM program/verify failed
 
-  #### SNVM_WRITE_SYSTEM_ERROR
+  ### SNVM_WRITE_SYSTEM_ERROR
     PUF or storage failure
 
-  #### SNVM_WRITE_NOT_PERMITTED
+  ### SNVM_WRITE_NOT_PERMITTED
     Write is not permitted
 */
 #define MSS_SYS_SNVM_WRITE_INVALID_SNVMADDR                     1u
@@ -436,15 +441,15 @@ extern "C" {
 #define MSS_SYS_SNVM_WRITE_NOT_PERMITTED                        4u
 
 /*-------------------------------------------------------------------------*//**
-  ### Secure NVM read error codes
+  ## Secure NVM read error codes
 
-  #### SNVM_READ_INVALID_SNVMADDR
+  ### SNVM_READ_INVALID_SNVMADDR
     Illegal page address
 
-  #### SNVM_READ_AUTHENTICATION_FAILURE
+  ### SNVM_READ_AUTHENTICATION_FAILURE
     Storage corrupt or incorrect USK
 
-  #### SNVM_READ_SYSTEM_ERROR
+  ### SNVM_READ_SYSTEM_ERROR
     PUF or storage failure
 */
 #define MSS_SYS_SNVM_READ_INVALID_SNVMADDR                      1u
@@ -452,49 +457,49 @@ extern "C" {
 #define MSS_SYS_SNVM_READ_SYSTEM_ERROR                          3u
 
 /*-------------------------------------------------------------------------*//**
-   ### PUF emulation service error codes
+   ## PUF emulation service error codes
 
-    #### MSS_SYS_PUF_EMU_INTERNAL_ERR
+   ### MSS_SYS_PUF_EMU_INTERNAL_ERR
        Internal error
  */
 #define MSS_SYS_PUF_EMU_INTERNAL_ERR                            1u
 
 /*-------------------------------------------------------------------------*//**
-  ### Nonce Service Error Codes
+  ## Nonce Service Error Codes
 
-  #### MSS_SYS_NONCE_PUK_FETCH_ERROR
+  ### MSS_SYS_NONCE_PUK_FETCH_ERROR
     Error fetching PUK
 
-  #### MSS_SYS_NONCE_SEED_GEN_ERROR
+  ### MSS_SYS_NONCE_SEED_GEN_ERROR
     Error generating seed
 */
 #define MSS_SYS_NONCE_PUK_FETCH_ERROR                          1u
 #define MSS_SYS_NONCE_SEED_GEN_ERROR                           2u
 
 /*-------------------------------------------------------------------------*//**
-  ### Digest Check service error code
+  ## Digest Check service error code
 
-  #### MSS_SYS_DIGEST_CHECK_DIGESTERR
+  ### MSS_SYS_DIGEST_CHECK_DIGESTERR
     Digest mismatch occurred
 */
 #define MSS_SYS_DIGEST_CHECK_DIGESTERR                            1u
 
 /*-------------------------------------------------------------------------*//**
-  ### SPI COPY SERVICE error codes
+  ## SPI COPY SERVICE error codes
 
-  #### MSS_SYS_SPI_MASTER_MODE_ERR
+  ### MSS_SYS_SPI_MASTER_MODE_ERR
     Device is not configured for master mode
 
-  #### MSS_SYS_SPI_AXI_ERR
+  ### MSS_SYS_SPI_AXI_ERR
     AXI error
 */
 #define MSS_SYS_SPI_MASTER_MODE_ERR                               1u
 #define MSS_SYS_SPI_AXI_ERR                                       2u
 
 /*-------------------------------------------------------------------------*//**
-  ### Probe services error codes
+  ## Probe services error codes
 
-  #### MSS_SYS_PROBE_SECERR
+  ### MSS_SYS_PROBE_SECERR
   The operation was blocked by device security.  This will occur if the
   permanent debug lock UP_DEBUG is set or the user software debug lock
   SWL_DEBUG is active or the device is in the virgin state. No data is read
@@ -503,17 +508,17 @@ extern "C" {
 #define MSS_SYS_PROBE_SECERR                                      1u
 
 /*-------------------------------------------------------------------------*//**
-  ### MEM Services error codes
+  ## MEM Services error codes
 
-  #### MSS_SYS_MEM_SECERR
+  ### MSS_SYS_MEM_SECERR
   The operation was blocked by device security.
   This will occur if the permanent debug lock UP_DEBUG is set or the user
   software debug lock SWL_DEBUG is active or the device is in the virgin state.
 
-  #### MSS_SYS_MEM_TIMEOUTERR
+  ### MSS_SYS_MEM_TIMEOUTERR
   Timeout occurred.
 
-  #### MSS_SYS_MEM_LOCKERR
+  ### MSS_SYS_MEM_LOCKERR
   Target memory failed to lock
 */
 #define MSS_SYS_MEM_SECERR                                        1u
@@ -521,18 +526,18 @@ extern "C" {
 #define MSS_SYS_MEM_LOCKERR                                       3u
 
 /*-------------------------------------------------------------------------*//**
-  ### APB services error codes
+  ## APB services error codes
 
-  #### MSS_SYS_APB_SECERR
+  ### MSS_SYS_APB_SECERR
   The operation was blocked by device security.
   This will occur if the permanent debug lock UP_DEBUG is set or the user
   software debug lock SWL_DEBUG is active or the device is in the virgin state.
 
-  #### MSS_SYS_APB_SLVERR
+  ### MSS_SYS_APB_SLVERR
   The addressed fabric APB peripheral generated a SLVERR response to the bus
   transaction.
 
-  #### MSS_SYS_APB_TIMEOUT
+  ### MSS_SYS_APB_TIMEOUT
   The addressed fabric APB peripheral failed to respond before the user-defined
   APB timeout or the fabric power is not on.
 */
@@ -541,14 +546,14 @@ extern "C" {
 #define MSS_SYS_APB_TIMEOUT                                       3u
 
 /*-------------------------------------------------------------------------*//**
-  ### Debug snapshot service error codes
+  ## Debug snapshot service error codes
 
-   #### MSS_SYS_DEBUG_SNAPSHOT_SECERR
+   ### MSS_SYS_DEBUG_SNAPSHOT_SECERR
    The operation was blocked by device security.
    This will occur if the permanent debug lock UP_DEBUG is set or the user
    software debug lock SWL_DEBUG is active or the device is in the virgin state.
 
-   #### MSS_SYS_DEBUG_SNAPSHOT_BUSERR
+   ### MSS_SYS_DEBUG_SNAPSHOT_BUSERR
    A bus error occurred and the snapshot was aborted.  This may occur if:
        •   the fabric power is off, or
        •   the fabric APB slave flagged an error, or
@@ -558,37 +563,37 @@ extern "C" {
 #define MSS_SYS_DEBUG_SNAPSHOT_BUSERR                             2u
 
 /*-------------------------------------------------------------------------*//**
-  ### GENERATE OTP SERVICE
+  ## GENERATE OTP SERVICE
 
-  #### MSS_SYS_SECERR
+  ### MSS_SYS_SECERR
   Operation is blocked by device security
 
-  #### MSS_SYS_PROTOCOLERR
+  ### MSS_SYS_PROTOCOLERR
   Invalid key provided
 */
 #define MSS_SYS_GENERATE_OTP_SECERR                               1u
 #define MSS_SYS_GENERATE_OTP_PROTOCOLERR                          2u
 
 /*-------------------------------------------------------------------------*//**
-  ### MATCH OTP SERVICE
+  ## MATCH OTP SERVICE
 
-  #### MSS_SYS_PROTOCOLERR
+  ### MSS_SYS_PROTOCOLERR
   Keymode not supported.
 
-  #### MSS_SYS_MATCH_OTP_MISMATCHERR
+  ### MSS_SYS_MATCH_OTP_MISMATCHERR
   Calculated validator mismatch.
 */
 #define MSS_SYS_MATCH_OTP_PROTOCOLERR                             1u
 #define MSS_SYS_MATCH_OTP_MISMATCHERR                             2u
 
 /*-------------------------------------------------------------------------*//**
-  ### Unlock debug passcode service error codes
+  ## Unlock debug passcode service error codes
 
-  #### MSS_SYS_UNLOCK_DEBUG_PASSCODE_SECERR
+  ### MSS_SYS_UNLOCK_DEBUG_PASSCODE_SECERR
   The operation was blocked by device security.
   Occurs if the lock UL_PLAINTEXT is active or the permanent lock UP_DPK is set.
 
-  #### MSS_SYS_UNLOCK_DEBUG_PASSCODE_ERR
+  ### MSS_SYS_UNLOCK_DEBUG_PASSCODE_ERR
   If the unlock operation fails for any reason then the tamper event
   PASSCODE_FAIL is generated and all unlocked passcodes are re-locked.
 */
@@ -596,66 +601,67 @@ extern "C" {
 #define MSS_SYS_UNLOCK_DEBUG_PASSCODE_ERR                        2u
 
 /*-------------------------------------------------------------------------*//**
-  ### One way passcode service error codes
+  ## One way passcode service error codes
 
-  #### MSS_SYS_OWP_OWPERR
+  ### MSS_SYS_OWP_OWPERR
   If the unlock operation fails for any reason then the tamper event
   PASSCODE_FAIL is generated and all unlocked passcodes are re-locked.
 */
 #define MSS_SYS_OWP_OWPERR                                       1u
 
 /*-------------------------------------------------------------------------*//**
-  ## System service response data length
+  System service response data length
+  ============================
 
 
   The following constants can be used to indicate the length of the data that
   is written into the mailbox by the system controller in response to the
   service being requested.
 
-  ### MSS_SYS_NO_RESPONSE_LEN
+  ## MSS_SYS_NO_RESPONSE_LEN
     This constant is used to indicate that system controller does not return any
     mailbox data for the service which is being requested
 
-  ### MSS_SYS_SERIAL_NUMBER_RESP_LEN
+  ## MSS_SYS_SERIAL_NUMBER_RESP_LEN
     Response length serial number service
 
-  ### MSS_SYS_USERCODE_RESP_LEN
+  ## MSS_SYS_USERCODE_RESP_LEN
     Response length for Usercode service
 
-  ### MSS_SYS_DESIGN_INFO_RESP_LEN
+  ## MSS_SYS_DESIGN_INFO_RESP_LEN
     Response length for Design info service
 
-  ### MSS_SYS_DEVICE_CERTIFICATE_RESP_LEN
+  ## MSS_SYS_DEVICE_CERTIFICATE_RESP_LEN
     Response length for Device certificate service
 
-  ### MSS_SYS_READ_DIGEST_RESP_LEN
+  ## MSS_SYS_READ_DIGEST_RESP_LEN
     Response length Read digest service
 
-  ### MSS_SYS_QUERY_SECURITY_RESP_LEN
+  ## MSS_SYS_QUERY_SECURITY_RESP_LEN
     Response length Query security service
 
-  ### MSS_SYS_READ_DEBUG_INFO_RESP_LEN
+  ## MSS_SYS_READ_DEBUG_INFO_RESP_LEN
     Response length Read debug info service
 
-  ### MSS_SYS_NONCE_SERVICE_RESP_LEN
+  ## MSS_SYS_NONCE_SERVICE_RESP_LEN
     Response length Nonce service
 
-  ### MSS_SYS_READ_ENVM_PARAM_RESP_LEN
+  ## MSS_SYS_READ_ENVM_PARAM_RESP_LEN
     Response length Read eNVM parameters service
 
-  ### MSS_SYS_PROBE_READ_SERVICE_RESP_LEN
+  ## MSS_SYS_PROBE_READ_SERVICE_RESP_LEN
     Response length Probe read service
 
-  ### MSS_SYS_GENERATE_OTP_RESP_LEN
+  ## MSS_SYS_GENERATE_OTP_RESP_LEN
     Response length Generate OTP service
 
-  ### MSS_SYS_PUF_EMULATION_SERVICE_RESP_LEN
+  ## MSS_SYS_PUF_EMULATION_SERVICE_RESP_LEN
     Response length PUF emulation service
 
-  ### MSS_SYS_DIGITAL_SIGNATURE_RAW_FORMAT_RESP_SIZE
+  ## MSS_SYS_DIGITAL_SIGNATURE_RAW_FORMAT_RESP_SIZE
     Response length for digital signature service raw format
 
-  ### MSS_SYS_DIGITAL_SIGNATURE_DER_FORMAT_RESP_SIZE
+  ## MSS_SYS_DIGITAL_SIGNATURE_DER_FORMAT_RESP_SIZE
     Response length for digital signature service DER format
 */
 #define MSS_SYS_NO_RESPONSE_LEN                                 0u
@@ -663,7 +669,7 @@ extern "C" {
 #define MSS_SYS_USERCODE_RESP_LEN                               4u
 #define MSS_SYS_DESIGN_INFO_RESP_LEN                            36u
 #define MSS_SYS_DEVICE_CERTIFICATE_RESP_LEN                     1024u
-#define MSS_SYS_READ_DIGEST_RESP_LEN                            544u
+#define MSS_SYS_READ_DIGEST_RESP_LEN                            576u
 #define MSS_SYS_QUERY_SECURITY_RESP_LEN                         33u
 #define MSS_SYS_READ_DEBUG_INFO_RESP_LEN                        94u
 #define MSS_SYS_NONCE_SERVICE_RESP_LEN                          32u
@@ -912,7 +918,7 @@ typedef void (*mss_sys_service_handler_t)(void);
          This function returns the status code returned by the system controller
          for requested service.
 
-  Example:
+  @example
   @code
        status = MSS_SYS_read_response();
 
@@ -944,7 +950,7 @@ MSS_SYS_read_response
   @return
         This function does not return any value.
 
-  Example:
+  @example
   @code
        MSS_SYS_service_mode(MSS_SYS_SERVICE_POLLING_MODE,
                             mss_sys_service_interrupt_handler);
@@ -1521,32 +1527,56 @@ MSS_SYS_nonce_service
   Please refer to theory of operation -> reference documents section for more 
   information about the service.
 
+  Information : parameter options
+  | Options[i]  |    Description                              |
+  |-------------|---------------------------------------------|
+  |   0x01      |   Fabric digest                             |
+  |   0x02      |   Fabric Configuration (CC) segment         |
+  |   0x04      |   ROM digest in SNVM segment                |
+  |   0x08      |   UL segment                                |
+  |   0x10      |   UKDIGEST0 in User Key segment             |
+  |   0x20      |   UKDIGEST1 in User Key segment             |
+  |   0x40      |   UKDIGEST2 in User Key segment (UPK1)      |
+  |   0x80      |   UKDIGEST3 in User Key segment (UK1)       |
+  |   0x100     |   UKDIGEST4 in User Key segment (DPK)       |
+  |   0x200     |   UKDIGEST5 in User Key segment (UPK2)      |
+  |   0x400     |   UKDIGEST6 in User Key segment (UK2)       |
+  |   0x800     |   UFS Permanent lock (UPERM) segment        |
+  |   0x1000    |   Factory and Factory Key Segments.         |
+  |   0x2000    |   UKDIGEST7 in User Key segment (HWM)       |
+  |   0x4000    |   ENVMDIGEST                                |
+  |   0x8000    |   UKDIGEST8 for MSS Boot Info               |
+  |   0x10000   |   SNVM_RW_ACCESS_MAP Digest                 |
+  |   0x20000   |   SBIC revocation digest                    |
+
+  Information : parameter digesterr 
+  | DIGESTERR[i]|    Description                              |
+  |-------------|---------------------------------------------|
+  |   0x01      |   Fabric digest                             |
+  |   0x02      |   Fabric Configuration (CC) segment         |
+  |   0x04      |   ROM digest in SNVM segment                |
+  |   0x08      |   UL segment                                |
+  |   0x10      |   UKDIGEST0 in User Key segment             |
+  |   0x20      |   UKDIGEST1 in User Key segment             |
+  |   0x40      |   UKDIGEST2 in User Key segment (UPK1)      |
+  |   0x80      |   UKDIGEST3 in User Key segment (UK1)       |
+  |   0x100     |   UKDIGEST4 in User Key segment (DPK)       |
+  |   0x200     |   UKDIGEST5 in User Key segment (UPK2)      |
+  |   0x400     |   UKDIGEST6 in User Key segment (UK2)       |
+  |   0x800     |   UFS Permanent lock (UPERM) segment        |
+  |   0x1000    |   Factory and Factory Key Segments.         |
+  |   0x2000    |   UKDIGEST7 in User Key segment (HWM)       |
+  |   0x4000    |   ENVMDIGEST                                |
+  |   0x8000    |   UKDIGEST8 for MSS Boot Info               |
+  |   0x10000   |   SNVM_RW_ACCESS_MAP Digest                 |
+  |   0x20000   |   SBIC revocation digest                    |
+
   @param options
                The options parameter specifies the digest check options which
                indicate the area on which the digest check should be performed.
                Below is the list of options. You can OR these options to indicate
-               to perform digest check on multiple segments.
-
-                  | Options[i]  |    Description                              |
-                  |-------------|---------------------------------------------|
-                  |   0x01      |   Fabric digest                             |
-                  |   0x02      |   Fabric Configuration (CC) segment         |
-                  |   0x04      |   ROM digest in SNVM segment                |
-                  |   0x08      |   UL segment                                |
-                  |   0x10      |   UKDIGEST0 in User Key segment             |
-                  |   0x20      |   UKDIGEST1 in User Key segment             |
-                  |   0x40      |   UKDIGEST2 in User Key segment (UPK1)      |
-                  |   0x80      |   UKDIGEST3 in User Key segment (UK1)       |
-                  |   0x100     |   UKDIGEST4 in User Key segment (DPK)       |
-                  |   0x200     |   UKDIGEST5 in User Key segment (UPK2)      |
-                  |   0x400     |   UKDIGEST6 in User Key segment (UK2)       |
-                  |   0x800     |   UFS Permanent lock (UPERM) segment        |
-                  |   0x1000    |   Factory and Factory Key Segments.         |
-                  |   0x2000    |   UKDIGEST7 in User Key segment (HWM)       |
-                  |   0x4000    |   ENVMDIGEST                                |
-                  |   0x8000    |   UKDIGEST8 for MSS Boot Info               |
-                  |   0x10000   |   SNVM_RW_ACCESS_MAP Digest                 |
-                  |   0x20000   |   SBIC revocation digest                    |
+               to perform digest check on multiple segments. Please refer 
+               function description for more information of options parameter.
 
   @param mb_offset
                     The mb_offset parameter specifies the offset from the start
@@ -1557,28 +1587,9 @@ MSS_SYS_nonce_service
                     mailbox starts from 11th word (offset 10).
   @param digesterr
                     The digesterr parameter specifies the set bit in case of
-                    DIGESTERR.
+                    DIGESTERR. Please refer function description for more 
+                    information of digesterr parameter.
 
-                  | DIGESTERR[i]|    Description                              |
-                  |-------------|---------------------------------------------|
-                  |   0x01      |   Fabric digest                             |
-                  |   0x02      |   Fabric Configuration (CC) segment         |
-                  |   0x04      |   ROM digest in SNVM segment                |
-                  |   0x08      |   UL segment                                |
-                  |   0x10      |   UKDIGEST0 in User Key segment             |
-                  |   0x20      |   UKDIGEST1 in User Key segment             |
-                  |   0x40      |   UKDIGEST2 in User Key segment (UPK1)      |
-                  |   0x80      |   UKDIGEST3 in User Key segment (UK1)       |
-                  |   0x100     |   UKDIGEST4 in User Key segment (DPK)       |
-                  |   0x200     |   UKDIGEST5 in User Key segment (UPK2)      |
-                  |   0x400     |   UKDIGEST6 in User Key segment (UK2)       |
-                  |   0x800     |   UFS Permanent lock (UPERM) segment        |
-                  |   0x1000    |   Factory and Factory Key Segments.         |
-                  |   0x2000    |   UKDIGEST7 in User Key segment (HWM)       |
-                  |   0x4000    |   ENVMDIGEST                                |
-                  |   0x8000    |   UKDIGEST8 for MSS Boot Info               |
-                  |   0x10000   |   SNVM_RW_ACCESS_MAP Digest                 |
-                  |   0x20000   |   SBIC revocation digest                    |
   @return
                     This function returns a value to indicate whether the
                     service was executed successfully or not. A zero value
@@ -1606,38 +1617,41 @@ MSS_SYS_digest_check
   Please refer to theory of operation -> reference documents section for more 
   information about the service.
 
+  Information : parameter iap_cmd 
+  |     iap_cmd                 |  Description                     |
+  |-----------------------------|----------------------------------|
+  | IAP_PROGRAM_BY_SPIIDX_CMD   |  IAP program.                    |
+  | IAP_VERIFY_BY_SPIIDX_CMD    |  Fabric Configuration (CC) segment|
+  | IAP_PROGRAM_BY_SPIADDR_CMD  |  ROM digest in SNVM segment      |
+  | IAP_VERIFY_BY_SPIADDR_CMD   |  UL segment                      |
+  | IAP_AUTOUPDATE_CMD          |  UKDIGEST0 in User Key segment   |
+
+  Information : parameter spiaddr 
+  |         iap_cmd              |        spiaddr                 |
+  |------------------------------|--------------------------------|
+  | IAP_PROGRAM_BY_SPIIDX_CMD    |Index in the SPI directory.     |
+  | IAP_VERIFY_BY_SPIIDX_CMD     |Index in the SPI directory.     |
+  | IAP_PROGRAM_BY_SPIADDR_CMD   |SPI address in the SPI Flash memory
+  | IAP_VERIFY_BY_SPIADDR_CMD    |SPI address in the SPI Flash memory
+  | IAP_AUTOUPDATE_CMD           |spiaddr is ignored as No index  |
+  |                               address required for this com
+  Note: For the IAP services with command IAP_PROGRAM_BY_SPIIDX_CMD
+       and IAP_VERIFY_BY_SPIIDX_CMD To support recovery SPI_IDX = 1
+       should be an empty slot and the recovery image should be
+       located in SPI_IDX = 0. Since SPI_IDX = 1 should be an empty
+       slot it shouldn’t be passed into the system service.
+
   @param iap_cmd
                The iap_cmd parameter specifies the specific IAP command which
                depends upon VERIFY or PROGRAM modes and the SPI address method.
-
-              |     iap_cmd                 |  Description                     |
-              |-----------------------------|----------------------------------|
-              | IAP_PROGRAM_BY_SPIIDX_CMD   |  IAP program.                    |
-              | IAP_VERIFY_BY_SPIIDX_CMD    |  Fabric Configuration (CC) segment|
-              | IAP_PROGRAM_BY_SPIADDR_CMD  |  ROM digest in SNVM segment      |
-              | IAP_VERIFY_BY_SPIADDR_CMD   |  UL segment                      |
-              | IAP_AUTOUPDATE_CMD          |  UKDIGEST0 in User Key segment   |
-
+               Please refer function description for more information of 
+               iap_cmd parameter.
   @param spiaddr
                The spiaddr parameter specifies the either the either the index
                in the SPI directory or the SPI address in the SPI Flash memory.
                Below is the list of the possible meaning of spiaddr parameter
-               in accordance with the iap_cmd parameter.
-
-              |         iap_cmd              |        spiaddr                 |
-              |------------------------------|--------------------------------|
-              | IAP_PROGRAM_BY_SPIIDX_CMD    |Index in the SPI directory.     |
-              | IAP_VERIFY_BY_SPIIDX_CMD     |Index in the SPI directory.     |
-              | IAP_PROGRAM_BY_SPIADDR_CMD   |SPI address in the SPI Flash memory
-              | IAP_VERIFY_BY_SPIADDR_CMD    |SPI address in the SPI Flash memory
-              | IAP_AUTOUPDATE_CMD           |spiaddr is ignored as No index  |
-              |                               address required for this command|
-
-             Note: For the IAP services with command IAP_PROGRAM_BY_SPIIDX_CMD
-                   and IAP_VERIFY_BY_SPIIDX_CMD To support recovery SPI_IDX = 1
-                   should be an empty slot and the recovery image should be
-                   located in SPI_IDX = 0. Since SPI_IDX = 1 should be an empty
-                   slot it shouldn’t be passed into the system service.
+               in accordance with the iap_cmd parameter. Please refer function 
+               description for more information of spiaddr parameter.
   @return
                     This function returns a value to indicate whether the
                     service was executed successfully or not. A zero value
@@ -1662,6 +1676,14 @@ MSS_SYS_execute_iap
   Please refer to theory of operation -> reference documents section for more 
   information about the service.
 
+  Information : parameter options
+  |options |Clock     |
+  |--------|----------|
+  | 1      | 40MHz    |
+  | 2      | 20MHz    |
+  | 3      | 13.33MHz |
+  7:2 RESERVED        Reserved for future use
+
   @param mss_dest_addr
                     The 64-bit mss_dest_addr parameter specifies the destination
                     address in MSS where system controller copies data from SPI
@@ -1675,14 +1697,8 @@ MSS_SYS_execute_iap
   @param options
                     The 8 bit options parameter specifies the clock frequency
                     used for the SPI transfers.
-
-                    |options |Clock     |
-                    |--------|----------|
-                    | 1      | 40MHz    |
-                    | 2      | 20MHz    |
-                    | 3      | 13.33MHz |
-
-                    7:2 RESERVED        Reserved for future use
+                    Please refer function description for more information 
+                    of options parameter.
   @param mb_offset
                     The mb_offset parameter specifies the offset from the start
                     of mailbox where the data related to this service is
@@ -1878,6 +1894,18 @@ MSS_SYS_debug_live_probe
   Please refer to theory of operation -> reference documents section for more 
   information about the service.
 
+  Information : parameter memtype 
+  | MEMTYPE| Peripheral | MEMSIZE(words)| Access Width |
+  |--------|------------|---------------|--------------|
+  |     0  | LSRAM x1   | 16384         |     1        |
+  |     1  | LSRAM x2   | 8192          |     2        |
+  |     2  | LSRAM x5   | 4096          |     5        |
+  |     3  | LSRAM x10  | 2048          |     10       |
+  |     4  | LSRAM x20  | 1024          |     20       |
+  |     5  | µRAM       | 64            |     12       |
+  |     6  | µPROM      | 256           |     9        |
+  |     7  | LSRAM x20  | 1024          |     20       |
+
   @param ipblk_addr
                     The ipblk_addr parameter specifies the block address of
                     fabric memory.
@@ -1890,17 +1918,8 @@ MSS_SYS_debug_live_probe
   @param memtype
                     The memtype parameter specifies the type of fabric
                     memory to be used for MEM read and write services.
-
-                  | MEMTYPE| Peripheral | MEMSIZE(words)| Access Width |
-                  |--------|------------|---------------|--------------|
-                  |     0  | LSRAM x1   | 16384         |     1        |
-                  |     1  | LSRAM x2   | 8192          |     2        |
-                  |     2  | LSRAM x5   | 4096          |     5        |
-                  |     3  | LSRAM x10  | 2048          |     10       |
-                  |     4  | LSRAM x20  | 1024          |     20       |
-                  |     5  | µRAM       | 64            |     12       |
-                  |     6  | µPROM      | 256           |     9        |
-                  |     7  | LSRAM x20  | 1024          |     20       |
+                    Please refer function description for more information 
+                    of memtype parameter.
 
   @param memlock_mode
                     The memlock_mode parameter specifies the the memory
@@ -2163,20 +2182,22 @@ MSS_SYS_debug_fabric_snapshot
   Please refer to theory of operation -> reference documents section for more 
   information about the service.
 
+  Information : parameter keymode 
+  Supported values for KEYMODE are shown
+  |PCTYPE| KEYMODE|  Key Mode      | KROOT |  Note              |
+  |------|--------|----------------|-------|--------------------|
+  |  1   |   3    |  KM_USER_KEY1  |  UK1  |  User key 1        |
+  |  1   |   4    |  KM_USER_KEY2  |  UK2  |  User key 2        |
+  |  1   |   7    | KM_FACTORY_KEY |  DFK  |FK diversified by UID|
+
   @param keymode
                    keymode parameter specifies the key mode to be used to
                    transport the encrypted passcode.
                    The KEYMODE parameter is not checked for validity until the
                    MATCH OTP service is executed.  Both PCTYPE and KEYMODE are
                    stored in volatile memory for use by the MATCH OTP service.
-
-                   Supported values for KEYMODE are shown below:
-
-                  |PCTYPE| KEYMODE|  Key Mode      | KROOT |  Note              |
-                  |------|--------|----------------|-------|--------------------|
-                  |  1   |   3    |  KM_USER_KEY1  |  UK1  |  User key 1        |
-                  |  1   |   4    |  KM_USER_KEY2  |  UK2  |  User key 2        |
-                  |  1   |   7    | KM_FACTORY_KEY |  DFK  |FK diversified by UID|
+                   Please refer function description for more information of 
+                   keymode parameter.
   @param n_user
                    The n_user parameter specifies the user nonce, is supplied
                    by the user.
@@ -2302,33 +2323,34 @@ MSS_SYS_unlock_debug_passcode
   Please refer to theory of operation -> reference documents section for more 
   information about the service.
 
+  Information : parameter keymode 
+  | KEYID|     Key Mode       |   Permitted |
+  |------|--------------------|-------------|
+  |    0 |  KM_INIT_FACTORY   |      No     |
+  |    1 |  KM_ZERO_RECOVERY  |      No     |
+  |    2 |  KM_DEFAULT_KEY    |      Yes    |
+  |    3 |  KM_USER_KEY1      |      Yes    |
+  |    4 |  KM_USER_KEY2      |      Yes    |
+  |    5 |      -             |             |
+  |    6 |  KM_AUTH_CODE      |      No     |
+  |    7 |  KM_FACTORY_KEY    |      Yes    |
+  |    8 |  KM_FACTORY_EC     |      No     |
+  |    9 |  KM_FACTORY_EC_E   |      No     |
+  |   10 |      -             |             |
+  |   11 |      -             |             |
+  |   12 |  KM_USER_EC        |      No     |
+  |   13 |  KM_USER_EC_E      |      No     |
+  |   14 |      -             |             |
+  |   15 |      -             |             |
+
   @param msg_id
                     The msg_id parameter stores the value of message ID.
   @param validator
                     The 256-bit validator parameter store the validator key.
   @param keymode
                     The keymode parameter specifies the permitted keymodes for
-                    OWP service.
-
-                    | KEYID|     Key Mode       |   Permitted |
-                    |------|--------------------|-------------|
-                    |    0 |  KM_INIT_FACTORY   |      No     |
-                    |    1 |  KM_ZERO_RECOVERY  |      No     |
-                    |    2 |  KM_DEFAULT_KEY    |      Yes    |
-                    |    3 |  KM_USER_KEY1      |      Yes    |
-                    |    4 |  KM_USER_KEY2      |      Yes    |
-                    |    5 |      -             |             |
-                    |    6 |  KM_AUTH_CODE      |      No     |
-                    |    7 |  KM_FACTORY_KEY    |      Yes    |
-                    |    8 |  KM_FACTORY_EC     |      No     |
-                    |    9 |  KM_FACTORY_EC_E   |      No     |
-                    |   10 |      -             |             |
-                    |   11 |      -             |             |
-                    |   12 |  KM_USER_EC        |      No     |
-                    |   13 |  KM_USER_EC_E      |      No     |
-                    |   14 |      -             |             |
-                    |   15 |      -             |             |
-
+                    OWP service. Please refer function description for more 
+                    information of keymode parameter.
   @param dsn
                     The dsn parameter stores the value of device serial number.
   @param hash
@@ -2361,13 +2383,11 @@ MSS_SYS_unlock_debug_passcode
 uint16_t
 MSS_SYS_one_way_passcode
 (
-    uint8_t* msg_id,
-    uint8_t* validator,
-    uint8_t keymode,
-    uint8_t* dsn,
-    uint8_t* hash,
-    uint8_t* plaintext_passcode,
-    uint8_t* hwm,
+    uint8_t *msg_id,
+    uint8_t *validator,
+    uint8_t *header,
+    uint8_t *payload,
+    uint8_t *tnext,
     uint16_t mb_offset,
     uint16_t resp_offset
 );
