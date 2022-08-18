@@ -7,3 +7,4 @@ Jenkinsfile
 /eNVM-Scratchpad-Release/
 /LIM-Debug/
 /LIM-Release/
+*src/boards/icicle-kit-es/fpga_design_config/**

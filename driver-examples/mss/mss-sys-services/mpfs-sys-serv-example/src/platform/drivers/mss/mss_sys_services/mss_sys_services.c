@@ -623,18 +623,25 @@ MSS_SYS_secure_nvm_write
     uint16_t status = MSS_SYS_PARAM_ERR;
 
     ASSERT(!(NULL_BUFFER == p_data));
-    ASSERT(!(NULL_BUFFER == p_user_key));
     ASSERT(!(snvm_module >= 221u));
+    if (format != MSS_SYS_SNVM_NON_AUTHEN_TEXT_REQUEST_CMD)
+    {
+        ASSERT(!(NULL_BUFFER == p_user_key));
+    }
+    
+    if ((p_data == NULL_BUFFER) || (snvm_module >= 221)) 
+    {
+        return status;
+    }
 
-    if((p_data  == NULL_BUFFER) || (p_user_key == NULL_BUFFER)
-                                || (snvm_module >= 221))
+    if ((format != MSS_SYS_SNVM_NON_AUTHEN_TEXT_REQUEST_CMD) && (p_user_key == NULL_BUFFER))
     {
         return status;
     }
 
     if ((format != MSS_SYS_SNVM_NON_AUTHEN_TEXT_REQUEST_CMD)
-      || (format !=  MSS_SYS_SNVM_AUTHEN_TEXT_REQUEST_CMD)
-      || (format != MSS_SYS_SNVM_AUTHEN_CIPHERTEXT_REQUEST_CMD))
+      && (format !=  MSS_SYS_SNVM_AUTHEN_TEXT_REQUEST_CMD)
+      && (format != MSS_SYS_SNVM_AUTHEN_CIPHERTEXT_REQUEST_CMD))
     {
         return status;
     }
@@ -1000,34 +1007,41 @@ MSS_SYS_execute_iap
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
     uint32_t l_spiaddr = spiaddr;
+    bool invalid_param  = false;
 
-    if ((MSS_SYS_IAP_PROGRAM_BY_SPIIDX_CMD == iap_cmd)
+
+    if (((MSS_SYS_IAP_PROGRAM_BY_SPIIDX_CMD == iap_cmd)
     || (MSS_SYS_IAP_VERIFY_BY_SPIIDX_CMD == iap_cmd))
+    && (spiaddr == 1))
     {
-        return status;
+        invalid_param = true;
+        ASSERT(!invalid_param);
     }
 
-    if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
+    if (!invalid_param)
     {
-        status = execute_ss_interrupt_mode(
-                 (uint8_t)iap_cmd,
-                 (uint8_t*)&l_spiaddr,
-                 MSS_SYS_IAP_SERVICE_DATA_LEN,
-                 NULL_BUFFER,
-                 MSS_SYS_NO_RESPONSE_LEN,
-                 (uint16_t)spiaddr,
-                 MSS_SYS_COMMON_RET_OFFSET);
-    }
-    else
-    {
-        status = execute_ss_polling_mode(
-                 (uint8_t)iap_cmd,
-                 (uint8_t*)&l_spiaddr,
-                 MSS_SYS_IAP_SERVICE_DATA_LEN,
-                 NULL_BUFFER,
-                 MSS_SYS_NO_RESPONSE_LEN,
-                 (uint16_t)spiaddr,
-                 MSS_SYS_COMMON_RET_OFFSET);
+        if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
+        {
+            status = execute_ss_interrupt_mode(
+                     (uint8_t)iap_cmd,
+                     (uint8_t*)&l_spiaddr,
+                     MSS_SYS_IAP_SERVICE_DATA_LEN,
+                     NULL_BUFFER,
+                     MSS_SYS_NO_RESPONSE_LEN,
+                     (uint16_t)spiaddr,
+                     MSS_SYS_COMMON_RET_OFFSET);
+        }
+        else
+        {
+            status = execute_ss_polling_mode(
+                     (uint8_t)iap_cmd,
+                     (uint8_t*)&l_spiaddr,
+                     MSS_SYS_IAP_SERVICE_DATA_LEN,
+                     NULL_BUFFER,
+                     MSS_SYS_NO_RESPONSE_LEN,
+                     (uint16_t)spiaddr,
+                     MSS_SYS_COMMON_RET_OFFSET);
+        }
     }
 
     return status;
@@ -1759,13 +1773,11 @@ MSS_SYS_unlock_debug_passcode
 uint16_t
 MSS_SYS_one_way_passcode
 (
-    uint8_t* msg_id,
-    uint8_t* validator,
-    uint8_t keymode,
-    uint8_t* dsn,
-    uint8_t* hash,
-    uint8_t* plaintext_passcode,
-    uint8_t* hwm,
+    uint8_t *msg_id,
+    uint8_t *validator,
+    uint8_t *header,
+    uint8_t *payload,
+    uint8_t *tnext,
     uint16_t mb_offset,
     uint16_t resp_offset
 )
@@ -1773,6 +1785,7 @@ MSS_SYS_one_way_passcode
     uint16_t status = MSS_SYS_PARAM_ERR;
     uint8_t mb_format[480] = {0};
     uint16_t index = 0;
+
     for (index = 0u; index < 480u; index++)
     {
         if ( index < 16u)
@@ -1783,25 +1796,17 @@ MSS_SYS_one_way_passcode
         {
             mb_format[index] = validator[index - 16];
         }
-        if ( index == 51u)
+        if ((index > 47u) && (index < 384u))
         {
-            mb_format[index] = keymode;
+            mb_format[index] = header[index - 48u];
         }
-        if ((index > 67u) && (index < 84u))
+        if ((index > 383u) && (index < 448u))
         {
-            mb_format[index] = dsn[index - 68];
+            mb_format[index] = payload[index - 384u];
         }
-        if ((index > 351u) && (index < 384u))
+        if ((index > 447) && (index < 480))
         {
-            mb_format[index] = hash[index - 352];
-        }
-        if ((index > 383u) && (index < 416u))
-        {
-            mb_format[index] = plaintext_passcode[index - 384];
-        }
-        if ((index > 415u) && (index < 432u))
-        {
-            mb_format[index] = hwm[index];
+            mb_format[index] = tnext[index - 448u];
         }
     }
 

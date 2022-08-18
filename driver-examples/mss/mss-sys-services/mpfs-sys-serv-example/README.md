@@ -39,4 +39,4 @@ Match OTP service requires a proper validator input for it to execute
 successfully.
 
 This project provides build configurations and debug launchers as exaplained 
-[here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)
+[here](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples)
