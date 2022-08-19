@@ -1,77 +1,76 @@
 
-#                        mpfs-mss-uart-example
+#                        mpfs-hal-simple-example
 
-This example project demonstrates the use of the MPFS HAL using the 
+This example project demonstrates the use of the MPFS HAL using the
 MSS UART. This project is targeted at the Microchip Icicle kit.
-It provides an example of how to share a peripheral, in this cases a UART 
-between code running on separate harts.
+It provides an example of how to share a peripheral, in this case a UART between
+code running on separate harts. The example project here runs from hardware
+reset and is not loaded by a boot-loader.
 
-Detail:
-On reset, the hard reset vector points to code in the 
-mpfs_hal\entry.S
-The reset vector is pointed to by the following label
+## Powerup
+
+On reset, the hard reset vector points to code in the <mpfs_hal\entry.S>. The
+reset vector is pointed to by the following label :
+~~~
 _start
-as the is address is dictated in the associated linker script
-\config\linker_scipts\aloe_bare_metal_ram.ld
+~~~
+This address is present in the associated linker scripts, used in each of the
+project configurations:
+~~~
+/src/platform/platform_config_reference/linker/mpfs-lim.ld
+/src/platform/platform_config_reference/linker/mpfs-envm.ld
+~~~
 
-In brief, the code run on reset in entry.S doe the following:
+The MPFS HAL code in <src/platform/mpfs_hal/startup_gcc/mss_entry.S> and
+<src/platform/mpfs_hal/startup_gcc/system_startup.c> brings up the
+hardware per configuration parameter's from the MSS Configurator and
+<mss_sw_config.h> file. The Application software for each hart being used is
+then called, located in the following directories:
+~~~
+<\src\application\hart0\>
+<\src\application\hart1\>
+<\src\application\hart2\>
+<\src\application\hart3\>
+<\src\application\hart4\>
+~~~
+The application code for each hart starts in the following functions:
+~~~
+e51()
+u54_1()
+u54_2()
+u54_3()
+u54_4()
+~~~
+Note the application harts started are defined by the following defines
+~~~
+MPFS_HAL_FIRST_HART
+MPFS_HAL_LAST_HART
+~~~
+located in the software board configuration file
+~~~
+<src/boards/icicle-kit-es/platform_config/mpfs_hal_config/mss_sw_config.h>
+~~~
 
-   - Initializes the trap vector
-   - Initializes x0-x31 registers to zero
-   - Enables the Floating Point Unit if preset ( FPU on U54's)
-   - Verifies compiler used is 64 bit
-   - Sets the GP (global pointer) This is used when code compiled using relax 
-      mode.
-   - Align on a 64 Byte boundary
-   - Read hart ID - Set the SP (stack pointer) so each hart allocated 128K 
-      between stack and TLS
-   - Check hartID. If hartID == 0 ( the E51), jump to main_first_hart in 
-      system_startup.c
-   - Check hartID. If hartID != 0, run the wfi instruction. The code will wait 
-      here until hart0 wakes up this hart using a software interrupt directed to 
-      the hart it wishes to wake.
-   - Note: When running in the debugger, the wfi instruction should be treated 
-      as a no op.
-      A loop is implemented after the wfi which will remain looping until an 
-      actual software interrupt 
-      occurrence is detected by reading the mip register.
-      
-E51 code:
-
-   - At this point the E51 code is running in the main_first_hart() in 
-      system_startup.c by default.
-   - The routines in system_startup are all given the attribute weak. They 
-      should not be edited.
-   - If you want to write your own versions, please do so in a user code 
-      directory. e.g. \hart0
-   - main_first_hart() 
-            initializes memory
-            calls the e51() routine in \hart0\e51()
-   - The \e51 contains code associated with the E51.
-   - In general, on startup
-        
-        1. main system clock is switch in  from default startup clock
-        2. peripherals are initialized using associated drivers
-        3. Other harts are started as required.
-        4. E51 code enters infinite loop, and services can be added as required 
-          here.
-        
-   - In our example, uart is initialized
-   - hart1 is started
-   - The example demonstrates using the uart to write to an attached terminal 
+## Description of Application code in this example :
+   - In this example, the E51 is the MPFS_HAL_FIRST_HART
+   - The MMUART0 is initialized
+   - Hart1 is started by sending a software interrupt from the E51 code
+   - The example demonstrates using MMUART0 to write to an attached terminal
       using hart0 and hart 1.
-   - There is a CLI driven from hart0. This allows the user to wake hart 1,2,3 
+   - There is a CLI driven from hart0. This allows the user to wake hart 1,2,3
       and 4.
-   - Hart 1,2,3 and 4 write out to the terminal interface demonstrating the use 
+   - Hart 1,2,3 and 4 write out to the terminal interface demonstrating the use
       of a shared peripheral.
-   - The uart polled tx is protected using a mutex, to allow each hart write to 
+   - The MMUART polled tx is protected using a mutex, to allow each hart write to
       it independently.
-      
-#### Libero Design:
 
-The Libero design used with this project can be found here :
+## Libero Design:
 
+The Libero design used with this project is the reference design and is
+preprogrammed on new Icicle kits and can found at the following link :
+~~~
 https://github.com/polarfire-soc/icicle-kit-reference-design.git
+~~~
 
 ## How to use this example
 
@@ -79,43 +78,32 @@ This example project demonstrates sharing a UART across multiple harts.
 
 To use this example:
 
- - Generate the project into a workspace directory from the softconsole version
-   you are using. This point is very important. fro instance :
-   SoftConsole_v6.1\extras\workspace.empty
-   (Note: you can copy workspace.empty and rename as required)
- - Open the project in SoftConsole
- - Compile the project
- - Open the Remode debugger script bundled in the root of the directory and read
-   the document Working_withRenode.md found in the project root directory.
- - Execute the example software project.
+ - Import and Open the project in SoftConsole
+ - Compile the project with the desired configurations
+  - LIM-Debug ( To debug from LIM or Renode )
+  - eNVM-Release  (When you want to load to eNVM)
+ - Run the example software project, using one of the build configurations
+   options
+  - renode hardware emulation
+  - debug on hardware
+  - load to eNVM
+ - When Debugging on hardware, first put the board in mode 0
+ - Then run the debugger script <mpfs-hal-simple-demo hw all-harts debug>
+
 The software will display a menu on the command line.
 
-From the menu you can start the U54 harts and observe output on the terminal 
-window in Renode. This demonstrates that the harts are running independently.
+From the menu you can start the U54 harts and observe output on the terminal
+window. This demonstrates that the harts are running independently.
 
-## UART configuration
+## The UART configuration
 
-On connecting Icicle kit J11 to the host PC, you should see four COM port 
-interfaces connected. This example project requires MMUART0. To use this 
-project the host PCmust connect to the COM port interface0 using a terminal 
+On connecting Icicle kit J11 to the host PC, you should see four COM port
+interfaces connected. This example project requires MMUART0. To use this
+project the host PC must connect to the COM port interface0 using a terminal
 emulator such as HyperTerminal or PuTTY configured as follows:
 
-   - 57600 baud
+   - 115200 baud
    - 8 data bits
    - 1 stop bit
    - no parity
    - no flow control
-
-## Target hardware
-
-This example project is targeted at the Icicle kit.
-Details are available at the following link:
-
-https://www.microsemi.com/existing-parts/parts/152514
-
-## SoftConsole details
-
-SoftConsole version used to test this project is available at link below:
-
-https://www.microsemi.com/product-directory/design-tools/4879-softconsole#downloads
-

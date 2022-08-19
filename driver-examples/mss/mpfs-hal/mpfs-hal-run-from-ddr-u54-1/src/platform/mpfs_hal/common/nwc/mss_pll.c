@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -16,7 +16,6 @@
 
 #include "mpfs_hal/mss_hal.h"
 #include "mss_pll.h"
-#ifndef SIFIVE_HIFIVE_UNLEASHED
 
 /**
  * We do it this way to avoid multiple LDRA warnings
@@ -400,6 +399,7 @@ void sgmii_mux_config(uint8_t option)
  ******************************************************************************/
 void mss_pll_config(void)
 {
+    
     copy_switch_code(); /* copy switch code to RAM */
 
     MSS_SCB_DDR_PLL->SOFT_RESET     = PLL_INIT_AND_OUT_OF_RESET;
@@ -468,7 +468,7 @@ void mss_pll_config(void)
      * Wait for LOCK
      *  todo: make wait clock based
      */
-    volatile uint32_t timer_out=0x000000FFU;
+    volatile uint32_t timer_out=0x00FFFFFFU;
     while((MSS_SCB_MSS_PLL->PLL_CTRL & PLL_CTRL_LOCK_BIT) == 0U)
     {
 #ifdef RENODE_DEBUG
@@ -480,7 +480,8 @@ void mss_pll_config(void)
         }
         else
         {
-            //todo: add failure mode
+            timer_out=0x00FFFFFFU;
+            flag_mss_pll_lock_error();
         }
     }
 
@@ -490,6 +491,17 @@ void mss_pll_config(void)
      *      clock.
      */
     mss_mux_post_mss_pll_config();
+}
+
+/**
+ * flag_mss_pll_lock_error(void)
+ *
+ * Implement platform specific function for lock failure feedback
+ *
+ */
+__attribute__((weak)) void flag_mss_pll_lock_error(void)
+{
+    ASSERT(0U);
 }
 
 /**
@@ -719,6 +731,6 @@ __attribute__((weak)) void copy_switch_code(void)
 }
 
 #endif /* MPFS_HAL_HW_CONFIG */
-#endif
+
 
 

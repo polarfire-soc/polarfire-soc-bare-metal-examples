@@ -20,7 +20,7 @@
     <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.gdbServerTclPortNumber" value="6666"/>
     <intAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.gdbServerTelnetPortNumber" value="4444"/>
     <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.otherInitCommands" value=""/>
-    <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.otherRunCommands" value="thread apply all set $pc=_start"/>
+    <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.otherRunCommands" value=""/>
     <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.secondResetType" value="init"/>
     <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.svdPath" value=""/>
     <stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.imageFileName" value=""/>
@@ -48,7 +48,7 @@
     <stringAttribute key="org.eclipse.cdt.launch.COREFILE_PATH" value=""/>
     <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="${config_name:mpfs-hal-simple-demo}/mpfs-hal-simple-demo.elf"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="mpfs-hal-simple-demo"/>
-    <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
+    <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="false"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value=""/>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
         <listEntry value="/mpfs-hal-simple-demo"/>

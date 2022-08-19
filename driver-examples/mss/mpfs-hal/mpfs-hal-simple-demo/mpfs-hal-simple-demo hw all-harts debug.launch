@@ -48,7 +48,7 @@
     <stringAttribute key="org.eclipse.cdt.launch.COREFILE_PATH" value=""/>
     <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="${config_name:mpfs-hal-simple-demo}/mpfs-hal-simple-demo.elf"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="mpfs-hal-simple-demo"/>
-    <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
+    <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="false"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value=""/>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
         <listEntry value="/mpfs-hal-simple-demo"/>

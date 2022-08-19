@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -304,18 +304,18 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_CFG_VREFDQ_TRN_ENABLE)
 /*IP Blk = MC_BASE1 Access=RW */
-#define LIBERO_SETTING_CFG_VREFDQ_TRN_ENABLE    0x00000000UL
-    /* CFG_VREFDQ_TRN_ENABLE             [0:32]  RW value= 0x00000000 */
+#define LIBERO_SETTING_CFG_VREFDQ_TRN_ENABLE    0x00000001UL
+    /* CFG_VREFDQ_TRN_ENABLE             [0:32]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_CFG_VREFDQ_TRN_RANGE)
 /*IP Blk = MC_BASE1 Access=RW */
-#define LIBERO_SETTING_CFG_VREFDQ_TRN_RANGE    0x00000000UL
-    /* CFG_VREFDQ_TRN_RANGE              [0:32]  RW value= 0x00000000 */
+#define LIBERO_SETTING_CFG_VREFDQ_TRN_RANGE    0x00000001UL
+    /* CFG_VREFDQ_TRN_RANGE              [0:32]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_CFG_VREFDQ_TRN_VALUE)
 /*IP Blk = MC_BASE1 Access=RW */
-#define LIBERO_SETTING_CFG_VREFDQ_TRN_VALUE    0x00000000UL
-    /* CFG_VREFDQ_TRN_VALUE              [0:32]  RW value= 0x00000000 */
+#define LIBERO_SETTING_CFG_VREFDQ_TRN_VALUE    0x00000017UL
+    /* CFG_VREFDQ_TRN_VALUE              [0:32]  RW value= 0x17 */
 #endif
 #if !defined (LIBERO_SETTING_CFG_RRD_S)
 /*IP Blk = MC_BASE1 Access=RW */
@@ -729,8 +729,8 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_CFG_READ_TO_WRITE_ODT)
 /*IP Blk = MC_BASE2 Access=RW */
-#define LIBERO_SETTING_CFG_READ_TO_WRITE_ODT    0x00000001UL
-    /* CFG_READ_TO_WRITE_ODT             [0:32]  RW value= 0x1 */
+#define LIBERO_SETTING_CFG_READ_TO_WRITE_ODT    0x0000000FUL
+    /* CFG_READ_TO_WRITE_ODT             [0:32]  RW value= 0xF */
 #endif
 #if !defined (LIBERO_SETTING_CFG_WRITE_TO_WRITE_ODT)
 /*IP Blk = MC_BASE2 Access=RW */
@@ -1199,8 +1199,8 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_CFG_PU_CAL)
 /*IP Blk = MC_BASE2 Access=RW */
-#define LIBERO_SETTING_CFG_PU_CAL    0x00000001UL
-    /* CFG_PU_CAL                        [0:32]  RW value= 0x1 */
+#define LIBERO_SETTING_CFG_PU_CAL    0x00000000UL
+    /* CFG_PU_CAL                        [0:32]  RW value= 0x0 */
 #endif
 #if !defined (LIBERO_SETTING_CFG_DQ_ODT)
 /*IP Blk = MC_BASE2 Access=RW */
@@ -1504,13 +1504,13 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_CFG_DM_EN)
 /*IP Blk = RMW Access=RW */
-#define LIBERO_SETTING_CFG_DM_EN    0x00000001UL
-    /* CFG_DM_EN                         [0:32]  RW value= 0x1 */
+#define LIBERO_SETTING_CFG_DM_EN    0x00000000UL
+    /* CFG_DM_EN                         [0:32]  RW value= 0x0 */
 #endif
 #if !defined (LIBERO_SETTING_CFG_RMW_EN)
 /*IP Blk = RMW Access=RW */
-#define LIBERO_SETTING_CFG_RMW_EN    0x00000000UL
-    /* CFG_RMW_EN                        [0:32]  RW value= 0x0 */
+#define LIBERO_SETTING_CFG_RMW_EN    0x00000001UL
+    /* CFG_RMW_EN                        [0:32]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_CFG_ECC_CORRECTION_EN)
 /*IP Blk = ECC Access=RW */

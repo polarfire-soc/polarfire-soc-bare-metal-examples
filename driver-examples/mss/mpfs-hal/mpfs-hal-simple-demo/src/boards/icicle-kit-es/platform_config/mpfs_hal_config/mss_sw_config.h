@@ -165,6 +165,13 @@
 #define MSSIO_SUPPORT
 
 /*
+ * Uncomment MICROCHIP_STDIO_THRU_MMUARTx to enable stdio port
+ * Note you must have mss_mmuart driver source code included in the project.
+ */
+#define MICROCHIP_STDIO_THRU_MMUARTX    &g_mss_uart0_lo
+#define MICROCHIP_STDIO_BAUD_RATE       MSS_UART_115200_BAUD
+
+/*
  * DDR software options
  */
 
@@ -181,7 +188,6 @@
 //#define DEBUG_DDR_RD_RW_PASS
 //#define DEBUG_DDR_CFG_DDR_SGMII_PHY
 //#define DEBUG_DDR_DDRCFG
-
 
 /*
  * The hardware configuration settings imported from Libero project get generated

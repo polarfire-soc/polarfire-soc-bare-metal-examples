@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -18,28 +18,47 @@
     the MPFS MSS
 
     @section intro_sec Introduction
-    The mss_sw_config.h is to be located in the project
-    ./src/platform/config/software/mpfs_hal directory.
-    This file must be hand crafted when using the MPFS MSS.
-
+    The mss_sw_config.h has the default software configuration settings for the
+    MPFS HAL and will be located at
+    <Project-Name>/src/platform/platform_config_reference folder of the bare
+    metal SoftConsole project. The platform_config_reference is provided as a
+    default reference configuration.
+    When you want to configure the MPFS HAL with required configuration for
+    your project, the mss_sw_config.h must be edited and be placed in the
+    following project directory:
+    <Project-Name>/src/boards/<your-board>/platform_config/mpfs_hal_config/
 
     @section
 
 *//*==========================================================================*/
 
 
-#ifndef USER_CONFIG_MSS_USER_CONFIG_H_
-#define USER_CONFIG_MSS_USER_CONFIG_H_
+#ifndef MSS_SW_CONFIG_H_
+#define MSS_SW_CONFIG_H_
 
-/*------------------------------------------------------------------------------
- * MPFS_HAL_FIRST_HART and MPFS_HAL_LAST_HART defines used to specify which
- * harts to actually start.
- * Set MPFS_HAL_FIRST_HART to a value other than 0 if you do not want your code
- * to start and execute code on the E51 hart.
+/*
+ * MPFS_HAL_FIRST_HART and MPFS_HAL_LAST_HART defines are used to specify which
+ * harts to actually start. The value and the actual hart it represents are
+ * listed below:
+ * value  hart
+ *    0  E51
+ *    1  U54_1
+ *    2  U54_2
+ *    3  U54_3
+ *    4  U54_4
+ * Set MPFS_HAL_FIRST_HART to a value greater than 0 if you do not want your
+ * application to start and execute code on the harts represented by smaller
+ * value numbers.
  * Set MPFS_HAL_LAST_HART to a value smaller than 4 if you do not wish to use
- * all U54 harts.
+ * all U54_x harts.
  * Harts that are not started will remain in an infinite WFI loop unless used
- * through some other method
+ * through some other method.
+ * The value of MPFS_HAL_FIRST_HART must always be less than MPFS_HAL_LAST_HART.
+ * The value of MPFS_HAL_LAST_HART must never be greater than 4.
+ * A typical use-case where you set MPFS_HAL_FIRST_HART = 1 and
+ * MPFS_HAL_LAST_HART = 1 is when
+ * your application is running on U54_1 and a bootloader running on E51 loads
+ * your application to the target memory and kicks-off U54_1 to run it.
  */
 #ifndef MPFS_HAL_FIRST_HART
 #define MPFS_HAL_FIRST_HART  0
@@ -51,8 +70,10 @@
 
 /*
  * IMAGE_LOADED_BY_BOOTLOADER
- * We set IMAGE_LOADED_BY_BOOTLOADER = 0 if we are a boot-loader
- * Set IMAGE_LOADED_BY_BOOTLOADER = 1 if loaded by a boot loader
+ * We set IMAGE_LOADED_BY_BOOTLOADER = 0 if the application image runs from
+ * non-volatile memory after reset. (No previous stage bootloader is used.)
+ * Set IMAGE_LOADED_BY_BOOTLOADER = 1 if the application image is loaded by a
+ * previous stage bootloader.
  *
  * MPFS_HAL_HW_CONFIG is defined if we are a boot-loader. This is a
  * conditional compile switch is used to determine if MPFS HAL will perform the
@@ -78,14 +99,17 @@
 #define MPFS_HAL_HW_CONFIG
 #endif
 
+
 /*
- * If you are using common memory for sharing across harts, make sure it is
- * allocated in the linker script
- * See app_hart_common mem section in the platform linker scripts.
+ * If you are using common memory for sharing across harts,
+ * uncomment #define MPFS_HAL_SHARED_MEM_ENABLED
+ * make sure common memory is allocated in the linker script
+ * See app_hart_common mem section in the example platform
+ * linker scripts.
  */
-#ifndef MPFS_HAL_SHARED_MEM_ENABLED
+
 #define MPFS_HAL_SHARED_MEM_ENABLED
-#endif
+
 
 /* define the required tick rate in Milliseconds */
 /* if this program is running on one hart only, only that particular hart value
@@ -96,17 +120,24 @@
 #define HART3_TICK_RATE_MS  5UL
 #define HART4_TICK_RATE_MS  5UL
 
-/*------------------------------------------------------------------------------
- * Define the size of the HLS used
- * In our HAL, we are using Hart Local storage for debug data storage only
- * as well as flags for wfi instruction management.
- * The TLS will take memory from top of the stack if allocated
+/*
+ * Define the size of the Hart Local Storage (HLS).
+ * In the MPFS HAL, we are using HLS for debug data storage during the initial
+ * boot phase.
+ * This includes the flags which indicate the hart state regarding boot state.
+ * The HLS will take memory from top of each stack allocated at boot time.
  *
  */
 #define HLS_DEBUG_AREA_SIZE     64
 
 /*
- * define how you want the Bus Error Unit configured
+ * Bus Error Unit (BEU) configurations
+ * BEU_ENABLE => Configures the events that the BEU can report. bit value
+ *               1= enabled, 0 = disabled.
+ * BEU_PLIC_INT => Configures which accrued events should generate an
+ *                 interrupt to the PLIC.
+ * BEU_LOCAL_INT => Configures which accrued events should generate a
+ *                 local interrupt to the hart on which the event accrued.
  */
 #define BEU_ENABLE                  0x0ULL
 #define BEU_PLIC_INT                0x0ULL
@@ -123,15 +154,39 @@
 #endif
 
 /*
- * If not using item, you can comment out line below.
+ * We sometimes want to know which board we are compiling
+ * enable define for particular board you are using if you are using this switch
+ * in your application code
+ */
+//#define DDR_BASE_BOARD
+
+/*
+ * Comment out the lines to disable the corresponding hardware support not required
+ * in your application.
  * This is not necessary from an operational point of view as operation dictated
- * by MSS configurator settings. Comment out to save code space if required.
+ * by MSS configurator settings, and items are enabled/disabled by this method.
+ * The reason you may want to use below is to save code space.
  */
 #define SGMII_SUPPORT
 #define DDR_SUPPORT
 #define MSSIO_SUPPORT
-//#define SIMULATION_TEST_FEEDBACK
-//#define E51_ENTER_SLEEP_STATE
+
+/*
+ * Uncomment MICROCHIP_STDIO_THRU_MMUARTx to enable stdio port
+ * Note: you must have mss_mmuart driver source code included in the project.
+ */
+//#define MICROCHIP_STDIO_THRU_MMUARTX    &g_mss_uart0_lo
+//#define MICROCHIP_STDIO_BAUD_RATE       MSS_UART_115200_BAUD
+
+/*
+ * The hardware configuration settings imported from Libero project get generated
+ * into <project_name>/src/boards/<your-board>/<fpga-design-config> folder.
+ * If you need to overwrite them for testing purposes, you can do so here.
+ * e.g. If you want change the default SEG registers configuration defined by
+ * LIBERO_SETTING_SEG0_0, define it here and it will take precedence.
+ * #define LIBERO_SETTING_SEG0_0 0x80007F80UL
+ *
+ */
 
 /*
  * DDR software options
@@ -151,113 +206,4 @@
 //#define DEBUG_DDR_CFG_DDR_SGMII_PHY
 //#define DEBUG_DDR_DDRCFG
 
-/* uncomment to turn off fifo tuning. This will allow negative testing on known marginal board (PVT testing) */
-//#define TUNE_RPC_166_VALUE 0
-/* uncomment to see failure on marginal board */
-//#define SKIP_VERIFY_PATTERN_IN_CACHE
-
-/*
- * If using DDR4, enable DDR4__CODE_TAG_0_2 define
- */
-//#define DDR4__CODE_TAG_0_2
-
-/*
- * You can over write any on the settings coming from Libero here
- *
- * e.g. Define how you want SEG registers configured, if you want to change from
- * the default settings
- */
-
-/*
- *  For the Icicle kit we need to override the default settings coming from
- *  the MSS Configurator
- *  The valid AXI range should be set to a value matching the DDR being used.
- *  The default setting should match the size of the DDR being used in the design.
- *  The following are the registers that need adjusting based on the DDR being
- *  used.
- *  using 2MB ( Icicle kit)
-*/
-/* Uncomment if pre 2021.2, otherwise you can remove */
-#define USE_IF_2021_1_OR_EARLIER
-#ifdef USE_IF_2021_1_OR_EARLIER
-#define LIBERO_SETTING_TIP_CFG_PARAMS               0x07CFE02FUL
-    /* ADDCMD_OFFSET                     [0:3]   RW value= 0x2 changed to 3*/
-    /* BCKLSCLK_OFFSET                   [3:3]   RW value= 0x5 */
-    /* WRCALIB_WRITE_COUNT               [6:7]   RW value= 0x0 */
-    /* READ_GATE_MIN_READS               [13:8]  RW value= 0x7F */
-    /* ADDRCMD_WAIT_COUNT                [22:8]  RW value= 0x1F */
-
-/* from HW_DDR_IO_BANK_H_ */
-
-//#define LIBERO_SETTING_DPC_BITS                     0x00050422UL //DPC_VRGEN_H = 2
-//#define LIBERO_SETTING_DPC_BITS                     0x00050432UL //DPC_VRGEN_H = 3
-//#define LIBERO_SETTING_DPC_BITS                     0x00050442UL //DPC_VRGEN_H = 4
-//#define LIBERO_SETTING_DPC_BITS                     0x00050452UL //DPC_VRGEN_H = 5
-//#define LIBERO_SETTING_DPC_BITS                     0x00050462UL //DPC_VRGEN_H = 6
-//#define LIBERO_SETTING_DPC_BITS                     0x00050472UL //DPC_VRGEN_H = 7
-//#define LIBERO_SETTING_DPC_BITS                     0x00050402UL //DPC_VRGEN_H = 0
-//#define LIBERO_SETTING_DPC_BITS                     0x00050412UL //DPC_VRGEN_H = 1
-//Latest configurations - Start
-#define LIBERO_SETTING_DPC_BITS                     0x00050422UL //DPC_VRGEN_H = 2
-    /* DPC_VS                            [0:4]   RW value= 0x2 */
-    /* DPC_VRGEN_H                       [4:6]   RW value= 0x2 */
-    /* DPC_VRGEN_EN_H                    [10:1]  RW value= 0x1 */
-    /* DPC_MOVE_EN_H                     [11:1]  RW value= 0x0 */
-    /* DPC_VRGEN_V                       [12:6]  RW value= 0xC */
-    /* DPC_VRGEN_EN_V                    [18:1]  RW value= 0x1 */
-    /* DPC_MOVE_EN_V                     [19:1]  RW value= 0x0 */
-    /* RESERVE01                         [20:12] RSVD */
-
-#define LIBERO_SETTING_RPC_ODT_DQ                   0x00000005UL
-#define LIBERO_SETTING_RPC_ODT_DQS                  0x00000006UL
-/* Enabling VREFDQ training
- * Configuring the VREFDQ training range to be one
- * Configuring the VREFDQ value as 31.2%
- */
-#define LIBERO_SETTING_CFG_VREFDQ_TRN_ENABLE    0x00000001UL
-#define LIBERO_SETTING_CFG_VREFDQ_TRN_RANGE    0x00000001UL
-#define LIBERO_SETTING_CFG_VREFDQ_TRN_VALUE    0x00000017UL
-
-#endif /* USE_IF_2021_1_OR_EARLIER */
-
-/*
- * We need to redefine the following AXI address range if set incorrectly
- * This is the case for Libero 12.5 and Libero 12.6
- * If using MSS Configurator 2021.1 or later the following four lines can be
- * removed.
- * LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_0
- * is the definition for cached axi addrress
- * LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0
- * is the address for non-cached Libero address
- * 0x7FFFFFFFUL => 2 GB address range
- *
- */
-#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_0    0x7FFFFFFFUL
-#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_1    0x00000000UL
-#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0    0x7FFFFFFFUL
-#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_1    0x00000000UL
-
-/*
-  * Changes are fixes to data mismatches seen when applying the new
-  * DDR workload identified by the Linux boot failures on the icicle kit.
-  * CFG_MIN_READ_IDLE helped it pass in DDR3/DDR4, and CFG_READ_TO_WRITE fixed
-  * a different issue where 0's were being read back with the same workload on
-  * LPDDR3.
-  */
-#define LIBERO_SETTING_CFG_MIN_READ_IDLE             0x00000007UL
-
-/* For LPDDR3 only: */
-//#define LIBERO_SETTING_CFG_READ_TO_WRITE             0x00000006UL
-//#define LIBERO_SETTING_CFG_READ_TO_WRITE_ODT         0x00000006UL
-
-/*
- * The following three setting disable Data Mask and enable Read Write Modify
- * This is required if accessing LPDDR4 with non-cached writes and using
- * MSS Configurator 2021.1 or earlier.
- */
-#define LIBERO_SETTING_CFG_DM_EN 0x00000000UL
-#define LIBERO_SETTING_CFG_RMW_EN 0x00000001UL
-#define LIBERO_SETTING_DDRPHY_MODE 0x00014A24UL
-
-#endif /* USER_CONFIG_MSS_USER_CONFIG_H_ */
-
+#endif

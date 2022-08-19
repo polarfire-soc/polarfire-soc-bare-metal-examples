@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -230,6 +230,13 @@
 #endif
 
 /*
+ * We sometimes want to know which board we are compiling
+ * enable define for particular board you are using if you are using this switch
+ * in your application code
+ */
+//#define DDR_BASE_BOARD
+
+/*
  * Comment out the lines to disable the corresponding hardware support not required
  * in your application.
  * This is not necessary from an operational point of view as operation dictated
@@ -241,23 +248,11 @@
 #define MSSIO_SUPPORT
 
 /*
- * DDR software options
+ * Uncomment MICROCHIP_STDIO_THRU_MMUARTx to enable stdio port
+ * Note: you must have mss_mmuart driver source code included in the project.
  */
-
-/*
- * Debug DDR startup through a UART
- * Comment out in normal operation. May be useful for debug purposes in bring-up
- * of a new board design.
- * See the weakly linked function setup_ddr_debug_port(mss_uart_instance_t * uart)
- * If you need to edit this function, make another copy of the function in your
- * application without the weak linking attribute. This copy will then get linked.
- * */
-//#define DEBUG_DDR_INIT
-//#define DEBUG_DDR_RD_RW_FAIL
-//#define DEBUG_DDR_RD_RW_PASS
-//#define DEBUG_DDR_CFG_DDR_SGMII_PHY
-//#define DEBUG_DDR_DDRCFG
-
+//#define MICROCHIP_STDIO_THRU_MMUARTX    &g_mss_uart0_lo
+//#define MICROCHIP_STDIO_BAUD_RATE       MSS_UART_115200_BAUD
 
 /*
  * The hardware configuration settings imported from Libero project get generated
@@ -270,13 +265,35 @@
  */
 
 /*
- * The following three setting disable Data Mask and enable Read Write Modify
- * This is required if accessing LPDDR4 with non-cached writes and using
- * MSS Configurator 2021.1 or earlier.
+ * DDR software options
  */
-#define LIBERO_SETTING_CFG_DM_EN 0x00000000UL
-#define LIBERO_SETTING_CFG_RMW_EN 0x00000001UL
-#define LIBERO_SETTING_DDRPHY_MODE 0x00014A24UL
+
+/*
+ * Debug DDR startup through a UART
+ * Comment out in normal operation. Useful for debug purposes in bring-up of DDR
+ * in a new board design.
+ * See the weak function setup_ddr_debug_port(mss_uart_instance_t * uart)
+ * If you need to edit this function, make a copy of the function without the
+ * weak declaration in your application code.
+ * */
+//#define DEBUG_DDR_INIT
+//#define DEBUG_DDR_RD_RW_FAIL
+//#define DEBUG_DDR_RD_RW_PASS
+//#define DEBUG_DDR_CFG_DDR_SGMII_PHY
+//#define DEBUG_DDR_DDRCFG
+
+/*
+ * skip extra error checking on startup
+ * Set to 0xF to skip extra checking at end of training
+ * */
+// #define LIBERO_FAST_START                           0x0FU
+
+/*
+ * To lower training time adjust LIBERO_SETTING_CFG_DFI_T_PHY_WRLAT value so
+ * wr calib result is 00001111
+ *
+ * */
+// #define LIBERO_SETTING_CFG_DFI_T_PHY_WRLAT          0x00000007UL
 
 #endif /* USER_CONFIG_MSS_USER_CONFIG_H_ */
 

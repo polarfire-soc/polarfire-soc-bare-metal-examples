@@ -1,15 +1,15 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solution.
  *
  * SPDX-License-Identifier: MIT
  *
  * MPFS HAL Embedded Software example
- * hart not used in this project
+ *
  */
 /*******************************************************************************
  *
  * Code running on E51
- *
+ * hart not used in this project
  */
 
 #include <stdio.h>

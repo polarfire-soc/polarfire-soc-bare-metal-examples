@@ -1,39 +1,16 @@
 
-#                         mpfs-hal-payload-example
+# Bare metal single hart(U54_1) payload example
 
+This example project creates an executable which can be loaded by a boot-loader.
+The program runs in m-mode. 
 
-This example project creates a program which is loaded by a boot-loader. 
-The program runs in m-mode. See mss-config.h for configuration details.
+The program runs on U54_1 only and prints messages on UART1.
 
-You can debug the program using Renode.
-It will run on hart1 only.
+See the file mss_sw_config.h for configuration details located in the following directory.
 
-The program can be loaded and run using the mpfs-hal-ddr-demo example program.
+~~~
+src\boards\icicle-kit-es\platform_config\mpfs_hal_config
+~~~
 
-
-#### Loading application to DDR
-
-The application is configured to run from DDR. It must be loaded to DDR using a previous stage
-program. The MPFS HAL ddr demo program is useful for this while developing.
-The Hart Software Services (HSS) can be used once your program is developed.
-The program uses MMUART1 to print out IP settings at startup. The host PC must 
-connect to the serial port using a terminal emulator such as Tera Term or PuTTY 
-or the SoftConsole built-in terminal view.
-Please load the MPFS HAL DDR demo program to eNVM. This boots the Icicle kit
-and prints information on UART0. 
-From there you can use Ymodem to load this program to DDR ( Use the bin file located in 
-the DDR-Release directory ) and start it running
-using option 7 "Start U54_1 from DDR @0x80000000"
-On UART 1 you should see the IP set-up displayed. 
-You can ping this address and display web page once you connect to the board on 
-Ethernet. ( Ethernet port on USB serial port side )
-
-## To Debug the application in DDR on the Icicle kit
-
-1. Load MPFS HAL ddr demo project to eNVM as above.
-2. Load binary file using oprion 6 as above.
-3. Connect using "mpfs-uart-mac-freertos-lwip-DDR-Release" debug configuration
-4. Add any break-point you desire. e.g. Add one here "U54_1"
-5. Press resume button on the debugger
-6. Press option 7 on UART0. 
-7. The program should halt at your added break-point.
+The program can be loaded and [run using the Hart Software Systems (HSS)](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/driver-examples/mss/mpfs-hal/README.md).
+Alternatively you can use the *mpfs-hal-ddr-demo* example program as a simple bootloader.

@@ -18,15 +18,11 @@
 #include "mpfs_hal/mpfs_hal_version.h"
 #include "inc/common.h"
 
-#ifndef SIFIVE_HIFIVE_UNLEASHED
 #include "../../middleware/ymodem/ymodem.h"
-#else
-#include "drivers/FU540_uart/FU540_uart.h"
-#endif
 
 /*******************************************************************************
- * Instruction message. This message will be transmitted over the UART to
- * HyperTerminal when the program starts.
+ * Instruction message. This message will be transmitted over the UART to the
+ * terminal emulator when the program starts.
  ******************************************************************************/
 #ifdef DEBUG_DDR_INIT
 const uint8_t g_message[] =
@@ -76,6 +72,7 @@ Type 0  to show this menu again\r\n\
 
 #define twoGb 0x10000000UL  /* ((1024*1024*1024)*2)/sizeof(uint32_t) */
 #define small_ver 0x00010000UL
+#define DDR_TEST
 
 #define OFFSET_BETWEEN_LINES    0x1000u
 
@@ -112,6 +109,7 @@ uint32_t pattern_offset = 12U;
  * external data
  */
 extern uint64_t ddr_test;
+extern mss_ddr_diag ddr_diag;
 
 /*
  * Local functions
@@ -171,6 +169,7 @@ void jump_to_application(HLS_DATA* hls, MODE_CHOICE mode_choice, uint64_t next_a
             write_csr(mepc, next_addr);
             break;
     }
+
     register unsigned long a0 asm("a0") = hartid;
     register unsigned long a1 asm("a1") = (unsigned long)hls;
     __asm__ __volatile__("mret" : : "r"(a0), "r"(a1));
@@ -178,6 +177,7 @@ void jump_to_application(HLS_DATA* hls, MODE_CHOICE mode_choice, uint64_t next_a
 }
 
 char info_string[100];
+
 /* Main function for the HART0(E51 processor).
  * Application code running on HART0 is placed here.
  */
@@ -196,6 +196,7 @@ void e51(void)
     (void)mss_config_clk_rst(MSS_PERIPH_CFM, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
 
     HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
+
     /* This mutex is used to serialize accesses to UART0 when all harts want to
      * TX/RX on UART0. This mutex is shared across all harts. */
     HART_SHARED_DATA * hart_share = (HART_SHARED_DATA *)hls->shared_mem;
@@ -219,7 +220,7 @@ void e51(void)
      */
     display_clocks();
 
-#define DDR_TEST
+
 #ifdef DDR_TEST
     /* write/read test */
     ddr_read_write_nc (small_ver);
@@ -246,6 +247,9 @@ void e51(void)
                     MSS_UART_polled_tx_string (g_uart, g_message );
                     break;
                 case '1':
+                    sprintf(info_string,"Training time %lu ms, Retries %d\r\n",\
+                            ddr_diag.train_time, ddr_diag.num_retrains);
+                    MSS_UART_polled_tx(g_uart, (const uint8_t*)info_string,(uint32_t)strlen(info_string));
 #ifdef DEBUG_DDR_INIT
                     tip_register_status (g_uart);
 #endif
@@ -263,7 +267,6 @@ void e51(void)
                     display_clocks();
                     break;
                 case '5':
-#ifdef DEBUG_DDR_INIT
                     /*
                      * U54-1 runs the test program
                      * It writes a test pattern to DDR. X exits the program.
@@ -271,7 +274,6 @@ void e51(void)
                      */
                     ddr_test = 1U;
                     raise_soft_interrupt(1u);
-#endif
                     break;
                 case '6':
                     MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"\r\nSend .bin file using YMODEM\r\n");

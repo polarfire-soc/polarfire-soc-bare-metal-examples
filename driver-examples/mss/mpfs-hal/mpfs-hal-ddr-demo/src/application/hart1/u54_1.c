@@ -16,11 +16,6 @@
 #include "mpfs_hal/mss_hal.h"
 #include "inc/common.h"
 
-#ifndef SIFIVE_HIFIVE_UNLEASHED
-#else
-#include "drivers/FU540_uart/FU540_uart.h"
-#endif
-
 extern uint64_t hart_jump_ddr;
 extern uint64_t ddr_test;
 extern mss_uart_instance_t *g_uart;
@@ -33,6 +28,7 @@ volatile uint32_t count_sw_ints_h1 = 0U;
 
 #define MIN_OFFSET          1U
 #define MAX_OFFSET          16U
+#define START_OFFSET        12U
 
 /* Main function for the HART1(U54_1 processor).
  * Application code running on HART1 is placed here
@@ -42,8 +38,9 @@ volatile uint32_t count_sw_ints_h1 = 0U;
  */
 void u54_1(void)
 {
-    uint32_t pattern_offset = 12U;
+    uint8_t pattern_offset = 12U;
     HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
+    uint32_t error;
 
 
     /* Clear pending software interrupt in case there was any.
@@ -64,6 +61,7 @@ void u54_1(void)
 
     __enable_irq();
 
+    error = 0U;
     while (1U)
     {
         if((hart_jump_ddr == 1U) ||
@@ -75,15 +73,28 @@ void u54_1(void)
         }
         if(ddr_test == 1U)
         {
-            load_ddr_pattern(DDR_BASE, DDR_SIZE,pattern_offset);
+            load_ddr_pattern(DDR_BASE, DDR_SIZE, pattern_offset);
             MSS_UART_polled_tx(g_uart, (const uint8_t*)"Press x to abort DDR test\r\n",(uint32_t)strlen("Press x to abort DDR test\r\n"));
             setup_ddr_segments(DEFAULT_SEG_SETUP);
-            test_ddr(NO_OF_ITERATIONS, DDR_SIZE);
+            error |= test_ddr(NO_OF_ITERATIONS, DDR_SIZE);
             setup_ddr_segments(LIBERO_SEG_SETUP);
 
             if (pattern_offset > MAX_OFFSET)
             {
                 pattern_offset = MIN_OFFSET;
+            }
+            if (pattern_offset == START_OFFSET)
+            {
+                if ( error == 0U )
+                {
+                    MSS_UART_polled_tx(g_uart,
+                            (const uint8_t*) "M2M Test passed test_ddr\r\n",(uint32_t)strlen("M2M Test passed test_ddr\r\n"));
+                }
+                else
+                {
+                    MSS_UART_polled_tx(g_uart, (const uint8_t*)"M2M Test failed test_ddr\r\n",(uint32_t)strlen("M2M Test failed test_ddr\r\n"));
+                }
+
             }
         }
     }

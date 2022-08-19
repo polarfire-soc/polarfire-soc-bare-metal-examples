@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solution.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solution.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -83,24 +83,26 @@ void e51(void)
 
     MSS_UART_polled_tx_string (&g_mss_uart0_lo, g_message);
 
+    printf("\r\nPrintf working\r\n");
+
     /* Start the other harts with appropriate UART input from user */
     while (1)
     {
-      mcycle_start = readmcycle();
+        mcycle_start = readmcycle();
 
-      if (1u == debug_hart0)
-      {
+        if (1u == debug_hart0)
+        {
           debug_hart0 = 0U;
           sprintf(info_string,"Hart %ld, %ld delta_mcycle %ld mtime\r\n",
           hartid, delta_mcycle, readmtime());
           spinlock(&hart_share->mutex_uart0);
           MSS_UART_polled_tx(hart_share->g_mss_uart0_lo, info_string,strlen(info_string));
           spinunlock(&hart_share->mutex_uart0);
-      }
+        }
 
-      spinlock(&hart_share->mutex_uart0);
-      rx_size = MSS_UART_get_rx(hart_share->g_mss_uart0_lo, rx_buff, sizeof(rx_buff));
-      spinunlock(&hart_share->mutex_uart0);
+        spinlock(&hart_share->mutex_uart0);
+        rx_size = MSS_UART_get_rx(hart_share->g_mss_uart0_lo, rx_buff, sizeof(rx_buff));
+        spinunlock(&hart_share->mutex_uart0);
 
         if (rx_size > 0)
         {

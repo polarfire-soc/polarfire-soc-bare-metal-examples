@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -17,6 +17,11 @@
 #include <stdio.h>
 
 #include "mpfs_hal/mss_hal.h"
+#ifdef LIBERO_SETTING_ALT_IOMUX1_CR
+#if ((LIBERO_SETTING_MSSIO_CONFIGURATION_OPTIONS & (EMMC_CONFIGURED_MASK | SD_CONFIGURED_MASK)) == (EMMC_CONFIGURED_MASK | SD_CONFIGURED_MASK))
+static uint8_t io_mux_and_bank_config_alt(void);
+#endif
+#endif
 
 /*******************************************************************************
  * external functions
@@ -266,6 +271,7 @@ static uint8_t io_mux_and_bank_config(void)
                 sizeof(MSSIO_BANK2_CONFIG));
 
     set_bank2_and_bank4_volts(DEFAULT_MSSIO_CONFIGURATION);
+
 
     return(0L);
 }
@@ -574,6 +580,23 @@ __attribute__((weak)) uint8_t switch_external_mux(MSS_IO_OPTIONS option)
     result = true;
 
     return result;
+}
+
+
+/***************************************************************************//**
+ * See mss_io_config.h for details of how to use this function.
+ */
+__attribute__((weak)) void mss_set_gpio_interrupt_fab_cr(uint32_t reg_value)
+{
+    SYSREG->GPIO_INTERRUPT_FAB_CR = reg_value;
+}
+
+/***************************************************************************//**
+ * See mss_peripherals.h for details of how to use this function.
+ */
+__attribute__((weak)) uint32_t mss_get_gpio_interrupt_fab_cr(void)
+{
+    return (SYSREG->GPIO_INTERRUPT_FAB_CR);
 }
 
 
