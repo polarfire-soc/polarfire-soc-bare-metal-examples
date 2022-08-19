@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -19,11 +19,29 @@ volatile uint32_t count_sw_ints_h0 = 0U;
  * The hart1 goes into WFI. hart0 brings it out of WFI when it raises the first
  * Software interrupt.
  */
+
+#define RX_BUFF_SIZE    16U
+uint8_t g_rx_buff0[RX_BUFF_SIZE] = {0};
+uint8_t rx_size0 = 0U;
+
 const uint8_t g_message3[] =
+        " \r\n\r\n-------------------------------------------------------------\
+--------\r\n\r\nPress 1 to demonstrate how to use local interrupts\r\n\r\n\
+Press 2 to demonstrate how to use external interrupts\r\n\r\n------------------\
+---------------------------------------------------\r\n";
+
+const uint8_t g_message7[] =
         " \r\n\r\n------------------------------------\
 ---------------------------------\r\n\r\n\
- Please observe UART1, as application is using UART1 as \
- User-Interface\r\n\r\n--------------------------------\
+Please observe UART1 for a demonstration of local interrupt\
+\r\n\r\n--------------------------------\
+-------------------------------------\r\n";
+
+const uint8_t g_message8[] =
+        " \r\n\r\n------------------------------------\
+---------------------------------\r\n\r\n\
+Please observe UART2 for a demonstration of external interrupt\
+\r\n\r\n--------------------------------\
 -------------------------------------\r\n";
 
 void e51(void)
@@ -48,23 +66,37 @@ void e51(void)
     clear_soft_interrupt();
     set_csr(mie, MIP_MSIP);
 
-    /* Raise software interrupt to wake hart 1 */
-
-    raise_soft_interrupt(1U);
-
-    __enable_irq();
-
-#endif
-
     while (1U)
     {
-        icount++;
-
-        if (0x100000U == icount)
+        rx_size0 = MSS_UART_get_rx(&g_mss_uart0_lo, g_rx_buff0, sizeof(g_rx_buff0));
+        if(rx_size0 > 0)
         {
-            icount = 0U;
+            switch (g_rx_buff0[0u])
+            {
+            case '1':
+                /* Raise software interrupt to wake hart 1 */
+                raise_soft_interrupt(1U);
+                MSS_UART_polled_tx(&g_mss_uart0_lo, g_message7,
+                            sizeof(g_message7));
+                __enable_irq();
+                break;
+            case '2':
+                /* Raise software interrupt to wake hart 2 */
+                raise_soft_interrupt(2U);
+                MSS_UART_polled_tx(&g_mss_uart0_lo, g_message8,
+                            sizeof(g_message8));
+                __enable_irq();
+                break;
+            default:
+                MSS_UART_polled_tx(&g_mss_uart0_lo, g_message3,
+                        sizeof(g_message3));
+                break;
+
+            }
         }
     }
+
+#endif
 
     /* never return */
 }

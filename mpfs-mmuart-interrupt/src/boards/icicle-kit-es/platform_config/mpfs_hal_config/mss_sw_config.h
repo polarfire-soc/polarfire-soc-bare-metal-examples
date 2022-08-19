@@ -65,7 +65,7 @@
 #endif
 
 #ifndef MPFS_HAL_LAST_HART
-#define MPFS_HAL_LAST_HART   1
+#define MPFS_HAL_LAST_HART   2
 #endif
 
 /*
@@ -108,7 +108,7 @@
  * linker scripts.
  */
 
-// #define MPFS_HAL_SHARED_MEM_ENABLED
+//#define MPFS_HAL_SHARED_MEM_ENABLED
 
 
 /* define the required tick rate in Milliseconds */
