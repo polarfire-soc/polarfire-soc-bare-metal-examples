@@ -3,7 +3,7 @@ This example project demonstrates the use of the PolarFire SoC MSS RTC driver to
 configure the MSS RTC block as real time clock in calendar mode. The
 messages are displayed over the UART terminal after every second.
 
-# How to use this example
+## How to use this example
 On connecting Icicle kit J11 to the host PC, you should see 4 COM port interfaces.
 To use this project, configure the COM port **interface1** as below:
  - 115200 baud
@@ -18,4 +18,5 @@ the MSS RTC block. User can observe the UART messages displayed over the termina
 which indicates every second passed.
 
 This project provides build configurations and debug launchers as explained
-[here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)
+[here](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples).
+
