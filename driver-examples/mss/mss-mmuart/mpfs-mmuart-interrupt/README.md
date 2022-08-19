@@ -16,4 +16,4 @@ The example project will display instructions over the serial port. A greeting
 message and menu instructions are displayed over the UART terminal. Follow the
 instruction to use different menu options provided by the example project.
 
-This project provides build configurations and debug launchers as explained [here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)
+This project provides build configurations and debug launchers as explained [here](https://mi-v-ecosystem.github.io/redirects/polarfire-soc-documentation-master_README)

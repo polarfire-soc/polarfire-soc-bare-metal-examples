@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * Application code running on U54_1
  *
- * Example project demonstrating the use of polled and interrupt driven
+ * Example project demonstrating the use of polled and local interrupt driven
  * transmission and reception over MMUART. Please refer README.md in the root
  * folder of this example project
  */
@@ -33,35 +33,36 @@ Type 2  Send message using polled method\r\n\
 Type 3  send message using interrupt method\r\n\
 ";
 
-const uint8_t polled_message[] =
+const uint8_t polled_message1[] =
         "This message has been transmitted using polled method. \r\n";
 
-const uint8_t intr_message[] =
-        " This message has been transmitted using interrupt method. \r\n";
+const uint8_t intr_message1[] =
+        " This message has been transmitted using local interrupt method. \r\n";
 
 
-#define RX_BUFF_SIZE    64U
-uint8_t g_rx_buff[RX_BUFF_SIZE] = { 0 };
+#define RX_BUFF_SIZE    16U
+uint8_t g_rx_buff1[RX_BUFF_SIZE] = { 0 };
 volatile uint32_t count_sw_ints_h1 = 0U;
-volatile uint8_t g_rx_size = 0U;
+volatile uint8_t g_rx_size1 = 0U;
 static volatile uint32_t irq_cnt = 0;
-uint8_t info_string[100];
+uint8_t info_string1[100];
 
 /* This is the handler function for the UART RX interrupt.
- * In this example project UART0 local interrupt is enabled on hart0.
+ * In this example project UART1 local interrupt is enabled on hart1.
  */
-void uart1_rx_handler(mss_uart_instance_t *this_uart) {
+void uart1_rx_handler(mss_uart_instance_t *this_uart) 
+{
     uint32_t hart_id = read_csr(mhartid);
-    int8_t info_string[50];
+    int8_t info_string1[50];
 
     irq_cnt++;
-    sprintf(info_string, "UART1 Interrupt count = 0x%x \r\n\r\n", irq_cnt);
+    sprintf(info_string1, "UART1 Interrupt count = 0x%x \r\n\r\n", irq_cnt);
 
     /* This will execute when interrupt from hart 1 is raised */
-    g_rx_size = MSS_UART_get_rx(this_uart, g_rx_buff, sizeof(g_rx_buff));
+    g_rx_size1 = MSS_UART_get_rx(this_uart, g_rx_buff1, sizeof(g_rx_buff1));
 
-    MSS_UART_polled_tx(&g_mss_uart1_lo, info_string,
-            strlen(info_string));
+    MSS_UART_polled_tx(&g_mss_uart1_lo, info_string1,
+            strlen(info_string1));
 }
 
 /* Main function for the hart1(U54 processor).
@@ -70,7 +71,8 @@ void uart1_rx_handler(mss_uart_instance_t *this_uart) {
  * In the respective U54 harts, local interrupts of the corresponding MMUART
  * are enabled. e.g. in U54_1.c local interrupt of MMUART1 is enabled. */
 
-void u54_1(void) {
+void u54_1(void) 
+{
     uint64_t mcycle_start = 0U;
     uint64_t mcycle_end = 0U;
     uint64_t delta_mcycle = 0U;
@@ -125,22 +127,25 @@ void u54_1(void) {
     /* Makes sure that the previous interrupt based transmission is completed
      * Alternatively, you could register TX complete handler using
      * MSS_UART_set_tx_handler() */
-    while (0u == MSS_UART_tx_complete(&g_mss_uart1_lo)) {
+    while (0u == MSS_UART_tx_complete(&g_mss_uart1_lo)) 
+    {
         ;
     }
 
     mcycle_start = readmcycle();
-    while (1u) {
-        if (g_rx_size > 0u) {
-            switch (g_rx_buff[0u]) {
-
+    while (1u) 
+    {
+        if (g_rx_size1 > 0u) 
+        {
+            switch (g_rx_buff1[0u]) 
+            {
             case '0':
                 mcycle_end = readmcycle();
                 delta_mcycle = mcycle_end - mcycle_start;
-                sprintf(info_string, "hart %ld, %ld delta_mcycle \r\n", hartid,
+                sprintf(info_string1, "hart %ld, %ld delta_mcycle \r\n", hartid,
                         delta_mcycle);
-                MSS_UART_polled_tx(&g_mss_uart1_lo, info_string,
-                        strlen(info_string));
+                MSS_UART_polled_tx(&g_mss_uart1_lo, info_string1,
+                        strlen(info_string1));
                 break;
             case '1':
                 /* show menu */
@@ -150,31 +155,32 @@ void u54_1(void) {
             case '2':
 
                 /* polled method of transmission */
-                MSS_UART_polled_tx(&g_mss_uart1_lo, polled_message,
-                        sizeof(polled_message));
+                MSS_UART_polled_tx(&g_mss_uart1_lo, polled_message1,
+                        sizeof(polled_message1));
 
                 break;
             case '3':
 
                 /* interrupt method of transmission */
-                MSS_UART_irq_tx(&g_mss_uart1_lo, intr_message,
-                        sizeof(intr_message));
+                MSS_UART_irq_tx(&g_mss_uart1_lo, intr_message1,
+                        sizeof(intr_message1));
                 break;
 
             default:
-                MSS_UART_polled_tx(&g_mss_uart1_lo, g_rx_buff,
-                        g_rx_size);
+                MSS_UART_polled_tx(&g_mss_uart1_lo, g_rx_buff1,
+                        g_rx_size1);
                 break;
             }
 
-            g_rx_size = 0u;
+            g_rx_size1 = 0u;
         }
     }
 }
 
 /* hart1 Software interrupt handler */
 
-void Software_h1_IRQHandler(void) {
+void Software_h1_IRQHandler(void) 
+{
     uint64_t hart_id = read_csr(mhartid);
     count_sw_ints_h1++;
 }
