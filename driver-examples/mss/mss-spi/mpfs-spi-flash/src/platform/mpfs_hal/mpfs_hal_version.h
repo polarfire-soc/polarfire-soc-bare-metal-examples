@@ -2,7 +2,7 @@
 #define MPFS_HAL_VERSION_H
 
 /*******************************************************************************
- * Copyright 2019-2021 Microchip Corporation.
+ * Copyright 2019-2022 Microchip Corporation.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -39,9 +39,9 @@
 extern "C" {
 #endif
 
-#define MPFS_HAL_VERSION_MAJOR 1
-#define MPFS_HAL_VERSION_MINOR 8
-#define MPFS_HAL_VERSION_PATCH 125
+#define MPFS_HAL_VERSION_MAJOR 2
+#define MPFS_HAL_VERSION_MINOR 0
+#define MPFS_HAL_VERSION_PATCH 102
 
 #ifdef __cplusplus
 }

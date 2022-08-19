@@ -2,42 +2,45 @@
 
 This example project demonstrates the use of the PolarFire SoC MSS SPI peripheral
 device. It loops back communications internally between MSS SPI0 and MSS SPI1. 
-In this example project SPI0 is configured in master mode while SPI1 is 
+In this example project SPI1 is configured in master mode while SPI0 is 
 configured in slave mode. The data is then sent from master to slave and slave 
 to master to demonstrate the functionality.
 
 # How to use this example
 
-The example project is targeted to PolarFire SoC hardware platform. The SPI0 is 
-configured in master mode whereas SPI1 is the slave. The data is then 
+The example project is targeted to PolarFire SoC hardware platform. The SPI1 is 
+configured in master mode whereas SPI0 is the slave. The data is then 
 transferred between SPI0 and SPI1 using internal loopback mechanism.
-Run the example project using a debugger. Place watches on the following buffers
-buffers and observe the contents of the master and slave buffers being
-exchanged.
+Run the example project using a debugger. 
 
-g_master_tx_buffer
+On connecting Icicle kit J11 to the host PC, you should see 4 COM port interfaces
+connected. To use this project configure the COM port **interface1** as below:
 
-g_master_rx_buffer
+ - 115200 baud
+ - 8 data bits
+ - 1 stop bit
+ - no parity
+ - no flow control
 
-g_slave_tx_buffer
+The example project will display instructions over the serial port. A greeting
+message and menu instructions are displayed over the UART terminal. Follow the
 
-g_slave_rx_buffer
-
-**NOTE**: This project can not be used with the presently released version of the standard reference Libero design.
-Please make sure that you use correct Libero design and MSS configurations XML file. The TCL script for the same is available under ./src/boards/icicle-kit-es/design_description/libero_tcl/
-folder. Refer  [this]( https://github.com/polarfire-soc/icicle-kit-reference-design#emmc-sd ) to get more information on how to generate a .job file from a libero_tcl file.
-and program the board. Use SPI_LOOPBACK as the parameter to generate the appropriate design to test this project.
-*SPI_LOOPBACK* design will allow you to loopback on SPI with SPI0 routed to j26/(Rpi connector) and SPI1 routed to j44/j8( MikroBUS connector ).
+**NOTE**: This project can be used with the *SPI_LOOPBACK* varient of the [PolarFire 
+SoC reference design](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design)
+*SPI_LOOPBACK* design will allow you to loopback on SPI with SPI0 routed to j26/(Rpi connector) 
+and SPI1 routed to j44/j8( MikroBUS connector ).
 
 
 | **SPI0 signal**  | **j26(Rpi connector) pin-no** | **SPI1 signal** | **j44(MikroBUS connector) pin-no**  |
 |---------         |----------                     |------------     |  ---------                          |
 |   CE             |  24                           |   CE            |   3                                 |
-|   MOSI           |  19                           |   MOSI          |   6                                 |
-|   MISO           |  21                           |   MISO          |   5                                 |
 |   SCLK           |  23                           |   SCLK          |   4                                 | 
+|   DI             |  21                           |   DI            |   5                                 |
+|   DO             |  19                           |   DO            |   6                                 |
+
 
 **NOTE**: In Release mode, Debugging level is set to default(-g) so that user 
 can put the breakpoint and check the buffer.
 
-This project provides build configurations and debug launchers as explained [here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)
+This project provides build configurations and debug launchers as explained
+[here](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples).

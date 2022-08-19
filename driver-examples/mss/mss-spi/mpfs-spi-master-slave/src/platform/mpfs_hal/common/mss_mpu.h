@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -25,8 +25,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef SIFIVE_HIFIVE_UNLEASHED
 
 /***************************************************************************//**
 
@@ -198,7 +196,6 @@ static inline MPU_FailStatus_TypeDef MSS_MPU_get_failstatus(mss_mpu_mport_t mast
     return (MSS_MPU(master_port)->STATUS);
 }
 
-#endif /* ! SIFIVE_HIFIVE_UNLEASHED */
 
 #ifdef __cplusplus
 }
