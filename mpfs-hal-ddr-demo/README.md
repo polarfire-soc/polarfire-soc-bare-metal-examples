@@ -1,111 +1,211 @@
 
-#                        mpfs-hal-ddr-demo
+# DDR Demo on PolarFire SoC
 
+This example project demonstrates the use of the MPFS HAL for DDR bring-up.
+The application uses a serial terminal for user interaction. It prints
+informative messages on the serial port at the start-up providing details of
+the DDR initialization. Once DDR is trained, from the E51 application code a
+menu to select further test options is presented.
 
-This example project demonstrates the use of the MPFS HAL when used to bring-up
-DDR. The application uses a serial terminal for user interaction. It prints 
-informative messages on the serial port at the start-up providing details of 
-the DDR initialization. It then presents a menu to select further test options. 
+## Target boards:
+This example project is targeted at a number of different boards
+ - Icicle kit
+ - DDR base board with DDR3 installed
+ - DDR base board with DDR4 installed
+ - IOF Max verification board ( LPDDR3 )
+ - Peripheral Base board
 
-#### Target boards:
-There are a number of boards that can be targeted
+The boards other than the Icicle kit are internal Microchip boards. The DDR settings  
+for these boards are a guide on how to configure your board if based on one
+of those DDR technologies.
 
-| Board                     | MemType      | Data width   | 
-| :-------------            | :----------  | :----------  |
-|  Icicle                   | LPDDR4       |  x32         | 
-|  Peripheral Base board    | LPDDR4       |  x16         | 
-|  DDR Base Board           | DDR3         |  x32         | 
-|  DDR Base Board           | DDR4         |  x32         | 
-|  Peripheral Base board    | LPDDR4       |  x32         | 
+| Board                     | DDR memory Type| Data width | Speed       |
+| :-------------            | :----------  | :----------  |:----------  |
+|  Icicle                   | LPDDR4       |  x32         |  1600MHz    |
+|  Icicle 666MHz            | LPDDR4       |  x32         |  1333MHz    |
+|  Peripheral Base board    | LPDDR4       |  x16         |  1600MHz    |
+|  Peripheral Base board    | LPDDR4       |  x32         |  1600MHz    |
+|  DDR Base Board           | DDR4         |  x32         |  1600MHz    |
+|  DDR Base Board           | DDR3         |  x32         |  1333MHz    |
 
-#### Libero Design:
+Note: DDR3 low voltage ( DDR3L ) is also supported. This is the same from an
+operational/ algorithmic point of view. The only difference are the voltage
+setting set by the MSS Configurator.
 
-The Libero design used with this project can be found here :
-https://github.com/polarfire-soc/icicle-kit-reference-design.git
+## Libero Designs and MSS configuration files:
 
-#### Detail:
+The Icicle kit Libero design used with this project can be found [here](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design).
+The reference design includes the MSS Configurator source file **MPFS_ICICLE_MSS_baremetal.cfg**
+and the software configuration output file **MPFS_ICICLE_MSS_baremetal.xml**
 
-On reset, the hard reset vector points to code in the 
-mpfs_hal\entry.S
-The reset vector is pointed to by the following label
-_start
-as the is address is dictated in the associated linker script
-\config\linker_scipts\aloe_bare_metal_ram.ld
+For all the boards supported with this project (including Icicle kit), the MSS
+Configurator generated .cfg file and the .xml output generated from it are also
+part of this SoftConsole project.
 
-In brief, the code run on reset in entry.S does the following:
- - Initializes the trap vector
- - Initializes x0-x31 registers to zero
- - Enables the Floating Point Unit if preset ( FPU on U54's)
- - Verifies compiler used is 64 bit
- - Sets the GP (global pointer) This is used when code compiled using relax 
-      mode.
- - Align on a 64 Byte boundary
- - Read hart ID - Set the SP (stack pointer) so each hart allocated 128K 
-      between stack and TLS
- - Check hartID. If hartID == 0 ( the E51), jump to main_first_hart in 
-      system_startup.c
- - Check hartID. If hartID != 0, run the wfi instruction. The code will wait 
-      here until hart0 wakes up this hart using a software interrupt directed to 
-      the hart it wishes to wake.
- - Note: When running in the debugger, the wfi instruction should be treated 
-      as a no op.
-      A loop is implemented after the wfi which will remain looping until an 
-      actual software interrupt 
-      occurrence is detected by reading the mip register.
-E51 code:
- - At this point the E51 code is running in the main_first_hart() in 
-      system_startup.c by default.
- - The routines in system_startup are all given the attribute weak. They 
-      should not be edited.
- - If you want to write your own versions, please do so in a user code 
-      directory. e.g. \hart0
- - main_first_hart() 
-            initializes memory
-            calls the e51() routine in \hart0\e51()
- - The \e51 contains code associated with the E51.
- - In general, on startup
-     - main system clock is switch in  from default startup clock
-     - peripherals are initialized using associated drivers
-     - Other harts are started as required.
-     - E51 code enters infinite loop, and services can be added as required 
-          here.
-        
- - In our example, the UART is initialized
- - hart1 is started
- - The example demonstrates using the uart to write to an attached terminal 
-      using hart0 and hart 1.
- - There is a CLI driven from hart0. This allows the user to wake hart 1,2,3 
-      and 4.
- - Hart 1,2,3 and 4 write out to the terminal interface demonstrating the use 
-      of a shared peripheral.
- - The uart polled tx is protected using a mutex, to allow each hart write to 
-      it independently.
+Please see **src/boards/\<my-board>/fpga_design/design_description>** directory
+for each board.
 
+## Adding a new board and configuring DDR :
+Following sections describe adding a new board to the SoftConsole project.
 
-#                            How to use this example
+At this stage it is assumed that you have created a new Libero design and MSS
+Configuration for your board using Libero and MSS configurator tool and the **MPFS_ICICLE_MSS_baremetal.cfg**
+and **MPFS_ICICLE_MSS_baremetal.xml** from this new design are available.
 
-This example project demonstrates sharing a uart across multiple harts.
+### Add new board under the boards directory
 
-To use this example:
- - Generate the project into a workspace directory from the SoftConsole version
-   you are using. This point is very important. fro instance :
-   SoftConsole_v6.1\extras\workspace.empty
-   (Note: you can copy workspace.empty and rename as required)
- - Open the project in SoftConsole
- - Compile the project
- - Open the debugger script bundled in the root of the directory 
- - Execute the example software project.
-The software will display a menu on the command line.
+Create a new directory /\<my_board> under the src/boards directory. Use one of
+the existing board directories (e.g icicle-kit-es) as a template, copying and renaming as appropriate.
+	* src/boards/**\<my-board>**
 
-From the menu you can start the U54 harts and observe output on the terminal 
-window in Renode. This demonstrates that the harts are running independently.
+The following table describes the folder heirarchy and the files that should be
+present under your src/boards/**\<my-board>** folder.
+
+| Boards/*my_board*/files    						| Description    |
+| :-------------             					   	| :----------    |
+| fpga_design/design_description/design.xml  	   	| Output generated by MSS Configurator. The SoftConsole project uses this file to generate header files used by MPFS HAL |
+| fpga_design_config/*       					   	| Will Contain header files generated from design.xml when you build the SoftConsole project|
+| platform_config/mpfs_hal_config/mss_sw_config.h  	| Embedded software configuration file required by MPFS-HAL |
+| fpga_design/mss_configuration/design.cfg         	| MSS Configurator source file.|
+
+ - Ensure that the build step to generate header files from the xml now uses the new
+paths to /\<my_board> directories. [^configgen]
+
+ - Ensure that these new paths are used in your project's include path. [^includepath]
+
+## Updating DDR settings from a previous MSS Configurator release
+
+This example project is tested with the MSS Configuration generated from
+MSS Configurator **v2022.2**. If you are presently using a MSS configuration
+generated with an earlier version of the MSS Configurator, you will need to
+refresh the default values of your DDR configuration to use the currently
+recommended default DDR settings.
+
+To update the default DDR settings from an older .cfg version you must do the
+following :
+
+1. Open your current MSS configuration in the MSS Configurator **v2022.2**.
+2. Make sure that the "DDR memory type" is chosen appropriately matching your DDR memory. E.g. LPDDR4
+3. Click on "MSS_\<DDR-type>_default_configuration" preset and click "Apply". (e.g. "MSS_LPDDR4_default_configuration")
+4. Make sure that there are no overwrites relating to DDR in your project's
+   *boards/your_board/platform_config/mpfs_hal_config/mss_sw_config.h* file
+   i.e. The DDR section should appear as shown below
+
+   ```c
+		/*
+		 * DDR software options
+		 */
+
+		/*
+		 * Debug DDR startup through a UART
+		 * Comment out in normal operation. Useful for debug purposes in bring-up of DDR
+		 * in a new board design.
+		 * See the weak function setup_ddr_debug_port(mss_uart_instance_t * uart)
+		 * If you need to edit this function, make a copy of the function without the
+		 * weak declaration in your application code.
+		 * */
+		#define DEBUG_DDR_INIT
+		#define DEBUG_DDR_RD_RW_FAIL
+		//#define DEBUG_DDR_RD_RW_PASS
+		//#define DEBUG_DDR_CFG_DDR_SGMII_PHY
+		//#define DEBUG_DDR_DDRCFG
+
+		#endif
+
+   ```
+
+3. Cross check the new configurations
+
+### Enable DDR debugging
+When bringing-up DDR on a new board or when migrating from older design to the latest
+libero version, enabling the DDR debugging aid the process.
+
+#### Enable DDR debug macros
+1. In the mss_sw_config.h file uncomment the following defines so that the DDR
+training debug information is printed on a UART terminal.
+
+   ```c
+   #define DEBUG_DDR_INIT
+   #define DEBUG_DDR_RD_RW_FAIL
+   ```
+
+2. By default, debug info is printed to MMUART0. To change the UART,
+add a definition in your application code (see e51.c in this project, modify if required):
+
+   ```c
+   mss_uart_instance_t *g_debug_uart= &g_mss_uart3_lo ;
+   ```
+
+   Also in your application code add the following function if you want to change the default MMUART used.
+
+   ```c
+   uint32_t setup_ddr_debug_port(mss_uart_instance_t * uart)
+   {
+        (void)mss_config_clk_rst(MSS_PERIPH_MMUART3,
+								(uint8_t) MPFS_HAL_FIRST_HART,
+								PERIPHERAL_ON);
+
+        MSS_UART_init(uart,
+					  MSS_UART_115200_BAUD,
+					  MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
+        return(0U);
+    }
+    ```
+
+#### Compile and debug
+
+1. Select the \<board>-LIM-DEBUG build configuration and compile
+2. Connect a serial terminal emulator to COM0
+3. Run the mpfs-hal-ddr-demo hw all-harts debug.launch debug launcher
+4. Make sure that you see the following expected output on the UART COM port
+
+#### Expected terminal emulator output
+
+1. The following menu should appear if the DDR has trained successfully
+
+  ```c
+  This program is run from E51
+
+  DDR test options:
+  1  Show DDR training values
+  2  Soft reset the MSS
+  3  Read/write memory - DDR tests
+  4  Display clock values
+  5  Load DDR test pattern and run.
+  b  Display MSS PLL registers
+
+  Bootloader options:
+  6  Load image to DDR using YMODEM
+  7  Start U54_1 from DDR @0x80000000
+  8  Start U54 1 & 2 from DDR @0x80000000
+  9  Start U54 1, 2 & 3 from DDR @0x80000000
+  a  Start all U54s from DDR @0x80000000
+
+  Type 0  to show this menu again
+  ```
+
+## The mss_sw_config.h
+
+The mss_sw_config.h in every build configuration of the SoftConsole project provides
+the software configurations It configures such as the number of harts used by the software etc.
+
+It also allows settings coming from the MSS Configurator generated input to be
+overwritten for bringup or debugging purposes. If there are any previous overwrites
+in the mss_sw_config.h file, then it can cause an issue when updating to the new
+configurations from the latest MSS configuration (2022.2 and later), as updated
+default settings from MSS configurator will will be overwritten by the values
+present in the mss_sw_config.h. Recomendation is to migrate to use latest MSS
+Configurator (2022.2 and later) and **avoid any DDR settings overwrites**.
+
+For the latest DDR settings for the Icicle kit, refer to the **MSS LPDDR4 configuration**
+section in the [Icicle kit reference design documentation ](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design).
 
 ## UART configuration
 
-On connecting Icicle kit J11 to the host PC, you should see four COM port 
-interfaces connected. This example project requires MMUART0. To use this 
-project the host PCmust connect to the COM port interface0 using a terminal 
-emulator such as HyperTerminal or PuTTY configured as follows:
+On connecting Icicle kit J11 to the host PC, you should see four COM port
+interfaces connected. This example project requires MMUART0. To use this
+project the host PC must connect to the COM port interface0 using a terminal
+emulator such as HyperTerminal or Putty configured as follows:
 
 - 115200 baud
 - 8 data bits
@@ -122,13 +222,48 @@ This example project is targeted at a number of different boards
  - IOF Max verification board ( LPDDR3 )
  - Peripheral Base board
 
-The non-Icicle kit boards are internal MicroChip boards but the settings related to
-the DDR variants are a guide to how to configure your board if based on one of those 
-DDR technologies.
+The non-Icicle kit boards are internal Microchip boards but the settings related
+to the DDR variants are a guide on how to configure your board if based on one
+of those DDR technologies.
 
-## SoftConsole details
+## Porting DDR configuration to Hart Software Service
 
-SoftConsole version used to test this project is available at link below:
+To get DDR for your board running on the HSS, port the following elements from
+your working bare metal project.
 
-https://www.microsemi.com/product-directory/design-tools/4879-softconsole#downloads
+- The same DDR configuration from the MSS Configurator as used in Bare Metal
+- Make sure that there are no unwanted DDR related overwrites in the mss_sw_config.h
+file under hart-software-services/boards/\<my-board> directory.
 
+
+## References
+
+[PolarFire® FPGA and PolarFire SoC FPGA Memory Controller](https://onlinedocs.microchip.com/pr/GUID-FF8061A7-7A15-470F-A6F5-E733C24D85F0-en-US-1/index.html)  
+[PolarFire® SoC MSS Technical Reference Manual](https://onlinedocs.microchip.com/pr/GUID-0E320577-28E6-4365-9BB8-9E1416A0A6E4-en-US-3/index.html)  
+[SoftConsole Releases](https://www.microchip.com/en-us/products/fpgas-and-plds/fpga-and-soc-design-tools/soc-fpga/softconsole#Download%20Software)
+
+[^configgen]: ### Update build step to generate header files from xml configurations
+	Go to:
+
+	 - SoftConsole project explorer
+	 - \<project name\> -> Project properties -> C/C++ Build -> Settings
+	 - Select appropriate Build configuration
+	 - Select "Build steps" tab and change the contents of the "Command"
+
+	 ```c
+	 ${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/<my-board>/fpga_design/design_description   ../src/boards/<my-board>
+	 ```
+
+[^includepath]: ### Update the project settings to change project's include path.
+	Go to:
+
+	 - SoftConsole project explorer
+	 - \<project name\> -> Project properties -> C/C++ Build -> Settings
+	 - Select appropriate Build configuration
+	 - Select "Tool Settings"
+	 - Select "GNU RISC-V Cross C Compiler -> includes
+
+	 ```eclipse
+	  "${workspace_loc:/${ProjName}/src/boards/<my-board>}"
+	  "${workspace_loc:/${ProjName}/src/boards/<my-board>/platform_config}"
+	 ```

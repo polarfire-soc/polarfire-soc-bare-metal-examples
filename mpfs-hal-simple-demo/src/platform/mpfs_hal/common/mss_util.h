@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -41,7 +41,7 @@ extern "C" {
  * Local defines
  */
 #define    LOCAL_INT_OFFSET_IN_MIE          16U  /* Offset from start of MIE for local irq enables */
-#define    LOCAL_INT_F2H_OFFSET             16U  /* Offset from 0 for fabric to MSS local interrupts */
+#define    LOCAL_INT_F2M_OFFSET             16U  /* Offset from 0 for fabric to MSS local interrupts */
 
 /*
  * return mcycle
@@ -70,6 +70,8 @@ void __disable_all_irqs(void);
 void __enable_irq(void);
 void __enable_local_irq(uint8_t local_interrupt);
 void __disable_local_irq(uint8_t local_interrupt);
+void disable_branch_prediction(void);
+void enable_branch_prediction(void);
 
 static inline void spinunlock(volatile long *pLock)
 {

@@ -16,11 +16,6 @@
 #include "mpfs_hal/mss_hal.h"
 #include "inc/common.h"
 
-#ifndef SIFIVE_HIFIVE_UNLEASHED
-#else
-#include "drivers/FU540_uart/FU540_uart.h"
-#endif
-
 volatile uint32_t count_sw_ints_h2 = 0U;
 extern uint64_t hart_jump_ddr;
 
