@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -11,8 +11,8 @@
  *
  */
 
-#ifndef __MSS_MMC_IF_H
-#define __MSS_MMC_IF_H
+#ifndef MSS_MMC_IF_H
+#define MSS_MMC_IF_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -158,4 +158,4 @@ cif_response_t cif_send_cq_direct_command
 }
 #endif
 
-#endif  /* __MSS_MMC_IF_H */
+#endif  /* MSS_MMC_IF_H */

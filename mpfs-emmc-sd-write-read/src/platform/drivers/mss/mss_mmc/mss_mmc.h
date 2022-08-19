@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -70,8 +70,10 @@
     - Initialization
     - Block Transfer Control
     - Block Transfer Status
+    - Block Erase
     - Interrupt Handling
     - Command Queue
+    - Error Recovery
 
   --------------------------------
   Initialization
@@ -131,6 +133,11 @@
   using the MSS_MMC_get_transfer_status() function.
 
   --------------------------------
+  Block Erase
+  --------------------------------
+  The MSS_MMC_erase() function is used to erase the eMMC/SD device blocks.
+
+  --------------------------------
   Interrupt Handling
   --------------------------------
   The MSS_MMC_set_handler() function is used to register a handler function
@@ -159,10 +166,17 @@
   To read a single block or multiple blocks of data stored within the eMMC
   device using a command queue, a call is made to the MSS_MMC_cq_read()
   function. This function supports up to 32 tasks.
+
+  --------------------------------
+  Error Recovery
+  --------------------------------
+  The MSS_MMC_error_recovery() function is used to check whether the error is
+  recoverable or non-recoverable based on the generic operation of error
+  recovery procedure.
   
  *//*=========================================================================*/
-#ifndef __MSS_MMC_H
-#define __MSS_MMC_H
+#ifndef MSS_MMC_H
+#define MSS_MMC_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -171,8 +185,20 @@
 extern "C"
 #endif
 
-/*----------------------------------------------------------------------------*/
-/* Clock rate*/
+/*-------------------------------------------------------------------------*//**
+  Clock Rate
+  ============================
+
+  |       Constant        |      Description          |
+  |-----------------------|---------------------------|
+  | MSS_MMC_CLOCK_400KHZ  | Clock rate of 400 KHz     |
+  | MSS_MMC_CLOCK_12_5MHZ | Clock rate of 12.5 MHz    |
+  | MSS_MMC_CLOCK_25MHZ   | Clock rate of 25 MHz      |
+  | MSS_MMC_CLOCK_26MHZ   | Clock rate of 26 MHz      |
+  | MSS_MMC_CLOCK_50MHZ   | Clock rate of 50 MHz      |
+  | MSS_MMC_CLOCK_100MHZ  | Clock rate of 100 MHz     |
+  | MSS_MMC_CLOCK_200MHZ  | Clock rate of 200 MHz     |
+ */
 #define MSS_MMC_CLOCK_400KHZ            400u
 #define MSS_MMC_CLOCK_12_5MHZ           12500u
 #define MSS_MMC_CLOCK_25MHZ             25000u
@@ -180,94 +206,162 @@ extern "C"
 #define MSS_MMC_CLOCK_50MHZ             50000u
 #define MSS_MMC_CLOCK_100MHZ            100000u
 #define MSS_MMC_CLOCK_200MHZ            200000u
-/*  card type */
+
+/*-------------------------------------------------------------------------*//**
+  Card Type
+  ============================
+
+  |        Constant          |  Description  |
+  |--------------------------|---------------|
+  | MSS_MMC_CARD_TYPE_NONE   | None          |
+  | MSS_MMC_CARD_TYPE_MMC    | MMC Card      |
+  | MSS_MMC_CARD_TYPE_SD     | SD Card       |
+  | MSS_MMC_CARD_TYPE_SDIO   | SDIO Card     |
+  | MSS_MMC_CARD_TYPE_COMBO  | COMBO Card    |
+ */
 #define MSS_MMC_CARD_TYPE_NONE          0u
 #define MSS_MMC_CARD_TYPE_MMC           1u
 #define MSS_MMC_CARD_TYPE_SD            2u
 #define MSS_MMC_CARD_TYPE_SDIO          3u
 #define MSS_MMC_CARD_TYPE_COMBO         4u
 
-/* Host controller eMMC mode select */
+/*------------------------------------------------------------------------*//**
+  Host Controller eMMC Mode Select
+  ============================
+*/
 
-/* High-speed single data rate supports clock frequency up to 52 MHz and data
- * bus width of 1 bit, 4 bits, and 8 bits.
+/**
+  ## MSS_MMC_MODE_SDR
+  High-speed single data rate supports clock frequency up to 52 MHz and data 
+  bus width of 1 bit, 4 bits, and 8 bits.
  */
 #define MSS_MMC_MODE_SDR                0x2u
 
-/* High speed double data rate supports clock frequency up to 52 MHz and data
- * bus width of 4 bits and 8 bits.
+/**
+  ## MSS_MMC_MODE_DDR
+  High speed double data rate supports clock frequency up to 52 MHz and data
+  bus width of 4 bits and 8 bits.
  */
 #define MSS_MMC_MODE_DDR                0x3u
 
-/* SDR data sampling supports clock frequency up to 200 MHz and data bus width
- *  of 4 bits and 8 bits.
+/**
+  ## MSS_MMC_MODE_HS200
+  SDR data sampling supports clock frequency up to 200 MHz and data bus width
+  of 4 bits and 8 bits.
  */
 #define MSS_MMC_MODE_HS200              0x4u
 
-/* DDR data sampling supports clock frequency up to 200 MHz and data bus width
- * of 8 bits.
+/**
+  ## MSS_MMC_MODE_HS400
+  DDR data sampling supports clock frequency up to 200 MHz and data bus width
+  of 8 bits.
  */
 #define MSS_MMC_MODE_HS400              0x5u
 
-/* HS400 mode with Enhanced Strobe. */
+/**
+  ## MSS_MMC_MODE_HS400_ES
+  HS400 mode with Enhanced Strobe. 
+ */
 #define MSS_MMC_MODE_HS400_ES           0x6u
 
-/* Backwards compatibility with legacy MMC card supports clock frequency up to
- * 26MHz and data bus width of 1 bit, 4 bits, and 8 bits.
+/**
+  ## MSS_MMC_MODE_LEGACY
+  Backwards compatibility with legacy MMC card supports clock frequency up to
+  26MHz and data bus width of 1 bit, 4 bits, and 8 bits.
  */
 #define MSS_MMC_MODE_LEGACY             0x7u
 
 #define MSS_MMC_MODE_MASK               0x00000007u
 #define MSS_MMC_MODE_SDCARD             0x0u
 
-/* Host controller SD/SDIO card mode select */
+/*------------------------------------------------------------------------*//**
+  Host controller SD/SDIO card mode select
+  ============================
+*/
 
-/* Default speed supports clock frequency up to 25 MHz and data bus width of
- * 4 bits.
+/** ## MSS_SDCARD_MODE_DEFAULT_SPEED
+  Default speed supports clock frequency up to 25 MHz and data bus width of
+  4 bits.
  */
 #define MSS_SDCARD_MODE_DEFAULT_SPEED   0x8u
 
-/* High-speed supports clock frequency up to 50 MHz and data bus width of
- * 4 bits.
+/** ## MSS_SDCARD_MODE_HIGH_SPEED
+  High-speed supports clock frequency up to 50 MHz and data bus width of
+  4 bits.
  */
 #define MSS_SDCARD_MODE_HIGH_SPEED      0x9u
 
-/* Ultra-High speed-I (UHS-I) single data rate supports clock frequency up to
- * 25 MHz and data bus width of 4 bits.
+/** ## MSS_SDCARD_MODE_SDR12
+ Ultra-High speed-I (UHS-I) single data rate supports clock frequency up to
+ 25 MHz and data bus width of 4 bits.
  */
 #define MSS_SDCARD_MODE_SDR12           0xAu
 
-/* Ultra-High speed-I (UHS-I) single data rate supports clock frequency up to
- * 50 MHz and data bus width of 4 bits.
+/** ## MSS_SDCARD_MODE_SDR25
+ Ultra-High speed-I (UHS-I) single data rate supports clock frequency up to
+ 50 MHz and data bus width of 4 bits.
  */
 #define MSS_SDCARD_MODE_SDR25           0xBu
 
-/* Ultra-High speed-I (UHS-I) single data rate supports clock frequency up to
- * 100 MHz and data bus width of 4 bits.
+/** ## MSS_SDCARD_MODE_SDR50
+ Ultra-High speed-I (UHS-I) single data rate supports clock frequency up to
+ 100 MHz and data bus width of 4 bits.
  */
 #define MSS_SDCARD_MODE_SDR50           0xCu
 
-/* Ultra-High speed-I (UHS-I) single data rate supports clock frequency up to
- * 208 MHz and data bus width of 4 bits.
+/** ## MSS_SDCARD_MODE_SDR104
+ Ultra-High speed-I (UHS-I) single data rate supports clock frequency up to
+ 208 MHz and data bus width of 4 bits.
  */
 #define MSS_SDCARD_MODE_SDR104          0xDu
 
-/* Ultra-High speed-I (UHS-I) double data rate supports clock frequency up to
- * 50 MHz and data bus width of 4 bits.
+/** ## MSS_SDCARD_MODE_DDR50
+ Ultra-High speed-I (UHS-I) double data rate supports clock frequency up to
+  50 MHz and data bus width of 4 bits.
  */
 #define MSS_SDCARD_MODE_DDR50           0xEu
 
-/* Host controller data width */
+/*-------------------------------------------------------------------------*//**
+  Host Controller Data Width
+  ============================
+
+  |           Constant          |              Description             |
+  |-----------------------------|--------------------------------------|
+  | MSS_MMC_DATA_WIDTH_1BIT     | Host Controller data width is 1 bit  |
+  | MSS_MMC_DATA_WIDTH_4BIT     | Host Controller data width is 4 bit  |
+  | MSS_MMC_DATA_WIDTH_8BIT     | Host Controller data width is 8 bit  |
+ */
 #define MSS_MMC_DATA_WIDTH_1BIT         0x00u
 #define MSS_MMC_DATA_WIDTH_4BIT         0x01u
 #define MSS_MMC_DATA_WIDTH_8BIT         0x02u
 
-/* eMMC bus voltage */
-/* 1.8v */
+/*-------------------------------------------------------------------------*//**
+  eMMC Bus Voltage
+  ============================
+
+  |           Constant          |      Description      |
+  |-----------------------------|-----------------------|
+  | MSS_MMC_1_8V_BUS_VOLTAGE    | Bus voltage is 1.8 V  |
+  | MSS_MMC_3_3V_BUS_VOLTAGE    | Bus voltage is 3.3 V  |
+ */
 #define MSS_MMC_1_8V_BUS_VOLTAGE     18u
-/* 3.3v */
 #define MSS_MMC_3_3V_BUS_VOLTAGE      33u
 
+/*------------------------------------------------------------------------*//**
+  MSS SDIO Function Number 
+  ============================
+
+  |           Constant          |      Description      |
+  |-----------------------------|-----------------------|
+  | MSS_SDIO_FUNCTION_NUMBER_0  | Function number is 0  |
+  | MSS_SDIO_FUNCTION_NUMBER_1  | Function number is 1  |
+  | MSS_SDIO_FUNCTION_NUMBER_2  | Function number is 2  |
+  | MSS_SDIO_FUNCTION_NUMBER_3  | Function number is 3  |
+  | MSS_SDIO_FUNCTION_NUMBER_4  | Function number is 4  |
+  | MSS_SDIO_FUNCTION_NUMBER_5  | Function number is 5  |
+  | MSS_SDIO_FUNCTION_NUMBER_6  | Function number is 6  |
+  | MSS_SDIO_FUNCTION_NUMBER_7  | Function number is 7  |
+ */
 #define MSS_SDIO_FUNCTION_NUMBER_0      0u
 #define MSS_SDIO_FUNCTION_NUMBER_1      1u
 #define MSS_SDIO_FUNCTION_NUMBER_2      2u
@@ -285,7 +379,7 @@ MSS_MMC_sdma_read(), MSS_MMC_adma2_write(), MSS_MMC_adma2_read(),
 MSS_MMC_cq_init(), MSS_MMC_cq_write(), MSS_MMC_cq_read(),
 MSS_MMC_sdio_single_block_read(), MSS_MMC_sdio_single_block_write() functions.
 */
-typedef enum
+typedef enum mss_mmc_status
 {
     MSS_MMC_INIT_SUCCESS = 0u,
     MSS_MMC_INIT_FAILURE,
@@ -342,7 +436,7 @@ typedef enum
   of this structure should be passed as the first parameter to the 
   MSS_MMC_init() function.
  */
-typedef struct
+typedef struct mss_mmc_cfg
 {
     /* Specifies the clock frequency of the eMMC/SD/SDIO devices */
      uint32_t clk_rate;
@@ -390,10 +484,11 @@ typedef void (*mss_mmc_handler_t)(uint32_t status);
   @return 
   This function returns the initialization status of the eMMC/SD/SDIO device as
   a value of type mss_mmc_status_t.
-
-  Example:
+  
+  @example
   The following example shows how to initialize the eMMC device and configure
   the data rate 25Mhz.
+
   @code
 
     mss_mmc_cfg_t g_mmc0;
@@ -443,9 +538,10 @@ MSS_MMC_init
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
 
-  Example:
+  @example
   The following example shows how to initialize the device, perform a single
   block transfer.
+
   @code
   
     #define SECT_1 0x01u
@@ -507,11 +603,12 @@ MSS_MMC_single_block_write
   @return
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
-   
-  Example:
+
+  @example
   The following example shows how to initialize the device, perform a single
   block transfer and read back the data from the sector written to within 
   the eMMC device.
+
   @code
 
     #define SECT_1 0x01u
@@ -589,10 +686,11 @@ MSS_MMC_single_block_read
   @return
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
-   
-  Example:
+
+  @example
   The following example shows how to initialize the device, perform a multi
   block write transfer using SDMA.
+
   @code
 
     #define SECT_1 0x01u
@@ -667,9 +765,10 @@ MSS_MMC_sdma_write
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
 
-  Example:
+  @example
   The following example shows how to initialize the device, perform a multi
   block read transfer using SDMA.
+
   @code
   
     #define SECT_1 0x01u
@@ -743,8 +842,8 @@ MSS_MMC_sdma_read
   @return
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
-   
-  Example:
+
+  @example
   The following example shows how to initialize the device, perform a multi
   block transfer using ADMA2.
   
@@ -822,9 +921,10 @@ MSS_MMC_adma2_write
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
 
-  Example:
+  @example
   The following example shows how to initialize the device, perform a multi
   block read transfer using ADMA2.
+
   @code
   
     #define SECT_1 0x01u
@@ -890,7 +990,7 @@ MSS_MMC_adma2_read
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
 
-  Example:
+  @example
   The following example shows how to initialize the SDIO device and perform
   single block transfer.
   
@@ -962,7 +1062,7 @@ MSS_MMC_sdio_single_block_write
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
 
-  Example:
+  @example
   The following example shows how to initialize the SDIO device and perform
   single block transfer.
 
@@ -1018,7 +1118,7 @@ MSS_MMC_sdio_single_block_read
         - MSS_MMC_TRANSFER_FAIL
         - MSS_MMC_RESPONSE_ERROR
 
-  Example:
+  @example
   The following example shows the use of MSS_MMC_get_transfer_status() function.
   
   @code
@@ -1051,7 +1151,7 @@ mss_mmc_status_t MSS_MMC_get_transfer_status(void);
   @return
     This function does not return a value.
 
-  Example:
+  @example
   The following example shows the use of MSS_MMC_set_handler() function.
 
   @code
@@ -1166,10 +1266,11 @@ mss_mmc_status_t MSS_MMC_cq_init(void);
   @return
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
-   
-  Example:
+
+  @example
   The following example shows how to initialize the device and perform a multi
   block transfer..
+
   @code
 
     #define SECT_1 0x01u
@@ -1250,7 +1351,7 @@ MSS_MMC_cq_write
   This function returns a value of type mss_mmc_status_t which specifies the
   transfer status of the operation.
 
-  Example:
+  @example
   The following example shows how to initialize the device and perform a multi
   block transfer.
 
@@ -1310,8 +1411,8 @@ MSS_MMC_cq_read
   @return
   This function returns a value of type mss_mmc_status_t which specifies the
   status of the operation.
-
-  Example:
+  
+  @example
   The following example shows how to initialize the device and perform a erase
   functionality.
 
@@ -1347,8 +1448,60 @@ MSS_MMC_erase
     uint32_t start,
     uint32_t count
 );
+
+/*-------------------------------------------------------------------------*//**
+  The MSS_MMC_error_recovery() function is used to check whether the error is
+  recoverable or non-recoverable. An error is detected and reported in
+  interrupt status register by read or write operation.
+
+  Note: The MSS_MMC_error_recovery() function is used for the generic operation
+  of error recovery procedure not for Command Queuing error recovery.
+
+  @param
+    This function has no parameters.
+
+  @return
+  This function returns a value of type mss_mmc_status_t. The possible return
+  values are:
+        - MSS_MMC_TRANSFER_SUCCESS - recoverable
+        - MSS_MMC_TRANSFER_FAIL - non-recoverable
+        
+  @example
+  The following example shows the use of MSS_MMC_error_recovery() function.
+
+  @code
+
+        mss_mmc_status_t ret_status;
+        ret_status = MSS_MMC_sdma_read(SECT_1, data_buffer, BUFFER_SIZE);
+        do
+        {
+            ret_status = MSS_MMC_get_transfer_status();
+        } while(ret_status == MSS_MMC_TRANSFER_IN_PROGRESS)
+
+        if (ret_status == MSS_MMC_TRANSFER_FAIL)
+        {
+            ret_status = MSS_MMC_error_recovery();
+            if (ret_status == MSS_MMC_TRANSFER_SUCCESS)
+            {
+                // recoverable
+                ret_status = MSS_MMC_sdma_read(SECT_1, data_buffer,BUFFER_SIZE);
+                do
+                {
+                    ret_status = MSS_MMC_get_transfer_status();
+                } while(ret_status == MSS_MMC_TRANSFER_IN_PROGRESS);
+            }
+            else
+            {
+                // non-recoverable
+            }
+        }
+
+  @endcode
+ */
+mss_mmc_status_t MSS_MMC_error_recovery(void);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* __MSS_MMC_H */
+#endif  /* MSS_MMC_H */
