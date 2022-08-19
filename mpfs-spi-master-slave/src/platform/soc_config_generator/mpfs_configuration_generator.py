@@ -15,15 +15,17 @@ from pathlib import Path
 # --------------------------------------------------------------------------------------------
 # mpfs_configuration_generator.py version
 #
-# 0.6.3 bug fix related to multiple xml file selection. and added libero design information 
-# constants in fpga_design_config.h/ removed date,version and design information from all the files
-# except fpga_design_config.h
+# 0.6.3 target folder name change from "fpga_config" -> fpga_design config, filename 
+#		hw_platform.h changed to fpga_design_config.h ,
+#		bug fix related to multiple xml file selection and added libero design information 
+# 		constants in fpga_design_config.h/ removed date,version and design information from all the files
+# 		except fpga_design_config.h
 #
 # 0.6.2 added support for multiple xml file found in input folder
 #       /empty xml file check/ xml filename arg in current folder/
 #       if multiple files are there then the file with the latest time stamp will 
 #       be selected. 
-# 0.6.1 changed target folder name from soc_config to fpga_design_config
+# 0.6.1 changed target folder name from soc_config to fpga_config
 #
 # 0.5.2 Aries Embedded Feedback: remove trailing spaces.
 # 0.5.1 Added check that the source XML document is more recent than content of already existing

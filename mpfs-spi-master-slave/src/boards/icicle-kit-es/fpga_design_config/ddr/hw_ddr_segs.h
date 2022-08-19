@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -41,8 +41,8 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_SEG0_1)
 /*Cached access at 0x10_0000_000 */
-#define LIBERO_SETTING_SEG0_1    0x80007030UL
-    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7030 */
+#define LIBERO_SETTING_SEG0_1    0x80007002UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7002 */
     /* RESERVED                          [15:16] RW value= 0x0 */
     /* LOCKED                            [31:1]  RW value= 0x1 */
 #endif
@@ -104,8 +104,8 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_SEG1_2)
 /*Non-Cached access at 0x00_c000_0000 */
-#define LIBERO_SETTING_SEG1_2    0x80007FB0UL
-    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7FB0 */
+#define LIBERO_SETTING_SEG1_2    0x80007FB8UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7FB8 */
     /* RESERVED                          [15:16] RW value= 0x0 */
     /* LOCKED                            [31:1]  RW value= 0x1 */
 #endif
@@ -118,8 +118,8 @@ extern  "C" {
 #endif
 #if !defined (LIBERO_SETTING_SEG1_4)
 /*Non-Cached WCB access at 0x00_d000_0000 */
-#define LIBERO_SETTING_SEG1_4    0x80007FA0UL
-    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7FA0 */
+#define LIBERO_SETTING_SEG1_4    0x80007FA8UL
+    /* ADDRESS_OFFSET                    [0:15]  RW value= 0x7FA8 */
     /* RESERVED                          [15:16] RW value= 0x0 */
     /* LOCKED                            [31:1]  RW value= 0x1 */
 #endif

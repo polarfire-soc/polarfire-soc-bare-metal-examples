@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -126,6 +126,23 @@ uint64_t d
 );
 
 /***************************************************************************//**
+  The uprint() function is used to print to the designated debug port
+
+  Example:
+  @code
+
+  (void)uprint(g_debug_uart, "\n\r DDR_TRAINING_FAIL: ");
+
+  @endcode
+ */
+void
+uprint
+(
+mss_uart_instance_t * uart,
+const char* msg
+);
+
+/***************************************************************************//**
   The error_status() function is used to print to the designated debug port
 
   Example:
@@ -227,6 +244,14 @@ uint32_t no_of_iterations,
 uint32_t size
 );
 
+/***************************************************************************//**
+ *
+ */
+void
+execute_ddr_pattern
+(
+uint64_t start_addr
+);
 
 
 
