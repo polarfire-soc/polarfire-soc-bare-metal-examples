@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -61,8 +61,8 @@
   only.
 
  *//*=========================================================================*/
-#ifndef __MSS_MMC_INTERNAL_API_H
-#define __MSS_MMC_INTERNAL_API_H
+#ifndef MSS_MMC_INTERNAL_API_H
+#define MSS_MMC_INTERNAL_API_H
 
 #ifdef __cplusplus
 extern "C"
@@ -607,4 +607,4 @@ MSS_MMC_cq_single_task_read
 }
 #endif
 
-#endif  /* __MSS_MMC_INTERNAL_API_H */
+#endif  /* MSS_MMC_INTERNAL_API_H */

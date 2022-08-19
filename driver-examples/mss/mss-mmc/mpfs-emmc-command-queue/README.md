@@ -17,9 +17,9 @@ eMMC controller as well as the target eMMC device and then executes data transfe
 on the eMMC device using command queues. Status messages are displayed on the UART terminal.
 
 This example is tested on the PolarFire SoC Icicle kit with the latest released
-[reference design](https://github.com/polarfire-soc/icicle-kit-reference-design/releases).
+[reference design](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design).
 
-This project provides build configurations and debug launchers as explained [here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md).
+This project provides build configurations and debug launchers as explained [here](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples).
 Following changes are made to the default build configurations for this project:
  - LIM-Release: Uses mpfs-envm.ld
  - eNVM-Scratchpad-Release: Is not provided because LIM and scratchpad sizes as configured by reference design are not enough for this project.

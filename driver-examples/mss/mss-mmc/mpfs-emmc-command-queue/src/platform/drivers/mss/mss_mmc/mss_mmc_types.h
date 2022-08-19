@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef __MSS_MMC_TYPE_H
-#define __MSS_MMC_TYPE_H
+#ifndef MSS_MMC_TYPE_H
+#define MSS_MMC_TYPE_H
 
 #ifdef __cplusplus
 extern "C"
@@ -244,4 +244,4 @@ typedef enum
 }
 #endif
 
-#endif  /* __MSS_MMC_TYPE_H */
+#endif  /* MSS_MMC_TYPE_H */

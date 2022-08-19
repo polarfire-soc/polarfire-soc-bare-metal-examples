@@ -1,5 +1,5 @@
  /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef __MSS_MMC_REGS_H_
-#define __MSS_MMC_REGS_H_
+#ifndef MSS_MMC_REGS_H_
+#define MSS_MMC_REGS_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -1216,4 +1216,4 @@ static inline uint32_t CQ_DESC_DCMD_SET_CMD_INDEX(uint32_t idx)
 }
 #endif
 
-#endif /* __MSS_MMC_REGS_H_ */
+#endif /* MSS_MMC_REGS_H_ */
