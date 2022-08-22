@@ -39,7 +39,9 @@ void e51(void)
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
     MSS_UART_polled_tx_string(&g_mss_uart0_lo ,
-            (const uint8_t*)"\r\nPlease observe UART-1 for application messages\r\n");
+            (const uint8_t*)"\r\nThis message is from E51.\
+            Application will execute from U54_1.\r\n\
+    ");
 
     /* Raise software interrupt to wake hart 1 */
     raise_soft_interrupt(1U);

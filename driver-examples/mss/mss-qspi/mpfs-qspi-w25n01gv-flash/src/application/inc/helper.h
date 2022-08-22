@@ -61,4 +61,11 @@ void display_output
     uint8_t* in_buffer,
     uint32_t byte_length
 );
+
+void display_output_reverse
+(
+    uint8_t* in_buffer,
+    uint32_t byte_length
+);
+
 #endif /* __HELPER_H_ */

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solution.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -39,7 +39,8 @@ void e51(void)
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
     MSS_UART_polled_tx_string(&g_mss_uart0_lo ,
-            (const uint8_t*)"\r\nPlease observe UART-1 for application messages\r\n");
+            (const uint8_t*)"\r\nThis message is from E51.\r\n\
+> Application will execute from U54.\r\n");
 
     /* Raise software interrupt to wake hart 1 */
     raise_soft_interrupt(1U);

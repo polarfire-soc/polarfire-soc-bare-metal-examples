@@ -1,5 +1,5 @@
 /***************************************************************************//**
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -22,14 +22,12 @@
  * IN THE SOFTWARE.
  *
  *
- * Driver for WINBOND W25N01 QSPI flash memory.
+ * APIs for the Winbond w25n01gv flash driver.
  * This driver uses the MPFS MSS QSPI driver interface.
- */
+ /*=========================================================================*/
+#ifndef MSS_WINBOND_MT25Q_H_
+#define MSS_WINBOND_MT25Q_H_
 
-#ifndef MSS_WINBOND_W25N_H_
-#define MSS_WINBOND_W25N_H_
-
-#include <stddef.h>
 #include <stdint.h>
 #include "drivers/mss/mss_qspi/mss_qspi.h"
 
@@ -37,114 +35,341 @@
 extern "C" {
 #endif
 
-extern mss_qspi_config_t qspi_config;
-#define JEDEC_ID_LENGTH     3
-
-/*-----------------------------------------------------------------------------
- * Configure the MSS QSPI
+/*-------------------------------------------------------------------------*//**
+ * The flash_info defines the flash parameters
  */
-void Flash_init
+typedef struct flash_info {
+    uint32_t jedecid;
+    uint32_t pagesize;
+    uint32_t pagesperblock;
+    uint32_t blocksperdie;
+    const char * const name;
+} flash_info_t;
+
+/*-------------------------------------------------------------------------*//**
+ * The w25_bb_lut_entry_t defines the lookup table intry in the Winbond NAD
+ * flash memory device.
+ */
+typedef struct w25_bb_lut_entry {
+    uint8_t enable;
+    uint8_t invalid;
+    uint16_t lba;
+    uint16_t pba;
+} w25_bb_lut_entry_t;
+
+/*-------------------------------------------------------------------------*//**
+  The Flash_init() function initializes the MSS QSPI and the flash memory to
+  normal SPI operations. The g_qspi_config.io_format is used for the read/write
+  operations to choose the Flash memory commands accordingly.
+  This function must be called before calling any other function provided by
+  this driver.
+
+  The Winbondw25n01gv device expects the command-address bytes on DQ0 always.
+  Hence the only MSS QSPI IO formats that can be used are MSS_QSPI_NORMAL,
+  MSS_QSPI_DUAL_EX_RO, MSS_QSPI_QUAD_EX_RO.
+
+  Furthermore, the DUAL operations are not supported by the flash program
+  commands (Flash read supports dual and quad IOs).
+  When dual operations are selected the programming operations will fall-back
+  to normal mode. Reads will happen on quad IO.
+
+  It is recommended that QUAD mode is selected for faster operations.
+
+  @param io_format
+  The io_format parameter provides the SPI IO format that needs to be used for
+  read/write operations.
+
+  @return
+    This function does not returns any value
+
+  @example
+
+  ##### Example1
+
+  Example
+
+  @code
+
+  @endcode
+
+*/
+void
+Flash_init
 (
     mss_qspi_io_format io_format
 );
 
-/* Read winbond flash device ID
- */
-void Flash_readid(uint8_t* rd_buf);
+/*-------------------------------------------------------------------------*//**
+  The Flash_readid() function returns first 3 bytes of data of the device JEDEC ID.
 
-/* Erase the flash memory
- */
-void Flash_erase(void);
+  @param buf
+  The rd_buf parameter provides a pointer to the buffer in which the driver will
+  copy the JEDEC ID data. The buffer must be at least 3 bytes long.
 
-/* Erase the complete flash memory.
- */
-void Flash_die_erase(void);
+  @return
+    This function does not returns any value
 
-/* Read flash memory data
- */
-void Flash_read
+  @example
+
+  ##### Example1
+
+  Example
+
+  @code
+
+  @endcode
+
+*/
+void
+Flash_readid
+(
+    uint8_t* buf
+);
+
+/*-------------------------------------------------------------------------*//**
+  The Flash_read() function reads data from the flash memory.
+  It first checks the block that the page resides is a good or bad block
+  and if it is bad block then the current block will be skipped for reading
+  and will use next available good block.
+
+  @param buf
+  The buf parameter is a pointer to the buffer in which the driver will
+  copy the data read from the flash memory.
+
+  @param addr
+  The addr parameter is the address in the flash memory from which the driver
+  will read the data.
+
+  @param len
+  The len parameter is the number of 8-bit bytes that will be read from the flash
+  memory starting with the address indicated by the addr parameter.
+
+  @return
+    This function does not returns any value
+
+  @example
+
+  ##### Example1
+
+  Example
+
+  @code
+
+  @endcode
+
+*/
+void
+Flash_read
 (
     uint8_t* buf,
-    uint32_t read_addr,
-    uint32_t read_len
+    uint32_t addr,
+    uint32_t len
 );
 
-/* Read winbond flash status register
- */
-void Flash_read_statusreg
+/*-------------------------------------------------------------------------*//**
+  The Flash_erase() function erases the complete device.
+  It first checks the block whether it is a bad block or good block.
+  As per the data sheet of winbond the non 0xFF at the first byte of spare
+  area will be a bad block.
+
+  @return
+    This function returns erase status value.
+
+  @example
+
+  ##### Example1
+
+  Example
+
+  @code
+
+  @endcode
+
+*/
+uint8_t
+Flash_erase
 (
-    uint8_t* rd_buf
+    void
 );
 
-/* Program the flash memory
- */
+/*-------------------------------------------------------------------------*//**
+  The Flash_program() function writes data into the flash memory.
+  It first checks the block that the page resides is a good or bad block
+  and if it is bad block then the current block will be skipped for writing
+  and will use next available good block.
+
+  @param buf
+  The rd_buf parameter provides a pointer to the buffer from which the data
+  needs to be written into the flash memory.
+
+  @param addr
+  The addr parameter is an address in the flash memory to which the data will be
+  written to.
+
+  @param len
+  The len parameter indicates the number of 8-bit bytes that will be written to
+  the flash memory starting from the address indicated by the addr parameter.
+
+  @return
+    This function returns a non-zero value if there was an error during program
+    operation. A zero return value indicates success.
+
+  @example
+
+  ##### Example1
+
+  Example
+
+  @code
+
+  @endcode
+
+*/
 uint8_t Flash_program
 (
     uint8_t* buf,
-    uint32_t wr_addr,
-    uint32_t wr_len
+    uint32_t addr,
+    uint32_t len
 );
 
-void Flash_sector_erase(uint32_t addr);
+/*-------------------------------------------------------------------------*//**
+  The Flash_scan_for_bad_blocks() function scans for bad blocks within the flash
+  memory. The NAND flash devices are allowed to be shipped with certain number of
+  bad blocks. In such cases, the flash device is shipped with bad blocks markers
+  written into the respective bad blocks. The markers will be permanently lost
+  if the block is written or erased. This function can be called on a unused
+  device to know the factory marked bad blocks before erasing or writing on those
+  block. The bad blocks can then be re-mapped to good blocks by adding a bad
+  block (lba) to good block (pba) mapping in the lookup table (LUT) within the
+  flash memory using the Flash_add_entry_to_bb_lut() function. Maximum 20 entries
+  are allowed in the lookup table in the W25N01 devices. Only the first block of
+  the shipped device is guaranteed to be a good block.
 
-void Flash_read_flagstatusreg
+  Bad blocks can also be developed during the regular usage of the flash memory
+  device. These should be handled as and when errors happen during program/erase
+  operations and the LUT should be updated accordingly.
+
+  @param buf
+  The buf parameter is a pointer to the buffer in which the driver will
+  write the block numbers of the blocks containing the bad-block marker. The
+  buffer must be larg enough to contain 20 block numbers.
+
+  @return
+    This function returns the total number of bad blocks found during the scan.
+
+  @example
+
+  ##### Example1
+
+  Example
+
+  @code
+
+  @endcode
+
+*/
+uint32_t
+Flash_scan_for_bad_blocks
 (
-    uint8_t* rd_buf
+    uint16_t* buf
 );
 
-void Flash_force_normal_mode
+/*-------------------------------------------------------------------------*//**
+  The Flash_read_status_regs() function reads all three status registers
+
+  @param buf
+  The buf parameter is a pointer to the buffer in which the driver will
+  copy the status register values. The buffer should be large enough to store 3
+  8-bit bytes.
+
+  @return
+    This function does not return any value.
+
+  @example
+
+  ##### Example1
+
+  Example
+
+  @code
+
+  @endcode
+
+*/
+void
+Flash_read_status_regs
 (
-    void
+    uint8_t * buf
 );
 
-mss_qspi_io_format Flash_probe_io_format
+/*-------------------------------------------------------------------------*//**
+  The Flash_read_bb_lut() function reads the look up table (LUT) in the flash
+  memory that contains the bad block (lba) to good block (pba) mapping.
+
+  @param lut_ptr
+  The lut_ptr parameter is a pointer to the buffer in which the driver will
+  copy the LUT data read from the flash memory. The buffer must be large enough
+  to hold 20 LUT entries of type w25_bb_lut_entry_t.
+
+  @return
+    This function returns the number of valid bad block mappings in the LUT.
+
+  @example
+
+  ##### Example1
+
+  Example
+
+  @code
+
+  @endcode
+
+*/
+uint8_t Flash_read_bb_lut
 (
-    void
+    w25_bb_lut_entry_t* lut_ptr
 );
 
-static inline void Flash_init_normal(void)
-{
-    qspi_config.clk_div =  MSS_QSPI_CLK_DIV_2;
-    qspi_config.sample = MSS_QSPI_SAMPLE_POSAGE_SPICLK;
-    qspi_config.spi_mode = MSS_QSPI_MODE3;
-    qspi_config.xip = MSS_QSPI_DISABLE;
-    qspi_config.io_format = MSS_QSPI_NORMAL;
-    MSS_QSPI_configure(&qspi_config);
-}
+/*-------------------------------------------------------------------------*//**
+  The Flash_add_entry_to_bb_lut() function adds an entry to the look up table
+  (LUT) in the flash memory that contains the bad block (lba) to good block
+  (pba) mapping. When the bad blocks are found during the initial bad block scan
+  ( using Flash_scan_for_bad_blocks() function) or when a bad block is found
+  during regular operation (indicated by errors during programming or erase
+  operation), this function can be used to map these bad block to a good block
+  where no errors are seen so far.
 
-/* Winbond flash instruction set */
+  After the LUT entry is added, any access to the bad block will be directed to
+  the mapped good block. The bad block will not be accessed.
 
-#define WINBOND_DEVICE_RESET                    0xFF
-#define WINBOND_READ_JEDEC_ID_OPCODE            0x9F
-#define WINBOND_READ_STATUS_REGISTER            0x0F
-#define WINBOND_WRITE_STATUS_REG                0x01
-#define WINBOND_WRITE_DISABLE                   0x04
-#define WINBOND_WRITE_ENABLE                    0x06
-#define WINBOND_READ_DATA                       0x03
-#define WINBOND_BB_MANAGEMENT                   0xA1
-#define WINBOND_READ_BBM_LUT                    0xA5
-#define WINBOND_ECC_FAILURE_PAGE_ADDR           0xA9
-#define WINBOND_BLOCK_ERASE                     0xD8
-#define WINBOND_DATA_LOAD                       0x02
-#define WINBOND_RANDOM_PROG_DATA_LOAD           0x84
-#define WINBOND_QUAD_PROG_DATA_LOAD             0x32
-#define WINBOND_RANDOM_QUAD_PROG_DATA_LOAD      0x34
-#define WINBOND_PROGRAM_EXECUTE                 0x10
-#define WINBOND_PAGE_DATA_READ                  0x13
-#define WINBOND_READ                            0x03
-#define WINBOND_FAST_READ                       0x0B
-#define WINBOND_FAST_READ_4B_ADDR               0x0C
-#define WINBOND_FAST_READ_DUAL_OUTPUT           0x3B
-#define WINBOND_FAST_READ_DUAL_OUTPUT_4B_ADDR   0x3C
-#define WINBOND_FAST_READ_QUAD_OUTPUT           0x6B
-#define WINBOND_FAST_READ_QUAD_OUTPUT_4B_ADDR   0x3C
-#define WINBOND_FAST_READ_DUAL_IO               0xBB
-#define WINBOND_FAST_READ_DUAL_IO_4B_ADDR       0xBC
-#define WINBOND_FAST_READ_QUAD_IO               0xEB
-#define WINBOND_FAST_READ_QUAD_IO_4B_ADDR       0xEC
+  @param lba
+  The lba parameter is the block number of the bad block.
+
+  @param pba
+  The pba parameter is the block number of a good block.
+
+  @return
+    This function returns the number of valid bad block mappings in the LUT.
+
+  @example
+
+  ##### Example1
+
+  Example
+
+  @code
+
+  @endcode
+
+*/
+void
+Flash_add_entry_to_bb_lut
+(
+    uint16_t lba, uint16_t pba
+);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* MSS_WINBOND_W25N_H_*/
+#endif

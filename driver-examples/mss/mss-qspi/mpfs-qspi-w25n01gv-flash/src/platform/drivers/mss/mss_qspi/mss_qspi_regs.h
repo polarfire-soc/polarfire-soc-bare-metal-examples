@@ -1,5 +1,5 @@
  /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  * 
@@ -54,6 +54,7 @@ extern "C" {
 #define FRMS_IDLE_MASK                          (0xFu << FRMS_IDLE)
 #define FRMS_FBYTE_MASK                         (0x1u << FRMS_FBYTE)
 #define FRMS_FWORD_MASK                         (0x1u << FRMS_FWORD)
+#define FRMS_UBYTES_MASK                        0xFFFF0000u
 
 #define INTE_TDONE                              0u
 #define INTE_RDONE                              1u

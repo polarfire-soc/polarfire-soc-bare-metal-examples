@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -55,12 +55,12 @@ These burn static power.(0x01 => turn off ; 0x00 => no action ) */
 #endif
 #if !defined (LIBERO_SETTING_TIP_CFG_PARAMS)
 /*Tip config: default: 0x2,0x4,0x0,0x1F,0x1F */
-#define LIBERO_SETTING_TIP_CFG_PARAMS    0x07CFE02AUL
-    /* ADDCMD_OFFSET                     [0:3]   RW value= 0x2 */
+#define LIBERO_SETTING_TIP_CFG_PARAMS    0x07CFE02FUL
+    /* ADDCMD_OFFSET                     [0:3]   RW value= 0x7 */
     /* BCKLSCLK_OFFSET                   [3:3]   RW value= 0x5 */
     /* WRCALIB_WRITE_COUNT               [6:7]   RW value= 0x0 */
-    /* READ_GATE_MIN_READS               [13:8]  RW value= 0x7F */
-    /* ADDRCMD_WAIT_COUNT                [22:8]  RW value= 0x1F */
+    /* READ_GATE_MIN_READS               [13:9]  RW value= 0x7F */
+    /* ADDRCMD_WAIT_COUNT                [22:9]  RW value= 0x1F */
 #endif
 #if !defined (LIBERO_SETTING_TIP_CONFIG_PARAMS_BCLK_VCOPHS_OFFSET)
 /*in simulation we need to set this to 2, for hardware it will be dependent on
