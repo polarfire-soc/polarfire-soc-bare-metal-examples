@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -613,7 +613,10 @@ void MSS_QSPI_polled_transfer_block
 
   @param rd_buffer
     The rd_buffer parameter is the pointer to the buffer where the data returned
-    by the target memory device is to be stored.
+    by the target memory device is to be stored. This must be correctly set
+    based on the transfer i.e. for the status, readid and other configuration
+    read commands this must be set and for the configuration write commands
+    this will be NULL.
 
   @param rd_byte_size
     The rd_byte_size parameter is the exact number of bytes that needs to be

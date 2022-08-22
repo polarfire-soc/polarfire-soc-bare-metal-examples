@@ -310,3 +310,28 @@ uint8_t enable_dma
     
     return dma_enable;
 }
+
+void display_output_reverse
+(
+    uint8_t* in_buffer,
+    uint32_t byte_length
+)
+{
+    uint32_t inc;
+    uint8_t byte = 0;
+
+    MSS_UART_polled_tx(g_uart, (const uint8_t*)" ", sizeof(" "));
+    for(inc = byte_length; inc > 0; inc--)
+    {
+        if((inc > 1u) &&(0u == (inc % 16u)))
+        {
+            MSS_UART_polled_tx(g_uart, (const uint8_t*)"\r\n ", sizeof("\r\n "));
+        }
+
+        byte = in_buffer[inc-1];
+        MSS_UART_polled_tx(g_uart, &hex_chars[((byte & 0xF0) >> 4) ], 1);
+        MSS_UART_polled_tx(g_uart, &hex_chars[(byte & 0x0F)], 1);
+        MSS_UART_polled_tx(g_uart, (const uint8_t*)" ", sizeof(" "));
+    }
+
+}

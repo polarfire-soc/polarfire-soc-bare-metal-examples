@@ -29,4 +29,4 @@ To enable interrupt mode, define a constant USE_QSPI_INTERRUPT in
 src/platform/drivers/off_chip/micron_mt25/micron_mt25.c.
 
 This project provides build configurations and debug launchers as exaplained
-[here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)
+[here](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples)
