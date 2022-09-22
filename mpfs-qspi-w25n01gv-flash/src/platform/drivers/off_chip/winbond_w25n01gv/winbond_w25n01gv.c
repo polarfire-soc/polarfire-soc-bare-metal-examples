@@ -751,7 +751,7 @@ program_page
         }
 
         send_write_enable_command();
-        QSPI_TRANSFER_BLOCK(2, command_buf, MSS_QSPI_WR_BUF_LIMIT, (uint8_t*)0,
+        QSPI_TRANSFER_BLOCK(2, command_buf, subpage_length, (uint8_t*)0,
                 0,0);
         read_statusreg(STATUS_REG_3, &status);
 

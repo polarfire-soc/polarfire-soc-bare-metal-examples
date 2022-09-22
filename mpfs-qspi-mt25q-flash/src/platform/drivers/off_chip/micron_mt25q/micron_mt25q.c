@@ -350,7 +350,7 @@ Flash_program
     {
         uint32_t page_length;
 
-        if(remaining_length >= len)
+        if(remaining_length >= PAGE_LENGTH)
         {
             page_length = PAGE_LENGTH;
         }
@@ -363,6 +363,7 @@ Flash_program
 
         remaining_length -= page_length;
         target_offset += page_length;
+        buf += page_length;
     }
 
     return (status);
