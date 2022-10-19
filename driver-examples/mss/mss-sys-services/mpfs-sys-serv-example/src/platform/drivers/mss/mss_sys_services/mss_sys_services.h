@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -1652,6 +1652,13 @@ MSS_SYS_digest_check
                Below is the list of the possible meaning of spiaddr parameter
                in accordance with the iap_cmd parameter. Please refer function 
                description for more information of spiaddr parameter.
+  @param mb_offset
+                    The mb_offset parameter specifies the offset from the start
+                    of mailbox where the data related to this service is
+                    available. All accesses to the mailbox are of word length
+                    (4 bytes). A value 10 (decimal) of this parameter would
+                    mean that the data access area for this service, in the
+                    mailbox starts from 11th word (offset 10).
   @return
                     This function returns a value to indicate whether the
                     service was executed successfully or not. A zero value
@@ -1665,7 +1672,8 @@ uint16_t
 MSS_SYS_execute_iap
 (
     uint8_t iap_cmd,
-    uint32_t spiaddr
+    uint32_t spiaddr,
+    uint16_t mb_offset
 );
 
 /*-------------------------------------------------------------------------*//**
