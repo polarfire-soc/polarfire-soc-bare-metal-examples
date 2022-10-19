@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  * 
@@ -38,14 +38,13 @@ extern "C" {
 /*******************************************************************************
  * Global variables declarations
  */
-volatile uint8_t g_message_received = 0u;
-uint8_t g_service_mode = 0u;
+static uint8_t g_service_mode = 0u;
+static uint8_t* gp_int_service_response;
+static uint16_t g_int_service_response_size;
+static uint16_t g_int_service_response_offset;
+static uint16_t g_mb_offset;
 
-uint8_t* gp_int_service_response;
-uint16_t g_int_service_response_size;
-uint16_t g_int_service_response_offset;
-
-volatile uint8_t g_message_interrupt_counter = 0u;
+volatile static uint8_t g_message_interrupt_counter = 0u;
 
 /*******************************************************************************
  * Callback handler function declaration
@@ -1002,17 +1001,19 @@ uint16_t
 MSS_SYS_execute_iap
 (
     uint8_t iap_cmd,
-    uint32_t spiaddr
+    uint32_t spiaddr,
+    uint16_t mb_offset
 )
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
-    uint32_t l_spiaddr = spiaddr;
+    uint16_t l_mb_offset = 0u;
+    uint16_t cmd_data_size = 0u;
+    uint8_t* cmd_data = NULL;
     bool invalid_param  = false;
-
 
     if (((MSS_SYS_IAP_PROGRAM_BY_SPIIDX_CMD == iap_cmd)
     || (MSS_SYS_IAP_VERIFY_BY_SPIIDX_CMD == iap_cmd))
-    && (spiaddr == 1))
+    && (1 == spiaddr))
     {
         invalid_param = true;
         ASSERT(!invalid_param);
@@ -1020,26 +1021,57 @@ MSS_SYS_execute_iap
 
     if (!invalid_param)
     {
+        switch(iap_cmd)
+        {
+        case MSS_SYS_IAP_PROGRAM_BY_SPIIDX_CMD:
+        case MSS_SYS_IAP_VERIFY_BY_SPIIDX_CMD:
+            /*In SPI_IDX based program and verify commands,
+             *  Mailbox is not Required. Instead of mailbox offset
+             *  SPI_IDX is passed as parameter.*/
+            l_mb_offset = (uint16_t)(0xFFu & spiaddr);
+        break;
+
+        case MSS_SYS_IAP_PROGRAM_BY_SPIADDR_CMD:
+        case MSS_SYS_IAP_VERIFY_BY_SPIADDR_CMD:
+            /*In SPI_ADDR based program and verify commands,
+             *  Mailbox is Required*/
+            l_mb_offset = mb_offset;
+            /*command data size is four bytes holding the
+             * SPI Address in it.*/
+            cmd_data_size = MSS_SYS_IAP_SERVICE_DATA_LEN;
+            cmd_data = (uint8_t*)&spiaddr;
+        break;
+
+        case MSS_SYS_IAP_AUTOUPDATE_CMD:
+            /*In auto update command Mailbox is not Required*/
+            l_mb_offset = 0u;
+        break;
+
+        default:
+            l_mb_offset = 0u;
+
+        }
+
         if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
         {
             status = execute_ss_interrupt_mode(
                      (uint8_t)iap_cmd,
-                     (uint8_t*)&l_spiaddr,
-                     MSS_SYS_IAP_SERVICE_DATA_LEN,
+                     cmd_data,
+                     cmd_data_size,
                      NULL_BUFFER,
                      MSS_SYS_NO_RESPONSE_LEN,
-                     (uint16_t)spiaddr,
+                     (uint16_t)l_mb_offset,
                      MSS_SYS_COMMON_RET_OFFSET);
         }
         else
         {
             status = execute_ss_polling_mode(
                      (uint8_t)iap_cmd,
-                     (uint8_t*)&l_spiaddr,
-                     MSS_SYS_IAP_SERVICE_DATA_LEN,
+                     cmd_data,
+                     cmd_data_size,
                      NULL_BUFFER,
                      MSS_SYS_NO_RESPONSE_LEN,
-                     (uint16_t)spiaddr,
+                     (uint16_t)l_mb_offset,
                      MSS_SYS_COMMON_RET_OFFSET);
         }
     }
@@ -1900,7 +1932,7 @@ uint16_t MSS_SYS_read_response
             for (idx = g_int_service_response_offset; idx < response_limit; idx++)
             {
                 gp_int_service_response[idx - g_int_service_response_offset] =
-                        *((uint8_t *)MSS_SCBMAILBOX + idx);
+                        *( (uint8_t *)MSS_SCBMAILBOX + (g_mb_offset<<2) + idx);
             }
         }
 
@@ -1959,24 +1991,31 @@ static uint16_t request_system_service
         gp_int_service_response = (uint8_t*)p_response;
         g_int_service_response_offset = response_offset;
         g_int_service_response_size = response_size;
+        g_mb_offset = mb_offset;
     }
 
     if (cmd_data_size > 0u)
     {
         word_buf = (uint32_t*)cmd_data;
 
+        /* In 2k mailbox memory, 511 valid offset can be used because each
+         * address has 4 bytes stored.
+         * Note : In case of last mailbox offset precaution of mailbox size
+         * should be taken care for service to work properly.*/
+        ASSERT((mb_offset <= 511));
+
         /* Write the user data into mail box. */
         for (idx = 0u; idx < (cmd_data_size / 4u); idx++)
         {
-            *(MSS_SCBMAILBOX + idx) = word_buf[idx];
+            *(MSS_SCBMAILBOX + mb_offset + idx) = word_buf[idx];
         }
 
         if ((cmd_data_size % 4u) > 0u)
         {
-             byte_off = (((cmd_data_size / 4u) * 4u));
+             byte_off = (uint8_t)(((cmd_data_size / 4u) * 4u));
              byte_buf = (uint8_t*)(cmd_data + byte_off);
 
-             mailbox_reg = (MSS_SCBMAILBOX + idx);
+             mailbox_reg = (MSS_SCBMAILBOX + mb_offset + idx);
              mailbox_val = *mailbox_reg;
 
              for (byte_index = 0u; byte_index < (cmd_data_size % 4u);
@@ -2094,7 +2133,7 @@ static uint16_t execute_ss_polling_mode
             for (idx = response_offset; idx < response_limit; idx++)
             {
                 response_buf[idx - response_offset] =
-                        *((uint8_t *)MSS_SCBMAILBOX + idx);
+                        *( (uint8_t *)MSS_SCBMAILBOX + (mb_offset<<2) + idx);
             }
         }
 
