@@ -1,0 +1,10 @@
+/Debug*/
+/Release*/
+/.settings*/
+/core
+Jenkinsfile
+/DDR-Release/
+/eNVM-Scratchpad-Release/
+/LIM-Debug/
+/LIM-Release/
+**/.vscode/
