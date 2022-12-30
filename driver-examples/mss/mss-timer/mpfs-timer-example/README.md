@@ -46,4 +46,4 @@ Following options will be displayed on UART1 terminal.
 Upon choosing an option you will see messages appearing on the UART2 terminal when timer interrupt occurs .
 In the case of background load the messages will appear at different preprogrammed time intervals.  
 
-This project provides build configurations and debug launchers as explained [here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)
+This project provides build configurations and debug launchers as explained [here](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples)
