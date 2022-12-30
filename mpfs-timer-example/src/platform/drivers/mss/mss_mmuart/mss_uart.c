@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  * 
@@ -62,6 +62,7 @@ static uint32_t g_uart_axi_pos = 0x0u;
 #define FCR_TRIG_LEVEL_MASK             0xC0u
 
 #define IIRF_MASK                       0x0Fu
+#define IER_MASK                        0x0Du
 
 #define INVALID_INTERRUPT               0u
 #define INVALID_IRQ_HANDLER             ((mss_uart_irq_handler_t) 0)
@@ -439,7 +440,7 @@ MSS_UART_enable_irq
 {
     ASSERT(MSS_UART_INVALID_IRQ > irq_mask);
 
-    enable_irq(this_uart);
+
 
     if (MSS_UART_INVALID_IRQ > irq_mask)
     {
@@ -448,10 +449,13 @@ MSS_UART_enable_irq
          * bit 1 - Transmitter Holding  Register Empty Interrupt
          * bit 2 - Receiver Line Status Interrupt
          * bit 3 - Modem Status Interrupt
+         * 
+         * The use of the IER_MASK macro is to prevent the THRE to be
+         * set at this point of the design flow and to lead to a break
+         * later on.
          */
         this_uart->hw_reg->IER |= ((uint8_t)(((uint32_t)irq_mask &
-                                                         (uint32_t)IIRF_MASK)));
-
+                                                         (uint32_t)IER_MASK)));
 
         /* 
          * bit 4 - Receiver time-out interrupt
@@ -1650,7 +1654,7 @@ uart_isr
             }
 
             /* NACK interrupt */
-            if (this_uart->hw_reg->IIM &ENACKI)
+            if (this_uart->hw_reg->IIM & ENACKI_MASK)
             {
                 ASSERT(NULL_HANDLER != this_uart->nack_handler);
 
@@ -1661,7 +1665,7 @@ uart_isr
             }
 
             /* PID parity error interrupt */
-            if (this_uart->hw_reg->IIM & EPID_PEI)
+            if (this_uart->hw_reg->IIM & EPID_PEI_MASK)
             {
                 ASSERT(NULL_HANDLER != this_uart->pid_pei_handler);
 
@@ -1672,7 +1676,7 @@ uart_isr
             }
 
             /* LIN break detection interrupt */
-            if (this_uart->hw_reg->IIM & ELINBI)
+            if (this_uart->hw_reg->IIM & ELINBI_MASK)
             {
                 ASSERT(NULL_HANDLER != this_uart->break_handler);
 
@@ -1683,7 +1687,7 @@ uart_isr
             }
 
             /* LIN Sync detection interrupt */
-            if (this_uart->hw_reg->IIM & ELINSI)
+            if (this_uart->hw_reg->IIM & ELINSI_MASK)
             {
                 ASSERT(NULL_HANDLER != this_uart->sync_handler);
 
