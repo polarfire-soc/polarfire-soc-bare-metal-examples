@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -63,6 +63,12 @@ typedef enum DDR_ACCESS_SIZE_
     DDR_64_BIT
 } DDR_ACCESS_SIZE;
 
+typedef enum DDR_FILL_TYPE_
+{
+    DDR_TEST_FILL,
+    DDR_INIT_FILL
+} DDR_FILL_TYPE;
+
 
 /***************************************************************************//**
  The ddr_read_write_fn function is used to write/read test patterns to the DDR
@@ -123,6 +129,23 @@ uprint64
 mss_uart_instance_t * uart,
 const char* msg,
 uint64_t d
+);
+
+/***************************************************************************//**
+  The uprint() function is used to print to the designated debug port
+
+  Example:
+  @code
+
+  (void)uprint(g_debug_uart, "\n\r DDR_TRAINING_FAIL: ");
+
+  @endcode
+ */
+void
+uprint
+(
+mss_uart_instance_t * uart,
+const char* msg
 );
 
 /***************************************************************************//**
@@ -213,8 +236,9 @@ void
 load_ddr_pattern
 (
 uint64_t base,
-uint32_t size,
-uint8_t pattern_offset
+uint64_t size,
+uint32_t pattern_type,
+volatile uint8_t pattern_offset
 );
 
 /***************************************************************************//**
@@ -227,6 +251,14 @@ uint32_t no_of_iterations,
 uint32_t size
 );
 
+/***************************************************************************//**
+ *
+ */
+void
+execute_ddr_pattern
+(
+uint64_t start_addr
+);
 
 
 

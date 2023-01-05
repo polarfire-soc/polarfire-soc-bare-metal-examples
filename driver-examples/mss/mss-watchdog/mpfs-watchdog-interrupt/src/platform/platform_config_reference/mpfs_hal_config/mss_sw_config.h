@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -161,8 +161,15 @@
  * The reason you may want to use below is to save code space.
  */
 #define SGMII_SUPPORT
-#define DDR_SUPPORT
+//#define DDR_SUPPORT
 #define MSSIO_SUPPORT
+
+/*
+ * Uncomment MICROCHIP_STDIO_THRU_MMUARTx to enable stdio port
+ * Note: you must have mss_mmuart driver source code included in the project.
+ */
+//#define MICROCHIP_STDIO_THRU_MMUARTX    &g_mss_uart0_lo
+//#define MICROCHIP_STDIO_BAUD_RATE       MSS_UART_115200_BAUD
 
 /*
  * DDR software options
