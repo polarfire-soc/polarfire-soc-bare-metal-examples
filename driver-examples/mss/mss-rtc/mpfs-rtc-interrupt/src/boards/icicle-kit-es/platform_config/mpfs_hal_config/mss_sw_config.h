@@ -61,11 +61,11 @@
  * your application to the target memory and kicks-off U54_1 to run it.
  */
 #ifndef MPFS_HAL_FIRST_HART
-#define MPFS_HAL_FIRST_HART  1
+#define MPFS_HAL_FIRST_HART  0
 #endif
 
 #ifndef MPFS_HAL_LAST_HART
-#define MPFS_HAL_LAST_HART   1
+#define MPFS_HAL_LAST_HART   4
 #endif
 
 /*
@@ -94,7 +94,7 @@
  *   MPFS_HAL_LAST_HART above
  *
  */
-#define IMAGE_LOADED_BY_BOOTLOADER 1
+#define IMAGE_LOADED_BY_BOOTLOADER 0
 #if (IMAGE_LOADED_BY_BOOTLOADER == 0)
 #define MPFS_HAL_HW_CONFIG
 #endif
@@ -161,7 +161,7 @@
  * The reason you may want to use below is to save code space.
  */
 #define SGMII_SUPPORT
-#define DDR_SUPPORT
+//#define DDR_SUPPORT
 #define MSSIO_SUPPORT
 
 /*
