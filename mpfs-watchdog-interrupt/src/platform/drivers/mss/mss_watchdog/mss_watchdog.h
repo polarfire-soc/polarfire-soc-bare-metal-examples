@@ -551,7 +551,7 @@ MSS_WD_enable_mvrp_irq
     mss_watchdog_num_t wd_num
 )
 {
-    wdog_hw_base[wd_num]->STATUS |= 0x03;
+ 
     if ((WATCHDOG_TypeDef*)0 != wdog_hw_base[wd_num])
     {
         wdog_hw_base[wd_num]->CONTROL |= MSS_WDOG_INTEN_MVRP_MASK;
