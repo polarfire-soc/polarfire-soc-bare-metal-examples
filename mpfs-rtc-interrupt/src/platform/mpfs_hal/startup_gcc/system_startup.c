@@ -601,28 +601,6 @@ __attribute__((weak)) void u54_4(void)
     }
   }
 
- /**
-  * This function is configured by editing parameters in
-  * mss_sw_config.h as required.
-  * @return
-  */
-
-__attribute__((weak)) uint8_t init_bus_error_unit(void)
-{
-    uint8_t hart_id;
-    /* Init BEU in all harts - enable local interrupt */
-    for(hart_id = MPFS_HAL_FIRST_HART; hart_id <= MPFS_HAL_LAST_HART; hart_id++)
-    {
-        BEU->regs[hart_id].ENABLE      = (uint64_t)BEU_ENABLE;
-        BEU->regs[hart_id].PLIC_INT    = (uint64_t)BEU_PLIC_INT;
-        BEU->regs[hart_id].LOCAL_INT   = (uint64_t)BEU_LOCAL_INT;
-        BEU->regs[hart_id].CAUSE       = 0ULL;
-        BEU->regs[hart_id].ACCRUED     = 0ULL;
-        BEU->regs[hart_id].VALUE       = 0ULL;
-    }
-    return (0U);
-}
-
 /**
  * init_mem_protection_unit(void)
  * add this function to you code and configure as required

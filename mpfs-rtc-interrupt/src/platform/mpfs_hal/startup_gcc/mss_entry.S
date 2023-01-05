@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip Corporation.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -272,7 +272,6 @@ _start:
     nop
     nop
     j .LoopForeverOther
-
 
 #else   /* IMAGE_LOADED_BY_BOOTLOADER == 1 */
 /*******************************************************************************
