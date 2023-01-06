@@ -336,7 +336,7 @@ uint8_t mss_nwc_init_ddr(void)
 
     uint32_t  ddr_status;
     ddr_status = ddr_state_machine(DDR_SS__INIT);
-    next_time = 0U;
+    next_time = rdcycle() + DELAY_CYCLES_100MS;
     while((ddr_status & DDR_SETUP_DONE) != DDR_SETUP_DONE)
     {
         ddr_status = ddr_state_machine(DDR_SS_MONITOR);
@@ -358,7 +358,7 @@ uint8_t mss_nwc_init_ddr(void)
  */
 static uint64_t report_status_functions(MSS_REPORT_STATUS report_status, uint64_t next_time)
 {
-    if (next_time >= rdcycle())
+    if (next_time <= rdcycle())
     {
         switch(report_status)
         {
