@@ -1,5 +1,5 @@
 /***************************************************************************//**
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  * 
@@ -133,7 +133,8 @@ void MSS_SPI_init
 {
     uint16_t slave;
 
-    ASSERT((this_spi == &g_mss_spi0_lo) || (this_spi == &g_mss_spi1_lo));
+ASSERT((this_spi == &g_mss_spi0_lo) || (this_spi == &g_mss_spi0_hi) 
+        || (this_spi == &g_mss_spi1_lo) || (this_spi == &g_mss_spi1_hi));
 
     /* Initialize SPI driver instance data. Relies on the majority
      * of data requiring 0 for initial state so we just need to fill
