@@ -858,6 +858,10 @@ typedef enum DDR_MEMORY_ACCESS_
     /* RESERVED                          [15:16] RW value= 0x0 */
     /* LOCKED                            [31:1]  RW value= 0x0 */
 
+#ifndef TWO_MBYTES
+#define TWO_MBYTES  0x200000
+#endif
+
 /***************************************************************************//**
 
  */
@@ -968,6 +972,7 @@ typedef enum DDR_TRAINING_SM_
     DDR_TRAINING_VREFDQ_CALIB,
     DDR_TRAINING_FPGA_VREFDQ_CALIB,
     DDR_TRAINING_FINISH_CHECK,
+    DDR_TRAINING_INIT_ALL_MEMORY,
     DDR_TRAINING_FINISHED,
     DDR_TRAINING_FAIL_SM2_VERIFY,
     DDR_TRAINING_FAIL_SM_VERIFY,
@@ -1215,6 +1220,9 @@ setup_ddr_segments
 (
     SEG_SETUP option
 );
+
+char * fill_cache_new_seg_address(void *dest, void *dest_end);
+void clear_bootup_cache_ways(void);
 
 
 #ifdef __cplusplus

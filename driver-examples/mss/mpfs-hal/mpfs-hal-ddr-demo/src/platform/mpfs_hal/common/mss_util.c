@@ -225,4 +225,3 @@ void enable_branch_prediction(void)
 #ifdef __cplusplus
 }
 #endif
-

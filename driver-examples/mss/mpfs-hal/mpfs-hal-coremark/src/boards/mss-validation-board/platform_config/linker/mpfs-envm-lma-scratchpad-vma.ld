@@ -366,7 +366,7 @@ SECTIONS
    *   This can not be done when running from eNVM
    *   This will need to be copied to ram, before any of this code is run.
    */
-  .ram_code :
+  .ram_code : ALIGN(0x10)
   {
     . = ALIGN (4);
     __sc_load = LOADADDR (.ram_code);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solution.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -73,8 +73,10 @@ void u54_1(void)
         }
         if(ddr_test == 1U)
         {
-            load_ddr_pattern(DDR_BASE, DDR_SIZE, pattern_offset);
-            MSS_UART_polled_tx(g_uart, (const uint8_t*)"Press x to abort DDR test\r\n",(uint32_t)strlen("Press x to abort DDR test\r\n"));
+            load_ddr_pattern(DDR_BASE, DDR_SIZE, DDR_TEST_FILL, pattern_offset);
+            MSS_UART_polled_tx(g_uart, (const uint8_t*)\
+                "Press x to abort DDR test\r\n",(uint32_t)\
+                    strlen("Press x to abort DDR test\r\n"));
             setup_ddr_segments(DEFAULT_SEG_SETUP);
             error |= test_ddr(NO_OF_ITERATIONS, DDR_SIZE);
             setup_ddr_segments(LIBERO_SEG_SETUP);
@@ -88,14 +90,23 @@ void u54_1(void)
                 if ( error == 0U )
                 {
                     MSS_UART_polled_tx(g_uart,
-                            (const uint8_t*) "M2M Test passed test_ddr\r\n",(uint32_t)strlen("M2M Test passed test_ddr\r\n"));
+                            (const uint8_t*) "M2M Test passed test_ddr\r\n",\
+                                (uint32_t)\
+                                    strlen("M2M Test passed test_ddr\r\n"));
                 }
                 else
                 {
-                    MSS_UART_polled_tx(g_uart, (const uint8_t*)"M2M Test failed test_ddr\r\n",(uint32_t)strlen("M2M Test failed test_ddr\r\n"));
+                    MSS_UART_polled_tx(g_uart, (const uint8_t*)\
+                        "M2M Test failed test_ddr\r\n",(uint32_t)\
+                            strlen("M2M Test failed test_ddr\r\n"));
                 }
 
             }
+        }
+        if(ddr_test == 3U)
+        {
+            ddr_read_full_range ();
+            ddr_test = 0U;
         }
     }
     /* never return */

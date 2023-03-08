@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solution.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solution.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -62,6 +62,12 @@ uart_tx_string_with_mutex
     mss_uart_instance_t * this_uart,
     uint64_t mutex_addr,
     const uint8_t * pbuff
+);
+
+void
+ddr_read_full_range
+(
+    void
 );
 
 #endif /* COMMON_H_ */
