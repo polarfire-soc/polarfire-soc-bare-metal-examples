@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -67,7 +67,6 @@ MEMORY
 
 HEAP_SIZE           = 8k;   /* needs to be calculated for your application */
 
-
 /*
  * There is common area for shared variables, accessed from a pointer in a harts HLS
  */
@@ -114,7 +113,6 @@ STACK_SIZE_U54_1_APPLICATION = 8k;
 STACK_SIZE_U54_2_APPLICATION = 8k;
 STACK_SIZE_U54_3_APPLICATION = 8k;
 STACK_SIZE_U54_4_APPLICATION = 8k;
-STACK_SIZE_DTM_COREMARK_APPLICATION = 4k;
 
 
 SECTIONS
@@ -349,29 +347,6 @@ SECTIONS
         PROVIDE(__app_stack_top_h4 = .);
     } > scratchpad
 
-    /*  */
-    .stack_coremark_lim : /* ALIGN(0x1000) */
-    {
-        PROVIDE(__cm_lim_stack_bottom = .);
-        . += STACK_SIZE_U54_4_APPLICATION;
-        PROVIDE(__cm_lim_stack_top = .);
-    } > l2lim
-
-    /*  */
-    .stack_coremark_scratchpad : /* ALIGN(0x1000) */
-    {
-        PROVIDE(__cm_scratch_stack_bottom = .);
-        . += STACK_SIZE_U54_4_APPLICATION;
-        PROVIDE(__cm_scratch_stack_top = .);
-    } > scratchpad
-
-    /*  */
-    .stack_coremark_dtm : /* ALIGN(0x1000) */
-    {
-        PROVIDE(__cm_dtm_stack_bottom = .);
-        . += STACK_SIZE_DTM_COREMARK_APPLICATION;
-        PROVIDE(__cm_dtm_stack_top = .);
-    } > dtim
     
     /* 
      * memory shared accross harts. 
@@ -386,19 +361,6 @@ SECTIONS
         PROVIDE(__app_hart_common_end = .);
         /* place at the end of used scratchpad, used as check to verify enough available in code */
         __l2_scratchpad_vma_end = .; 
-    } > scratchpad
-    
-    /* 
-     * These are unused it the bootloader program but need to be preset for
-     * compilation, as used in non-bootloader function.
-     */
-    .unused_non_bootloader : ALIGN(0x10)
-    {
-        PROVIDE(__uninit_bottom$ = .);
-        PROVIDE(__uninit_top_h$ = .);
-        PROVIDE(__app_stack_bottom = .);
-        PROVIDE(__app_stack_top = .);
-        PROVIDE(__uninit_top_h$ = .);
     } > scratchpad
     
     /* 
