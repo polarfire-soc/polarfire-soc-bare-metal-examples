@@ -206,4 +206,11 @@
 //#define DEBUG_DDR_CFG_DDR_SGMII_PHY
 //#define DEBUG_DDR_DDRCFG
 
+// The following can be enabled to do a long sanity check on startup of DDR.
+// This can be used during DDR bring-up, once initial bring-up of DDR is
+// complete, to make sure DDR settings are robust.
+// #define PATTERN_TEST_NUM_PATTERN_IN_CACHE_READS  2U
+// #define PATTERN_TEST_NUM_OFFSET_INCS             16U
+// #define PATTERN_TEST_SIZE                        0x40000000U
+
 #endif

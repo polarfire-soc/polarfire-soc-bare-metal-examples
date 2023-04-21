@@ -578,7 +578,7 @@ void ddr_read_full_range (void)
         if((((uint64_t)address) & 0x3FFFULL) == 0U)
         {
             sprintf(info_string,"poll for ECC errors,"
-                            " address offset: %08lx\r\n",\
+                            " address offset: %08llx\r\n",\
                             ((uint32_t)((uint64_t)(address))) & 0xFFFFFFFFULL);
             MSS_UART_polled_tx(g_uart, (const uint8_t*)info_string,\
                     (uint32_t)strlen(info_string));
@@ -804,7 +804,7 @@ static void display_clocks(void)
 
     MSS_UART_polled_tx_string(g_uart,(const uint8_t*)
                               "\n\rSystem Clock Frequencies:\n\r");
-    /* group 1, ref clkis clk in rerf here it is 125 Mhz */
+    /* group 1, ref clk is clk in rerf here it is 125 Mhz */
     MSS_CLF_clk_configuration(0x1, 1, 0, 0x0, 0x1);
     CFM_REG->clkselReg &= ~(0x1U << CFM_CLK_MONSEL_SHIFT);
     MSS_CFM_runtime_register(0x2710);
