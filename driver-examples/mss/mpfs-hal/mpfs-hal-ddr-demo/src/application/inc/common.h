@@ -47,7 +47,14 @@ typedef struct HART_SHARED_DATA_
 /**
  * functions
  */
-void jump_to_application(HLS_DATA* hls, MODE_CHOICE mode_choice, uint64_t next_addr);
+void
+jump_to_application
+(
+    HLS_DATA* hls,
+    MODE_CHOICE mode_choice,
+    uint64_t next_addr
+);
+
 void
 uart_tx_with_mutex
 (
@@ -56,6 +63,7 @@ uart_tx_with_mutex
     const uint8_t * pbuff,
     uint32_t tx_size
 );
+
 void
 uart_tx_string_with_mutex
 (

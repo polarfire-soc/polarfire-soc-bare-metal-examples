@@ -207,6 +207,12 @@
 //#define DEBUG_DDR_DDRCFG
 
 /*
+ * If defined, Uses clk push when address cmd training
+ * #define USE_CK_PUSH_DDR4_LPDDR3
+ */
+#define LIBERO_SETTING_USE_CK_PUSH_DDR4_LPDDR3    1U
+
+/*
  * skip extra error checking on startup
  * Set to 0xF to skip extra checking at end of training
  * */

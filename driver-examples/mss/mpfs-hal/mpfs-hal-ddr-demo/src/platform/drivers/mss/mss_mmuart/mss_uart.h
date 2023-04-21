@@ -777,7 +777,7 @@ struct mss_uart_instance{
     uint32_t                baudrate;   /*!< Operating baud rate. */
     uint8_t                 lineconfig; /*!< Line configuration parameters. */
     uint8_t                 status;     /*!< Sticky line status. */
-
+    uint8_t padding[2];
     /* transmit related info (used with interrupt driven transmit): */
     const uint8_t * tx_buffer;          /*!< Pointer to transmit buffer. */
     uint32_t        tx_buff_size;       /*!< Transmit buffer size. */
@@ -802,6 +802,7 @@ struct mss_uart_instance{
     /* LIN sync detection interrupt handler */
     mss_uart_irq_handler_t sync_handler;      /*!< Pointer to user registered LIN sync detection handler. */
     uint8_t                local_irq_enabled;  /*!< check if local interrupt were enabled on this instance*/
+    uint8_t padding1[7];
     void* user_data;                          /*!< Pointer to user provided pointer for user specific use. */
 
 };

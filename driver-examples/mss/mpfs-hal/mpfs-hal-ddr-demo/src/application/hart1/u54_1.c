@@ -19,6 +19,7 @@
 extern uint64_t hart_jump_ddr;
 extern uint64_t ddr_test;
 extern mss_uart_instance_t *g_uart;
+extern char info_string[];
 
 volatile uint32_t count_sw_ints_h1 = 0U;
 
@@ -38,10 +39,14 @@ volatile uint32_t count_sw_ints_h1 = 0U;
  */
 void u54_1(void)
 {
-    uint8_t pattern_offset = 12U;
     HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
     uint32_t error;
+    volatile PATTERN_TEST_PARAMS pattern_test;
 
+    pattern_test.base = DDR_BASE;
+    pattern_test.size = DDR_SIZE;
+    pattern_test.pattern_type = DDR_TEST_FILL;
+    pattern_test.pattern_offset = START_OFFSET;
 
     /* Clear pending software interrupt in case there was any.
        Enable only the software interrupt so that the E51 core can bring this
@@ -73,34 +78,34 @@ void u54_1(void)
         }
         if(ddr_test == 1U)
         {
-            load_ddr_pattern(DDR_BASE, DDR_SIZE, DDR_TEST_FILL, pattern_offset);
+            load_ddr_pattern(&pattern_test);
             MSS_UART_polled_tx(g_uart, (const uint8_t*)\
                 "Press x to abort DDR test\r\n",(uint32_t)\
                     strlen("Press x to abort DDR test\r\n"));
             setup_ddr_segments(DEFAULT_SEG_SETUP);
-            error |= test_ddr(NO_OF_ITERATIONS, DDR_SIZE);
+            error |= test_ddr(NO_OF_ITERATIONS, &pattern_test);
             setup_ddr_segments(LIBERO_SEG_SETUP);
 
-            if (pattern_offset > MAX_OFFSET)
+            if (++pattern_test.pattern_offset > MAX_OFFSET)
             {
-                pattern_offset = MIN_OFFSET;
+                pattern_test.pattern_offset = MIN_OFFSET;
             }
-            if (pattern_offset == START_OFFSET)
+            sprintf(info_string, "\r\npattern_offset: %u\r\n",\
+                    pattern_test.pattern_offset);
+            MSS_UART_polled_tx(g_uart, (const uint8_t*)info_string,\
+                    (uint32_t)strlen(info_string));
+            if ( error == 0U )
             {
-                if ( error == 0U )
-                {
-                    MSS_UART_polled_tx(g_uart,
-                            (const uint8_t*) "M2M Test passed test_ddr\r\n",\
-                                (uint32_t)\
-                                    strlen("M2M Test passed test_ddr\r\n"));
-                }
-                else
-                {
-                    MSS_UART_polled_tx(g_uart, (const uint8_t*)\
-                        "M2M Test failed test_ddr\r\n",(uint32_t)\
-                            strlen("M2M Test failed test_ddr\r\n"));
-                }
-
+                MSS_UART_polled_tx(g_uart,
+                        (const uint8_t*) "M2M Test passed test_ddr\r\n",\
+                            (uint32_t)\
+                                strlen("M2M Test passed test_ddr\r\n"));
+            }
+            else
+            {
+                MSS_UART_polled_tx(g_uart, (const uint8_t*)\
+                    "M2M Test failed test_ddr\r\n",(uint32_t)\
+                        strlen("M2M Test failed test_ddr\r\n"));
             }
         }
         if(ddr_test == 3U)
