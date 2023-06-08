@@ -1,0 +1,8 @@
+
+/LIM-Debug*/
+/LIM-Release*/  
+/DDR-Release*/
+/eNVM-Scratchpad-Release*/
+/.settings*/
+**/Jenkinsfile
+**/fpga_design_config/*
