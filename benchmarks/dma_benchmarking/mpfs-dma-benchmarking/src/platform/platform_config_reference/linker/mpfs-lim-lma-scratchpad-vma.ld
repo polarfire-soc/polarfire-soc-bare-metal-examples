@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -360,7 +360,7 @@ SECTIONS
     *   This can not be done when running from envm
     *   This will need to be copied to ram, before any of this code is run.
     */
-    .ram_code :
+    .ram_code : ALIGN(0x10)
     {
         . = ALIGN (4);
         __sc_load = LOADADDR (.ram_code);

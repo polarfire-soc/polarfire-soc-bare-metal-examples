@@ -1,17 +1,19 @@
-# PDMA Benchmarking
+# PolarFire SoC DMA Benchmarking Application
 
 ## Table of Contents
 
-- [PDMA Benchmarking](#pdma-benchmarking)
+- [PolarFire SoC DMA Benchmarking Application](#polarfire-soc-dma-benchmarking-application)
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Requirements](#requirements)
     - [Tested on](#tested-on)
   - [Prerequisites](#prerequisites)
+    - [Icicle Kit Reference Design](#icicle-kit-reference-design)
     - [Connecting to the Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart)
     - [Configuring the L2 Cache](#configuring-the-l2-cache)
     - [Configuring the DDR Demo project to load to L2-LIM](#configuring-the-ddr-demo-project-to-load-to-l2-lim)
-  - [PDMA Benchmarking Application](#pdma-benchmarking-application)
+  - [DMA Benchmarking Application](#dma-benchmarking-application)
+    - [Structure](#structure)
     - [Configuration](#configuration)
     - [Running from: L2-LIM](#running-from-l2-lim)
       - [MPFS HAL DDR Demo Project](#mpfs-hal-ddr-demo-project)
@@ -19,36 +21,49 @@
     - [Running from: Scratchpad Memory](#running-from-scratchpad-memory)
       - [MPFS DMA Benchmarking Project](#mpfs-dma-benchmarking-project-1)
     - [Running from: Cached DDR](#running-from-cached-ddr)
-      - [MPFS HAL DDR Demo Project:](#mpfs-hal-ddr-demo-project-1)
+      - [MPFS HAL DDR Demo Project](#mpfs-hal-ddr-demo-project-1)
       - [MPFS DMA Benchmarking Project](#mpfs-dma-benchmarking-project-2)
 
 ## Introduction
 
-This document describes how to use the PDMA benchmarking application to benchmark the performance of
-the Platform Direct Memory Access (PDMA) controller.
-The document outlines the configuration options of the PDMA benchmarking application, in addition to
-describing how to set up the application to execute from each of the memory locations it is capable
-of running from.
+This document describes how to use the DMA benchmarking application to benchmark the performance of
+the Direct Memory Access (DMA) controllers on PolarFire SoC.
+There are two types of DMA controllers on PolarFire Soc :
 
-The associated [DMA Performance Benchmark](https://mi-v-ecosystem.github.io/redirects/demo-guides_mpfs-dma-benchmarking)
-document contains a full set of results in addition to a discussion of the performance of the PDMA
-in each benchmark.
+- The Platform DMA controller (P-DMA) which is located inside the CPU core complex.
+- The CoreAXI4DMAController (F-DMA) is a DMA controller located in the FPGA fabric.
+
+This document :
+
+- Outlines the configuration options of the DMA benchmarking application.
+- Describes how to set up the application to benchmark the performance of each DMA controller when executing
+  from each of the memory locations the application is capable of running from.
+
+The associated [DMA benchmarking results][1] document contains a full set of
+results, in addition to a discussion of the performance of each DMA controller.
+
+[1]: https://mi-v-ecosystem.github.io/redirects/polarfire-soc/benchmarks/Readme
 
 ## Requirements
 
-- [PolarFire SoC Icicle Kit](https://www.microchip.com/en-us/development-tool/MPFS-ICICLE-KIT-ES)
-  (MPFS250T_ES-FCVG484E)
+- [PolarFire SoC Icicle Kit][2] (MPFS250T_ES-FCVG484E)
 
-- [SoftConsole v2022.2](https://www.microchip.com/en-us/products/fpgas-and-plds/fpga-and-soc-design-tools/soc-fpga/softconsole)
-  or later
+- The `AXI4_STREAM_DEMO` build configuration of the PolarFire SoC [Icicle Kit Reference Design][3].
 
-- A terminal emulator program, such as [Tera Term](https://ttssh2.osdn.jp/index.html.en)
+- [SoftConsole v2022.2][4]  or later.
 
-- The [mpfs-dma-benchmarking](https://mi-v-ecosystem.github.io/redirects/demo-mpfs-dma-benchmarking)
-  bare metal project
+- A terminal emulator program, such as [Tera Term][5].
 
-- The [mpfs-hal-ddr-demo](https://mi-v-ecosystem.github.io/redirects/polarfire-soc-bare-metal-examples-driver-examples-mss-mpfs-hal-ddr-demo-readme)
-  bare metal example project.
+- The [mpfs-dma-benchmarking][6] bare metal project.
+
+- The [mpfs-hal-ddr-demo][7] bare metal example project.
+
+[2]: https://www.microchip.com/en-us/development-tool/MPFS-ICICLE-KIT-ES
+[3]: https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design
+[4]: https://www.microchip.com/en-us/products/fpgas-and-plds/fpga-and-soc-design-tools/soc-fpga/softconsole
+[5]: https://ttssh2.osdn.jp/index.html.en
+[6]: https://mi-v-ecosystem.github.io/redirects/demo-mpfs-dma-benchmarking
+[7]: https://mi-v-ecosystem.github.io/redirects/polarfire-soc-bare-metal-examples-driver-examples-mss-mpfs-hal-ddr-demo-readme
 
 ### Tested on
 
@@ -56,24 +71,31 @@ in each benchmark.
 
 ## Prerequisites
 
+### Icicle Kit Reference Design
+
+The `AXI4_STREAM_DEMO` configuration of the
+[Icicle Kit reference design][3]
+must be built and programmed onto your PolarFire SoC Icicle Kit to enable benchmarking of the the F-DMA
+and concurrent benchmarking of both DMA controllers.
+
 ### Connecting to the Icicle Kit via UART
 
 The project will display results via UART 1, to observe these messages:
 
 1. Connect to the Icicle Kit via the USB - UART Terminal, J11.
-2. Open up a serial connection to the board
+2. Open up a serial connection to the board.
 3. Choose the COM port corresponding to UART interface 1.
 4. Set the baud rate to “115200”, set data bits to 8, and set flow control to none.
 
 ### Configuring the L2 Cache
 
-To run the project from L2-LIM or DDR memory, the MPFS HAL DDR demo must be rebuilt using a new XML
-configuration file.
+To use this project with any of the `LIM-Release` or `DDR-Release` build configuration, the MPFS HAL
+DDR demo project must be rebuilt using a new XML configuration file.
 
 This XML file has been generated from the MSS configuration specific to this project.
 
-This application requires a new MSS configuration with an increased Scratchpad memory size of 1024KB,
-compared to the default MSS configuration which uses a Scratchpad memory size of 512KB.
+The MPFS HAL DDR demo application requires a new MSS configuration with an increased Scratchpad memory
+size of 1024KB, compared to the default MSS configuration which uses a Scratchpad memory size of 512KB.
 
 For reference the new MSS configuration is also included with the project, it is located in the
 `src/board/icicle-kit-es/mss_configuration` folder.
@@ -81,11 +103,10 @@ For reference the new MSS configuration is also included with the project, it is
 1. The new XML file can be found in the `src/boards/icicle-kit-es/fpga_design/design_description`
    folder of the `mpfs-dma-benchmarking` bare metal project.
 
-2. Open the [mpfs-hal-ddr-demo](https://mi-v-ecosystem.github.io/redirects/polarfire-soc-bare-metal-examples-driver-examples-mss-mpfs-hal-ddr-demo-readme)
-   bare metal project.
+2. Open the [mpfs-hal-ddr-demo][7] bare metal project.
 
 3. Copy the new XML file (`ICICLE_MSS_mss_cfg.xml`) from the `mpfs-dma-benchmarking`  project into the
-   `boards/icicle-kit-es/fpga_design/ design_description` folder of `mpfs-hal-ddr-demo` project,
+   `boards/icicle-kit-es/fpga_design/design_description` folder of `mpfs-hal-ddr-demo` project,
    replacing the existing XML file there.
 
 ### Configuring the DDR Demo project to load to L2-LIM
@@ -116,59 +137,29 @@ To run this project from L2-LIM the MPFS HAL DDR demo project must be modified s
    jump_to_application(hls, M_MODE, (uint64_t)0x08020000);
    ```
 
-## PDMA Benchmarking Application
+## DMA Benchmarking Application
+
+### Structure
+
+The application contains 3 'application' folders that are used depending on which set of benchmarking
+tests will be run.
+They are:
+
+- `application_pdma`: for benchmarking the performance of the P-DMA.
+- `application_fdma`: for benchmarking the performance of the F-DMA.
+- `application_concurrent`: for benchmarking the performance of both DMA controllers concurrently.
+
+These 3 folders each have 4 associated build configurations, for executing the application from
+Cached DDR memory, LIM memory or Scratchpad memory, and for debugging from LIM memory.
 
 ### Configuration
 
-The application can be configured using the `benchmarking.h` file, it is located in the same directory
-as `u54_1.c`, in `src/application/hart1/`.
+The application will display menus over `UART1` allowing a benchmarking test to be selected.
 
-To run the PDMA benchmark test for any source and destination pair define the
-corresponding macro in the `benchmarking.h` file.
-
-```c
-/* Define any of the below to run a benchmark from SOURCE_DESTINATION */
-#define LIM_LIM
-#undef LIM_SCRATCHPAD
-#undef LIM_CACHED_DDR
-#undef LIM_NON_CACHED_DDR
-
-#undef SCRATCHPAD_LIM
-#undef SCRATCHPAD_SCRATCHPAD
-#undef SCRATCHPAD_CACHED_DDR
-#undef SCRATCHPAD_NON_CACHED_DDR
-
-#undef CACHED_DDR_LIM
-#undef CACHED_DDR_SCRATCHPAD
-#undef CACHED_DDR_CACHED_DDR
-#undef CACHED_DDR_NON_CACHED_DDR
-
-#undef NON_CACHED_DDR_LIM
-#undef NON_CACHED_DDR_SCRATCHPAD
-#undef NON_CACHED_DDR_CACHED_DDR
-#undef NON_CACHED_DDR_NON_CACHED_DDR
-```
-
-Transfer ordering can be turned on by defining `FORCE_ORDER` macro.
-
-Additionally, the maximum and minimum transfer sizes, and transfer step size can
-be changed using the following macros.
-
-```c
-/* Transfer Sizes */
-#define STEP_SIZE           (1000u)
-#define MIN_TRANSFER_SIZE   (1000u)
-
-#define HALF_LIM            (L2_LIM1 - L2_LIM0)
-#define FULL_LIM            (HALF_LIM * 2)
-
-#define HALF_SCRATCHPAD     (SCRATCHPAD1 - SCRATCHPAD0)
-#define FULL_SCRATCHPAD     (HALF_SCRATCHPAD * 2)
-
-#define TRANSFER_1_MB       (997500u)
-```
-
-The project must be rebuilt after changing the configuration.
+P-DMA transfer ordering can be turned on by defining the `FORCE_ORDER` macro in the header file located
+in the same directory as `u54_1.c` file, in the `hart1/` directory.
+Turning on transfer ordering will reduce P-DMA performance, for further information see the
+[DMA benchmarking results][1] document.
 
 ### Running from: L2-LIM
 
@@ -176,8 +167,8 @@ To run the application from L2-LIM:
 
 #### MPFS HAL DDR Demo Project
 
-1. Complete prerequisite 2: [configuring the L2 Cache](#configuring-the-l2-cache),
-and prerequisite 3: [configuring the DDR demo project to load to L2-LIM](#configuring-the-ddr-demo-project-to-load-to-l2-lim),
+1. Complete the prerequisite: [configuring the L2 Cache](#configuring-the-l2-cache),
+and the prerequisite: [configuring the DDR demo project to load to L2-LIM](#configuring-the-ddr-demo-project-to-load-to-l2-lim),
 on how to configure the MPFS HAL DDR Demo project.
 2. Connect to the Icicle Kit via the USB Embedded Programming connector, J33, and ensure that the J9
    is closed. Power on the board.
@@ -189,7 +180,8 @@ on how to configure the MPFS HAL DDR Demo project.
 
 1. Import the `mpfs-dma-benchmarking` project into SoftConsole.
 2. Put the project in focus, set the active build configuration as `LIM-Release` and build the project.
-3. Complete prerequisite 1, open a serial terminal connection to UART1.
+3. Complete the prerequisite: [connecting to Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart),
+   open a serial terminal connection to UART1.
 
 4. Use Tera Term to open a serial terminal connection to UART0.
    - Change the baud rate to “115200”, set data bits to 8, and set flow control to none.
@@ -207,8 +199,8 @@ on how to configure the MPFS HAL DDR Demo project.
     - Note: since the MPFS HAL DDR Demo project was modified in step 1, the u54_1 is actually starting
       from L2-LIM at address `0x08020000`, and not DDR address `0x80000000`.
 
-9. Complete prerequisite 1: [connecting to Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart),
-observe UART1 and press `SPACE` when prompted to run the PDMA benchmarks.
+9. Complete the prerequisite: [connecting to Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart),
+observe UART1 and press `SPACE` when prompted to run the P-DMA benchmarks.
 
 ### Running from: Scratchpad Memory
 
@@ -227,8 +219,8 @@ To run the application from Scratchpad Memory:
 4. Run the project by selecting the
    `PolarFire SoC program non-secure boot mode 1` from the external tools menu.
 
-5. Complete prerequisite 1: [connecting to Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart),
-observe UART1 and press `SPACE` when prompted to run the PDMA benchmarks.
+5. Complete the prerequisite: [connecting to Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart),
+observe UART1 and press `SPACE` when prompted to run the P-DMA benchmarks.
 
 ### Running from: Cached DDR
 
@@ -236,10 +228,10 @@ To run the application from Cached DDR memory:
 
 #### MPFS HAL DDR Demo Project
 
-1. Note: if the mpfs-hal-ddr-demo project was changed to load to L2-LIM, as described 
-   in [prerequisite 3](#configuring-the-ddr-demo-project-to-load-to-l2-lim),
+1. Note: if the mpfs-hal-ddr-demo project was changed to load to L2-LIM, as described
+   in the [fourth prerequisite](#configuring-the-ddr-demo-project-to-load-to-l2-lim),
    revert these changes.
-2. Follow prerequisite 2: [configuring the L2 Cache](#configuring-the-l2-cache)
+2. Follow the prerequisite: [configuring the L2 Cache](#configuring-the-l2-cache)
 on how to configure the MPFS HAL DDR Demo project.
 3. Connect to the Icicle Kit via the USB Embedded Programming connector, J33, and ensure that the J9
    is closed. Power on the board.
@@ -254,7 +246,7 @@ on how to configure the MPFS HAL DDR Demo project.
 2. Put the project in focus, set the active build configuration as `DDR-Release`
    and build the project.
 
-3. Complete prerequisite 1, open a serial terminal connection to UART1.
+3. Complete the prerequisite: [connecting to Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart).
 
 4. Use Tera Term to open a serial terminal connection to UART0.
    - Change the baud rate to “115200”, set data bits to 8, and set flow control to none.
@@ -270,5 +262,5 @@ on how to configure the MPFS HAL DDR Demo project.
 
 8. Select Bootloader option 7 to "Start the U54_1 from DDR @0x80000000".
 
-9. Complete prerequisite 1: [connecting to Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart),
-   observe UART1 and press `SPACE` when prompted to run the PDMA benchmarks.
+9. Complete the prerequisite: [connecting to Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart),
+   observe UART1 and press `SPACE` when prompted to run the P-DMA benchmarks.

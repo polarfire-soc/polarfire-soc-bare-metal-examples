@@ -8,3 +8,16 @@ Jenkinsfile
 /LIM-Debug/
 /LIM-Release/
 **/.vscode/
+/FDMA-Benchmarking-DDR-Release/
+/FDMA-Benchmarking-LIM-Release/
+/PDMA-Benchmarking-eNVM-Scratchpad-Release/
+/PDMA-Benchmarking-LIM-Release/
+/PDMA-Benchmarking-LIM-Debug/
+/PDMA-Benchmarking-DDR-Release/
+/FDMA-Benchmarking-eNVM-Scratchpad-Release/
+/FDMA-Benchmarking-Lim-Debug/
+/Concurrent-Benchmarking-LIM-Debug/
+/Concurrent-Benchmarking-DDR-Release/
+/Concurrent-Benchmarking-LIM-Release/
+/Concurrent-Benchmarking-eNVM-Scratchpad-Release/
+/FDMA-Benchmarking-LIM-Debug/
