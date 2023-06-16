@@ -27,6 +27,15 @@ extern "C" {
 #define NULL_POINTER                            (void *)0
 #define PARAM_ERROR                             -1
 
+/* size of address space taken by all registers for one descriptor */
+#define DESC_ADD_SPACE                          (0x20u)
+
+/* size of address space taken by all registers for one interrupt signal */
+#define INTR_ADD_SPACE                          (0x10u)
+
+/* size of address space taken by one stream descriptor address register*/
+#define STREAM_DESC_ADD_SPACE				    (0x04u)
+
 /***************************************************************************//**
  * See core_axi4dmacontroller.h for description of this function.
  */
@@ -87,7 +96,8 @@ AXI4DMA_configure_stream
         stream_desc_ptr->xfr_count = xfr_count;
         stream_desc_ptr->dest_addr = dest_addr;
 
-       HAL_set_32bit_reg((this_dmac->base_addr + (tdest_signal_num * 0x4)),
+       HAL_set_32bit_reg((this_dmac->base_addr + 
+						 (tdest_signal_num * STREAM_DESC_ADD_SPACE)),
                           STR0ADDR,
                           (0xFFFFFFFFu & (uintptr_t)stream_desc_ptr));
 
@@ -120,7 +130,7 @@ AXI4DMA_transfer_status
             (NULL_POINTER != ext_desc_addr))
     {
         status = HAL_get_32bit_reg(((this_dmac->base_addr) +
-                                    (irq_num *0x10u)),
+                                    (irq_num * INTR_ADD_SPACE)),
                                     I0ST);
 
         *desc_id = status & I0ST_DESCNO_MASK;
@@ -129,7 +139,7 @@ AXI4DMA_transfer_status
         if ((EXT_DESC_32 == *desc_id) || (STREAM_DESC_33 == *desc_id))
         {
             *ext_desc_addr = HAL_get_32bit_reg(((this_dmac->base_addr) +
-                                                (irq_num *0x10u)),
+                                                (irq_num * INTR_ADD_SPACE)),
                                                 I0EXADRR);
         }
         else
@@ -162,40 +172,39 @@ AXI4DMA_configure
     HAL_ASSERT(desc_id <= INTRN_DESC_31);
     HAL_ASSERT(0u != byte_count);
     HAL_ASSERT(0u != src_addr);
-    HAL_ASSERT(0u != dest_addr);
+    HAL_ASSERT(0u != dest_addr);  
 
     if ((NULL_POINTER != this_dmac) && (desc_id <= INTRN_DESC_31) &&
             (0u != byte_count) && (0u != src_addr) && (0u != dest_addr))
     {
-        HAL_set_32bit_reg_field((this_dmac->base_addr + (ID0CFG_REG_OFFSET + (desc_id * 0x20))),
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
                                 ID0CFG_SRC_OP,
-                                (src_op & ID0CFG_SRC_OP_MASK));    //Source OP
+                                (src_op & ID0CFG_SRC_OP_MASK));    // Source OP
 
-        HAL_set_32bit_reg_field((this_dmac->base_addr + (ID0CFG_REG_OFFSET + (desc_id * 0x20))),
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
                                 ID0CFG_DEST_OP,
-                                (dest_op & ID0CFG_SRC_OP_MASK) << ID0CFG_DEST_OP_SHIFT);    //Destination OP
-
-        HAL_set_32bit_reg_field((this_dmac->base_addr + (ID0CFG_REG_OFFSET + (desc_id * 0x20))),
+                                (dest_op & ID0CFG_SRC_OP_MASK));    // Destination OP
+                            
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
                                 ID0CFG_CHAIN,
-                                0); //chain = 0
+                                0);                                 //chain = 0
 
-        HAL_set_32bit_reg_field((this_dmac->base_addr + (ID0CFG_REG_OFFSET + (desc_id * 0x20))),
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
                                 ID0CFG_EXDESC,
-                                0); //Ext Desc = 0
+                                0);                                 //Ext Desc = 0
 
         //single descriptor without chain bit always generates interrupt
-
         //Next Descriptor ignored
 
-        HAL_set_32bit_reg_field((this_dmac->base_addr + (ID0BYTECNT_REG_OFFSET + (desc_id * 0x20))),
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
                                 ID0BYTECNT_NUM,
                                 byte_count);                        //Byte count
 
-        HAL_set_32bit_reg_field((this_dmac->base_addr + (ID0SRCADDR_REG_OFFSET + (desc_id * 0x20))),
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
                                 ID0SRCADDR_ADDR,
                                 src_addr);                         //Source Address
 
-        HAL_set_32bit_reg_field((this_dmac->base_addr + (ID0DESTADDR_REG_OFFSET + (desc_id * 0x20))),
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
                                 ID0DESTADDR_ADDR,
                                 dest_addr);                        //Destination address
 
@@ -206,9 +215,18 @@ AXI4DMA_configure
          * is set before setting desc_valid bit could result rarely into interrupt for starting on
          * invalid descriptor.
          * */
-        HAL_set_32bit_reg_field((this_dmac->base_addr + (ID0CFG_REG_OFFSET + (desc_id * 0x20))),
-                                ID0CFG_DESCVALID,
-                                0x06);    //Data ready and descriptor valid set together
+
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
+                                    ID0CFG_SRCDVALID,
+                                    0x1);   // Setting the source data valid bit
+
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
+                                    ID0CFG_DESTDRDY,
+                                    0x1);   // Setting the destination data ready bit
+
+        HAL_set_32bit_reg_field((this_dmac->base_addr + (desc_id * DESC_ADD_SPACE)),
+                                    ID0CFG_DESCVALID,
+                                    0x1);    // Setting the descriptor valid bit
 
         ret = 0;
     }
@@ -253,48 +271,48 @@ AXI4DMA_configure_chain
             else
             {
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                                        (desc_id * 0x20)),
+                                        (desc_id * DESC_ADD_SPACE)),
                                         ID0CFG_SRC_OP,
                                         this_cfg->desc_cfg | ID0CFG_SRC_OP_MASK);   //Source OP
 
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                                        (desc_id * 0x20)),
+                                        (desc_id * DESC_ADD_SPACE)),
                                         ID0CFG_DEST_OP,
                                         this_cfg->desc_cfg | ID0CFG_DEST_OP_MASK);  //Destination OP
 
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                                        (desc_id * 0x20)),
+                                        (desc_id * DESC_ADD_SPACE)),
                                         ID0CFG_CHAIN,
                                         this_cfg->desc_cfg | ID0CFG_CHAIN_MASK);    //chain
 
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                                        (desc_id * 0x20)),
+                                        (desc_id * DESC_ADD_SPACE)),
                                         ID0CFG_EXDESC,
                                         (this_cfg->desc_cfg | ID0CFG_EXDESC_MASK)); //Ext Desc
 
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                        (desc_id * 0x20)),
+                        (desc_id * DESC_ADD_SPACE)),
                                         ID0CFG_INTR,
                                         (this_cfg->desc_cfg | ID0CFG_INTR_MASK));   //interrupt on process
 
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                                        (desc_id * 0x20)),
+                                        (desc_id * DESC_ADD_SPACE)),
                                         ID0NEXTDESC_ADDR,
                                         this_cfg->next_desc);                       //Next Descriptor
 
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                                        (desc_id * 0x20)),
+                                        (desc_id * DESC_ADD_SPACE)),
                                         ID0BYTECNT_NUM,
                                         this_cfg->xfr_count);                       //Byte count
 
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                                        (desc_id * 0x20)),
+                                        (desc_id * DESC_ADD_SPACE)),
                                         ID0SRCADDR_ADDR,
                                         this_cfg->src_addr);                        //Source Address
 
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                                        (desc_id * 0x20)),
-                                        ID0DESTADDR_ADDR,
+                                        (desc_id * DESC_ADD_SPACE)),
+                                        ID0CFG_DESTDRDY,
                                         this_cfg->dest_addr);                       //Destination address
 
                 /* Desc_valid bit must be written last as any changes to desc registers clears this bit
@@ -305,7 +323,7 @@ AXI4DMA_configure_chain
                  * invalid descriptor.
                  * */
                 HAL_set_32bit_reg_field((this_dmac->base_addr +
-                                        (desc_id * 0x20)),
+                                        (desc_id * DESC_ADD_SPACE)),
                                         ID0CFG_DESCVALID,
                                         0x06);    //Data ready and descriptor valid set together
             }

@@ -63,6 +63,12 @@ typedef enum DDR_ACCESS_SIZE_
     DDR_64_BIT
 } DDR_ACCESS_SIZE;
 
+typedef enum DDR_FILL_TYPE_
+{
+    DDR_TEST_FILL,
+    DDR_INIT_FILL
+} DDR_FILL_TYPE;
+
 
 /***************************************************************************//**
  The ddr_read_write_fn function is used to write/read test patterns to the DDR
@@ -229,9 +235,7 @@ uint32_t no_of_regs
 void
 load_ddr_pattern
 (
-uint64_t base,
-uint32_t size,
-uint8_t pattern_offset
+volatile PATTERN_TEST_PARAMS *pattern_test
 );
 
 /***************************************************************************//**
@@ -241,7 +245,7 @@ uint32_t
 test_ddr
 (
 uint32_t no_of_iterations,
-uint32_t size
+volatile PATTERN_TEST_PARAMS *pattern_test
 );
 
 /***************************************************************************//**
