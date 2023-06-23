@@ -11,7 +11,7 @@ This example project demonstrates the use of the CoreAXI4DMAController IP for bl
 
 ## Hardware Dependencies
 
-Running this project requires programming the [Icicle Kit Reference Design](https://mi-v-ecosystem.github.io/redirects/repo-icicle-Kit-reference-design)
+Running this project requires programming the [Icicle Kit Reference Design](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design)
 onto the PolarFire SoC Icicle Kit.
 
 ## How to Use This Example
