@@ -1,0 +1,28 @@
+<div class="mermaid">
+%%{init : {"flowchart" : {"curve" : "linear", "useMaxWidth" : false, "useMaxHeight" : false, "nodeSpacing" : 30, "rankSpacing" : 40 }}}%%
+    flowchart TB
+        Start[/10GBASE-KR Status Register\] --> Rx[Rx Calibration]
+        Start --> Tx[Tx Equalization]
+        Start --> Fail[Fail]
+        Start --> Signal[Signal Detect]
+        
+        Fail --> LTFail[LT Failure]
+        
+        Rx --> IntRx[Set RX Calibration Bit to Clear Status Bit]
+        IntRx --> Algo[Max/Min Tap Sweep Algorithm]
+        Algo --> TxCU[Update the Tx Coefficient Update]
+        
+        Tx --> SerdesTX[Pass Rx Coefficient Update to Serdes]
+        SerdesTX --> TxSR[Update Tx Status Report]
+        TxSR --> TxDone[Set Tx Equalization Done to Clear Status Bit]
+                
+        Signal --> LTComp[LT Complete]
+
+</div>
+
+<style>
+    .mermaid svg { 
+        max-width: 100%; 
+        height: auto;
+    }
+</style>

@@ -1,0 +1,13 @@
+path add $CWD/../../renode-microchip-mods/
+
+$GDB_SERVER_PORT=3333
+
+include @scripts/macros.resc
+include @scripts/polarfire-soc-icicle-board.resc
+
+machine LoadPlatformDescriptionFromString "mouse: USB.USBMouse @ usb 0"
+
+showAnalyzer sysbus.mmuart0
+showAnalyzer sysbus.mmuart1
+
+runMacro $ReadyForGdb
