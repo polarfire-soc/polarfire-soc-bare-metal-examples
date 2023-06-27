@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -36,14 +36,53 @@ static const uint64_t g_init_marker = INIT_MARKER;
  */
 static void check_config_l2_scratchpad(void);
 
+/***************************************************************************//**
+ * See hw_l2_scratch.h for details of how to use this function.
+ */
+__attribute__((weak)) uint64_t end_l2_scratchpad_address(void)
+{
+   return (uint64_t)(ZERO_DEVICE_BOTTOM + (LIBERO_SETTING_NUM_SCRATCH_PAD_WAYS
+           * WAY_BYTE_LENGTH));
+}
 
-/*==============================================================================
- * This code should only be executed from E51 to be functional.
- * Configure the L2 cache memory:
- *  - Set the number of cache ways used as cache based on the MSS Configurator
- *    settings.
- *  - Configure some of the enabled ways as scratchpad based on linker
- *    configuration and space allocated by configurator.
+/***************************************************************************//**
+ * See hw_l2_scratch.h for details of how to use this function.
+ */
+__attribute__((weak)) uint32_t num_cache_ways(void)
+{
+   static_assert(LIBERO_SETTING_WAY_ENABLE >
+                 LIBERO_SETTING_NUM_SCRATCH_PAD_WAYS,
+                 "Invalid way configuration");
+   return (uint64_t)((LIBERO_SETTING_WAY_ENABLE + 1U) -
+                     LIBERO_SETTING_NUM_SCRATCH_PAD_WAYS);
+}
+
+/***************************************************************************//**
+ * See hw_l2_scratch.h for details of how to use this function.
+ */
+__attribute__((weak)) uint32_t my_num_cache_ways(void)
+{
+    uint32_t num_ways = 0U;
+    uint32_t way_enable;
+    uint32_t bit_index;
+
+    //todo: return for my hart, assuming e51 here
+    way_enable = (uint32_t)LIBERO_SETTING_WAY_MASK_E51_DCACHE;
+    bit_index = 0U;
+
+    while(bit_index < 16U)
+    {
+       if( way_enable & (1U<<bit_index))
+       {
+           num_ways++;
+       }
+       bit_index++;
+    }
+    return (uint64_t)(num_ways);
+}
+
+/***************************************************************************//**
+ * See mss_uart.h for details of how to use this function.
  */
 __attribute__((weak)) void config_l2_cache(void)
 {
@@ -54,27 +93,29 @@ __attribute__((weak)) void config_l2_cache(void)
      */
     ASSERT(((const uint64_t)&__l2lim_end - (const uint64_t)&__l2lim_start)\
             <= ((15U - LIBERO_SETTING_WAY_ENABLE) * WAY_BYTE_LENGTH));
-            
+
     /*
      * Set the number of ways that will be shared between cache and scratchpad.
      */
-    CACHE_CTRL->WAY_ENABLE = LIBERO_SETTING_WAY_ENABLE;
+    __atomic_store_8 (&CACHE_CTRL->WAY_ENABLE , LIBERO_SETTING_WAY_ENABLE, __ATOMIC_RELAXED);
 
     /*
      * shutdown L2 as directed
      */
     SYSREG->L2_SHUTDOWN_CR = LIBERO_SETTING_L2_SHUTDOWN_CR;
 
-    /* The scratchpad has already been set-up, first check enough space before copying */
+    /* The scratchpad has already been set-up, first check enough space before
+     * copying */
     check_config_l2_scratchpad();
 
     /* If you are not using scratchpad, no need to include the following code */
 
-    static_assert(LIBERO_SETTING_WAY_ENABLE >= LIBERO_SETTING_NUM_SCRATCH_PAD_WAYS, "Scratchpad Missing");
+    static_assert(LIBERO_SETTING_WAY_ENABLE >=
+            LIBERO_SETTING_NUM_SCRATCH_PAD_WAYS, "Scratchpad Missing");
 
     /*
-     * Compute the mask (In HSS CONFIG_SERVICE_SCRUB=y) used to specify ways that will be used by the
-     * scratchpad.
+     * Compute the mask (In HSS CONFIG_SERVICE_SCRUB=y) used to specify ways
+     * that will be used by the scratchpad
      */
 
     uint32_t scratchpad_ways_mask = 0U;
@@ -111,20 +152,22 @@ __attribute__((weak)) void config_l2_cache(void)
     /*
      * Setup all masters, apart from one we are using to setup scratch
      */
-    CACHE_CTRL->WAY_MASK_DMA = LIBERO_SETTING_WAY_MASK_DMA;
-    CACHE_CTRL->WAY_MASK_AXI4_SLAVE_PORT_0 = LIBERO_SETTING_WAY_MASK_AXI4_PORT_0;
-    CACHE_CTRL->WAY_MASK_AXI4_SLAVE_PORT_1 = LIBERO_SETTING_WAY_MASK_AXI4_PORT_1;
-    CACHE_CTRL->WAY_MASK_AXI4_SLAVE_PORT_2 = LIBERO_SETTING_WAY_MASK_AXI4_PORT_2;
-    CACHE_CTRL->WAY_MASK_AXI4_SLAVE_PORT_3 = LIBERO_SETTING_WAY_MASK_AXI4_PORT_3;
-    CACHE_CTRL->WAY_MASK_E51_ICACHE = LIBERO_SETTING_WAY_MASK_E51_ICACHE;
-    CACHE_CTRL->WAY_MASK_U54_1_DCACHE = LIBERO_SETTING_WAY_MASK_U54_1_DCACHE;
-    CACHE_CTRL->WAY_MASK_U54_1_ICACHE = LIBERO_SETTING_WAY_MASK_U54_1_ICACHE;
-    CACHE_CTRL->WAY_MASK_U54_2_DCACHE = LIBERO_SETTING_WAY_MASK_U54_2_DCACHE;
-    CACHE_CTRL->WAY_MASK_U54_2_ICACHE = LIBERO_SETTING_WAY_MASK_U54_2_ICACHE;
-    CACHE_CTRL->WAY_MASK_U54_3_DCACHE = LIBERO_SETTING_WAY_MASK_U54_3_DCACHE;
-    CACHE_CTRL->WAY_MASK_U54_3_ICACHE = LIBERO_SETTING_WAY_MASK_U54_3_ICACHE;
-    CACHE_CTRL->WAY_MASK_U54_4_DCACHE = LIBERO_SETTING_WAY_MASK_U54_4_DCACHE;
-    CACHE_CTRL->WAY_MASK_U54_4_ICACHE = LIBERO_SETTING_WAY_MASK_U54_4_ICACHE;
+
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_DMA , LIBERO_SETTING_WAY_MASK_DMA, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_AXI4_SLAVE_PORT_0 , LIBERO_SETTING_WAY_MASK_AXI4_PORT_0, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_AXI4_SLAVE_PORT_1 , LIBERO_SETTING_WAY_MASK_AXI4_PORT_1, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_AXI4_SLAVE_PORT_2 , LIBERO_SETTING_WAY_MASK_AXI4_PORT_2, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_AXI4_SLAVE_PORT_3 , LIBERO_SETTING_WAY_MASK_AXI4_PORT_3, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_E51_ICACHE , LIBERO_SETTING_WAY_MASK_E51_ICACHE, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_U54_1_DCACHE , LIBERO_SETTING_WAY_MASK_U54_1_DCACHE, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_U54_1_ICACHE , LIBERO_SETTING_WAY_MASK_U54_1_ICACHE, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_U54_2_DCACHE , LIBERO_SETTING_WAY_MASK_U54_2_DCACHE, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_U54_2_ICACHE , LIBERO_SETTING_WAY_MASK_U54_2_ICACHE, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_U54_3_DCACHE , LIBERO_SETTING_WAY_MASK_U54_3_DCACHE, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_U54_3_ICACHE , LIBERO_SETTING_WAY_MASK_U54_3_ICACHE, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_U54_4_DCACHE , LIBERO_SETTING_WAY_MASK_U54_4_DCACHE, __ATOMIC_RELAXED);
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_U54_4_ICACHE , LIBERO_SETTING_WAY_MASK_U54_4_ICACHE, __ATOMIC_RELAXED);
+
 
 #if (LIBERO_SETTING_NUM_SCRATCH_PAD_WAYS != 0)
     /*
@@ -133,19 +176,21 @@ __attribute__((weak)) void config_l2_cache(void)
     uint64_t * p_scratchpad = (uint64_t *)ZERO_DEVICE_BOTTOM;
     uint32_t ways_inc;
     uint64_t current_way = 0x1U << (((LIBERO_SETTING_WAY_ENABLE + 1U) - LIBERO_SETTING_NUM_SCRATCH_PAD_WAYS) );
+
     for(ways_inc = 0; ways_inc < LIBERO_SETTING_NUM_SCRATCH_PAD_WAYS; ++ways_inc)
     {
         /*
          * Populate the scratchpad memory one way at a time.
          */
-        CACHE_CTRL->WAY_MASK_E51_DCACHE = current_way;
+        __atomic_store_8 (&CACHE_CTRL->WAY_MASK_E51_DCACHE, current_way, __ATOMIC_RELAXED);
         mb();
         /*
          * Write to the first 64-bit location of each cache block.
          */
         for(inc = 0; inc < (WAY_BYTE_LENGTH / CACHE_BLOCK_BYTE_LENGTH); ++inc)
         {
-            *p_scratchpad = g_init_marker + inc;
+
+            *p_scratchpad = g_init_marker /* + inc */;
             p_scratchpad += CACHE_BLOCK_BYTE_LENGTH / UINT64_BYTE_LENGTH;
         }
         current_way = current_way << 1U;
@@ -155,9 +200,8 @@ __attribute__((weak)) void config_l2_cache(void)
     /*
      * Prevent E51 from evicting from scratchpad ways.
      */
-    CACHE_CTRL->WAY_MASK_E51_DCACHE = LIBERO_SETTING_WAY_MASK_E51_DCACHE;
+    __atomic_store_8 (&CACHE_CTRL->WAY_MASK_E51_DCACHE , LIBERO_SETTING_WAY_MASK_E51_DCACHE, __ATOMIC_RELAXED);
     mb();
-
 }
 
 

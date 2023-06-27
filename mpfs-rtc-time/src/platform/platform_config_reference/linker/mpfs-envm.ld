@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -132,6 +132,17 @@ SECTIONS
     PROVIDE(__u54_4_itim_end = ORIGIN(u54_4_itim) + LENGTH(u54_4_itim));
     
     . = __envm_start;
+    
+    .text_init : ALIGN(0x10)
+    {
+        *(.text.init)
+        *system_startup.o (.text .text* .rodata .rodata* .srodata*)
+        *mtrap.o (.text .text* .rodata .rodata* .srodata*)
+        *mss_h2f.o (.text .text* .rodata .rodata* .srodata*)
+        *mss_l2_cache.o (.text .text* .rodata .rodata* .srodata*)
+        . = ALIGN(0x10);
+    } >envm 
+    
     .text : ALIGN(0x10)
     {
         __text_load = LOADADDR(.text);
@@ -196,7 +207,7 @@ SECTIONS
      *   This can not be done when running from envm
      *   This will need to be copied to ram, before any of this code is run.
      */
-    .ram_code :
+    .ram_code : ALIGN(0x10)
     {
         . = ALIGN (4);
         __sc_load = LOADADDR (.ram_code);
@@ -216,7 +227,7 @@ SECTIONS
     .ddr_code :
     {
         . = ALIGN (4);
-        __ddr_load = LOADADDR (.ram_code);
+        __ddr_load = LOADADDR (.ddr_code);
         __ddr_start = .;
         *(.ddr_codetext)        /* .ram_codetext sections (code) */
         *(.ddr_codetext*)       /* .ram_codetext* sections (code)  */

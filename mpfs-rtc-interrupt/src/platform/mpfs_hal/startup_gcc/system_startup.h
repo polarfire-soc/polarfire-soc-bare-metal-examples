@@ -133,6 +133,7 @@ char * config_copy(void *dest, const void * src, size_t len);
 char * config_16_copy(void *dest, const void * src, size_t len);
 char * config_32_copy(void *dest, const void * src, size_t len);
 char * config_64_copy(void *dest, const void * src, size_t len);
+char * clear_64_mem(uint64_t *start_address, uint64_t *end_address);
 
 void copy_section
 (
