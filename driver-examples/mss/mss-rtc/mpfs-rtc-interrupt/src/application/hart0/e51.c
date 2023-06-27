@@ -1,9 +1,13 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Application code running on E51
+ * @file e51.c
+ *
+ * @author Microchip FPGA Embedded Systems Solutions
+ *
+ * @brief Application code running on E51
  *
  * PolarFire SoC MSS RTC interrupt example project
  */

@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software example
+ * @file u54_4.c
  *
- * Application code running on U54_4
+ * @author Microchip FPGA Embedded Systems Solutions
+ *
+ * @brief Application code running on U54_4
  */
 
 #include <stdio.h>
