@@ -1,9 +1,14 @@
-/**************************************************************************//**
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+/******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  * 
- *  Micron MT25QL01GBBB SPI flash driver API.
+ * @file mt25ql01gbbb.h
+ *
+ * @author Microchip FPGA Embedded Systems Solutions
+ *
+ * @brief Micron MT25QL01GBBB SPI Flash driver API
+ *
  */
 
 #ifndef __MT25QL01G_SPI_FLASH_H_

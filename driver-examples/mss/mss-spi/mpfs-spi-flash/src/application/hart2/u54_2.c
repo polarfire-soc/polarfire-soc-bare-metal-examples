@@ -1,9 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Application code running on U54_2
+ * @file u54_2.c
+ *
+ * @author Microchip FPGA Embedded Systems Solutions
+ *
+ * @brief Application code running on U54_2
+ *
  */
 
 #include <stdio.h>

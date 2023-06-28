@@ -1,9 +1,14 @@
-/**************************************************************************//**
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+/******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  * 
- *  Micron MT25QL01GBBB SPI Flash driver implementation.
+ * @file mt25ql01gbbb.c
+ *
+ * @author Microchip FPGA Embedded Systems Solutions
+ *
+ * @brief Micron MT25QL01GBBB SPI Flash driver implementation
+ *
  */
 
 #include "mt25ql01gbbb.h"
@@ -56,9 +61,9 @@ void FLASH_init
     MSS_SPI_configure_master_mode
         (
             this_spi,
-            MSS_SPI_SLAVE_1,
+            MSS_SPI_SLAVE_0,
             MSS_SPI_MODE3,
-            4,
+            10,
             MSS_SPI_BLOCK_TRANSFER_FRAME_SIZE,
             mss_spi_reset
         );
@@ -76,12 +81,12 @@ void FLASH_read_device_id
 {
     uint8_t read_device_id_cmd = DEVICE_ID_READ;
     uint8_t read_buffer[3];
-    
-    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_1);
+
+    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_0);
     MSS_SPI_transfer_block(this_spi, &read_device_id_cmd, 1, read_buffer,
                            sizeof(read_buffer));
 
-    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_0);
 
     *manufacturer_id = read_buffer[0];
     *device_id = read_buffer[1];
@@ -107,12 +112,12 @@ void FLASH_read
     cmd_buffer[4] = DONT_CARE;
     cmd_buffer[5] = DONT_CARE;
     
-    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_0);
     wait_ready_erase(this_spi);
     wait_ready(this_spi);
     MSS_SPI_transfer_block(this_spi, cmd_buffer, 4, rx_buffer, size_in_bytes);
     wait_ready(this_spi);
-    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_0);
     
 }
 
@@ -127,7 +132,7 @@ void FLASH_global_unprotect
     /* Send Write Enable command */
     cmd_buffer[0] = WRITE_ENABLE_CMD;
 
-    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_0);
     wait_ready(this_spi);
     MSS_SPI_transfer_block(this_spi, cmd_buffer, 1, 0, 0);
     
@@ -138,7 +143,7 @@ void FLASH_global_unprotect
     wait_ready(this_spi);
     MSS_SPI_transfer_block(this_spi, cmd_buffer, 2, 0, 0);
     wait_ready(this_spi);
-    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_0);
 }
 
 /*******************************************************************************
@@ -152,7 +157,7 @@ void FLASH_chip_erase
     /* Send Write Enable command */
     cmd_buffer = WRITE_ENABLE_CMD;
 
-    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_0);
     wait_ready(this_spi);
     MSS_SPI_transfer_block(this_spi, &cmd_buffer, 1, 0, 0);
     
@@ -162,7 +167,7 @@ void FLASH_chip_erase
     wait_ready(this_spi);
     MSS_SPI_transfer_block(this_spi, &cmd_buffer, 1, 0, 0);
     wait_ready(this_spi);
-    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_0);
 }
 
 /*******************************************************************************
@@ -180,7 +185,7 @@ void FLASH_erase_4k_block
     /* Send Write Enable command */
     cmd_buffer[0] = WRITE_ENABLE_CMD;
 
-    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_0);
     wait_ready(this_spi);
     MSS_SPI_transfer_block(this_spi, cmd_buffer, 1, 0, 0);
     
@@ -195,7 +200,7 @@ void FLASH_erase_4k_block
     MSS_SPI_transfer_block(this_spi, cmd_buffer, sizeof(cmd_buffer), 0, 0);
     wait_ready(this_spi);
     wait_ready_erase(this_spi);
-    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_0);
 }
 
 /*******************************************************************************
@@ -213,7 +218,7 @@ void FLASH_erase_64k_block
     /* Send Write Enable command */
     cmd_buffer[0] = WRITE_ENABLE_CMD;
 
-    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_0);
     wait_ready(this_spi);
     MSS_SPI_transfer_block(this_spi, cmd_buffer, 1, 0, 0);
 
@@ -226,7 +231,7 @@ void FLASH_erase_64k_block
     wait_ready(this_spi);
     MSS_SPI_transfer_block(this_spi, cmd_buffer, sizeof(cmd_buffer), 0, 0);
     wait_ready(this_spi);
-    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_0);
 }
 
 /*******************************************************************************
@@ -276,7 +281,7 @@ void FLASH_program
     uint32_t nb_bytes_to_write;
     uint32_t target_addr;
 
-    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_set_slave_select(this_spi, MSS_SPI_SLAVE_0);
     
     /* Send Write Enable command */
     cmd_buffer[0] = WRITE_ENABLE_CMD;
@@ -349,7 +354,7 @@ void FLASH_program
     wait_ready(this_spi);
 
     MSS_SPI_transfer_block(this_spi, cmd_buffer, 1, 0, 0);
-    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_1);
+    MSS_SPI_clear_slave_select(this_spi, MSS_SPI_SLAVE_0);
 }
 
 /*******************************************************************************

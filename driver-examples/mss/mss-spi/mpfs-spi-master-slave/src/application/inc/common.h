@@ -1,6 +1,11 @@
-/*************************************************************************//**
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
- * common.h
+/*****************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * @file common.h
+ *
+ * @author Microchip FPGA Embedded Systems Solutions
  *
  */
 

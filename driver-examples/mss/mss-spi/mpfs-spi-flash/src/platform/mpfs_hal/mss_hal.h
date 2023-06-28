@@ -41,7 +41,6 @@ typedef long            ssize_t;
  * mpfs_hal folder
  */
 #include "mpfs_hal_config/mss_sw_config.h"
-
 #include "common/atomic.h"
 #include "common/bits.h"
 #include "common/encoding.h"
