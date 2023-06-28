@@ -1,11 +1,17 @@
-/**************************************************************************//**
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+/******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Application code running on u54.
+ * @file u54_1.c
+ *
+ * @author Microchip FPGA Embedded Systems Solutions
+ *
+ * @brief Application code running on U54_1.
+ *
  * Example project demonstrate the Master Slave communication using internal
  * loopback mechanism.
+ *
  */
 
 #include <stdio.h>
