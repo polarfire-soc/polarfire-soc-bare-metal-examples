@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -61,14 +61,12 @@
   only.
 
  *//*=========================================================================*/
-#ifndef __MSS_MMC_INTERNAL_API_H
-#define __MSS_MMC_INTERNAL_API_H
+#ifndef MSS_MMC_INTERNAL_API_H
+#define MSS_MMC_INTERNAL_API_H
 
 #ifdef __cplusplus
 extern "C"
 #endif
-
-#include "hal/cpu_types.h"
 
 /*-------------------------------------------------------------------------*//**
   The MSS_MMC_pause_sdma_write_hpi() function is used to pause the ongoing SDMA
@@ -114,6 +112,7 @@ extern "C"
     g_mmc0.card_type = MSS_MMC_CARD_TYPE_MMC;
     g_mmc0.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
     g_mmc0.bus_speed_mode = MSS_MMC_MODE_LEGACY;
+    g_mmc0.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
     
     for (loop_count = 0; loop_count < (BUFFER_SIZE); loop_count++)
     {
@@ -174,6 +173,7 @@ MSS_MMC_pause_sdma_write_hpi
     g_mmc0.card_type = MSS_MMC_CARD_TYPE_MMC;
     g_mmc0.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
     g_mmc0.bus_speed_mode = MSS_MMC_MODE_LEGACY;
+    g_mmc0.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
     
     for (loop_count = 0; loop_count < (BUFFER_SIZE); loop_count++)
     {
@@ -251,6 +251,7 @@ mss_mmc_status_t MSS_MMC_resume_sdma_write_hpi(void);
     g_mmc0.card_type = MSS_MMC_CARD_TYPE_MMC;
     g_mmc0.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
     g_mmc0.bus_speed_mode = MSS_MMC_MODE_LEGACY;
+    g_mmc0.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
     
     packed_write[0] = 0x01; // version
     packed_write[1] = 0x02; // 0x2 - write
@@ -362,6 +363,7 @@ MSS_MMC_packed_write
     g_mmc0.card_type = MSS_MMC_CARD_TYPE_MMC;
     g_mmc0.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
     g_mmc0.bus_speed_mode = MSS_MMC_MODE_LEGACY;
+    g_mmc0.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
     
     packed_read[0] = 0x01; // version
     packed_read[1] = 0x02; // 0x1 - read
@@ -480,6 +482,7 @@ MSS_MMC_packed_read
     g_mmc0.card_type = MSS_MMC_CARD_TYPE_MMC;
     g_mmc0.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
     g_mmc0.bus_speed_mode = MSS_MMC_MODE_LEGACY;
+    g_mmc0.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
     
     for (loop_count = 0; loop_count < (BUFFER_SIZE); loop_count++)
     {
@@ -568,6 +571,7 @@ MSS_MMC_cq_single_task_write
     g_mmc0.card_type = MSS_MMC_CARD_TYPE_MMC;
     g_mmc0.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
     g_mmc0.bus_speed_mode = MSS_MMC_MODE_LEGACY;
+    g_mmc0.bus_voltage = MSS_MMC_3_3V_BUS_VOLTAGE;
     
     for (loop_count = 0; loop_count < (BUFFER_SIZE); loop_count++)
     {
@@ -603,4 +607,4 @@ MSS_MMC_cq_single_task_read
 }
 #endif
 
-#endif  /* __MSS_MMC_INTERNAL_API_H */
+#endif  /* MSS_MMC_INTERNAL_API_H */

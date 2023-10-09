@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -58,69 +58,73 @@
   ==============================================================================
   Theory of Operation
   ==============================================================================
-  The PDMA driver function are grouped into the following categories:
-  - Initialization
-  - Configuration
-  - Transfer Control
-  - Interrupt Control
+  To use the PDMA driver correctly, the application must follow below mentioned
+  steps:
+  - Configure the PDMA interrupts as per requirement.
+  - Setup the pdma channel configuration structure
+  - Setup the pdma transfers
+  - Start the pdma transfer
 
   --------------------------------
-  Initialization
+  Configure PDMA interrupts
   --------------------------------
-  The PolarFire SoC MSS PDMA driver is initialized through the call to the
-  MSS_PDMA_init() function. The MSS_PDMA_init() function must be called before
-  any other MSS PDMA driver functions.
+  The pdma interrupts can be configured by using PolarFire SoC HAL(MPFS HAL).
+  Application developer must ensure to configure the interrupts as per
+  application requirement.
 
-  --------------------------------
-  Configuration
-  --------------------------------
-  Each PDMA channel is configured through the call to MSS_PDMA_setup_transfer()
-  function. Configuration includes :
-  -  The PDMA channel for transaction.
-  -  Source and destination addresses.
-  -  The transfer sizes.
-  -  Repeat the transfer
-  -  Ordering requirements.
-  -  Set / Clear the interrupt for the transfer
+  ---------------------------------
+  Setup PDMA channel config structure
+  ---------------------------------
+  The local pdma channel structure is available for user to configure the
+  necessary structure variables.
+  This generally includes :
+      - Source and Destination addresses
+      - The transfer size
+      - Enable/Disable the interrupts for transfer
+      - Repeat the transfer
+      - Ordering requirement
 
+  ----------------------------------
+  Setup PDMA transfer
+  ----------------------------------
   The PolarFire SoC MSS PDMA has four independent DMA channels which operate
   concurrently to support multiple simultaneous transfers. Each channel has an
   independent set of registers and interrupts. The PDMA channels can  be
-  configured through the call to MSS_PDMA_setup_transfer() function. Apart from
-  selecting the channel the MSS_PDMA_setup_transfer() function will also setup
-  the transfer size, source and destination addresses.
-  MSS_PDMA_setup_transfer() function will also configure the repeat and force
-  order requirements as the PoalrFire SoC MSS PDMA supports multiple
-  simultaneous transfers.
-  The PDMA has two interrupts per channel which are used to signal when either
-  a transfer has completed or when a transfer error has occurred. These
-  interrupts are enabled by the application software and are set / cleared
-  by MSS_PDMA_setup_transfer() function.
+  configured through a call to MSS_PDMA_setup_transfer() function.
+  The function configures a particular channel with the configuration structure
+  configured in the previous step. Once the channel is configured, the transfers
+  can be initiated. The configuration of the currently selected PDMA channel
+  can be read by calling the MSS_PDMA_get_active_transfer_type() function.
 
-  --------------------------------
-  Transfer Control
-  --------------------------------
+  ----------------------------------
+  Start the transfer
+  ----------------------------------
   The PDMA transfers can be initiated by a call to the MSS_PDMA_start_transfer()
-  function after a PDMA channel has been configured. The
-  MSS_PDMA_start_transfer() function will write the config register in PDMA
-  memory map. The write_size and read_size buffers are used to determine the
-  size and alignment of individual PDMA transactions as a single PDMA transfers
-  may require multiple transactions.
-  The configuration of the currently selected PDMA channel can be read by
-  calling the MSS_PDMA_get_active_transfer_type() function.
+  function after a PDMA channel has been configured.
+  The MSS_PDMA_start_transfer() will check the pdma control run bit to ensure
+  no other PDMA transactions are in progress. The PDMA transaction can be
+  initiated only if the control run bit is low.
 
   --------------------------------
-  Interrupt Control
+  Interrupt control
   --------------------------------
   The PDMA has two interrupts per channel which are used to signal either a
-  successful completion og the transfer, a transfer error. These interrupts are
-  enabled by the application software by a call to MSS_PDMA_setup_transfer()
+  successful completion of the transfer or a transfer error. These interrupts 
+  are enabled by the application software by a call to MSS_PDMA_setup_transfer()
   function. The  MSS_PDMA_get_transfer_complete_status() function will indicate
   the DMA transfer success status for selected DMA channel. The
   MSS_PDMA_get_transfer_error_status() function will indicate the DMA transfer
-  failure status for selected DMA channel. The
-  MSS_PDMA_clear_transfer_complete_status() function can be used to clear the
-  DMA transfer success status.
+  failure status for selected DMA channel.
+
+  The application polls the TRANSFER_DONE bit or TRANSFER_ERROR bit to get the
+  transfer status by using MSS_PDMA_get_transfer_complete_status() or
+  MSS_PDMA_get_transfer_error_status() functions respectively.
+
+  Once the transfer is complete irrespective of the status, the interrupt needs
+  to be cleared for next transfer. If this interrupt is not cleared, the next
+  transaction might not complete as per expectation.
+  The MSS_PDMA_clear_transfer_complete_status() function can be used to clear
+  the PDMA transfer success status.
   The MSS_PDMA_clear_transfer_error_status() function can be used to clear the
   DMA transfer error status.
 
@@ -138,8 +142,8 @@ extern "C" {
 /*----------------------------------PDMA--------------------------------------*/
 
 /*----------------------------------------------------------------------------/*
-  The mss_pdma_channel_id_t enumeration is used to identify peripheral DMA channels.
-  It is used as function parameter to specify the PDMA channel used.
+  The mss_pdma_channel_id_t enumeration is used to identify peripheral DMA 
+  channels. It is used as function parameter to specify the PDMA channel used.
  */
 typedef enum __pdma_channel_id
 {
@@ -165,15 +169,30 @@ typedef struct _pdmachannelconfig
 {
     volatile uint64_t src_addr;            /* source address */
     volatile uint64_t dest_addr;           /* destination address */
-    volatile uint64_t num_bytes;           /* Number of bytes to be transfered.
+    volatile uint64_t num_bytes;           /* Number of bytes to be transferred.
                                             * Base 2 Logarithm */
-    volatile uint8_t enable_done_int;      /* enable transfer complete interrupt */
+    volatile uint8_t enable_done_int;      /* enable transfer complete interrupt*/
     volatile uint8_t enable_err_int;       /* enable transfer error interrupt*/
     volatile uint8_t repeat;               /* repeat the transaction */
     volatile uint8_t force_order;          /* Enforces strict ordering by only
                                               allowing one of each transfer type
                                               in-flight at a time */
 } mss_pdma_channel_config_t;
+
+/*------------------------ Public Constants-----------------------------------*/
+/* PDMA Interrupt status indicators */
+
+/* MSS PDMA Done interrupt indicator constants */
+#define PDMA_CH0_DONE_INT                              0x0u
+#define PDMA_CH1_DONE_INT                              0x1u
+#define PDMA_CH2_DONE_INT                              0x2u
+#define PDMA_CH3_DONE_INT                              0x3u
+
+/* MSS PDMA Error interrupt indicator constants */
+#define PDMA_CH0_ERROR_INT                             0x10u
+#define PDMA_CH1_ERROR_INT                             0x11u
+#define PDMA_CH2_ERROR_INT                             0x12u
+#define PDMA_CH3_ERROR_INT                             0x13u
 
 /*------------------------Private data structures-----------------------------*/
 /*----------------------------------- PDMA -----------------------------------*/
@@ -202,9 +221,8 @@ typedef struct _pdmaregs
 {
     volatile uint32_t control_reg;           /* Channel Control Register */
     volatile uint32_t next_config;           /* Next transfer type */
-    volatile uint64_t next_bytes;            /* Number of bytes to be transfered.
-                                              * Base 2 Logarithm
-                                              */
+    volatile uint64_t next_bytes;            /* Number of bytes to be transferred.
+                                              * Base 2 Logarithm */
     volatile uint64_t next_destination;       /* Destination Start Address */
     volatile uint64_t next_source;            /* Source start Address*/
     const volatile  uint32_t exec_config;     /* Active transfer type */
@@ -213,50 +231,18 @@ typedef struct _pdmaregs
     const volatile  uint64_t exec_source;     /* Source current address. */
 } mss_pdma_t;
 
-/* PDMA Register base address. */
-#define PDMA_REG_BASE                                  0x03000000U
-
-/* PDMA Channel Register offset.*/
-#define PDMA_CHL_REG_OFFSET                            0x1000U
-
-#define MASK_PDMA_CONTROL_RUN                          0x02U
-
-#define MASK_CLAIM_PDMA_CHANNEL                        0x01U
-
-#define MASK_PDMA_ENABLE_DONE_INT                      0x00004000U
-#define MASK_PDMA_ENABLE_ERR_INT                       0x00008000U
-
-#define SHIFT_CH_CONFIG_WSIZE                          24U
-#define SHIFT_CH_CONFIG_RSIZE                          28U
-
-#define MASK_MAXIUM_WSIZE                              0x0F000000U
-#define MASK_MAXIUM_RSIZE                              0xF0000000U
-
-#define MASK_REPEAT_TRANSCTION                         0x04U
-#define MASK_FORCE_ORDERING                            0x08U
-
-#define MASK_PDMA_TRANSFER_ERROR                       0x80000000U
-#define MASK_PDMA_TRANSFER_DONE                        0x40000000U
+/* Callback function handler 
+ * The callback function handler is used by application to identify the MSS
+ * PDMA interrupt. When the interrupt happens, a callback function of this type
+ * will be invoked about the generated interrupt. The function parameter will
+ * indicate the event that caused the interrupt.
+ * This interrupt must be pre-configured using MSS_PDMA_setup_transfer()
+ * function.
+ * For Polling mode this handler is not required.
+ */
+typedef void (*mss_pdma_int_handler_t)(uint8_t interrupt_type);
 
 /*--------------------------------Public APIs---------------------------------*/
-
-/*-------------------------------------------------------------------------*//**
-  The MSS_PDMA_init() function is used to initialize the PolarFire SoC MSS
-  Platform DMA engine. It initializes the basic data structures required for
-  driver functionality.
-   @param
-           This function does not need any parameters.
-
-   @return
-           This function does not return value.
-  @endcode
- */
-void
-MSS_PDMA_init
-(
-    void
-);
-
 /*-------------------------------------------------------------------------*//**
   The MSS_PDMA_setup_transfer() function is used to configure an individual
   DMA channel. Apart from selecting the DMA channel the MSS_PDMA_setup_transfer()
@@ -279,22 +265,37 @@ MSS_PDMA_init
            - Enable the ErrorInterrupt
            - Set the active transfer type, single or repeat.
            - Force Order.
+
+  @param mss_pdma_operation_t
+            A callback function to the application. This function will be invoked 
+            when the PDMA transfer done or transfer error interrupt is generated.
+            The callback function handler will be called only interrupt mode.
+            For polling mode, the null pointer can be sent to the function as a
+            parameter.
        
    @return pdma_error_id_t
            The function returns error signals of type mss_pdma_error_id_t.
 
   Example:
-  The following call will configure channel 0
+  The following call will configure channel 0.
   @code
-                g_pdma_error_code = MSS_PDMA_setup_transfer(PDMA_CHANNEL_0,
-                                                          &pdma_config_ch0);
+#ifdef MSS_PDMA_INTERRUPT_MODE
+                g_pdma_error_code = MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_0,
+                                                          &pdma_config_ch,
+                                                          pdma_isr);
+#else
+                MSS_PDMA_setup_transfer(MSS_PDMA_CHANNEL_0,
+                                        &pdma_config_ch,
+                                        null_ptr);
+#endif
   @endcode
  */
 mss_pdma_error_id_t
 MSS_PDMA_setup_transfer
 (
     mss_pdma_channel_id_t channel_id,
-    mss_pdma_channel_config_t *channel_config
+    mss_pdma_channel_config_t *channel_config,
+    mss_pdma_int_handler_t pdma_transfer_handler
 );
 
 /*-------------------------------------------------------------------------*//**
@@ -316,6 +317,10 @@ MSS_PDMA_setup_transfer
                 /*Setup the PDMA channel for transfer
                 g_pdma_error_code = MSS_PDMA_setup_transfer(PDMA_CHANNEL_0,
                                                           &pdma_config_ch0);
+                if (g_pdma_error_code != 0u)
+                {
+                    check_pdma_error(g_pdma_error_code);
+                }
 
                 /*Initiate the transfer for channel 0.
                 MSS_PDMA_start_transfer(PDMA_CHANNEL_0);
@@ -353,13 +358,15 @@ MSS_PDMA_start_transfer
   Example:
   The following call will configure channel 0 transaction to 32bytes.
   @code
-                MSS_PDMA_set_transction_size(PDMA_CHANNEL_0,
-                                             write_size,
-                                             read_size)
+                uint8_t g_pdma_error_code = 0u;
+
+                g_pdma_error_code = MSS_PDMA_set_transaction_size(PDMA_CHANNEL_0,
+                                                                  write_size,
+                                                                  read_size)
   @endcode
  */
 mss_pdma_error_id_t
-MSS_PDMA_set_transction_size
+MSS_PDMA_set_transaction_size
 (
     mss_pdma_channel_id_t channel_id,
     uint8_t write_size,
@@ -385,7 +392,10 @@ MSS_PDMA_set_transction_size
   The following call will return the Channel (0) active transfer type.
 
   @code
-                MSS_PDMA_get_active_transfer_type(PDMA_CHANNEL_0);
+            uint32_t active_tx_type = 0U;
+
+            /* Read active transfer type
+            active_tx_type = MSS_PDMA_get_active_transfer_type(PDMA_CHANNEL_0);
   @endcode
  */
 uint32_t
@@ -396,7 +406,7 @@ MSS_PDMA_get_active_transfer_type
 
 /*-------------------------------------------------------------------------*//**
   The MSS_PDMA_get_number_bytes_remaining() function is used to request number
-  of bytes remaining to be transfered.
+  of bytes remaining to be transferred.
 
   @param channel_id
            The channel_id parameter specifies the Platform DMA channel selected
@@ -410,7 +420,10 @@ MSS_PDMA_get_active_transfer_type
   The following call will return the number of bytes remaining Channel (0).
 
   @code
-                MSS_PDMA_get_number_bytes_remaining(PDMA_CHANNEL_0);
+
+           uint64_t exec_bytes;
+
+           exec_bytes = MSS_PDMA_get_number_bytes_remaining(PDMA_CHANNEL_0);
   @endcode
  */
 uint64_t
@@ -436,7 +449,10 @@ MSS_PDMA_get_number_bytes_remaining
   value.
 
   @code
-                MSS_PDMA_get_destination_current_addr(PDMA_CHANNEL_0);
+
+        uint64_t exec_destination;
+
+        exec_destination = MSS_PDMA_get_destination_current_addr(PDMA_CHANNEL_0);
   @endcode
  */
 uint64_t
@@ -462,7 +478,9 @@ MSS_PDMA_get_destination_current_addr
   value.
 
   @code
-                MSS_PDMA_get_source_current_addr(PDMA_CHANNEL_0);
+                uint64_t exec_source;
+
+                exec_source = MSS_PDMA_get_source_current_addr(PDMA_CHANNEL_0);
   @endcode
  */
 uint64_t
@@ -487,7 +505,10 @@ MSS_PDMA_get_source_current_addr
   The following call will return the Channel (0) transfer status.
 
   @code
-                MSS_PDMA_get_transfer_complete_status(PDMA_CHANNEL_0);
+
+     uint8_t tx_complete_status = 0U;
+
+     tx_complete_status = MSS_PDMA_get_transfer_complete_status(PDMA_CHANNEL_0);
   @endcode
 
  */
@@ -513,7 +534,9 @@ MSS_PDMA_get_transfer_complete_status
   The following call will return the Channel (0) transfer error status.
 
   @code
-                MSS_PDMA_get_transfer_error_status(PDMA_CHANNEL_0);
+      uint8_t tx_error_status = 0U;
+
+     tx_error_status = MSS_PDMA_get_transfer_error_status(PDMA_CHANNEL_0);
   @endcode
 
  */
@@ -541,7 +564,15 @@ MSS_PDMA_get_transfer_error_status
            interrupt status of the last DMA transfer
 
   @code
-                MSS_PDMA_clear_transfer_complete_status(PDMA_CHANNEL_0);
+         uint8_t g_done_int_processed = 0u;
+        g_done_int_processed |= MSS_PDMA_clear_transfer_complete_status(MSS_PDMA_CHANNEL_0)
+                                                              << MSS_PDMA_CHANNEL_0;
+
+         if (g_done_int_processed)
+         {
+
+         }
+
   @endcode
  */
 uint8_t
@@ -568,8 +599,15 @@ MSS_PDMA_clear_transfer_complete_status
            interrupt status of the last DMA transfer
 
   @code
-                MSS_PDMA_clear_transfer_complete_status(PDMA_CHANNEL_0);
-  @endcode
+         uint8_t g_err_int_processed = 0u;
+         g_err_int_processed |= MSS_PDMA_clear_transfer_error_status(MSS_PDMA_CHANNEL_0)
+                                                              << MSS_PDMA_CHANNEL_0;
+
+         if (g_err_int_processed)
+         {
+
+         }
+       @endcode
 
  */
 uint8_t

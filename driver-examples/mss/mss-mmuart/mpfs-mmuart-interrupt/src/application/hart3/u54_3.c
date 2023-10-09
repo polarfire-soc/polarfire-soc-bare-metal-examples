@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Application code running on U54_3
+ * @file u54_3.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Application code running on u54_3
  *
  */
 
@@ -13,6 +15,9 @@
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 
 volatile uint32_t count_sw_ints_h3 = 0U;
+
+const uint8_t polled_message3[] =
+        "Hart 3 was taken out of WFI from uart2 user tx handler.\r\n";
 
 /* Main function for the hart3(U54_3 processor).
  * Application code running on hart3 is placed here
@@ -45,6 +50,11 @@ void u54_3(void)
 
     __enable_irq();
 
+    MSS_UART_init(&g_mss_uart3_lo,
+        MSS_UART_115200_BAUD,
+        MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
+    MSS_UART_polled_tx(&g_mss_uart3_lo,polled_message3,
+            sizeof(polled_message3));
 
     while(1U)
     {

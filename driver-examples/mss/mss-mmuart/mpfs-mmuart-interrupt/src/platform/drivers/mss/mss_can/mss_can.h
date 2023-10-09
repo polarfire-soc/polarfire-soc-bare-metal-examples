@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -21,8 +21,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  *
- * PolarFire SoC Microprocessor Subsystem CAN bare metal software driver public 
- * API.
+ * PolarFire SoC Microprocessor Subsystem(MSS) CAN bare metal software driver  
+ * public API.
  *
  */
 /*=========================================================================*//**
@@ -65,8 +65,8 @@
   subsystem or the FPGA fabric. The MSS CAN serial signals are routed through
   IOMUXs to the PolarFire SoC device external pins. The MSS CAN serial
   signals can also be routed through IOMUXs to the PolarFire SoC FPGA fabric.
-  For more information on IOMUX, see the IOMUX section of the PolarFire SoC
-  Microprocessor Subsystem (MSS) User's Guide.
+  For more information on IOMUX, refer to the I/O Configuration section of the
+  PolarFire SoC Microprocessor Subsystem (MSS) User's Guide.
 
   The IOMUXs are configured using the PolarFire SoC MSS configurator tool. You
   must ensure that the MSS CAN peripherals are enabled and configured in the
@@ -223,10 +223,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define __I  const volatile
-#define __IO volatile
-#define __O volatile
 
 /* The following macro MSS_CAN_ENABLE_INTERRUPTS must be defined to allow the
  * enabling of the MSS CAN peripheral interrupts at the PLIC level.

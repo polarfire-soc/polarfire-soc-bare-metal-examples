@@ -34,20 +34,7 @@
 #ifndef __MSS_USB_CONFIG_H_
 #define __MSS_USB_CONFIG_H_
 
-/*-------------------------------------------------------------------------*//**
-  User should choose the Mode in which PolarFire SoC MSS USB should operate
-*/
-/* #define MSS_USB_OTG_DUAL_ROLE_MODE */
-/* #define MSS_USB_OTG_PERIPHERAL_MODE*/
-
-/* Configures the MSS USB Driver Stack to operate in USB Host mode. */
-   #define MSS_USB_OTG_HOST_MODE
-
-/* Configures the MSS USB Driver Stack to operate in USB Device mode. */
-/* #define MSS_USB_PERIPHERAL_MODE */
-
-/* Used for internal testing of the driver. Not for Application use. */
-/* #define MSS_USB_DEVICE_TEST_MODE */
+#include "mpfs_hal/mss_hal.h"
 
 /*-------------------------------------------------------------------------*//**
   Definitions Internally generated for use in the Core and logical layer.

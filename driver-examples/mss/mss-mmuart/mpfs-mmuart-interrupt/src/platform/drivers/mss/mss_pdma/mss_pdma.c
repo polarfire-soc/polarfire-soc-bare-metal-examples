@@ -1,17 +1,19 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * PoalrFire SoC Microprocessor Subsystem PDMA bare metal driver implementation.
  */
 
-#include "mss_pdma.h"
 #include "mpfs_hal/mss_hal.h"
+#include "mss_pdma_regs.h"
+#include "mss_pdma.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
+
 
 /* MACRO to set the correct channel memory offset for the memory mapped
  * configuration register.
@@ -20,37 +22,33 @@ extern "C" {
                     (uint64_t)(PDMA_REG_BASE + (PDMA_CHL_REG_OFFSET * (x)))
 
 /* Default is maximum transaction size for both write_size and read_size. */
-uint8_t g_channel_nextcfg_wsize[MSS_PDMA_lAST_CHANNEL] = { 0x0Fu, 0x0Fu, 0x0Fu, 0x0Fu };
-uint8_t g_channel_nextcfg_rsize[MSS_PDMA_lAST_CHANNEL] = { 0x0Fu, 0x0Fu, 0x0Fu, 0x0Fu };
+uint8_t g_channel_nextcfg_wsize[MSS_PDMA_lAST_CHANNEL] = 
+                                                { 0x0Fu, 0x0Fu, 0x0Fu, 0x0Fu };
+uint8_t g_channel_nextcfg_rsize[MSS_PDMA_lAST_CHANNEL] = 
+                                                { 0x0Fu, 0x0Fu, 0x0Fu, 0x0Fu };
 
-/*-------------------------------------------------------------------------*//**
- * MSS_PDMA_init()
- * See pse_pdma.h for description of this function.
- */
-void
-MSS_PDMA_init
-(
-    void
-)
-{
-    ;
-}
+/* Callback handler declaration */
+mss_pdma_int_handler_t mss_pdma_isr;
 
 /*-------------------------------------------------------------------------*//**
  * MSS_PDMA_setup_transfer()
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 mss_pdma_error_id_t
 MSS_PDMA_setup_transfer
 (
     mss_pdma_channel_id_t channel_id,
-    mss_pdma_channel_config_t *channel_config
+    mss_pdma_channel_config_t *channel_config,
+    mss_pdma_int_handler_t pdma_transfer_handler
 )
 {
     if (channel_id > MSS_PDMA_CHANNEL_3)
     {
         return MSS_PDMA_ERROR_INVALID_CHANNEL_ID;
     }
+
+    /* Register callback interrupt handler */
+    mss_pdma_isr = pdma_transfer_handler;
 
     /* Set the register structure pointer for the PDMA channel. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET(channel_id);
@@ -131,10 +129,10 @@ MSS_PDMA_setup_transfer
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 mss_pdma_error_id_t
-MSS_PDMA_set_transction_size
+MSS_PDMA_set_transaction_size
 (
     mss_pdma_channel_id_t channel_id,
     uint8_t write_size,
@@ -165,7 +163,7 @@ MSS_PDMA_set_transction_size
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 mss_pdma_error_id_t
 MSS_PDMA_start_transfer
@@ -189,7 +187,7 @@ MSS_PDMA_start_transfer
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 uint32_t
 MSS_PDMA_get_active_transfer_type
@@ -209,7 +207,7 @@ MSS_PDMA_get_active_transfer_type
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 uint64_t
 MSS_PDMA_get_number_bytes_remaining
@@ -229,7 +227,7 @@ MSS_PDMA_get_number_bytes_remaining
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 uint64_t
 MSS_PDMA_get_destination_current_addr
@@ -249,7 +247,7 @@ MSS_PDMA_get_destination_current_addr
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 uint64_t
 MSS_PDMA_get_source_current_addr
@@ -269,7 +267,7 @@ MSS_PDMA_get_source_current_addr
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 uint8_t
 MSS_PDMA_get_transfer_complete_status
@@ -296,7 +294,7 @@ MSS_PDMA_get_transfer_complete_status
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 uint8_t
 MSS_PDMA_get_transfer_error_status
@@ -308,6 +306,7 @@ MSS_PDMA_get_transfer_error_status
     {
         return 0u;
     }
+    
     /* Set the register structure pointer for the PDMA channel. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET(channel_id);
 
@@ -322,7 +321,7 @@ MSS_PDMA_get_transfer_error_status
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdma.h for description of this function.
  */
 uint8_t
 MSS_PDMA_clear_transfer_complete_status
@@ -350,7 +349,7 @@ MSS_PDMA_clear_transfer_complete_status
 }
 
 /***************************************************************************//**
- * See pse_pdma.h for description of this function.
+ * See mss_pdmaF.h for description of this function.
  */
 uint8_t
 MSS_PDMA_clear_transfer_error_status
@@ -390,7 +389,10 @@ dma_ch0_DONE_IRQHandler
     /* Clear the interrupt enable bit. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET
                                                 (MSS_PDMA_CHANNEL_0);
+
     pdmareg->control_reg &= ~((uint32_t)MASK_PDMA_ENABLE_DONE_INT);
+
+    mss_pdma_isr(PDMA_CH0_DONE_INT);
 
     return 0u;
 }
@@ -404,7 +406,10 @@ dma_ch0_ERR_IRQHandler
     /* Clear the interrupt enable bit. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET
                                                 (MSS_PDMA_CHANNEL_0);
+
     pdmareg->control_reg &= ~((uint32_t)MASK_PDMA_ENABLE_ERR_INT);
+
+    mss_pdma_isr(PDMA_CH0_ERROR_INT);
 
     return 0u;
 }
@@ -418,7 +423,10 @@ dma_ch1_DONE_IRQHandler
     /* Clear the interrupt enable bit. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET
                                                 (MSS_PDMA_CHANNEL_1);
+
     pdmareg->control_reg &= ~((uint32_t)MASK_PDMA_ENABLE_DONE_INT);
+
+    mss_pdma_isr(PDMA_CH1_DONE_INT);
 
     return 0u;
 }
@@ -432,7 +440,10 @@ dma_ch1_ERR_IRQHandler
     /* Clear the interrupt enable bit. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET
                                                 (MSS_PDMA_CHANNEL_1);
+
     pdmareg->control_reg &= ~((uint32_t)MASK_PDMA_ENABLE_ERR_INT);
+
+    mss_pdma_isr(PDMA_CH1_ERROR_INT);
 
     return 0u;
 }
@@ -447,7 +458,10 @@ dma_ch2_DONE_IRQHandler
     /* Clear the interrupt enable bit. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET
                                                 (MSS_PDMA_CHANNEL_2);
+
     pdmareg->control_reg &= ~((uint32_t)MASK_PDMA_ENABLE_DONE_INT);
+
+    mss_pdma_isr(PDMA_CH2_DONE_INT);
 
     return 0u;
 }
@@ -461,7 +475,10 @@ dma_ch2_ERR_IRQHandler
     /* Clear the interrupt enable bit. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET
                                                 (MSS_PDMA_CHANNEL_2);
+
     pdmareg->control_reg &= ~((uint32_t)MASK_PDMA_ENABLE_ERR_INT);
+
+    mss_pdma_isr(PDMA_CH2_ERROR_INT);
 
     return 0u;
 }
@@ -475,7 +492,10 @@ dma_ch3_DONE_IRQHandler
     /* Clear the interrupt enable bit. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET
                                                 (MSS_PDMA_CHANNEL_3);
+
     pdmareg->control_reg &= ~((uint32_t)MASK_PDMA_ENABLE_DONE_INT);
+
+    mss_pdma_isr(PDMA_CH3_DONE_INT);
 
     return 0u;
 }
@@ -489,7 +509,10 @@ dma_ch3_ERR_IRQHandler
     /* Clear the interrupt enable bit. */
     volatile mss_pdma_t *pdmareg = (mss_pdma_t *)MSS_PDMA_REG_OFFSET
                                                 (MSS_PDMA_CHANNEL_3);
+
     pdmareg->control_reg &= ~((uint32_t)MASK_PDMA_ENABLE_ERR_INT);
+
+    mss_pdma_isr(PDMA_CH3_ERROR_INT);
 
     return 0u;
 }
@@ -497,4 +520,3 @@ dma_ch3_ERR_IRQHandler
 #ifdef __cplusplus
 }
 #endif
-

@@ -17,3 +17,15 @@ message and menu instructions are displayed over the UART terminal. Follow the
 instruction to use different menu options provided by the example project.
 
 This project provides build configurations and debug launchers as explained [here](https://mi-v-ecosystem.github.io/redirects/polarfire-soc-documentation-master_README)
+
+# Renode Emulation
+This example can be run on the Renode emulation platform. Build the application as normal, and then launch it using `mpfs-mmuart-interrupt renode all-harts start-platform-and-debug.launch`
+
+UART console display and logging options can be found under the Startup tab in `Debug Configurations` > `mpfs-mmuart-interrupt renode all-harts debug`. More information about using Renode is available on https://renode.readthedocs.io
+
+### DDR training and Renode
+If the firmware has DDR training enabled, then the application will take significantly longer to start up in Renode. Training has no practical impact in this environment as the emulated DDR memory is already reliable.
+
+Training can be controlled by removing `#define DDR_SUPPORT` in your `mss_sw_config.h` file. This change should be made in `src\boards\[BOARD]\platform_config\mpfs_hal_config\`
+
+If your project uses the default configuration file in `src\platform\platform_config_reference\` to enable DDR training, it is recommended to create a copy under the boards directory and disable `DDR_SUPPORT` there.

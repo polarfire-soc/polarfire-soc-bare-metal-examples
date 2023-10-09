@@ -12,14 +12,11 @@
  *
  */
 
+#include "mpfs_hal/mss_hal.h"
 #include "mss_usb_host_hid.h"
 #include "mss_usb_host.h"
 #include "mss_usb_std_def.h"
 
-#include <string.h>
-#include <stdio.h>
-#include "hal/hal_assert.h"
-#include "mpfs_hal/mss_plic.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -431,7 +428,7 @@ MSS_USBH_HID_task
 
         default:
         {
-            HAL_ASSERT(0);  /*Reset recovery should be tried.*/
+            ASSERT(0);  /*Reset recovery should be tried.*/
         }
         break;
     }
@@ -556,7 +553,7 @@ usbh_hid_rx_cb
         }
         else
         {
-            HAL_ASSERT(0);/* Handling any other error. Not yet supported */
+            ASSERT(0);/* Handling any other error. Not yet supported */
         }
     }
 

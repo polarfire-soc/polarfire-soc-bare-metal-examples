@@ -39,7 +39,7 @@
   model is outside the scope of this driver.
   
   @section theory_op Theory of Operation
-  The PolarFire SoC MSS Timer can be used in one of two mutually exclusive modes;
+  The PolarFire SoC MSS Timer can be used in one of two mutually exclusive modes
   either as a single 64-bits timer or as two independent 32-bits timers. The MSS
   Timer can be used in either periodic mode or one-shot mode. A timer configured
   for periodic mode operations will generate an interrupt and reload its
@@ -113,18 +113,16 @@
 #ifndef MSS_TIMER_H_
 #define MSS_TIMER_H_
 
-#include "mpfs_hal/mss_plic.h"
-
-#include "drivers/mss_timer/mss_timer_regs.h"
-
+#include "mpfs_hal/mss_hal.h"
+#include "mss_timer_regs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
 
- /******************************************************************************/
- /*                         Peripheral declaration                             */
- /******************************************************************************/
+ /*****************************************************************************/
+ /*                         Peripheral declaration                            */
+ /*****************************************************************************/
 
  #define TIMER_LO                      ((TIMER_TypeDef *) TIMER_LO_BASE)
  #define TIMER_HI                      ((TIMER_TypeDef*) TIMER_HI_BASE)
@@ -153,30 +151,37 @@ typedef enum __mss_timer_mode
  */
 /* Timer 1 interrupt enable bits */
 #define TIM1_INTEN_MASK     0x00000004u
+
 /* Timer 1 Mode bits */
 #define TIM1_MODE_SHIFT     1u
 #define TIM1_MODE_MASK      0x00000002u
+
 /* Timer 1 enable bits */
 #define TIM1_ENABLE_MASK    0x00000001u
+
 /* Timer 2 interrupt enable bits */
 #define TIM2_INTEN_MASK     0x00000004u
+
 /* Timer 2 Mode bits */
 #define TIM2_MODE_SHIFT     1u
 #define TIM2_MODE_MASK      0x00000002u
+
 /* Timer 2 enable bits */
 #define TIM2_ENABLE_MASK    0x00000001u
 
 /* Timer 64 interrupt enable bits */
 #define TIM64_INTEN_MASK    0x00000004u
+
 /* Timer 64 mode bits */
 #define TIM64_MODE_SHIFT    1u
 #define TIM64_MODE_MASK     0x00000002u
+
 /* Timer 64 enable bits */
 #define TIM64_ENABLE_MASK   0x00000001u
 
 static uint32_t readvalue[52] = {0};
 
-/*--------------------------------------------------------------------------*//**
+/*-------------------------------------------------------------------------*//**
   The MSS_TIM1_init() function initializes the MSS Timer block for use as a
   32-bit timer and selects the operating mode for Timer 1. The MSS Timer block
   is out of reset before executing this function. The MSS_TIM1_init() function
@@ -195,7 +200,8 @@ static uint32_t readvalue[52] = {0};
        Calling MSS_TIM1_init() will overwrite any previous configuration
        of the MSS Timer as a 64-bit timer.
  */
-static inline void MSS_TIM1_init(TIMER_TypeDef* timer, mss_timer_mode_t mode)
+static inline void 
+MSS_TIM1_init(TIMER_TypeDef* timer, mss_timer_mode_t mode)
 {
     PLIC_DisableIRQ(TIMER1_PLIC);               /* Disable timer 1 irq */
     
@@ -221,7 +227,8 @@ static inline void MSS_TIM1_init(TIMER_TypeDef* timer, mss_timer_mode_t mode)
   Note: The MSS_TIM1_start() function is also used to resume the down-counter
         if previously stopped using the MSS_TIM1_stop() function.
  */
-static inline void MSS_TIM1_start(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM1_start(TIMER_TypeDef* timer)
 {
     timer->TIM1_CTRL |= TIM1_ENABLE_MASK;
 }
@@ -234,7 +241,8 @@ static inline void MSS_TIM1_start(TIMER_TypeDef* timer)
     The timer parameter specifies the Timer block to configure.
 
  */
-static inline void MSS_TIM1_stop(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM1_stop(TIMER_TypeDef* timer)
 {
     timer->TIM1_CTRL &= ~((uint32_t)TIM1_ENABLE_MASK);    /* disable timer */
 }
@@ -249,7 +257,8 @@ static inline void MSS_TIM1_stop(TIMER_TypeDef* timer)
   @return
     This function returns the 32-bits current value of the Timer 1 down-counter.
  */
-static inline uint32_t MSS_TIM1_get_current_value(TIMER_TypeDef* timer)
+static inline uint32_t 
+MSS_TIM1_get_current_value(TIMER_TypeDef* timer)
 {
     return timer->TIM1_VAL;
 }
@@ -273,7 +282,8 @@ static inline uint32_t MSS_TIM1_get_current_value(TIMER_TypeDef* timer)
     The load_value parameter specifies the value from which the Timer 1 
     down-counter will start decrementing from.
  */
-static inline void MSS_TIM1_load_immediate(TIMER_TypeDef* timer, uint32_t load_value)
+static inline void 
+MSS_TIM1_load_immediate(TIMER_TypeDef* timer, uint32_t load_value)
 {
     timer->TIM1_LOADVAL = load_value;
 }
@@ -294,7 +304,8 @@ static inline void MSS_TIM1_load_immediate(TIMER_TypeDef* timer, uint32_t load_v
     1 down-counter will start decrementing from this value after the current
     count expires.
  */
-static inline void MSS_TIM1_load_background(TIMER_TypeDef* timer, uint32_t load_value)
+static inline void 
+MSS_TIM1_load_background(TIMER_TypeDef* timer, uint32_t load_value)
 {
     timer->TIM1_BGLOADVAL = load_value;
 }
@@ -304,16 +315,17 @@ static inline void MSS_TIM1_load_background(TIMER_TypeDef* timer, uint32_t load_
   Timer 1. This function also enables the interrupt in the RISC-V PLIC. The
   Timer1_IRQHandler() function will be called when a Timer 1 interrupt occurs.
 
-  Note:A Timer1_IRQHandler() default implementation is defined, with weak
-       linkage, in the MPFS HAL. You must provide your own implementation of
-       the Timer1_IRQHandler() function, which will override the default
-       implementation, to suit your application.
+  Note: A Timer1_IRQHandler() default implementation is defined, with weak
+        linkage, in the MPFS HAL. You must provide your own implementation of
+        the Timer1_IRQHandler() function, which will override the default
+        implementation, to suit your application.
 
   @param timer
     The timer parameter specifies the Timer block to configure.
 
 */
-static inline void MSS_TIM1_enable_irq(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM1_enable_irq(TIMER_TypeDef* timer)
 {
     timer->TIM1_CTRL |= TIM1_INTEN_MASK;
     readvalue[8] = timer->TIM1_CTRL;
@@ -328,7 +340,8 @@ static inline void MSS_TIM1_enable_irq(TIMER_TypeDef* timer)
     The timer parameter specifies the Timer block to configure.
 
  */
-static inline void MSS_TIM1_disable_irq(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM1_disable_irq(TIMER_TypeDef* timer)
 {
     timer->TIM1_CTRL &= ~((uint32_t)TIM1_INTEN_MASK);
     PLIC_DisableIRQ(TIMER1_PLIC);               /* Disable timer 1 irq */
@@ -347,7 +360,8 @@ static inline void MSS_TIM1_disable_irq(TIMER_TypeDef* timer)
     The timer parameter specifies the Timer block to configure.
 
  */
-static inline void MSS_TIM1_clear_irq(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM1_clear_irq(TIMER_TypeDef* timer)
 {
     timer->TIM1_RIS = 1u;
 }
@@ -372,7 +386,8 @@ static inline void MSS_TIM1_clear_irq(TIMER_TypeDef* timer)
         - MSS_TIMER_PERIODIC_MODE
         - MSS_TIMER_ONE_SHOT_MODE 
  */
-static inline void MSS_TIM2_init(TIMER_TypeDef* timer, mss_timer_mode_t mode)
+static inline void 
+MSS_TIM2_init(TIMER_TypeDef* timer, mss_timer_mode_t mode)
 {
     PLIC_DisableIRQ(TIMER2_PLIC);               /* Disable timer 2 irq */
     timer->TIM64_MODE = 0u;                     /* switch to 32 bits mode */
@@ -394,7 +409,8 @@ static inline void MSS_TIM2_init(TIMER_TypeDef* timer, mss_timer_mode_t mode)
   Note:The MSS_TIM2_start() function is also used to resume the down-counter
        if previously stopped using the MSS_TIM2_stop() function.
  */
-static inline void MSS_TIM2_start(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM2_start(TIMER_TypeDef* timer)
 {
     timer->TIM2_CTRL |= TIM2_ENABLE_MASK;     /* enable timer */
 }
@@ -406,7 +422,8 @@ static inline void MSS_TIM2_start(TIMER_TypeDef* timer)
   @param timer
     The timer parameter specifies the Timer block to configure.
  */
-static inline void MSS_TIM2_stop(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM2_stop(TIMER_TypeDef* timer)
 {
     timer->TIM2_CTRL &= ~((uint32_t)TIM2_ENABLE_MASK);    /* disable timer */
 }
@@ -418,7 +435,8 @@ static inline void MSS_TIM2_stop(TIMER_TypeDef* timer)
   @param timer
     The timer parameter specifies the Timer block to configure.
  */
-static inline uint32_t MSS_TIM2_get_current_value(TIMER_TypeDef* timer)
+static inline uint32_t 
+MSS_TIM2_get_current_value(TIMER_TypeDef* timer)
 {
     return timer->TIM2_VAL;
 }
@@ -442,7 +460,8 @@ static inline uint32_t MSS_TIM2_get_current_value(TIMER_TypeDef* timer)
     The load_value parameter specifies the value from which the Timer 2
     down-counter will start decrementing. 
  */
-static inline void MSS_TIM2_load_immediate(TIMER_TypeDef* timer, uint32_t load_value)
+static inline void 
+MSS_TIM2_load_immediate(TIMER_TypeDef* timer, uint32_t load_value)
 {
     timer->TIM2_LOADVAL = load_value;
 }
@@ -463,7 +482,8 @@ static inline void MSS_TIM2_load_immediate(TIMER_TypeDef* timer, uint32_t load_v
     2 down-counter will start decrementing from this value after the current
     count expires.
  */
-static inline void MSS_TIM2_load_background(TIMER_TypeDef* timer, uint32_t load_value)
+static inline void 
+MSS_TIM2_load_background(TIMER_TypeDef* timer, uint32_t load_value)
 {
     timer->TIM2_BGLOADVAL = load_value;
 }
@@ -481,7 +501,8 @@ static inline void MSS_TIM2_load_background(TIMER_TypeDef* timer, uint32_t load_
   @param timer
     The timer parameter specifies the Timer block to configure.
  */
-static inline void MSS_TIM2_enable_irq(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM2_enable_irq(TIMER_TypeDef* timer)
 {
     timer->TIM2_CTRL |= TIM2_INTEN_MASK;
     PLIC_EnableIRQ(TIMER2_PLIC);
@@ -494,7 +515,8 @@ static inline void MSS_TIM2_enable_irq(TIMER_TypeDef* timer)
   @param timer
     The timer parameter specifies the Timer block to configure.
  */
-static inline void MSS_TIM2_disable_irq(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM2_disable_irq(TIMER_TypeDef* timer)
 {
     timer->TIM2_CTRL &=  ~((uint32_t)TIM2_INTEN_MASK);
     PLIC_DisableIRQ(TIMER2_PLIC);               /* Disable timer 2 irq */
@@ -513,7 +535,8 @@ static inline void MSS_TIM2_disable_irq(TIMER_TypeDef* timer)
     The timer parameter specifies the Timer block to configure.
 
  */
-static inline void MSS_TIM2_clear_irq(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM2_clear_irq(TIMER_TypeDef* timer)
 {
     timer->TIM2_RIS = 1u;
 }
@@ -538,7 +561,8 @@ static inline void MSS_TIM2_clear_irq(TIMER_TypeDef* timer)
         - MSS_TIMER_PERIODIC_MODE
         - MSS_TIMER_ONE_SHOT_MODE 
  */
-static inline void MSS_TIM64_init(TIMER_TypeDef* timer, mss_timer_mode_t mode)
+static inline void 
+MSS_TIM64_init(TIMER_TypeDef* timer, mss_timer_mode_t mode)
 {
     PLIC_DisableIRQ(TIMER1_PLIC);               /* Disable timer 1 irq */
     PLIC_DisableIRQ(TIMER2_PLIC);               /* Disable timer 2 irq */
@@ -563,7 +587,8 @@ static inline void MSS_TIM64_init(TIMER_TypeDef* timer, mss_timer_mode_t mode)
   @param timer
     The timer parameter specifies the Timer block to configure.
  */
-static inline void MSS_TIM64_start(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM64_start(TIMER_TypeDef* timer)
 {
     timer->TIM64_CTRL |= TIM64_ENABLE_MASK;   /* enable timer */
 }
@@ -575,7 +600,8 @@ static inline void MSS_TIM64_start(TIMER_TypeDef* timer)
   @param timer
     The timer parameter specifies the Timer block to configure.
  */
-static inline void MSS_TIM64_stop(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM64_stop(TIMER_TypeDef* timer)
 {
     timer->TIM64_CTRL &= ~((uint32_t)TIM64_ENABLE_MASK);    /* disable timer */
 }
@@ -602,7 +628,8 @@ static inline void MSS_TIM64_stop(TIMER_TypeDef* timer)
     MSS_TIM64_get_current_value( &current_value_u, &current_value_l );
   @endcode
  */
-static inline void MSS_TIM64_get_current_value
+static inline void 
+MSS_TIM64_get_current_value
 (
     TIMER_TypeDef* timer,
     uint32_t * load_value_u,
@@ -637,7 +664,8 @@ static inline void MSS_TIM64_get_current_value
     The load_value_l parameter specifies the lower 32 bits of the 64-bit timer
     load value from which the 64-bit timer down-counter will start decrementing.
  */
-static inline void MSS_TIM64_load_immediate
+static inline void 
+MSS_TIM64_load_immediate
 (
     TIMER_TypeDef* timer,
     uint32_t load_value_u,
@@ -673,9 +701,9 @@ static inline void MSS_TIM64_load_immediate
     the down-counter reaches zero. The 64-bit timer down-counter will start
     decrementing from the concatenated 64-bit value after the current count
     expires.
- 
  */
-static inline void MSS_TIM64_load_background
+static inline void 
+MSS_TIM64_load_background
 (
     TIMER_TypeDef* timer,
     uint32_t load_value_u,
@@ -692,19 +720,20 @@ static inline void MSS_TIM64_load_background
   The Timer1_IRQHandler() function will be called when a 64-bit timer interrupt
   occurs.
 
-  Note:A Timer1_IRQHandler() default implementation is defined, with weak linkage,
-       in the MPFS HAL. You must provide your own implementation of the
-       Timer1_IRQHandler() function, which will override the default implementation,
-       to suit your application.
+  Note: A Timer1_IRQHandler() default implementation is defined, with weak 
+        linkage, in the MPFS HAL. You must provide your own implementation of 
+        the Timer1_IRQHandler() function, which will override the default 
+        implementation, to suit your application.
 
-  Note:The MSS_TIM64_enable_irq() function enables and uses Timer 1 interrupts
-       for the 64-bit timer. Timer 2 interrupts remain disabled.
+  Note: The MSS_TIM64_enable_irq() function enables and uses Timer 1 interrupts
+        for the 64-bit timer. Timer 2 interrupts remain disabled.
 
   @param timer
     The timer parameter specifies the Timer block to configure.
 
  */
-static inline void MSS_TIM64_enable_irq(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM64_enable_irq(TIMER_TypeDef* timer)
 {
     timer->TIM64_CTRL |= TIM64_INTEN_MASK;
     PLIC_EnableIRQ(TIMER1_PLIC);
@@ -718,7 +747,8 @@ static inline void MSS_TIM64_enable_irq(TIMER_TypeDef* timer)
   @param timer
     The timer parameter specifies the Timer block to configure.
  */
-static inline void MSS_TIM64_disable_irq(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM64_disable_irq(TIMER_TypeDef* timer)
 {
     timer->TIM64_CTRL &= ~((uint32_t)TIM64_INTEN_MASK);
     PLIC_DisableIRQ(TIMER1_PLIC);
@@ -735,9 +765,9 @@ static inline void MSS_TIM64_disable_irq(TIMER_TypeDef* timer)
 
   @param timer
     The timer parameter specifies the Timer block to configure.
-
  */
-static inline void MSS_TIM64_clear_irq(TIMER_TypeDef* timer)
+static inline void 
+MSS_TIM64_clear_irq(TIMER_TypeDef* timer)
 {
     timer->TIM64_RIS = 1u;
 }
