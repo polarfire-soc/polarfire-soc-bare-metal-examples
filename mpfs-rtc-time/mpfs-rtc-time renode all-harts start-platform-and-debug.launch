@@ -5,7 +5,7 @@
     <booleanAttribute key="org.eclipse.debug.core.launchGroup.0.adoptIfRunning" value="false"/>
     <booleanAttribute key="org.eclipse.debug.core.launchGroup.0.enabled" value="true"/>
     <stringAttribute key="org.eclipse.debug.core.launchGroup.0.mode" value="run"/>
-    <stringAttribute key="org.eclipse.debug.core.launchGroup.0.name" value="PolarFire-SoC-Renode-emulation-platform"/>
+    <stringAttribute key="org.eclipse.debug.core.launchGroup.0.name" value="PolarFire-SoC-Icicle-Renode-emulation-platform"/>
     <stringAttribute key="org.eclipse.debug.core.launchGroup.1.action" value="WAIT_FOR_TERMINATION"/>
     <booleanAttribute key="org.eclipse.debug.core.launchGroup.1.adoptIfRunning" value="false"/>
     <booleanAttribute key="org.eclipse.debug.core.launchGroup.1.enabled" value="true"/>
