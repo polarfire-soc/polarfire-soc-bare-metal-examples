@@ -24,7 +24,6 @@
 #include "encoding.h"
 #endif
 
-#include "mss_legacy_defines.h"
 #include "mss_assert.h"
 
 #ifdef __cplusplus
@@ -628,7 +627,7 @@ static inline void PLIC_init(void)
             break;
     }
 
-    /* Enable  PLIC_MMUARTine external interrupts. */
+    /* Enable machine external interrupts. */
     set_csr(mie, MIP_MEIP);
 }
 
