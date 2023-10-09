@@ -188,6 +188,7 @@ uint8_t  gpio1_bit16_or_gpio2_bit30_plic_30_IRQHandler(void)
     MSS_UART_polled_tx_string(&g_mss_uart1_lo,
            "gpio2_pin 30 Interrupt\r\n");
     MSS_GPIO_set_outputs(GPIO2_LO, 0u);
+    MSS_GPIO_clear_irq(GPIO2_LO, MSS_GPIO_30);
     return EXT_IRQ_KEEP_ENABLED;
 }
 
@@ -196,6 +197,7 @@ uint8_t gpio1_bit17_or_gpio2_bit31_plic_31_IRQHandler(void)
     MSS_UART_polled_tx_string(&g_mss_uart1_lo,
            "gpio2_pin 31 Interrupt\r\n" );
     MSS_GPIO_set_outputs(GPIO2_LO, 0u);
+    MSS_GPIO_clear_irq(GPIO2_LO, MSS_GPIO_31);
     return EXT_IRQ_KEEP_ENABLED;
 }
 
