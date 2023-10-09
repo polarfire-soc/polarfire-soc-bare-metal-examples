@@ -31,12 +31,12 @@ uint8_t g_message[] =
 \r\nThis example project demonstrates the use of the PolarFire SoC MSS timer \r\n ";
 
 uint8_t g_menu[] =
-"Choose one of the following Option to observe its corresponding Timer mode. \r\n\n\
-Type 0: show this menu\r\n\
+"Choose one of the following options to observe its corresponding Timer mode. \r\n\n\
+Type 0: Show this menu\r\n\
 Type 1: Configure Timer1 as 32 bit timer in periodic mode (default) \r\n\
 Type 2: Configure Timer1 as 32 bit timer in one-shot mode \r\n\
-Type 3: configure Timer1 to generate interrupts at non uniform interval using background load API \r\n\r\n\
-Type 4: Configure Timer as 64 bit timer in periodic mode \r\n ";
+Type 3: Configure Timer as 64 bit timer in periodic mode \r\n\
+Type 4: Configure Timer1 to generate interrupts at non uniform interval using background load API \r\n\r\n ";
 
 uint8_t g_message2[] =
      "\r\r\nObserve the messages on UART2 terminal .\
@@ -144,7 +144,7 @@ void u54_1(void)
 
                     g_current_option = PERIODIC;
                     sprintf(p_buff,"Timer is configured in PERIODIC_MODE \
-                            \r\nplease observe the Uart2 terminal for interrupt messages\r\n\r\n ");
+                            \r\nPlease observe the Uart2 terminal for interrupt messages\r\n\r\n ");
                     MSS_UART_polled_tx(&g_mss_uart1_lo,p_buff,strlen(p_buff));
                     MSS_UART_polled_tx_string(&g_mss_uart2_lo,
                     "\r\n**************************************************\r\n");
@@ -195,7 +195,7 @@ void u54_1(void)
                     g_current_option = BACKGROUND_LOAD;
 
                     sprintf(p_buff,"Timer is configured in BACKGROUND_LOAD \
-                            \r\nplease observe the Uart2 terminal for interrupt messages\r\n\r\n");
+                            \r\nPlease observe the Uart2 terminal for interrupt messages\r\n\r\n");
                     MSS_UART_polled_tx(&g_mss_uart1_lo, p_buff,strlen(p_buff));
                     MSS_UART_polled_tx_string(&g_mss_uart2_lo,
                     "\r\n**************************************************\r\n");
