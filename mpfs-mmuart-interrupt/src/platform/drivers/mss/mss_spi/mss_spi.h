@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -47,9 +47,9 @@
   routed through IOMUXs to the PolarFire SoC FPGA fabric. 
   The IOMUXs are configured using the PolarFire SoC MSS configurator tool. You
   must ensure that the MSS SPI peripherals are enabled and configured in the
-  PolarFire SoC MSS configurator if you wish to use them. For more information
-  on IOMUXs, refer to the IOMUX section of the PolarFire SoC microprocessor
-  Subsystem (MSS) Users Guide.
+  PolarFire SoC MSS configurator if you wish to use them. For more information 
+  on IOMUX, refer to the I/O Configuration section of the PolarFire SoC 
+  Microprocessor Subsystem (MSS) User's Guide.
   The base address, register addresses and interrupt number assignment for the
   MSS SPI peripherals are defined as constants in the PolarFire SoC HAL.
   You must ensure that the latest PolarFire SoC HAL is included in the
@@ -226,9 +226,8 @@ The MSS SPI driver functions are grouped in following categories:
 
 #include <stddef.h>
 #include <stdint.h>
-#include "mpfs_hal/mss_plic.h"
 
-/*Register map of the PSE MSS SPI*/
+/*Register map of the MPFS MSS SPI*/
 typedef struct
 {
     volatile uint32_t CONTROL;
@@ -353,7 +352,7 @@ typedef enum __mss_spi_protocol_mode_t
 } mss_spi_protocol_mode_t;
 
 /***************************************************************************//**
- This enumeration is used to select a specific SPI slave device (0 to 7). It is
+ This enumeration is used to select a specific SPI slave device (0,1). It is
  used as a parameter to the MSS_SPI_configure_master_mode(),
  MSS_SPI_set_slave_select() and MSS_SPI_clear_slave_select () functions.
  */
@@ -361,13 +360,7 @@ typedef enum __mss_spi_protocol_mode_t
  {
     MSS_SPI_SLAVE_0             = 0,
     MSS_SPI_SLAVE_1             = 1,
-    MSS_SPI_SLAVE_2             = 2,
-    MSS_SPI_SLAVE_3             = 3,
-    MSS_SPI_SLAVE_4             = 4,
-    MSS_SPI_SLAVE_5             = 5,
-    MSS_SPI_SLAVE_6             = 6,
-    MSS_SPI_SLAVE_7             = 7,
-    MSS_SPI_MAX_NB_OF_SLAVES    = 8
+    MSS_SPI_MAX_NB_OF_SLAVES    = 2
 } mss_spi_slave_t;
 
 /***************************************************************************//**
@@ -402,7 +395,8 @@ typedef struct __mss_spi_slave_cfg_t
 typedef enum __mss_spi_sxfer_mode_t
 {
     MSS_SPI_SLAVE_XFER_NONE  = 0, /* Not configured yet */
-    MSS_SPI_SLAVE_XFER_BLOCK = 1, /* Block transfers, with SSEND delimiting end of block */
+    MSS_SPI_SLAVE_XFER_BLOCK = 1, /* Block transfers, with SSEND delimiting end 
+                                     of block */
     MSS_SPI_SLAVE_XFER_FRAME = 2  /* Single frame transfers */
 } mss_spi_sxfer_mode_t;
 
@@ -417,7 +411,7 @@ typedef struct __mss_spi_instance_t
 {
     /* SPI hardware identification definitions . */
     SPI_TypeDef *           hw_reg;     /*!< Pointer to SPI registers. */
-    PLIC_IRQn_Type          irqn;       /*!< SPI's PLIC interrupt number. */
+    uint8_t          irqn;       /*!< SPI's PLIC interrupt number. */
     
     /* Internal transmit state: */
     const uint8_t * slave_tx_buffer;    /*!< Pointer to slave transmit buffer. */
@@ -572,12 +566,6 @@ void MSS_SPI_configure_slave_mode
     slave, as specified by the other function parameters. Allowed values are:
        * MSS_SPI_SLAVE_0
        * MSS_SPI_SLAVE_1
-       * MSS_SPI_SLAVE_2
-       * MSS_SPI_SLAVE_3
-       * MSS_SPI_SLAVE_4
-       * MSS_SPI_SLAVE_5
-       * MSS_SPI_SLAVE_6
-       * MSS_SPI_SLAVE_7
     
   @param protocol_mode
     This parameter is used to specify the SPI operating mode. Allowed values are:
@@ -715,7 +703,6 @@ void MSS_SPI_set_slave_select
     MSS SPI 1 respectively. This parameter must point to either the g_mss_spi0
     or g_mss_spi1 global data structure defined within the SPI driver.
     
- 
   @param slave
     The slave parameter is one of mss_spi_slave_t enumerated constants
     identifying a slave.
@@ -868,7 +855,6 @@ uint32_t MSS_SPI_transfer_frame
     •   Sending a command to a slave followed by reading the response to the
         command in a single SPI transaction.
 
- 
   @param this_spi
     The this_spi parameter is a pointer to an mss_spi_instance_t structure
     identifying the MSS SPI hardware block to operate on. There are two such
@@ -948,7 +934,6 @@ void MSS_SPI_transfer_block
     MSS SPI 1 respectively. This parameter must point to either the g_mss_spi0
     or g_mss_spi1 global data structure defined within the SPI driver.
     
- 
   @param rx_handler
     The rx_handler parameter is a pointer to the frame receive handler that must
     be called when a frame is received by the MSS SPI slave.
@@ -1141,7 +1126,6 @@ void MSS_SPI_set_slave_block_buffers
     mss_spi_block_rx_handler_t spi_block_rx_handler
 );
 
-
 /***************************************************************************//**
   The MSS_SPI_set_cmd_handler() function specifies a command handler function
   that will be called when the number of bytes received reaches the command size
@@ -1320,7 +1304,6 @@ void MSS_SPI_set_cmd_response
     const uint8_t * resp_tx_buffer,
     uint32_t resp_buff_size
 );
-
 
 #ifdef __cplusplus
 }

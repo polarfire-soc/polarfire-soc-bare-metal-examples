@@ -1,20 +1,16 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * PolarFire SoC MSS eMMC SD bare metal driver implementation.
  *
  */
-#include "mss_mmc.h"
+#include "mpfs_hal/mss_hal.h"
 #include "mss_mmc_if.h"
 #include "mss_mmc_regs.h"
 #include "mss_mmc_types.h"
-#include "hal/hal_assert.h"
-#include "mpfs_hal/mss_hal.h"
-#include "mpfs_hal/mss_sysreg.h"
-#include "mpfs_hal/mss_plic.h"
-
+#include "mss_mmc.h"
 #ifdef MSS_MMC_INTERNAL_APIS
 #include "mss_mmc_internal_api.h"
 #endif
@@ -22,8 +18,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 /***************************************************************************//**
- *  Macros
+ * Macros
  */
 #define WORD_SIZE                       4u
 #define BYTE_MASK                       0xFFu
@@ -64,6 +61,7 @@ extern "C" {
 #define MMC_SOFTWARE_RESET_SHIFT        0x3u
 #define DEBOUNCING_TIME                 0x300000u
 #define MMC_RESET_DATA_CMD_LINE         0x06000000u
+#define CMD_TYPE_ABORT                  0xC0u
 /* SDMA boundary is 512k */
 #define SIZE_32MB                       0x02000000u
 #define SIZE_64KB                       0x00010000u
@@ -97,17 +95,23 @@ extern "C" {
 #define DEVICE_SUPPORT_SDR_25MHZ        0x01u
 #define DEVICE_SUPPORT_LEGACY           0x00u
 
+#define DEVICE_STATE_MASK               0xF00u
+#define DEVICE_STATE_TRANS              0x900u
+
 #define MMC_ES_DUAL_DATA_WIDTH_8BIT     0x86u
 #define MMC_DUAL_DATA_WIDTH_8BIT        0x6u
 #define MMC_DUAL_DATA_WIDTH_4BIT        0x5u
 
 #define MAX_CURRENT_MA                  150u
+
 #define SHIFT_2BIT                      0x2u
 #define SHIFT_4BIT                      0x4u
 #define SHIFT_8BIT                      0x8u
 #define SHIFT_9BIT                      9u
 #define SHIFT_16BIT                     16u
 #define SHIFT_24BIT                     24u
+#define SHIFT_27BIT                     27u
+#define SHIFT_28BIT                     28u
 #define SHIFT_30BIT                     30u
 #define SHIFT_31BIT                     31u
 #define SHIFT_32BIT                     32u
@@ -115,12 +119,14 @@ extern "C" {
 #define MASK_32BIT                      0xFFFFFFFFu
 #define MASK_24BIT                      0xFFFFFFu
 #define MASK_16BIT                      0xFFFFu
+#define MASK_12BIT                      0xFFFu
 #define MASK_8BIT                       0xFFu
 #define MASK_4BIT                       0xFu
 
 #define BYTES_128                       128u
 #define BYTES_64                        64u
 #define BYTES_40                        40u
+#define BYTES_20                        20u
 #define BYTES_7                         7u
 #define BYTES_6                         6u
 #define BYTES_5                         5u
@@ -145,9 +151,16 @@ extern "C" {
  bigger than 64KB for smaller parts. Split is made by ADMA module. */
 #define SDIO_CFG_SDIO_BUFFERS_COUNT     0x4000u
 
-#define NULL_POINTER                            ((void *)0u)
+#define SDIO_OPCODE_INC                 0x04000000u
+#define SDIO_WRITE                      0x80000000u
+#define SDIO_CSA_REG_ADDR               0x10Fu
+#define SDIO_CSA_SUPPORT                0x40u
+#define SDIO_CSA_ENABLE                 0x80u
+#define SDIO_FBR_BASE_ADDR              0x100u
+
+#define NULL_POINTER                    ((void *)0u)
 /*******************************************************************************
- *  Global variable file scope
+ * Global variable file scope
  */
 /* Relative card address (eMMC/SD) */
 static uint32_t sdcard_RCA;
@@ -159,11 +172,13 @@ static uint8_t g_mmc_cq_init_complete;
 static uint8_t g_mmc_is_multi_blk = MMC_CLEAR;
 static uint8_t g_sdio_fun_num;
 static uint8_t g_device_hpi_suport;
+/* eMMC - 0, SD card - 1 */
+static uint8_t g_mmc_card_sd;
 
 #ifdef MSS_MMC_INTERNAL_APIS
 static uint8_t g_device_hpi_set = MMC_CLEAR;
 static uint32_t g_trans_remain_size = MMC_CLEAR;
-static uint8_t * g_trans_src_addr = MMC_CLEAR;
+static uint8_t * g_trans_src_addr = NULL_POINTER;
 static uint32_t g_trans_dest_addr = MMC_CLEAR;
 #endif /* MSS_MMC_INTERNAL_APIS */
 
@@ -191,7 +206,7 @@ static uint8_t set_host_sdclk(uint32_t frequencyKHz);
 static mss_mmc_status_t set_data_timeout(uint32_t timeout_val_us);
 static mss_mmc_status_t  set_sdhost_power(uint32_t voltage);
 static void get_phy_addr(MSS_MMC_phydelay phydelaytype, uint8_t *phySetAddr);
-static void phy_training_mmc(uint8_t delay_type, uint32_t clk_rate);
+static mss_mmc_status_t phy_training_mmc(uint8_t delay_type, uint32_t clk_rate);
 static void phy_write_set(uint8_t delay_type, uint8_t delay_value);
 static mss_mmc_status_t device_set_hs_timing
 (
@@ -213,6 +228,7 @@ static mss_mmc_status_t set_host_uhsi_mode
     uint8_t access_mode,
     uint8_t driver_strengh
 );
+
 static mss_mmc_status_t sd_host_process_switch_function
 (
     uint8_t function_num,
@@ -238,7 +254,8 @@ static void sdio_host_access_cccr
     uint8_t transfer_direction,
     void *data,
     uint8_t data_size,
-    uint8_t register_address
+    uint8_t register_address,
+    uint8_t raw
 );
 static void sdio_host_access_fbr
 (
@@ -246,7 +263,8 @@ static void sdio_host_access_fbr
     void *data,
     uint8_t data_size,
     uint32_t register_address,
-        uint8_t fun_num
+    uint8_t fun_num,
+    uint8_t raw
 );
 static void sdio_host_get_tuple_from_cis
 (
@@ -266,6 +284,7 @@ static mss_mmc_status_t read_tune_block
     uint8_t cmd
 );
 static mss_mmc_status_t execute_tunning_mmc(uint8_t data_width);
+static cif_response_t check_device_status(cif_response_t rsp_status);
 
 static mss_mmc_handler_t g_transfer_complete_handler_t;
 /*****************************************************************************/
@@ -290,7 +309,7 @@ MSS_MMC_init
     uint8_t hw_device_type;
     uint8_t hw_strobe_suport;
     uint8_t hw_hs_timing;
-    
+
     /* Reset MMC */
     SYSREG->SOFT_RESET_CR &= ~(MMC_SET << MMC_SOFTWARE_RESET_SHIFT);
     /* Disable MMC interrupt */
@@ -299,6 +318,7 @@ MSS_MMC_init
     g_transfer_complete_handler_t = NULL_POINTER;
     g_mmc_init_complete = MMC_CLEAR;
     g_sdio_fun_num = MMC_CLEAR;
+    g_mmc_card_sd = MMC_CLEAR;
     g_mmc_trs_status.state = MSS_MMC_NOT_INITIALISED;
     /* Set RCA default value */
     sdcard_RCA = RCA_VALUE;
@@ -308,7 +328,7 @@ MSS_MMC_init
 
     do
     {
-       reg = MMC->HRS00; 
+       reg = MMC->HRS00;
     }while ((reg & HRS0_SOFTWARE_RESET) != MMC_CLEAR);
 
     /* Set de-bounce time */
@@ -328,7 +348,7 @@ MSS_MMC_init
     MMC->HRS06 = hrs6;
     /* Clear error/interrupt status */
     MMC->SRS12 = MMC_STATUS_CLEAR;
-    
+
     reg = MMC->SRS15;
     cap = MMC->SRS16;
     /* Check DMA 64 bit support */
@@ -354,6 +374,7 @@ MSS_MMC_init
     {
         ret_status = MSS_MMC_NOT_INITIALISED;
     }
+
     reg = MMC->SRS09;
     /* If card stable is not set it means that something is wrong */
     if (((reg & SRS9_CARD_STATE_STABLE) == MMC_CLEAR) &&
@@ -361,7 +382,7 @@ MSS_MMC_init
     {
         ret_status = MSS_MMC_CARD_STATE_STABLE_ERR;
     }
-    /* if card is not inserted to SD socked */
+    /* If card is not inserted to SD socked */
     if (MSS_MMC_CARD_TYPE_SD == cfg->card_type)
     {
         if (((reg & SRS9_CARD_INSERTED) == MMC_CLEAR) &&
@@ -376,16 +397,40 @@ MSS_MMC_init
     srs10 &= ~SRS10_EXTENDED_DATA_TRANSFER_WIDTH;
     MMC->SRS10 = srs10;
 
-    if (((MSS_MMC_MODE_HS200 == cfg->bus_speed_mode) ||
-            (MSS_MMC_MODE_HS400_ES == cfg->bus_speed_mode) ||
-            ( MSS_MMC_MODE_HS400 == cfg->bus_speed_mode)) &&
-                    (MSS_MMC_NO_ERROR == ret_status))
+    if ((MSS_MMC_CARD_TYPE_MMC == cfg->card_type) && (MSS_MMC_NO_ERROR == ret_status))
     {
-        /* Set Host Controller power to 1.8v */
-        ret_status = set_sdhost_power(SRS10_SET_1_8V_BUS_VOLTAGE);
-        if (ret_status != MSS_MMC_NO_ERROR)
+        switch (cfg->bus_voltage)
         {
-            ret_status = MSS_MMC_NOT_INITIALISED;
+            case MSS_MMC_1_8V_BUS_VOLTAGE:
+                /* Set Host Controller power to 1.8v */
+                ret_status = set_sdhost_power(SRS10_SET_1_8V_BUS_VOLTAGE);
+                if (ret_status != MSS_MMC_NO_ERROR)
+                {
+                    ret_status = MSS_MMC_NOT_INITIALISED;
+                }
+                break;
+
+            case MSS_MMC_3_3V_BUS_VOLTAGE:
+                if (((MSS_MMC_MODE_HS200 == cfg->bus_speed_mode) ||
+                    (MSS_MMC_MODE_HS400_ES == cfg->bus_speed_mode) ||
+                    (MSS_MMC_MODE_HS400 == cfg->bus_speed_mode)))
+                {
+                    ret_status = MSS_MMC_NOT_INITIALISED;
+                }
+                else
+                {
+                    /* Set Host Controller power to 3.3v */
+                    ret_status = set_sdhost_power(SRS10_SET_3_3V_BUS_VOLTAGE);
+                    if (ret_status != MSS_MMC_NO_ERROR)
+                    {
+                        ret_status = MSS_MMC_NOT_INITIALISED;
+                    }
+                }
+                break;
+
+            default:
+                ret_status = MSS_MMC_NOT_INITIALISED;
+                break;
         }
     }
     else
@@ -435,29 +480,22 @@ MSS_MMC_init
                         hw_hs_timing   = pcsd_reg[EXT_CSD_HS_TIMING_OFFSET];
                         hw_strobe_suport = pcsd_reg [EXT_CSD_ES_SUPPORT_OFFSET];
                         g_device_hpi_suport = pcsd_reg[EXT_CSD_ES_SUPPORT_OFFSET];
-    
+
                         if ((g_device_hpi_suport & DEVICE_HPI_SUPPORT) == DEVICE_HPI_SUPPORT)
                         {
-                            /* enable HPI in device */
+                            /* Enable HPI in device */
                             response_status = cif_send_cmd(MMC_HPI_ENABLE,
                                                             MMC_CMD_6_SWITCH,
                                                             MSS_MMC_RESPONSE_R1B);
-                            /*
-                            * Writing to the EXT CSD register takes significant time,
-                            * so function must not return until the 'READY FOR DATA'
-                            * bit is set in the Card Status Register.
-                            */
-                            while (DEVICE_BUSY == response_status)
+                            if (TRANSFER_IF_FAIL != response_status)
                             {
-                                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                                            MMC_CMD_13_SEND_STATUS,
-                                                            MSS_MMC_RESPONSE_R1);
+                                response_status = check_device_status(response_status);
                             }
                         }
                         switch (cfg->bus_speed_mode)
                         {
                             case MSS_MMC_MODE_HS400_ES:
-    
+
                                 if (((hw_device_type & DEVICE_SUPPORT_HS400) == DEVICE_SUPPORT_HS400)
                                                 && (hw_strobe_suport == MMC_SET))
                                 {
@@ -472,9 +510,9 @@ MSS_MMC_init
                                     ret_status = MSS_MMC_DEVICE_NOT_SUPPORT_HS400;
                                 }
                                 break;
-    
+
                             case MSS_MMC_MODE_HS400:
-                        
+
                                 if ((hw_device_type & DEVICE_SUPPORT_HS400) == DEVICE_SUPPORT_HS400)
                                 {
                                     ret_status =  set_device_hs400_mode(cfg);
@@ -488,9 +526,9 @@ MSS_MMC_init
                                     ret_status = MSS_MMC_DEVICE_NOT_SUPPORT_HS400;
                                 }
                                 break;
-                                
+
                             case MSS_MMC_MODE_HS200:
-                            
+
                                 if ((hw_device_type & DEVICE_SUPPORT_HS200) == DEVICE_SUPPORT_HS200)
                                 {
                                     ret_status = device_set_hs_timing(DEVICE_SUPPORT_HS200, cfg);
@@ -512,9 +550,9 @@ MSS_MMC_init
                                     ret_status = MSS_MMC_DEVICE_NOT_SUPPORT_HS200;
                                 }
                                 break;
-                                
+
                             case MSS_MMC_MODE_DDR:
-                        
+
                                 if ((hw_device_type & DEVICE_SUPPORT_DDR) == DEVICE_SUPPORT_DDR)
                                 {
                                     ret_status = device_set_hs_timing(DEVICE_SUPPORT_DDR, cfg);
@@ -530,9 +568,9 @@ MSS_MMC_init
                                     ret_status = MSS_MMC_DEVICE_NOT_SUPPORT_DDR;
                                 }
                                 break;
-    
+
                             case MSS_MMC_MODE_SDR:
-                        
+
                                 if ((hw_device_type & DEVICE_SUPPORT_SDR_50MHZ) == DEVICE_SUPPORT_SDR_50MHZ)
                                 {
                                     ret_status = device_set_hs_timing(DEVICE_SUPPORT_SDR, cfg);
@@ -556,36 +594,41 @@ MSS_MMC_init
                                     ret_status = MSS_MMC_DEVICE_NOT_SUPPORT_SDR;
                                 }
                                 break;
-    
+
                             case MSS_MMC_MODE_LEGACY:
+
                                 ret_status = device_set_hs_timing(DEVICE_SUPPORT_LEGACY, cfg);
                                 if (MSS_MMC_TRANSFER_SUCCESS != ret_status)
                                 {
                                     ret_status = MSS_MMC_CLK_DIV_ERR;
                                 }
                                 break;
+
                             default:
+
                                 ret_status = MSS_MMC_INIT_FAILURE;
                                 break;
                         }
+
                         if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
                         {
                             ret_status = MSS_MMC_single_block_read(READ_SEND_EXT_CSD, csd_reg);
                             if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
                             {
                                 pcsd_reg = (uint8_t *)csd_reg;
-                                /* offsets defined in JESD84-B51 extended CSD */
+                                /* Offsets defined in JESD84-B51 extended CSD */
                                 hw_sec_count   = csd_reg[EXT_CSD_SECTOR_COUNT_OFFSET/WORD_SIZE];
                                 hw_ext_csd_rev = pcsd_reg[EXT_CSD_REVISION_OFFSET] & BYTE_MASK;
                                 hw_hs_timing   = pcsd_reg[EXT_CSD_HS_TIMING_OFFSET];
-    
-                                if ((MMC_CLEAR == hw_hs_timing) && 
+
+                                if ((MMC_CLEAR == hw_hs_timing) &&
                                     (cfg->bus_speed_mode != MSS_MMC_MODE_LEGACY))
                                 {
                                     ret_status = MSS_MMC_CLK_DIV_ERR;
                                 }
                             }
                         }
+
                         if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
                         {
                             ret_status = MSS_MMC_INIT_SUCCESS;
@@ -624,7 +667,7 @@ MSS_MMC_init
         response_status = cif_send_cmd(RESET_ARG, MMC_CMD_0_GO_IDLE_STATE,
                                                     MSS_MMC_RESPONSE_NO_RESP);
         mmc_delay(DELAY_COUNT);
-    
+
         if (TRANSFER_IF_SUCCESS == response_status)
         {
             /* Specify the operating conditions to the device */
@@ -632,6 +675,7 @@ MSS_MMC_init
 
             if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
             {
+                g_mmc_card_sd = MMC_SET;
                 ret_status = MSS_MMC_INIT_SUCCESS;
                 g_mmc_trs_status.state = MSS_MMC_INIT_SUCCESS;
             }
@@ -680,6 +724,9 @@ MSS_MMC_init
     return(ret_status);
 }
 
+/*******************************************************************************
+*************************** READ APIs *****************************************
+*******************************************************************************/
 /*-------------------------------------------------------------------------*//**
  * See "mss_mmc.h" for details of how to use this function.
  */
@@ -696,94 +743,101 @@ MSS_MMC_single_block_read
     uint32_t idx_cnt;
     cif_response_t response_status;
     mss_mmc_status_t ret_status = MSS_MMC_NO_ERROR;
-    
+
     if (g_mmc_init_complete == MMC_SET)
     {
+        /* Check eMMC/SD device is busy */
         do
         {
             response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
                                         MMC_CMD_13_SEND_STATUS,
                                         MSS_MMC_RESPONSE_R1);
         } while (DEVICE_BUSY == response_status);
-    
-        /* Reset Data and cmd line */
-        MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-        /* Block length and count*/
-        MMC->SRS01 = (BLK_SIZE | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
-    
-        /* DPS, Data transfer direction - read */
-        srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ
-                    |SRS3_BLOCK_COUNT_ENABLE | SRS3_RESP_ERR_CHECK_EN
-                    | SRS3_RESP_INTER_DISABLE | SRS3_RESPONSE_CHECK_TYPE_R1
-                    | SRS3_RESP_LENGTH_48 | SRS3_CRC_CHECK_EN
-                    | SRS3_INDEX_CHECK_EN);
-        /* Check cmd and data line busy */
-        do
+        /* Device is ready */
+        if (TRANSFER_IF_SUCCESS == response_status)
         {
-            srs9 = MMC->SRS09;
-        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
-        /* eMMC EXT_CSD read */
-        if (READ_SEND_EXT_CSD == src_addr)
-        {
+            /* Reset Data and cmd line */
+            MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            mmc_delay(MASK_8BIT);
+            /* Block length and count*/
+            MMC->SRS01 = (BLK_SIZE | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
+
+            /* DPS, Data transfer direction - read */
+            srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ
+                        |SRS3_BLOCK_COUNT_ENABLE | SRS3_RESP_ERR_CHECK_EN
+                        | SRS3_RESP_INTER_DISABLE | SRS3_RESPONSE_CHECK_TYPE_R1
+                        | SRS3_RESP_LENGTH_48 | SRS3_CRC_CHECK_EN
+                        | SRS3_INDEX_CHECK_EN);
+            /* Check cmd and data line busy */
+            do
+            {
+                srs9 = MMC->SRS09;
+            }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
+
+            /* eMMC EXT_CSD read */
+            if (READ_SEND_EXT_CSD == src_addr)
+            {
+                    /* Command argument */
+                    MMC->SRS02 = MMC_CLEAR;
+                    /* execute command */
+                    MMC->SRS03 = (uint32_t)((MMC_CMD_8_SEND_EXT_CSD << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+            }/* SD card ACMD51 read */
+            else if (READ_SEND_SCR == src_addr)
+            {
+                MMC->SRS01 = (SCR_REG_DATA_SIZE | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
+                word_cnt = SHIFT_2BIT;
+                response_status = cif_send_cmd(SCR_REG_DATA_SIZE,
+                                            SD_CMD_16,
+                                            MSS_MMC_RESPONSE_R1);
+
+                response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
+                                            SD_CMD_55,
+                                            MSS_MMC_RESPONSE_R1);
                 /* Command argument */
                 MMC->SRS02 = MMC_CLEAR;
                 /* execute command */
-                MMC->SRS03 = (uint32_t)((MMC_CMD_8_SEND_EXT_CSD << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
-        }/* SD card ACMD51 read */
-        else if (READ_SEND_SCR == src_addr)
-        {
-            MMC->SRS01 = (SCR_REG_DATA_SIZE | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
-            word_cnt = SHIFT_2BIT;
-            response_status = cif_send_cmd(SCR_REG_DATA_SIZE,
-                                        SD_CMD_16,
-                                        MSS_MMC_RESPONSE_R1);
-    
-            response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
-                                        SD_CMD_55,
-                                        MSS_MMC_RESPONSE_R1);
-            /* Command argument */
-            MMC->SRS02 = MMC_CLEAR;
-            /* execute command */
-            MMC->SRS03 = (uint32_t)((SD_ACMD_51 << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
-        }
-        else
-        {
-            /* Command argument */
-            MMC->SRS02 = src_addr;
-            /* execute command */
-            MMC->SRS03 = (uint32_t)((MMC_CMD_17_READ_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
-        }
-        
-        mmc_delay(DELAY_COUNT);
-        
-        idx_cnt = MMC_CLEAR;
-        blk_read = MMC->SRS12;
-        /* Read in the contents of the Buffer */
-        while (((blk_read & SRS12_BUFFER_READ_READY) != MMC_CLEAR) && (word_cnt > (BUFF_EMPTY)))
-        {
-            dst_addr[idx_cnt] = MMC->SRS08;
-            ++idx_cnt;
-            --word_cnt;
-            blk_read = MMC->SRS12;
-        }
+                MMC->SRS03 = (uint32_t)((SD_ACMD_51 << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+            }
+            else
+            {
+                /* Command argument */
+                MMC->SRS02 = src_addr;
+                /* Execute command */
+                MMC->SRS03 = (uint32_t)((MMC_CMD_17_READ_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+            }
 
-        isr_errors = MMC->SRS12;
-        /* Abort if any errors*/
-        if ((SRS12_ERROR_STATUS_MASK & isr_errors) == MMC_CLEAR)
-        {
+            idx_cnt = MMC_CLEAR;
+
+            do
+            {
+                blk_read = MMC->SRS12;
+            } while (MMC_CLEAR == (blk_read & (SRS12_BUFFER_READ_READY | SRS12_ERROR_INTERRUPT)));
+            /* Read in the contents of the Buffer */
+            if ((blk_read & SRS12_BUFFER_READ_READY) != MMC_CLEAR)
+            {
+                while (word_cnt > (BUFF_EMPTY))
+                {
+                    dst_addr[idx_cnt] = MMC->SRS08;
+                    ++idx_cnt;
+                    --word_cnt;
+                }
+            }
+
+            isr_errors = MMC->SRS12;
+            /* Abort if any errors*/
+            if ((SRS12_ERROR_STATUS_MASK & isr_errors) == MMC_CLEAR)
+            {
+                mmc_delay(MASK_8BIT);
                 /*
-                * Ensure no error fields in Card Status register are set and that
-                * the device is idle before this function returns.
-                */
+                 * Ensure no error fields in Card Status register are set and
+                 * that the device is idle before this function returns.
+                 */
                 do
                 {
                     response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
                                                 MMC_CMD_13_SEND_STATUS,
                                                 MSS_MMC_RESPONSE_R1);
                 } while (DEVICE_BUSY == response_status);
-    
-                /* Reset Data and cmd line */
-                MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
 
                 if (TRANSFER_IF_SUCCESS == response_status)
                 {
@@ -791,30 +845,33 @@ MSS_MMC_single_block_read
                 }
                 else
                 {
-                    ret_status = MSS_MMC_TRANSFER_FAIL;
+                    ret_status = MSS_MMC_DEVICE_ERROR;
                 }
-        }
-        else
-        {
-    
-            ret_status = MSS_MMC_ERR_INTERRUPT;
-        }
-        /* Clear all status interrupts except:
-        *  current limit error, card interrupt, card removal, card insertion */
-        MMC->SRS12 = ~(SRS12_CURRENT_LIMIT_ERROR
+            }
+            else
+            {
+                ret_status = MSS_MMC_ERR_INTERRUPT;
+            }
+            /* Clear all status interrupts except:
+             * current limit error, card interrupt, card removal,
+             * card insertion 
+             */
+            MMC->SRS12 = ~(SRS12_CURRENT_LIMIT_ERROR
                                 | SRS12_CARD_INTERRUPT
                                 | SRS12_CARD_REMOVAL
                                 | SRS12_CARD_INSERTION);
+        }
+        else
+        {
+            ret_status = MSS_MMC_DEVICE_ERROR;
+        }
     }
     else
     {
         ret_status = MSS_MMC_NOT_INITIALISED;
     }
-    return (ret_status);
+    return ret_status;
 }
-/*******************************************************************************
-*************************** READ APIs *****************************************
-*******************************************************************************/
 /*-------------------------------------------------------------------------*//**
  * See "mss_mmc.h" for details of how to use this function.
  */
@@ -855,79 +912,90 @@ MSS_MMC_sdma_read
             {
                 /* Disable PLIC interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
-                /* Calculate block count */
-                blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
-                /* check eMMC/SD device is busy */
+                /* Disable error/interrupt */
+                MMC->SRS14 = MMC_CLEAR;
+                /* Check eMMC/SD device is busy */
                 do
                 {
                     response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
-                                            MMC_CMD_13_SEND_STATUS,
-                                            MSS_MMC_RESPONSE_R1);
+                                                    MMC_CMD_13_SEND_STATUS,
+                                                    MSS_MMC_RESPONSE_R1);
                 } while (DEVICE_BUSY == response_status);
 
-                /* select SDMA */
-                tmp = MMC->SRS10;
-                tmp = (tmp & (~SRS10_DMA_SELECT_MASK));
-                MMC->SRS10 = (tmp | SRS10_DMA_SELECT_SDMA);
-                /* SDMA setup */
-                MMC->SRS22 = ((uint32_t)((uintptr_t)dest));
-                MMC->SRS23 = ((uint32_t)(((uint64_t)((uintptr_t)dest)) >> MMC_64BIT_UPPER_ADDR_SHIFT));
-                /* Block length and count SDMA buffer boundary */
-                MMC->SRS01 = (blocklen | (blockcount << BLOCK_COUNT_ENABLE_SHIFT)
-                                       |  SRS1_DMA_BUFF_SIZE_512KB);
-            
-                /* Enable interrupts */
-                MMC->SRS14 = (SRS14_COMMAND_COMPLETE_SIG_EN |
-                              SRS14_TRANSFER_COMPLETE_SIG_EN |
-                              SRS14_DMA_INTERRUPT_SIG_EN |
-                              SRS14_DATA_TIMEOUT_ERR_SIG_EN);
-
-                PLIC_EnableIRQ(MMC_main_PLIC);
-
-                /* Multi Block read */
-                if (blockcount > MMC_SET)
+                if (TRANSFER_IF_SUCCESS == response_status)
                 {
+                    /* Reset Data and cmd line */
+                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+                    mmc_delay(MASK_8BIT);
+                    /* Calculate block count */
+                    blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
+                    /* Select SDMA */
+                    tmp = MMC->SRS10;
+                    tmp = (tmp & (~SRS10_DMA_SELECT_MASK));
+                    MMC->SRS10 = (tmp | SRS10_DMA_SELECT_SDMA);
+                    /* SDMA setup */
+                    MMC->SRS22 = ((uint32_t)((uintptr_t)dest));
+                    MMC->SRS23 = ((uint32_t)(((uint64_t)((uintptr_t)dest)) >> MMC_64BIT_UPPER_ADDR_SHIFT));
+                    /* Block length and count SDMA buffer boundary */
+                    MMC->SRS01 = (blocklen | (blockcount << BLOCK_COUNT_ENABLE_SHIFT)
+                                            |  SRS1_DMA_BUFF_SIZE_512KB);
+
+                    /* Enable interrupts */
+                    MMC->SRS14 = (SRS14_COMMAND_COMPLETE_SIG_EN |
+                                SRS14_TRANSFER_COMPLETE_SIG_EN |
+                                SRS14_DMA_INTERRUPT_SIG_EN |
+                                SRS14_DATA_TIMEOUT_ERR_SIG_EN);
+
+                    PLIC_EnableIRQ(MMC_main_PLIC);
+
+                    /* Check cmd and data line busy */
+                    do
+                    {
+                        srs9 = MMC->SRS09;
+                    }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
+
+                    /* Multi Block read */
+                    if (blockcount > MMC_SET)
+                    {
                         /* DPS, Data transfer direction - read */
                         srs03_data = ((uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ
                                             | SRS3_MULTI_BLOCK_SEL | SRS3_BLOCK_COUNT_ENABLE
                                             | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
                                             | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
                                             | SRS3_DMA_ENABLE));
-                        /* Check cmd and data line busy */
-                        do
-                        {
-                            srs9 = MMC->SRS09;
-                        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
-                        /* multi block transfer */
+
+                        /* Multi block transfer */
                         g_mmc_is_multi_blk = MMC_SET;
                         /* Command argument */
                         MMC->SRS02 = argument;
                         /* execute command */
                         MMC->SRS03 = ((uint32_t)((MMC_CMD_18_READ_MULTIPLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data));
-                }
-                else /* single block read */
-                {
-                    /* DPS, Data transfer direction - read */
-                    srs03_data = ((uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ
-                                            | SRS3_BLOCK_COUNT_ENABLE
-                                            | SRS3_RESPONSE_CHECK_TYPE_R1
-                                            | SRS3_RESP_LENGTH_48
-                                            | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
-                                            | SRS3_DMA_ENABLE));
-                    do
+                    }
+                    else /* Single block read */
                     {
-                        srs9 = MMC->SRS09;
-                    }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
-                    /* single block transfer */
-                    g_mmc_is_multi_blk = MMC_CLEAR;
-                    /* Command argument */
-                    MMC->SRS02 = argument;
-                    /* execute command */
-                    MMC->SRS03 = ((uint32_t)((MMC_CMD_17_READ_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data));
+                        /* DPS, Data transfer direction - read */
+                        srs03_data = ((uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ
+                                                | SRS3_BLOCK_COUNT_ENABLE
+                                                | SRS3_RESPONSE_CHECK_TYPE_R1
+                                                | SRS3_RESP_LENGTH_48
+                                                | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
+                                                | SRS3_DMA_ENABLE));
+                        /* Single block transfer */
+                        g_mmc_is_multi_blk = MMC_CLEAR;
+                        /* Command argument */
+                        MMC->SRS02 = argument;
+                        /* Execute command */
+                        MMC->SRS03 = ((uint32_t)((MMC_CMD_17_READ_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data));
+                    }
+                    g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
+                    ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
+                }
+                else
+                {
+                    g_mmc_trs_status.state = MSS_MMC_DEVICE_ERROR;
+                    ret_status = MSS_MMC_DEVICE_ERROR;
                 }
             }
-            g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
-            ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
         }
     }
     else
@@ -975,79 +1043,85 @@ MSS_MMC_adma2_read
             {
                 /* Disable PLIC interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
-                /* Calculate block count */
-                blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
-
-                /* Create ADMA2 descriptor table */
-                ret_status = adma2_create_descriptor_table(dest, size);
-                if (ret_status != MSS_MMC_INVALID_PARAMETER)
+                /* Disable error/interrupt */
+                MMC->SRS14 = MMC_CLEAR;
+                /* Check eMMC/SD device is busy */
+                do
                 {
-                    /* Check eMMC/SD device is busy */
-                    do
-                    {
-                        response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
+                    response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
                                                 MMC_CMD_13_SEND_STATUS,
                                                 MSS_MMC_RESPONSE_R1);
-                    } while (DEVICE_BUSY == response_status);
-    
-                    /* ADMA setup */
-                    MMC->SRS22 = (uint32_t)(uintptr_t)adma_descriptor_table;
-                    MMC->SRS23 = (uint32_t)(((uint64_t)(uintptr_t)adma_descriptor_table) >> MMC_64BIT_UPPER_ADDR_SHIFT);
-                    /* Select ADMA2 */
-                    tmp = MMC->SRS10;
-                    tmp = (tmp & (~SRS10_DMA_SELECT_MASK));
-                    MMC->SRS10 = (tmp | SRS10_DMA_SELECT_ADMA2);
-        
-                    /* Block length and count */
-                    MMC->SRS01 = (blocklen | (blockcount << BLOCK_COUNT_ENABLE_SHIFT));
-        
-                    /* Enable interrupts */
-                    MMC->SRS14 = (SRS14_COMMAND_COMPLETE_SIG_EN |
-                                    SRS14_TRANSFER_COMPLETE_SIG_EN  |
-                                    SRS14_DATA_TIMEOUT_ERR_SIG_EN |
-                                    SRS14_ADMA_ERROR_SIG_EN);
-                    PLIC_EnableIRQ(MMC_main_PLIC);
-                    /* Multi Block read */
-                    if (blockcount > MMC_SET)
+                } while (DEVICE_BUSY == response_status);
+                
+                if (TRANSFER_IF_SUCCESS == response_status)
+                {
+                    /* Reset Data and cmd line */
+                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+                    mmc_delay(MASK_8BIT);
+                    /* Calculate block count */
+                    blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
+                    /* Create ADMA2 descriptor table */
+                    ret_status = adma2_create_descriptor_table(dest, size);
+                    if (ret_status != MSS_MMC_INVALID_PARAMETER)
                     {
+                        /* ADMA setup */
+                        MMC->SRS22 = (uint32_t)(uintptr_t)adma_descriptor_table;
+                        MMC->SRS23 = (uint32_t)(((uint64_t)(uintptr_t)adma_descriptor_table) >> MMC_64BIT_UPPER_ADDR_SHIFT);
+                        /* Select ADMA2 */
+                        tmp = MMC->SRS10;
+                        tmp = (tmp & (~SRS10_DMA_SELECT_MASK));
+                        MMC->SRS10 = (tmp | SRS10_DMA_SELECT_ADMA2);
+                        /* Block length and count */
+                        MMC->SRS01 = (blocklen | (blockcount << BLOCK_COUNT_ENABLE_SHIFT));
+                        /* Enable interrupts */
+                        MMC->SRS14 = (SRS14_COMMAND_COMPLETE_SIG_EN |
+                                        SRS14_TRANSFER_COMPLETE_SIG_EN  |
+                                        SRS14_DATA_TIMEOUT_ERR_SIG_EN |
+                                        SRS14_ADMA_ERROR_SIG_EN);
+                        PLIC_EnableIRQ(MMC_main_PLIC);
+                        /* Check cmd and data line busy */
+                        do
+                        {
+                            srs9 = MMC->SRS09;
+                        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
+                        /* Multi Block read */
+                        if (blockcount > MMC_SET)
+                        {
                             /* DPS, Data transfer direction - read */
                             srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ
                                                 | SRS3_MULTI_BLOCK_SEL | SRS3_BLOCK_COUNT_ENABLE
                                                 | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
                                                 | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
                                                 | SRS3_DMA_ENABLE);
-                            /* Check cmd and data line busy */
-                            do
-                            {
-                                srs9 = MMC->SRS09;
-                            }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
-                            /* multi block transfer */
+                            /* Multi block transfer */
                             g_mmc_is_multi_blk = MMC_SET;
                             /* Command argument */
                             MMC->SRS02 = argument;
-                            /* execute command */
+                            /* Execute command */
                             MMC->SRS03 = (uint32_t)((MMC_CMD_18_READ_MULTIPLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
-                    }
-                    else /* single block read */
-                    {
-                        /* DPS, Data transfer direction - read */
-                        srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ | SRS3_BLOCK_COUNT_ENABLE
+                        }
+                        else /* Single block read */
+                        {
+                            /* DPS, Data transfer direction - read */
+                            srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ | SRS3_BLOCK_COUNT_ENABLE
                                                 | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
                                                 | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
                                                 | SRS3_DMA_ENABLE);
-                        do
-                        {
-                            srs9 = MMC->SRS09;
-                        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
-                        /* single block transfer */
-                        g_mmc_is_multi_blk = MMC_CLEAR;
-                        /* Command argument */
-                        MMC->SRS02 = argument;
-                        /* execute command */
-                        MMC->SRS03 = (uint32_t)((MMC_CMD_17_READ_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+                            /* Single block transfer */
+                            g_mmc_is_multi_blk = MMC_CLEAR;
+                            /* Command argument */
+                            MMC->SRS02 = argument;
+                            /* Execute command */
+                            MMC->SRS03 = (uint32_t)((MMC_CMD_17_READ_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+                        }
+                        g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
+                        ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
                     }
-                    g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
-                    ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
+                }
+                else
+                {
+                    g_mmc_trs_status.state = MSS_MMC_DEVICE_ERROR;
+                    ret_status = MSS_MMC_DEVICE_ERROR;
                 }
             }
         }
@@ -1064,91 +1138,93 @@ MSS_MMC_adma2_read
 mss_mmc_status_t
 MSS_MMC_sdio_single_block_read
 (
-    uint8_t function_num,
     uint32_t src_addr,
-    uint8_t *dst_addr
+    uint32_t *dst_addr,
+    uint16_t data_size
 )
 {
     uint32_t isr_errors;
     uint32_t blk_read, srs03_data, srs9;
-    uint16_t word_cnt = (BLK_SIZE/WORD_SIZE);
+    uint16_t word_cnt = (data_size/WORD_SIZE);
     uint32_t arguement;
     uint32_t idx_cnt;
-    uint8_t fun_num = MMC_SET << function_num;
-    uint16_t blck_size = BLK_SIZE;
-    cif_response_t response_status;
     mss_mmc_status_t ret_status = MSS_MMC_NO_ERROR;
 
     if (g_mmc_init_complete == MMC_SET)
     {
-        if ((g_sdio_fun_num & fun_num) == MMC_CLEAR)
+        if ((data_size != MMC_CLEAR) && (data_size <= BLK_SIZE)
+            && (dst_addr != NULL_POINTER))
         {
-            g_sdio_fun_num |= fun_num;
-            sdio_host_access_cccr(SDIOHOST_CCCR_WRITE, &fun_num,
-                                   sizeof(fun_num),
-                                   MSS_MMC_CCCR_IO_ENABLE);
-            sdio_host_access_cccr(SDIOHOST_CCCR_READ, &fun_num,
-                                   sizeof(fun_num),
-                                   MSS_MMC_CCCR_IO_READY);
-            while (fun_num == MMC_CLEAR)
+            sdio_host_access_fbr(SDIOHOST_CCCR_WRITE, &src_addr, BYTES_3, 
+                                MSS_MMC_FBR_ADDR_CSA, MMC_SET, MMC_CLEAR);
+            /* Reset Data and cmd line */
+            MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            mmc_delay(MASK_8BIT);
+            /* Block length and count*/
+            MMC->SRS01 = (data_size | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
+
+            /* DPS, Data transfer direction - read */
+            srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ |SRS3_BLOCK_COUNT_ENABLE
+                                | SRS3_RESP_ERR_CHECK_EN | SRS3_RESP_INTER_DISABLE
+                                | SRS3_RESPONSE_CHECK_TYPE_R5 | SRS3_RESP_LENGTH_48
+                                | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN);
+            /* Check cmd and data line busy */
+            do
             {
-                sdio_host_access_cccr(SDIOHOST_CCCR_READ, &fun_num,
-                                       sizeof(fun_num),
-                                       MSS_MMC_CCCR_IO_READY);
+                srs9 = MMC->SRS09;
+            }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
+            
+            arguement = (SDIO_CSA_REG_ADDR << SHIFT_9BIT) | SDIO_OPCODE_INC | 
+            ((data_size == BLK_SIZE) ? MMC_CLEAR : data_size);
+                /* Command argument */
+            MMC->SRS02 = arguement;
+                /* Execute command */
+            MMC->SRS03 = (uint32_t)((SDIO_CMD_53_IO_RW_EXTENDED << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+
+            idx_cnt = MMC_CLEAR;
+
+            do
+            {
+                blk_read = MMC->SRS12;
+            } while (MMC_CLEAR == (blk_read & (SRS12_BUFFER_READ_READY | SRS12_ERROR_INTERRUPT)));
+                    /* Read in the contents of the Buffer */
+            if ((blk_read & SRS12_BUFFER_READ_READY) != MMC_CLEAR)
+            {
+                while (word_cnt > (BUFF_EMPTY))
+                {
+                    dst_addr[idx_cnt] = MMC->SRS08;
+                    ++idx_cnt;
+                    --word_cnt;
+                }
             }
-            sdio_host_access_fbr(SDIOHOST_CCCR_WRITE,  &blck_size, BYTES_2, MSS_MMC_FBR_BLOCK_SIZE, function_num);
-        }
-        /* Reset Data and cmd line */
-        MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-        /* Block length and count*/
-        MMC->SRS01 = (BLK_SIZE | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
-
-        /* DPS, Data transfer direction - read */
-        srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_READ |SRS3_BLOCK_COUNT_ENABLE
-                            | SRS3_RESP_ERR_CHECK_EN | SRS3_RESP_INTER_DISABLE
-                            | SRS3_RESPONSE_CHECK_TYPE_R5 | SRS3_RESP_LENGTH_48
-                            | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN);
-        /* Check cmd and data line busy */
-        do
-        {
-            srs9 = MMC->SRS09;
-        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
-
-        arguement = (function_num << SHIFT_31BIT) | (src_addr << SHIFT_9BIT)| BLK_SIZE;
-            /* Command argument */
-        MMC->SRS02 = arguement;
-            /* execute command */
-        MMC->SRS03 = (uint32_t)((SDIO_CMD_53_IO_RW_EXTENDED << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
-
-        mmc_delay(DELAY_COUNT);
-
-        idx_cnt = MMC_CLEAR;
-        blk_read = MMC->SRS12;
-        /* Read in the contents of the Buffer */
-        while (((blk_read & SRS12_BUFFER_READ_READY) == SRS12_BUFFER_READ_READY) && (word_cnt > (BUFF_EMPTY)))
-        {
-            dst_addr[idx_cnt] = MMC->SRS08;
-            ++idx_cnt;
-            --word_cnt;
-            blk_read = MMC->SRS12;
-        }
-
-        isr_errors = MMC->SRS12;
-        /* Abort if any errors*/
-        if ((SRS12_ERROR_STATUS_MASK & isr_errors) == MMC_CLEAR)
-        {
-              ret_status = MSS_MMC_TRANSFER_FAIL;
+            isr_errors = MMC->SRS12;
+            /* Abort if any errors*/
+            if ((SRS12_ERROR_STATUS_MASK & isr_errors) == MMC_CLEAR)
+            {
+                if ((SRS12_TRANSFER_COMPLETE & isr_errors) == SRS12_TRANSFER_COMPLETE)
+                {
+                ret_status = MSS_MMC_TRANSFER_SUCCESS;
+                }
+                else
+                {
+                    ret_status = MSS_MMC_TRANSFER_FAIL;
+                }
+            }
+            else
+            {
+                ret_status = MSS_MMC_ERR_INTERRUPT;
+            }
+            /* Clear all status interrupts except:
+            *  current limit error, card interrupt, card removal, card insertion */
+            MMC->SRS12 = ~(SRS12_CURRENT_LIMIT_ERROR
+                                    | SRS12_CARD_INTERRUPT
+                                    | SRS12_CARD_REMOVAL
+                                    | SRS12_CARD_INSERTION);
         }
         else
         {
-            ret_status = MSS_MMC_ERR_INTERRUPT;
+            ret_status = MSS_MMC_INVALID_PARAMETER;
         }
-        /* Clear all status interrupts except:
-        *  current limit error, card interrupt, card removal, card insertion */
-        MMC->SRS12 = ~(SRS12_CURRENT_LIMIT_ERROR
-                                | SRS12_CARD_INTERRUPT
-                                | SRS12_CARD_REMOVAL
-                                | SRS12_CARD_INSERTION);
     }
     else
     {
@@ -1172,96 +1248,104 @@ MSS_MMC_single_block_write
     cif_response_t response_status;
     mss_mmc_status_t ret_status = MSS_MMC_NO_ERROR;
     uint16_t word_cnt = MMC_CLEAR;
-    uint8_t blk_tran_err;
-    uint8_t blk_write;
+    uint32_t blk_tran_err;
+    uint32_t blk_write;
     uint32_t srs03_data, srs9;
-    
+
     if (g_mmc_init_complete == MMC_SET)
     {
+        /* Check eMMC/SD device is busy */
         do
         {
             response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
-                                        MMC_CMD_13_SEND_STATUS,
-                                        MSS_MMC_RESPONSE_R1);
-        } while (DEVICE_BUSY == response_status);
-    
-        /* Reset Data and cmd line */
-        MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-
-        /* Block length and count*/
-        MMC->SRS01 = (BLK_SIZE | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
-    
-        /* DPS, Data transfer direction - read */
-        srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE |SRS3_BLOCK_COUNT_ENABLE
-                            | SRS3_RESP_ERR_CHECK_EN | SRS3_RESP_INTER_DISABLE
-                            | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
-                            | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN);
-        /* Check cmd and data line busy */
-        do
-        {
-            srs9 = MMC->SRS09;
-        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
-    
-        /* Command argument */
-        MMC->SRS02 = dst_addr;
-        /* execute command */
-        MMC->SRS03 = (uint32_t)((MMC_CMD_24_WRITE_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
-    
-        do
-        {
-            blk_write = MMC->SRS12;
-        } while (MMC_CLEAR == (blk_write & SRS12_BUFFER_WRITE_READY));
-        /*
-        * Load the block of data into the
-        * buffer, one byte at a time through the Buffer Data Register.
-        */
-        while ((BLK_SIZE/WORD_SIZE) > word_cnt)
-        {
-            MMC->SRS08 = src_addr[word_cnt];
-            ++word_cnt;
-        }
-        /* Check is block write complete */
-        do
-        {
-            blk_write = MMC->SRS12;
-        } while (MMC_CLEAR == (blk_write & SRS12_TRANSFER_COMPLETE));
-
-        blk_tran_err = MMC->SRS12;
-        /* Abort if any errors*/
-        if ((SRS12_ERROR_STATUS_MASK & blk_tran_err) == MMC_CLEAR)
-        {
-            /*
-            * Ensure no error fields in Card Status register are set and that
-            * the device is idle before this function returns.
-            */
-            do
-            {
-                response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
                                             MMC_CMD_13_SEND_STATUS,
                                             MSS_MMC_RESPONSE_R1);
-            } while (DEVICE_BUSY == response_status);
-    
+        } while (DEVICE_BUSY == response_status);
+        /* Device ready */
+        if (TRANSFER_IF_SUCCESS == response_status)
+        {
             /* Reset Data and cmd line */
             MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-
-            if (TRANSFER_IF_SUCCESS == response_status)
+            mmc_delay(MASK_8BIT);
+            /* Block length and count*/
+            MMC->SRS01 = (BLK_SIZE | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
+            /* DPS, Data transfer direction - read */
+            srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE |SRS3_BLOCK_COUNT_ENABLE
+                                | SRS3_RESP_ERR_CHECK_EN | SRS3_RESP_INTER_DISABLE
+                                | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
+                                | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN);
+            /* Check cmd and data line busy */
+            do
             {
-                ret_status = MSS_MMC_TRANSFER_SUCCESS;
+                srs9 = MMC->SRS09;
+            }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
+            /* Command argument */
+            MMC->SRS02 = dst_addr;
+            /* Execute command */
+            MMC->SRS03 = (uint32_t)((MMC_CMD_24_WRITE_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+
+            do
+            {
+                blk_write = MMC->SRS12;
+            } while (MMC_CLEAR == (blk_write & (SRS12_BUFFER_WRITE_READY | SRS12_ERROR_INTERRUPT)));
+            /*
+            * Load the block of data into the
+            * buffer, four bytes at a time through the Buffer Data Register.
+            */
+            if((blk_write & SRS12_BUFFER_WRITE_READY) != MMC_CLEAR)
+            {
+                while((BLK_SIZE/WORD_SIZE) > word_cnt)
+                {
+                    MMC->SRS08 = src_addr[word_cnt];
+                    ++word_cnt;
+                }
+
+                /* Check is block write complete */
+                do
+                {
+                    blk_write = MMC->SRS12;
+                } while (MMC_CLEAR == (blk_write & SRS12_TRANSFER_COMPLETE));
+            }
+
+            blk_tran_err = MMC->SRS12;
+            /* Abort if any errors*/
+            if ((SRS12_ERROR_STATUS_MASK & blk_tran_err) == MMC_CLEAR)
+            {
+                /*
+                * Ensure no error fields in Card Status register are set and that
+                * the device is idle before this function returns.
+                */
+                do
+                {
+                    response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
+                                                MMC_CMD_13_SEND_STATUS,
+                                                MSS_MMC_RESPONSE_R1);
+                } while (DEVICE_BUSY == response_status);
+
+                if (TRANSFER_IF_SUCCESS == response_status)
+                {
+                    ret_status = MSS_MMC_TRANSFER_SUCCESS;
+                }
+                else
+                {
+                    ret_status = MSS_MMC_DEVICE_ERROR;
+                }
             }
             else
             {
-                ret_status = MSS_MMC_TRANSFER_FAIL;
+                ret_status = MSS_MMC_ERR_INTERRUPT;
             }
-        }
-        else
-        {
-            ret_status = MSS_MMC_ERR_INTERRUPT;
-        }
-    
-        MMC->SRS12 = ~(SRS12_CURRENT_LIMIT_ERROR
+            /* Clear all status interrupts except:
+            *  current limit error, card interrupt, card removal, card insertion */
+            MMC->SRS12 = ~(SRS12_CURRENT_LIMIT_ERROR
                                 | SRS12_CARD_INTERRUPT
                                 | SRS12_CARD_REMOVAL
                                 | SRS12_CARD_INSERTION);
+        }
+        else
+        {
+            ret_status = MSS_MMC_DEVICE_ERROR;
+        }
     }
     else
     {
@@ -1289,7 +1373,7 @@ MSS_MMC_sdma_write
 
     blocklen = BLK_SIZE;
     argument = dest;
-    
+
     if (g_mmc_init_complete == MMC_SET)
     {
         if (MSS_MMC_TRANSFER_IN_PROGRESS == g_mmc_trs_status.state)
@@ -1306,81 +1390,88 @@ MSS_MMC_sdma_write
             }
             else
             {
-                /* disable PCLI interrupt for MMC */
+                /* Disable PLIC interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
-                
-                /* Calculate block count */
-                blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
-                /* check MMC device is busy */
+                /* Disable error/interrupt */
+                MMC->SRS14 = MMC_CLEAR;
+                /* Check eMMC/SD device is busy */
                 do
                 {
-                    response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
-                                            MMC_CMD_13_SEND_STATUS,
-                                            MSS_MMC_RESPONSE_R1);
-                } while (DEVICE_BUSY == response_status);
-    
-                tmp = MMC->SRS10;
-                tmp = (tmp & (~SRS10_DMA_SELECT_MASK));
-                MMC->SRS10 = (tmp | SRS10_DMA_SELECT_SDMA);
-    
-                /* SDMA setup */
-                MMC->SRS22 = (uint32_t)(uintptr_t)src;
-                MMC->SRS23 = (uint32_t)(((uint64_t)(uintptr_t)src) >> MMC_64BIT_UPPER_ADDR_SHIFT);
-            
-                /* Block length and count SDMA buffer boundary */
-                MMC->SRS01 = (blocklen | (blockcount << BLOCK_COUNT_ENABLE_SHIFT) | SRS1_DMA_BUFF_SIZE_512KB);
-            
-                /* enable interrupts */
-                MMC->SRS14 = (SRS14_COMMAND_COMPLETE_SIG_EN |
-                                SRS14_TRANSFER_COMPLETE_SIG_EN |
-                                SRS14_DMA_INTERRUPT_SIG_EN |
-                                SRS14_DATA_TIMEOUT_ERR_SIG_EN);
-                PLIC_EnableIRQ(MMC_main_PLIC);
-    
-                /* Multi Block write */
-                if (blockcount > MMC_SET)
-                {
-                        /* DPS, Data transfer direction - write */
-                        srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE
-                                            | SRS3_MULTI_BLOCK_SEL | SRS3_BLOCK_COUNT_ENABLE
-                                            | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
-                                            | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
-                                            | SRS3_DMA_ENABLE);
-                        /* check data line busy */
-                        do
-                        {
-                            srs9 = MMC->SRS09;
-                        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
-                        /* multi block transfer */
-                        g_mmc_is_multi_blk = MMC_SET;
 
-                        MMC->SRS02 = argument;
-                        /* execute command */
-                        MMC->SRS03 = (uint32_t)((MMC_CMD_25_WRITE_MULTI_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
-                }
-                else /* single block write */
+                    response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
+                                                        MMC_CMD_13_SEND_STATUS,
+                                                        MSS_MMC_RESPONSE_R1);
+                } while (DEVICE_BUSY == response_status);
+
+                if (TRANSFER_IF_SUCCESS == response_status)
                 {
-                    /* DPS, Data transfer direction - write */
-                    srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE
-                                            | SRS3_BLOCK_COUNT_ENABLE
-                                            | SRS3_RESPONSE_CHECK_TYPE_R1
-                                            | SRS3_RESP_LENGTH_48
-                                            | SRS3_CRC_CHECK_EN
-                                            | SRS3_INDEX_CHECK_EN
-                                            | SRS3_DMA_ENABLE);
+                    /* Reset Data and cmd line */
+                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+                    mmc_delay(MASK_8BIT);
+                    /* Calculate block count */
+                    blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
+                    /* Enable SDMA */
+                    tmp = MMC->SRS10;
+                    tmp = (tmp & (~SRS10_DMA_SELECT_MASK));
+                    MMC->SRS10 = (tmp | SRS10_DMA_SELECT_SDMA);
+                    /* SDMA setup */
+                    MMC->SRS22 = (uint32_t)(uintptr_t)src;
+                    MMC->SRS23 = (uint32_t)(((uint64_t)(uintptr_t)src) >> MMC_64BIT_UPPER_ADDR_SHIFT);
+                    /* Block length and count SDMA buffer boundary */
+                    MMC->SRS01 = (blocklen | (blockcount << BLOCK_COUNT_ENABLE_SHIFT) | SRS1_DMA_BUFF_SIZE_512KB);
+                    /* Enable interrupts */
+                    MMC->SRS14 = (SRS14_COMMAND_COMPLETE_SIG_EN |
+                                    SRS14_TRANSFER_COMPLETE_SIG_EN |
+                                    SRS14_DMA_INTERRUPT_SIG_EN |
+                                    SRS14_DATA_TIMEOUT_ERR_SIG_EN);
+                    /* Enable PLIC MMC interrupt */
+                    PLIC_EnableIRQ(MMC_main_PLIC);
+                    /* check data line busy */
                     do
                     {
                         srs9 = MMC->SRS09;
-                    }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
-                    /* single block transfer */
-                    g_mmc_is_multi_blk = MMC_CLEAR;
-                    /* execute command */
-                    MMC->SRS02 = argument;
-                    MMC->SRS03 = (uint32_t)((MMC_CMD_24_WRITE_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+                    }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
+                    /* Multi Block write */
+                    if (blockcount > MMC_SET)
+                    {
+                        /* DPS, Data transfer direction - write */
+                        srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE
+                                                | SRS3_MULTI_BLOCK_SEL | SRS3_BLOCK_COUNT_ENABLE
+                                                | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
+                                                | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
+                                                | SRS3_DMA_ENABLE);
+                        /* Multi block transfer */
+                        g_mmc_is_multi_blk = MMC_SET;
+
+                        MMC->SRS02 = argument;
+                        /* Execute command */
+                        MMC->SRS03 = (uint32_t)((MMC_CMD_25_WRITE_MULTI_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+                    }
+                    else /* Single block write */
+                    {
+                        /* DPS, Data transfer direction - write */
+                        srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE
+                                                | SRS3_BLOCK_COUNT_ENABLE
+                                                | SRS3_RESPONSE_CHECK_TYPE_R1
+                                                | SRS3_RESP_LENGTH_48
+                                                | SRS3_CRC_CHECK_EN
+                                                | SRS3_INDEX_CHECK_EN
+                                                | SRS3_DMA_ENABLE);
+                        /* Single block transfer */
+                        g_mmc_is_multi_blk = MMC_CLEAR;
+                        /* Execute command */
+                        MMC->SRS02 = argument;
+                        MMC->SRS03 = (uint32_t)((MMC_CMD_24_WRITE_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+                    }
+                    g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
+                    ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
+                }
+                else
+                {
+                    g_mmc_trs_status.state = MSS_MMC_DEVICE_ERROR;
+                    ret_status = MSS_MMC_DEVICE_ERROR;
                 }
             }
-                g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
-                ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
         }
     }
     else
@@ -1388,6 +1479,7 @@ MSS_MMC_sdma_write
         ret_status = MSS_MMC_NOT_INITIALISED;
     }
     return ret_status;
+
 }
 /*-------------------------------------------------------------------------*//**
  * See "mss_mmc.h" for details of how to use this function.
@@ -1426,78 +1518,82 @@ MSS_MMC_adma2_write
             }
             else
             {
-                /* disable PCLI interrupt for MMC */
+                /* Disable PCLI interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
-    
-                /* Calculate block count */
-                blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
-                /* ADMA2 table create */
-                ret_status = adma2_create_descriptor_table(src, size);
-                if (ret_status != MSS_MMC_INVALID_PARAMETER)
+                /* Disable error/interrupt */
+                MMC->SRS14 = MMC_CLEAR;
+                /* Check eMMC/SD device is busy */
+                do
                 {
-                    /* check MMC device is busy */
-                    do
+                    response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
+                                                MMC_CMD_13_SEND_STATUS,
+                                                MSS_MMC_RESPONSE_R1);
+                } while (DEVICE_BUSY == response_status);
+                
+                if (TRANSFER_IF_SUCCESS == response_status)
+                {
+                    /* Reset Data and cmd line */
+                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+                    mmc_delay(MASK_8BIT);
+                    /* Calculate block count */
+                    blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
+                    /* ADMA2 table create */
+                    ret_status = adma2_create_descriptor_table(src, size);
+                    if (ret_status != MSS_MMC_INVALID_PARAMETER)
                     {
-                        response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
-                                            MMC_CMD_13_SEND_STATUS,
-                                            MSS_MMC_RESPONSE_R1);
-                    } while (DEVICE_BUSY == response_status);
-    
-                    /* ADMA setup */
-                    MMC->SRS22 = (uint32_t)(uintptr_t)adma_descriptor_table;
-                    MMC->SRS23 = (uint32_t)(((uint64_t)(uintptr_t)adma_descriptor_table) >> MMC_64BIT_UPPER_ADDR_SHIFT);
-    
-                    tmp = MMC->SRS10;
-                    tmp = (tmp & (~SRS10_DMA_SELECT_MASK));
-                    MMC->SRS10 = (tmp | SRS10_DMA_SELECT_ADMA2);
-    
-                    /* Block length and count */
-                    MMC->SRS01 = (blocklen | (blockcount << BLOCK_COUNT_ENABLE_SHIFT));
-    
-                    /* enable interrupts */
-                    MMC->SRS14 = (SRS14_COMMAND_COMPLETE_SIG_EN | SRS14_TRANSFER_COMPLETE_SIG_EN
-                                        | SRS14_DATA_TIMEOUT_ERR_SIG_EN | SRS14_ADMA_ERROR_SIG_EN);
-                    PLIC_EnableIRQ(MMC_main_PLIC);
-    
-                    /* Multi Block write */
-                    if (blockcount > MMC_SET)
-                    {
+                        /* ADMA setup */
+                        MMC->SRS22 = (uint32_t)(uintptr_t)adma_descriptor_table;
+                        MMC->SRS23 = (uint32_t)(((uint64_t)(uintptr_t)adma_descriptor_table) >> MMC_64BIT_UPPER_ADDR_SHIFT);
+                        tmp = MMC->SRS10;
+                        tmp = (tmp & (~SRS10_DMA_SELECT_MASK));
+                        MMC->SRS10 = (tmp | SRS10_DMA_SELECT_ADMA2);
+                        /* Block length and count */
+                        MMC->SRS01 = (blocklen | (blockcount << BLOCK_COUNT_ENABLE_SHIFT));
+                        /* enable interrupts */
+                        MMC->SRS14 = (SRS14_COMMAND_COMPLETE_SIG_EN | SRS14_TRANSFER_COMPLETE_SIG_EN
+                                            | SRS14_DATA_TIMEOUT_ERR_SIG_EN | SRS14_ADMA_ERROR_SIG_EN);
+                        PLIC_EnableIRQ(MMC_main_PLIC);
+                        /* Check data line busy */
+                        do
+                        {
+                            srs9 = MMC->SRS09;
+                        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
+                        /* Multi Block write */
+                        if (blockcount > MMC_SET)
+                        {
                             /* DPS, Data transfer direction - write */
                             srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE
-                                            | SRS3_MULTI_BLOCK_SEL | SRS3_BLOCK_COUNT_ENABLE
-                                            | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
-                                            | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
-                                            | SRS3_DMA_ENABLE);
-                        /* check data line busy */
-                        do
+                                                | SRS3_MULTI_BLOCK_SEL | SRS3_BLOCK_COUNT_ENABLE
+                                                | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
+                                                | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
+                                                | SRS3_DMA_ENABLE);
+                            /* Multi block transfer */
+                            g_mmc_is_multi_blk = MMC_SET;
+                            MMC->SRS02 = argument;
+                            /* Execute command */
+                            MMC->SRS03 = (uint32_t)((MMC_CMD_25_WRITE_MULTI_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+                        }
+                        else /* Single block write */
                         {
-                            srs9 = MMC->SRS09;
-                        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
-                        /* multi block transfer */
-                        g_mmc_is_multi_blk = MMC_SET;
-                        MMC->SRS02 = argument;
-                        /* execute command */
-                        MMC->SRS03 = (uint32_t)((MMC_CMD_25_WRITE_MULTI_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+                            /* DPS, Data transfer direction - write */
+                            srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE | SRS3_BLOCK_COUNT_ENABLE
+                                                | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
+                                                | SRS3_CRC_CHECK_EN| SRS3_INDEX_CHECK_EN
+                                                | SRS3_DMA_ENABLE);
+                            /* Single block transfer */
+                            g_mmc_is_multi_blk = MMC_CLEAR;
+                            /* Execute command */
+                            MMC->SRS02 = argument;
+                            MMC->SRS03 = (uint32_t)((MMC_CMD_24_WRITE_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+                        }
+                        g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
+                        ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
                     }
-                    else /* single block write */
-                    {
-                        /* DPS, Data transfer direction - write */
-                        srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE | SRS3_BLOCK_COUNT_ENABLE
-                                            | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
-                                            | SRS3_CRC_CHECK_EN| SRS3_INDEX_CHECK_EN
-                                            | SRS3_DMA_ENABLE);
-                        do
-                        {
-                            srs9 = MMC->SRS09;
-                        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
-                        /* single block transfer */
-                        g_mmc_is_multi_blk = MMC_CLEAR;
-                        /* execute command */
-                        MMC->SRS02 = argument;
-                        MMC->SRS03 = (uint32_t)((MMC_CMD_24_WRITE_SINGLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
-                    }
-                    g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
-                    ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
+                }
+                else
+                {
+                    g_mmc_trs_status.state = MSS_MMC_DEVICE_ERROR;
+                    ret_status = MSS_MMC_DEVICE_ERROR;
                 }
             }
         }
@@ -1508,7 +1604,252 @@ MSS_MMC_adma2_write
     }
     return ret_status;
 }
+/*-------------------------------------------------------------------------*//**
+ * See "mss_mmc.h" for details of how to use this function.
+ */
+mss_mmc_status_t MSS_MMC_sdio_single_block_write
+(
+    const uint32_t * src_addr,
+    uint32_t dst_addr,
+    uint16_t data_size
+)
+{
+    uint16_t word_cnt = MMC_CLEAR;
+    uint32_t blk_tran_err;
+    uint32_t blk_write;
+    uint16_t blk_size = (data_size/WORD_SIZE);
+    uint32_t srs03_data, srs9;
+    uint32_t arguement;
+    mss_mmc_status_t ret_status = MSS_MMC_NO_ERROR;
 
+    if (g_mmc_init_complete == MMC_SET)
+    {
+        if ((data_size != MMC_CLEAR) && (data_size <= BLK_SIZE)
+            && (src_addr != NULL_POINTER))
+        {
+            sdio_host_access_fbr(SDIOHOST_CCCR_WRITE, &dst_addr, BYTES_3, 
+                                        MSS_MMC_FBR_ADDR_CSA, MMC_SET, MMC_CLEAR);
+            /* Reset Data and cmd line */
+            MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            mmc_delay(MASK_8BIT);
+            /* Block length and count*/
+            MMC->SRS01 = (data_size | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
+
+            /* DPS, Data transfer direction - read */
+            srs03_data = (uint32_t)(SRS3_DATA_PRESENT | SRS3_TRANS_DIRECT_WRITE |SRS3_BLOCK_COUNT_ENABLE
+                            | SRS3_RESP_ERR_CHECK_EN | SRS3_RESP_INTER_DISABLE
+                            | SRS3_RESPONSE_CHECK_TYPE_R5 | SRS3_RESP_LENGTH_48
+                            | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN);
+            /* Check cmd and data line busy */
+            do
+            {
+                srs9 = MMC->SRS09;
+            }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
+
+            arguement = SDIO_WRITE | (SDIO_CSA_REG_ADDR << SHIFT_9BIT)
+                                            | SDIO_OPCODE_INC 
+                                            | ((data_size == (uint16_t)BLK_SIZE)?MMC_CLEAR:(uint32_t)data_size);
+            /* Command argument */
+            MMC->SRS02 = arguement;
+            /* Execute command */
+            MMC->SRS03 = (uint32_t)((SDIO_CMD_53_IO_RW_EXTENDED << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
+
+            do
+            {
+                blk_write = MMC->SRS12;
+            }while (MMC_CLEAR == (blk_write & (SRS12_BUFFER_WRITE_READY | SRS12_ERROR_INTERRUPT)));
+            /*
+            * Load the block of data into the
+            * buffer, four bytes at a time through the Buffer Data Register.
+            */
+            if ((blk_write & SRS12_BUFFER_WRITE_READY) != MMC_CLEAR)
+            {
+                while (blk_size > word_cnt)
+                {
+                    MMC->SRS08 = src_addr[word_cnt];
+                    ++word_cnt;
+                }
+                /* Check is block write complete */
+                do
+                {
+                    blk_write = MMC->SRS12;
+                }while (MMC_CLEAR == (blk_write & SRS12_TRANSFER_COMPLETE));
+            }
+            blk_tran_err = MMC->SRS12;
+            /* Abort if any errors*/
+            if ((SRS12_ERROR_STATUS_MASK & blk_tran_err) == MMC_CLEAR)
+            {
+                ret_status = MSS_MMC_TRANSFER_SUCCESS;
+            }
+            else
+            {
+                ret_status = MSS_MMC_ERR_INTERRUPT;
+            }
+            MMC->SRS12 = ~(SRS12_CURRENT_LIMIT_ERROR
+                                | SRS12_CARD_INTERRUPT
+                                | SRS12_CARD_REMOVAL
+                                | SRS12_CARD_INSERTION);
+        }
+        else
+        {
+            ret_status = MSS_MMC_INVALID_PARAMETER;
+        }
+    }
+    else
+    {
+        ret_status = MSS_MMC_NOT_INITIALISED;
+    }
+    return (ret_status);
+}
+/*-------------------------------------------------------------------------*//**
+ * See "mss_mmc.h" for details of how to use this function.
+ */
+mss_mmc_status_t MSS_MMC_erase
+(
+    uint32_t start,
+    uint32_t count
+)
+{
+    uint32_t start_address;
+    uint32_t end_address;
+    uint32_t start_cmd;
+    uint32_t end_cmd;
+
+    cif_response_t response_status = TRANSFER_IF_FAIL;
+    mss_mmc_status_t ret_status = MSS_MMC_TRANSFER_FAIL;
+
+    if (g_mmc_init_complete ==  MMC_SET)
+    {
+        if (g_mmc_card_sd == MMC_CLEAR) /* eMMC*/
+        {
+            start_cmd = MMC_CMD_35_ERASE_GROUP_START;
+            end_cmd = MMC_CMD_36_ERASE_GROUP_END;
+        }
+        else /* SD Card */
+        {
+            start_cmd = SD_CMD_32_ERASE_WR_BLK_START;
+            end_cmd = SD_CMD_33_ERASE_WR_BLK_END;
+        }
+        start_address = start;
+        end_address = start + count - MMC_SET;
+
+        response_status = cif_send_cmd(start_address,
+                                        start_cmd,
+                                        MSS_MMC_RESPONSE_R1);
+
+        if (TRANSFER_IF_SUCCESS == response_status)
+        {
+            response_status = cif_send_cmd(end_address,
+                                            end_cmd,
+                                            MSS_MMC_RESPONSE_R1);
+            if (TRANSFER_IF_SUCCESS == response_status)
+            {
+                response_status = cif_send_cmd(MMC_CLEAR,
+                                    MMC_CMD_38_ERASE,
+                                    MSS_MMC_RESPONSE_R1B);
+
+                if (TRANSFER_IF_FAIL != response_status)
+                {
+                    response_status = check_device_status(response_status);
+                }
+
+                if (TRANSFER_IF_SUCCESS == response_status)
+                {
+                    ret_status = MSS_MMC_TRANSFER_SUCCESS;
+                }
+            }
+        }
+    }
+    else
+    {
+        ret_status = MSS_MMC_NOT_INITIALISED;
+    }
+
+    return ret_status;
+}
+/*-------------------------------------------------------------------------*//**
+ * See "mss_mmc.h" for details of how to use this function.
+ */
+mss_mmc_status_t MSS_MMC_error_recovery(void)
+{
+    uint32_t trans_status_isr, enable_int;
+    mss_mmc_status_t ret_status;
+    cif_response_t response_status;
+
+    /* Save interrupts */
+    enable_int = MMC->SRS14;
+    /* Disable interrupts */
+    MMC->SRS14 = MMC_CLEAR;
+    /* Clear interrupt status */
+    MMC->SRS12 = MMC_STATUS_CLEAR;
+
+    /* Reset cmd and data line */
+    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+    while ((MMC->SRS11 & MMC_RESET_DATA_CMD_LINE) != MMC_CLEAR);
+
+    /* Execute CMD12 command to abort command */
+    send_mmc_cmd(sdcard_RCA << SHIFT_16BIT, MMC_CMD_12_STOP_TRANSMISSION | CMD_TYPE_ABORT,
+                MSS_MMC_RESPONSE_R1B, CHECK_IF_CMD_SENT_POLL);
+
+    trans_status_isr = MMC->SRS12;
+
+    if ((SRS12_COMMAND_COMPLETE == (trans_status_isr & SRS12_COMMAND_COMPLETE)) &&
+        (MMC_CLEAR == (SRS12_ERROR_INTERRUPT & trans_status_isr)))
+    {
+
+        while ((MMC->SRS09 & SRS9_DAT0_SIGNAL_LEVEL) == MMC_CLEAR);
+    }
+    else
+    {
+        /* Reset cmd and data line */
+        MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+        while ((MMC->SRS11 & MMC_RESET_DATA_CMD_LINE) != MMC_CLEAR);
+    }
+
+    MMC->SRS12 = trans_status_isr;
+    /* CMD Line error occurs */
+    if (((trans_status_isr) & (SRS12_COMMAND_TIMEOUT_ERROR | SRS12_COMMAND_CRC_ERROR
+                                | SRS12_COMMAND_END_BIT_ERROR | SRS12_COMMAND_INDEX_ERROR
+                                | SRS12_RESPONSE_ERROR)) != MMC_CLEAR)
+    {
+        /* Read device status */
+        response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
+                                               MMC_CMD_13_SEND_STATUS,
+                                               MSS_MMC_RESPONSE_R1);
+    } /* DAT Line error occurs */
+    else if (((trans_status_isr) & (SRS12_DATA_END_BIT_ERROR | SRS12_DATA_CRC_ERROR
+                                    | SRS12_DATA_TIMEOUT_ERROR)) != MMC_CLEAR)
+    {
+        response_status = TRANSFER_IF_FAIL;
+    }
+    else
+    {
+        mmc_delay(DELAY_COUNT);
+        if ((MMC->SRS09 & (SRS9_DAT0_SIGNAL_LEVEL | SRS9_DAT1_SIGNAL_LEVEL
+            | SRS9_DAT2_SIGNAL_LEVEL | SRS9_DAT3_SIGNAL_LEVEL)) == MMC_CLEAR)
+        {
+            response_status = TRANSFER_IF_FAIL;
+        }
+        else
+        {
+            response_status = TRANSFER_IF_SUCCESS;
+        }
+    }
+
+    /* Restore interrupt settings */
+    MMC->SRS14 = enable_int;
+
+    if (response_status == TRANSFER_IF_FAIL)
+    {
+        ret_status = MSS_MMC_TRANSFER_FAIL;
+    }
+    else
+    {
+        ret_status = MSS_MMC_TRANSFER_SUCCESS;
+    }
+
+    return ret_status;
+}
 /*-------------------------------------------------------------------------*//**
  * See "mss_mmc.h" for details of how to use this function.
  */
@@ -1543,7 +1884,7 @@ mss_mmc_status_t MSS_MMC_cq_init(void)
     
     if (g_mmc_init_complete == MMC_SET)
     {
-        /* task descriptor size configuration */
+        /* Task descriptor size configuration */
         reg = MMC->CQRS02;
         reg &= ~(uint32_t)CQRS02_TASK_DESCRIPTOR_SIZE_MASK;
         reg |= (uint32_t)CQRS02_TASK_DESCRIPTOR_SIZE_128;
@@ -1564,7 +1905,7 @@ mss_mmc_status_t MSS_MMC_cq_init(void)
         if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
         {
             pcsd_reg = (uint8_t *)csd_reg;
-            /* offsets defined in JESD84-B51 extended CSD */
+            /* Offsets defined in JESD84-B51 extended CSD */
             hw_cq_mode_en = pcsd_reg[EXT_CSD_CQ_MODE_EN_OFFSET];
             hw_cq_depth = pcsd_reg[EXT_CSD_CQ_DEPTH_OFFSET] + MMC_SET;
             hw_cq_support = pcsd_reg[EXT_CSD_CQ_SUPPORT_OFFSET];
@@ -1575,20 +1916,15 @@ mss_mmc_status_t MSS_MMC_cq_init(void)
                 response_status = cif_send_cmd(MMC_CQ_ENABLE,
                                             MMC_CMD_6_SWITCH,
                                             MSS_MMC_RESPONSE_R1B);
-    
-                if ((TRANSFER_IF_SUCCESS == response_status)||(DEVICE_BUSY == response_status))
+
+                if (TRANSFER_IF_FAIL != response_status)
                 {
-                    do
-                    {
-                        response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                                        MMC_CMD_13_SEND_STATUS,
-                                                        MSS_MMC_RESPONSE_R1);
-                    } while (DEVICE_BUSY == response_status);
+                    response_status = check_device_status(response_status);
                 }
     
                 if (TRANSFER_IF_SUCCESS == response_status)
                 {
-                    /* check device is enabled with CQ or not */
+                    /* Check device is enabled with CQ or not */
                     ret_status = MSS_MMC_single_block_read(READ_SEND_EXT_CSD, csd_reg);
                     if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
                     {
@@ -1597,25 +1933,25 @@ mss_mmc_status_t MSS_MMC_cq_init(void)
                         if (MMC_SET == hw_cq_mode_en)
                         {
                             /* Enable CQ in Host controller */
-                            /* set blk count and idle timer */
+                            /* Set blk count and idle timer */
                             MMC->CQRS16 = (MMC_SET << SHIFT_16BIT) |(CQ_IDLE_TIME);
                             /* enable signaling command queuing interrupts */
                             reg = (uint32_t)(CQRS05_TASK_CLEARED_STAT_EN
                                                     | CQRS05_RESP_ERR_STAT_EN
                                                     | CQRS05_TASK_COMPLETE_STAT_EN);
                             MMC->CQRS05 = reg;
-                            /* clear all interrupts */
+                            /* Clear all interrupts */
                             MMC->CQRS04 = MASK_32BIT;
-                            /* set 16-bit RCA value which is send as an argument in SEND_QUEUE_STATUS */
+                            /* Set 16-bit RCA value which is send as an argument in SEND_QUEUE_STATUS */
                             MMC->CQRS17 = sdcard_RCA;
-                            /* enable command queuing engine in SD host controller */
+                            /* Enable command queuing engine in SD host controller */
                             reg = MMC->CQRS02;
                             reg |= (uint32_t)CQRS02_COMMAND_QUEUING_ENABLE;
                             MMC->CQRS02 = reg;
-                            /* enable task complete interrupt */
+                            /* Enable task complete interrupt */
                             reg = (uint32_t)(CQRS06_TASK_COMPLETE_INT_SIG_EN | CQRS06_RESP_ERR_INT_SIG_EN);
                             MMC->CQRS06 = reg;
-                            /* check device CQ status */
+                            /* Check device CQ status */
                             do
                             {
                                 response_status = cif_send_cq_direct_command(g_desc_addr,
@@ -1623,7 +1959,7 @@ mss_mmc_status_t MSS_MMC_cq_init(void)
                                                             MMC_CMD_13_SEND_STATUS,
                                                             MSS_MMC_RESPONSE_R1,
                                                             CQ_DCMD_TASK_ID);
-                            } while (DEVICE_BUSY == response_status);
+                            }while (DEVICE_BUSY == response_status);
     
                             if (TRANSFER_IF_SUCCESS == response_status)
                             {
@@ -1659,7 +1995,7 @@ mss_mmc_status_t MSS_MMC_cq_init(void)
     }
     else
     {
-        ret_status = MSS_MMC_CQ_INIT_FAILURE;
+        ret_status = MSS_MMC_NOT_INITIALISED;
     }
     return ret_status;
 }
@@ -1678,7 +2014,6 @@ MSS_MMC_cq_write
     uint32_t *dcmdTaskDesc = NULL_POINTER;
     uint32_t flags;
     uint32_t desc_offset;
-    volatile uint32_t trans_status_isr;
     uint32_t cmd_response;
     uint32_t blockcount;
     uint32_t argument;
@@ -1709,13 +2044,11 @@ MSS_MMC_cq_write
             }
             else
             {
-                /* disable PCLI interrupt for MMC */
+                /* Disable PCLI interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
-
-                /* Calculate block count */
-                blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
-
-                /* check MMC device is busy */
+                /* Disable error/interrupt */
+                MMC->SRS14 = MMC_CLEAR;
+                /* Check MMC device is busy */
                 do
                 {
                     response_status = cif_send_cq_direct_command(g_desc_addr,
@@ -1724,75 +2057,73 @@ MSS_MMC_cq_write
                                                     MSS_MMC_RESPONSE_R1,
                                                     CQ_DCMD_TASK_ID);
                 } while (DEVICE_BUSY == response_status);
-
-                reg = MMC_CLEAR;
-
-                for(task_id = MMC_CLEAR; ((task_id < CQ_HOST_NUMBER_OF_TASKS) && (blockcount != MMC_CLEAR)); ++task_id)
+                
+                if (TRANSFER_IF_SUCCESS == response_status)
                 {
-                    desc_offset = CQ_HOST_NUMBER_OF_TASKS * task_id;
-                    dcmdTaskDesc = (uint32_t *)(g_desc_addr + desc_offset);
+                    /* Calculate block count */
+                    blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
+                    reg = MMC_CLEAR;
+                    for(task_id = MMC_CLEAR; ((task_id < CQ_HOST_NUMBER_OF_TASKS) && (blockcount != MMC_CLEAR)); ++task_id)
+                    {
+                        desc_offset = CQ_HOST_NUMBER_OF_TASKS * task_id;
+                        
+                        dcmdTaskDesc = (uint32_t *)(g_desc_addr + desc_offset);
+        
+                        flags = (uint32_t)(CQ_DESC_VALID |  CQ_DESC_END | CQ_DESC_ACT_TASK | CQ_DESC_INT);
+                        flags |= CQ_DESC_SET_CONTEXT_ID(MMC_SET) | CQ_DESC_DATA_DIR_WRITE;
+        
+                        if (blockcount > MASK_16BIT)
+                        {
+                            blk_cnt = MASK_16BIT;
+                            blockcount = blockcount - MASK_16BIT;
+                        }
+                        else
+                        {
+                            blk_cnt = blockcount;
+                            blockcount = MMC_CLEAR;
+                        }
 
-                    flags = (uint32_t)(CQ_DESC_VALID |  CQ_DESC_END | CQ_DESC_ACT_TASK | CQ_DESC_INT);
-                    flags |= CQ_DESC_SET_CONTEXT_ID(MMC_SET) | CQ_DESC_DATA_DIR_WRITE;
-#if 0
-                    flags |= (uint16_t)CQ_DESC_PRIORITY_HIGH;
-                    flags |= (uint16_t)CQ_DESC_QUEUE_BARRIER;
-                    flags |= (uint16_t)CQ_DESC_FORCE_PROG;
-                    flags |= (uint16_t)CQ_DESC_TAG_REQUEST;
-                    flags |= (uint16_t)CQ_DESC_RELIABLE_WRITE;
-                    flags |= (uint16_t)CQ_DESC_INT;
-#endif
-                    if (blockcount > MASK_16BIT)
-                    {
-                        blk_cnt = MASK_16BIT;
-                        blockcount = blockcount - MASK_16BIT;
-                    }
-                    else
-                    {
-                        blk_cnt = blockcount;
-                        blockcount = MMC_CLEAR;
-                    }
-                    dcmdTaskDesc[MMC_CLEAR] = flags | (blk_cnt << SHIFT_16BIT);
-                    dcmdTaskDesc[BYTES_1] = argument;
-                    dcmdTaskDesc[BYTES_2] = MMC_CLEAR;
-                    dcmdTaskDesc[BYTES_3] = MMC_CLEAR;
+                        dcmdTaskDesc[MMC_CLEAR] = flags | (blk_cnt << SHIFT_16BIT);
+                        dcmdTaskDesc[BYTES_1] = argument;
+                        dcmdTaskDesc[BYTES_2] = MMC_CLEAR;
+                        dcmdTaskDesc[BYTES_3] = MMC_CLEAR;
+        
+                        /* Supports only 64KB */
+                        dcmdTaskDesc[BYTES_4] = (uint32_t)((CQ_DESC_VALID | CQ_DESC_ACT_TRAN 
+                        |  CQ_DESC_END) 
+                        | (((size >= MASK_16BIT)?MMC_CLEAR:size)  << SHIFT_16BIT));
 
-                    if (trans_size > MASK_16BIT)
-                    {
-                        /* data buffer size is 64KB */
-                        size = MMC_CLEAR;
+                        /* Data buffer address in host memory, lower part */
+                        dcmdTaskDesc[BYTES_5] = (uint32_t)(uintptr_t)src;
+                        /* Data buffer address in host memory, higher part */
+                        dcmdTaskDesc[BYTES_6] = (uint32_t)(((uint64_t)(uintptr_t)src) >> MMC_64BIT_UPPER_ADDR_SHIFT);
+                        dcmdTaskDesc[BYTES_7] = MMC_CLEAR;
+        
+                        if (trans_size > (SIZE_32MB - BLK_SIZE))
+                        {
+                            trans_size = trans_size - (SIZE_32MB - BLK_SIZE);
+                            src = src + (SIZE_32MB - - BLK_SIZE);
+                            argument = argument + blockcount;
+                        }
+                        reg |= (MMC_SET << task_id);
                     }
-                    else
-                    {
-                        size = trans_size;
-                    }
-                    /* supports only 64KB */
-                    dcmdTaskDesc[BYTES_4] = (uint32_t)((CQ_DESC_VALID | CQ_DESC_ACT_TRAN |  CQ_DESC_END) | (size << SHIFT_16BIT));
-                    /* Data buffer address in host memory, lower part */
-                    dcmdTaskDesc[BYTES_5] = (uint32_t)(uintptr_t)src;
-                    /* Data buffer address in host memory, higher part */
-                    dcmdTaskDesc[BYTES_6] = (uint32_t)(((uint64_t)(uintptr_t)src) >> MMC_64BIT_UPPER_ADDR_SHIFT);
-                    dcmdTaskDesc[BYTES_7] = MMC_CLEAR;
 
-                    if (trans_size > (SIZE_32MB - BLK_SIZE))
-                    {
-                        trans_size = trans_size - (SIZE_32MB - BLK_SIZE);
-                        src = src + (SIZE_32MB - - BLK_SIZE);
-                        argument = argument + blockcount;
-                    }
-                   reg |= (MMC_SET << task_id);
+                    g_cq_task_id = task_id;
+                    /* Enable interrupts */
+                    MMC->SRS14 = (SRS14_CMD_QUEUING_SIG_EN | SRS14_COMMAND_TIMEOUT_ERR_SIG_EN
+                                        | SRS14_DATA_TIMEOUT_ERR_SIG_EN);
+                    PLIC_EnableIRQ(MMC_main_PLIC);
+                    /* Set doorbell to start processing descriptors by controller */
+                    MMC->CQRS10 = reg;
+        
+                    g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
+                    ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
                 }
-
-                g_cq_task_id = task_id;
-                        /* Enable interrupts */
-                MMC->SRS14 = (SRS14_CMD_QUEUING_SIG_EN | SRS14_COMMAND_TIMEOUT_ERR_SIG_EN
-                                    | SRS14_DATA_TIMEOUT_ERR_SIG_EN);
-                PLIC_EnableIRQ(MMC_main_PLIC);
-               /* Set doorbell to start processing descriptors by controller */
-                MMC->CQRS10 = reg;
-
-                g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
-                ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
+                else
+                {
+                    g_mmc_trs_status.state = MSS_MMC_DEVICE_ERROR;
+                    ret_status = MSS_MMC_DEVICE_ERROR;
+                }
             }
         }
     }
@@ -1817,7 +2148,6 @@ MSS_MMC_cq_read
     uint32_t *dcmdTaskDesc = NULL_POINTER;
     uint32_t flags;
     uint32_t desc_offset;
-    volatile uint32_t trans_status_isr;
     uint32_t cmd_response;
     uint32_t blockcount;
     uint32_t argument;
@@ -1848,16 +2178,11 @@ MSS_MMC_cq_read
             }
             else
             {
-                /* disable PCLI interrupt for MMC */
+                /* Disable PCLI interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
-
-                /* Calculate block count */
-
-
-                blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
-                
-
-                /* check MMC device is busy */
+                /* Disable error/interrupt */
+                MMC->SRS14 = MMC_CLEAR;
+                /* Check MMC device is busy */
                 do
                 {
                    response_status = cif_send_cq_direct_command(g_desc_addr,
@@ -1866,75 +2191,69 @@ MSS_MMC_cq_read
                                                        MSS_MMC_RESPONSE_R1,
                                                        CQ_DCMD_TASK_ID);
                 } while (DEVICE_BUSY == response_status);
-
-                reg = MMC_CLEAR;
-
-                for(task_id = MMC_CLEAR; ((task_id < CQ_HOST_NUMBER_OF_TASKS) && (blockcount != MMC_CLEAR)); ++task_id)
+                
+                if (TRANSFER_IF_SUCCESS == response_status)
                 {
-                    desc_offset = CQ_HOST_NUMBER_OF_TASKS * task_id;
-                    dcmdTaskDesc = (uint32_t *)(g_desc_addr + desc_offset);
-
-                    flags = (uint32_t)(CQ_DESC_VALID |  CQ_DESC_END | CQ_DESC_ACT_TASK | CQ_DESC_INT);
-                    flags |= CQ_DESC_SET_CONTEXT_ID(MMC_CLEAR) | CQ_DESC_DATA_DIR_READ;
-#if 0
-                    flags |= (uint16_t)CQ_DESC_PRIORITY_HIGH;
-                    flags |= (uint16_t)CQ_DESC_QUEUE_BARRIER;
-                    flags |= (uint16_t)CQ_DESC_FORCE_PROG;
-                    flags |= (uint16_t)CQ_DESC_TAG_REQUEST;
-                    flags |= (uint16_t)CQ_DESC_RELIABLE_WRITE;
-                    flags |= (uint16_t)CQ_DESC_INT;
-#endif
-                    if (blockcount > MASK_16BIT)
+                    reg = MMC_CLEAR;
+                    /* Calculate block count */
+                    blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
+                    for(task_id = MMC_CLEAR; ((task_id < CQ_HOST_NUMBER_OF_TASKS) && (blockcount != MMC_CLEAR)); ++task_id)
                     {
-                        blk_cnt = MASK_16BIT;
-                        blockcount = blockcount - MASK_16BIT;
+                        desc_offset = CQ_HOST_NUMBER_OF_TASKS * task_id;
+                        dcmdTaskDesc = (uint32_t *)(g_desc_addr + desc_offset);
+    
+                        flags = (uint32_t)(CQ_DESC_VALID |  CQ_DESC_END | CQ_DESC_ACT_TASK | CQ_DESC_INT);
+                        flags |= CQ_DESC_SET_CONTEXT_ID(MMC_CLEAR) | CQ_DESC_DATA_DIR_READ;
+    
+                        if (blockcount > MASK_16BIT)
+                        {
+                            blk_cnt = MASK_16BIT;
+                            blockcount = blockcount - MASK_16BIT;
+                        }
+                        else
+                        {
+                            blk_cnt = blockcount;
+                            blockcount = MMC_CLEAR;
+                        }
+                        dcmdTaskDesc[MMC_CLEAR] = flags | (blk_cnt << SHIFT_16BIT);
+                        dcmdTaskDesc[BYTES_1] = argument;
+                        dcmdTaskDesc[BYTES_2] = MMC_CLEAR;
+                        dcmdTaskDesc[BYTES_3] = MMC_CLEAR;
+    
+                        /* Supports only 64KB */
+                        dcmdTaskDesc[BYTES_4] = (uint32_t)((CQ_DESC_VALID | CQ_DESC_ACT_TRAN 
+                        |  CQ_DESC_END) | (((size > MASK_16BIT)?MMC_CLEAR:size)  << SHIFT_16BIT));
+                        /* Data buffer address in host memory, lower part */
+                        dcmdTaskDesc[BYTES_5] = (uint32_t)(uintptr_t)dest;
+                        /* Data buffer address in host memory, higher part */
+                        dcmdTaskDesc[BYTES_6] = (uint32_t)(((uint64_t)(uintptr_t)dest) >> MMC_64BIT_UPPER_ADDR_SHIFT);
+                        dcmdTaskDesc[BYTES_7] = MMC_CLEAR;
+    
+                        if (trans_size > (SIZE_32MB - BLK_SIZE))
+                        {
+                            trans_size = trans_size - (SIZE_32MB - BLK_SIZE);
+                            src = src + (SIZE_32MB - - BLK_SIZE);
+                            argument = argument + blockcount;
+                        }
+                        reg |= (MMC_SET << task_id);
                     }
-                    else
-                    {
-                        blk_cnt = blockcount;
-                        blockcount = MMC_CLEAR;
-                    }
-                    dcmdTaskDesc[MMC_CLEAR] = flags | (blk_cnt << SHIFT_16BIT);
-                    dcmdTaskDesc[BYTES_1] = argument;
-                    dcmdTaskDesc[BYTES_2] = MMC_CLEAR;
-                    dcmdTaskDesc[BYTES_3] = MMC_CLEAR;
-
-                    if (trans_size > MASK_16BIT)
-                    {
-                        /* data buffer size is 64KB */
-                        size = MMC_CLEAR;
-                    }
-                    else
-                    {
-                        size = trans_size;
-                    }
-                    /* supports only 64KB */
-                    dcmdTaskDesc[BYTES_4] = (uint32_t)((CQ_DESC_VALID | CQ_DESC_ACT_TRAN |  CQ_DESC_END) | (size << SHIFT_16BIT));
-                    /* Data buffer address in host memory, lower part */
-                    dcmdTaskDesc[BYTES_5] = (uint32_t)(uintptr_t)dest;
-                    /* Data buffer address in host memory, higher part */
-                    dcmdTaskDesc[BYTES_6] = (uint32_t)(((uint64_t)(uintptr_t)dest) >> MMC_64BIT_UPPER_ADDR_SHIFT);
-                    dcmdTaskDesc[BYTES_7] = MMC_CLEAR;
-
-                    if (trans_size > (SIZE_32MB - BLK_SIZE))
-                    {
-                        trans_size = trans_size - (SIZE_32MB - BLK_SIZE);
-                        src = src + (SIZE_32MB - - BLK_SIZE);
-                        argument = argument + blockcount;
-                    }
-                   reg |= (MMC_SET << task_id);
+    
+                    g_cq_task_id = task_id;
+                    /* Enable interrupts */
+                    MMC->SRS14 = (SRS14_CMD_QUEUING_SIG_EN | SRS14_COMMAND_TIMEOUT_ERR_SIG_EN
+                                        | SRS14_DATA_TIMEOUT_ERR_SIG_EN);
+                    PLIC_EnableIRQ(MMC_main_PLIC);
+                    /* Set doorbell to start processing descriptors by controller */
+                    MMC->CQRS10 = reg;
+    
+                    g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
+                    ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
                 }
-
-                g_cq_task_id = task_id;
-                        /* Enable interrupts */
-                MMC->SRS14 = (SRS14_CMD_QUEUING_SIG_EN | SRS14_COMMAND_TIMEOUT_ERR_SIG_EN
-                                    | SRS14_DATA_TIMEOUT_ERR_SIG_EN);
-                PLIC_EnableIRQ(MMC_main_PLIC);
-               /* Set doorbell to start processing descriptors by controller */
-                MMC->CQRS10 = reg;
-
-                g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
-                ret_status = MSS_MMC_TRANSFER_IN_PROGRESS;
+                else
+                {
+                    g_mmc_trs_status.state = MSS_MMC_DEVICE_ERROR;
+                    ret_status = MSS_MMC_DEVICE_ERROR;
+                }
             }
         }
     }
@@ -1977,13 +2296,18 @@ uint8_t  mmc_main_plic_IRQHandler(void)
         response_reg = MMC->SRS04;
         if ((response_reg & CARD_STATUS_ALL_ERRORS_MASK) != MMC_CLEAR)
         {
+            /* Disable interrupts */
+            MMC->SRS14 = MMC_CLEAR;
             g_mmc_trs_status.state = MSS_MMC_RESPONSE_ERROR;
         }
-        /* stop command success */
+        /* Stop command success */
         if (transfer_complete == MMC_SET)
         {
+            /* Disable interrupts */
+            MMC->SRS14 = MMC_CLEAR;
             g_mmc_trs_status.state = MSS_MMC_TRANSFER_SUCCESS;
             transfer_complete = MMC_CLEAR;
+
             if (g_transfer_complete_handler_t != NULL_POINTER)
             {
                 g_transfer_complete_handler_t(trans_status_isr);
@@ -1997,6 +2321,8 @@ uint8_t  mmc_main_plic_IRQHandler(void)
 
         if (g_mmc_is_multi_blk == MMC_CLEAR)
         {
+            /* Disable interrupts */
+            MMC->SRS14 = MMC_CLEAR;
             g_mmc_trs_status.state = MSS_MMC_TRANSFER_SUCCESS;
             transfer_complete = MMC_CLEAR;
             if (g_transfer_complete_handler_t != NULL_POINTER)
@@ -2006,7 +2332,7 @@ uint8_t  mmc_main_plic_IRQHandler(void)
         }
         else
         {
-            /* multi block transfer */
+            /* Multi block transfer */
             transfer_complete = MMC_SET;
             send_mmc_cmd(sdcard_RCA << SHIFT_16BIT, MMC_CMD_12_STOP_TRANSMISSION,
                                     MSS_MMC_RESPONSE_R1, CHECK_IF_CMD_SENT_INT);
@@ -2020,13 +2346,12 @@ uint8_t  mmc_main_plic_IRQHandler(void)
 
         address64 = address | ((uint64_t)highaddr << MMC_64BIT_UPPER_ADDR_SHIFT);
         /* Increase address(512kb) and re-write new address in DMA buffer */
-
         address = (uint32_t)address64;
         highaddr = (uint32_t)(address64 >> MMC_64BIT_UPPER_ADDR_SHIFT);
 
+        MMC->SRS12 = SRS12_DMA_INTERRUPT;
         MMC->SRS22 = address;
         MMC->SRS23 = highaddr;
-        MMC->SRS12 = SRS12_DMA_INTERRUPT;
     }
     else if ((trans_status_isr & SRS12_CMD_QUEUING_INT) != MMC_CLEAR)
     {
@@ -2036,17 +2361,21 @@ uint8_t  mmc_main_plic_IRQHandler(void)
 
         if ((inttoclear & CQRS04_RESP_ERR_INT) != MMC_CLEAR)
         {
+            /* Disable interrupts */
+            MMC->SRS14 = MMC_CLEAR;
            g_mmc_trs_status.state = MSS_MMC_TRANSFER_FAIL;
         }
 
         if ((inttoclear & CQRS04_TASK_COMPLETE_INT) != MMC_CLEAR)
         {
             inttoclear = MMC->CQRS11;
-            /* clear all caught notifications */
+            /* Clear all caught notifications */
             MMC->CQRS11 = inttoclear;
             --g_cq_task_id;
             if (g_cq_task_id == MMC_CLEAR)
             {
+                /* Disable interrupts */
+                MMC->SRS14 = MMC_CLEAR;
                 g_mmc_trs_status.state = MSS_MMC_TRANSFER_SUCCESS;
                 if (g_transfer_complete_handler_t != NULL_POINTER)
                 {
@@ -2058,6 +2387,8 @@ uint8_t  mmc_main_plic_IRQHandler(void)
     else
     {
         MMC->SRS12 = trans_status_isr;
+        /* Disable interrupts */
+        MMC->SRS14 = MMC_CLEAR;
     }
     return MMC_CLEAR;
 }
@@ -2084,7 +2415,6 @@ MSS_MMC_pause_sdma_write_hpi
     uint8_t  *pcsd_reg;
     uint32_t prog_sector_num = MMC_CLEAR;
 
-
     g_device_hpi_set = MMC_CLEAR;
 
     if (MSS_MMC_TRANSFER_IN_PROGRESS == g_mmc_trs_status.state)
@@ -2093,6 +2423,7 @@ MSS_MMC_pause_sdma_write_hpi
         {
             /* Disable PLIC interrupt for MMC */
             PLIC_DisableIRQ(MMC_main_PLIC);
+            MMC->SRS14 = MMC_CLEAR;
             if ((g_device_hpi_suport & HPI_WITH_CMD12_SUPPORT) != MMC_CLEAR)
             {
 
@@ -2117,62 +2448,74 @@ MSS_MMC_pause_sdma_write_hpi
                                         MSS_MMC_RESPONSE_R1B);
             }
 
-            do
+            if (TRANSFER_IF_FAIL != response_status)
             {
-                command_information = (uint32_t)(SRS3_ABORT_CMD | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
-                              | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN);
-                MMC->SRS02 = (sdcard_RCA << RCA_SHIFT_BIT) | DEVICE_HPI_SUPPORT;
-                MMC->SRS03 = (uint32_t)((MMC_CMD_13_SEND_STATUS << CMD_SHIFT) | command_information);
-
-                do
-                {
-                    trans_status_isr = MMC->SRS12;
-                }while (((SRS12_COMMAND_COMPLETE | SRS12_ERROR_INTERRUPT) & trans_status_isr) == MMC_CLEAR);
-
-                if (SRS12_COMMAND_COMPLETE == (trans_status_isr & SRS12_COMMAND_COMPLETE))
-                {
-                    /* If the response is an R1/B response */
-                    response = MMC->SRS04;
-                    if ((CARD_STATUS_ALL_ERRORS_MASK & response) == MMC_CLEAR) /* no error */
-                    {
-                        if ((CARD_STATUS_READY_FOR_DATA & response) != MMC_CLEAR)
-                        {
-                            response_status = TRANSFER_IF_SUCCESS;
-                        }
-                        else
-                        {
-                            response_status = DEVICE_BUSY;
-                        }
-                    }
-                    else if (SRS12_ERROR_INTERRUPT == (SRS12_ERROR_INTERRUPT & trans_status_isr))
-                    {
-                        response_status = TRANSFER_IF_FAIL;
-                    }
-                    else
-                    {
-                        response_status = TRANSFER_IF_FAIL;
-                    }
-                }
-            }while (response_status == DEVICE_BUSY);
+                response_status = check_device_status(response_status);
+            }
 
             if (TRANSFER_IF_SUCCESS == response_status)
             {
-                ret_status = MSS_MMC_single_block_read(READ_SEND_EXT_CSD, csd_reg);
-                if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
+                do
                 {
-                    pcsd_reg = (uint8_t *)csd_reg;
-                    prog_sector_num = (uint32_t)(pcsd_reg[245] << SHIFT_24BIT);
-                    prog_sector_num |= (uint32_t)(pcsd_reg[244] << SHIFT_16BIT);
-                    prog_sector_num |= (uint32_t)(pcsd_reg[243] << SHIFT_8BIT);
-                    prog_sector_num |= (uint32_t)pcsd_reg[242];
-
-                    remaining_sectors = total_sectors - prog_sector_num;
-
-                    g_trans_remain_size = remaining_sectors * BLK_SIZE;
-                    g_trans_dest_addr = (dest + total_sectors) - remaining_sectors;
-                    g_trans_src_addr = (uint8_t *)(src + (prog_sector_num * BLK_SIZE));
-
-                    g_device_hpi_set = MMC_SET;
+                    command_information = (uint32_t)(SRS3_ABORT_CMD | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
+                                | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN);
+                    MMC->SRS02 = (sdcard_RCA << RCA_SHIFT_BIT) | DEVICE_HPI_SUPPORT;
+                    MMC->SRS03 = (uint32_t)((MMC_CMD_13_SEND_STATUS << CMD_SHIFT) | command_information);
+        
+                    do
+                    {
+                        trans_status_isr = MMC->SRS12;
+                    }while (((SRS12_COMMAND_COMPLETE | SRS12_ERROR_INTERRUPT) & trans_status_isr) == MMC_CLEAR);
+        
+                    if (SRS12_COMMAND_COMPLETE == (trans_status_isr & SRS12_COMMAND_COMPLETE))
+                    {
+                        /* If the response is an R1/B response */
+                        response = MMC->SRS04;
+                        if ((CARD_STATUS_ALL_ERRORS_MASK & response) == MMC_CLEAR) /* no error */
+                        {
+                            if ((CARD_STATUS_READY_FOR_DATA & response) != MMC_CLEAR)
+                            {
+                                response_status = TRANSFER_IF_SUCCESS;
+                            }
+                            else
+                            {
+                                response_status = DEVICE_BUSY;
+                            }
+                        }
+                        else if (SRS12_ERROR_INTERRUPT == (SRS12_ERROR_INTERRUPT & trans_status_isr))
+                        {
+                            response_status = TRANSFER_IF_FAIL;
+                        }
+                        else
+                        {
+                            response_status = TRANSFER_IF_FAIL;
+                        }
+                    }
+                }while (response_status == DEVICE_BUSY);
+        
+                if (TRANSFER_IF_SUCCESS == response_status)
+                {
+                    ret_status = MSS_MMC_single_block_read(READ_SEND_EXT_CSD, csd_reg);
+                    if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
+                    {
+                        pcsd_reg = (uint8_t *)csd_reg;
+                        prog_sector_num = (uint32_t)(pcsd_reg[245] << SHIFT_24BIT);
+                        prog_sector_num |= (uint32_t)(pcsd_reg[244] << SHIFT_16BIT);
+                        prog_sector_num |= (uint32_t)(pcsd_reg[243] << SHIFT_8BIT);
+                        prog_sector_num |= (uint32_t)pcsd_reg[242];
+        
+                        remaining_sectors = total_sectors - prog_sector_num;
+        
+                        g_trans_remain_size = remaining_sectors * BLK_SIZE;
+                        g_trans_dest_addr = (dest + total_sectors) - remaining_sectors;
+                        g_trans_src_addr = (const uint8_t *)(src + (prog_sector_num * BLK_SIZE));
+        
+                        g_device_hpi_set = MMC_SET;
+                    }
+                    else
+                    {
+                        ret_status = MSS_MMC_TRANSFER_FAIL;
+                    }
                 }
                 else
                 {
@@ -2258,9 +2601,9 @@ MSS_MMC_packed_write
             }
             else
             {
-                /* disable PCLI interrupt for MMC */
+                /* Disable PCLI interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
-
+                MMC->SRS14 = MMC_CLEAR;
                 /* Calculate block count */
                 blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
                 /* Multi Block write */
@@ -2282,25 +2625,25 @@ MSS_MMC_packed_write
                                         | SRS3_DMA_ENABLE);
                     /* Block length and count SDMA buffer boundary */
                     MMC->SRS01 = (blocklen | (blockcount << BLOCK_COUNT_ENABLE_SHIFT) | SRS1_DMA_BUFF_SIZE_512KB);
-                    /* multi block transfer */
+                    /* Multi block transfer */
                     g_mmc_is_multi_blk = MMC_CLEAR;
                     /* Set Block count and packed command in device using CMD23 */
                     response_status = cif_send_cmd(blockcount | (MMC_SET << SHIFT_30BIT),
                                                 MMC_CMD_23_SET_BLOCK_COUNT,
                                                 MSS_MMC_RESPONSE_R1);
-                    /* enable interrupts */
+                    /* Enable interrupts */
                     MMC->SRS14 = (SRS14_COMMAND_COMPLETE_SIG_EN | SRS14_TRANSFER_COMPLETE_SIG_EN
                                     | SRS14_DMA_INTERRUPT_SIG_EN | SRS14_DATA_TIMEOUT_ERR_SIG_EN);
                     PLIC_EnableIRQ(MMC_main_PLIC);
 
-                    /* check data line busy */
+                    /* Check data line busy */
                     do
                     {
                         srs9 = MMC->SRS09;
-                    }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
+                    }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
 
                     MMC->SRS02 = argument;
-                    /* execute command */
+                    /* Execute command */
                     MMC->SRS03 = (uint32_t)((MMC_CMD_25_WRITE_MULTI_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
                 }
                 else
@@ -2364,6 +2707,7 @@ MSS_MMC_packed_read
             {
                 /* Disable PCLI interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
+                MMC->SRS14 = MMC_CLEAR;
                 /* Calculate block count */
                 blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
 
@@ -2391,13 +2735,13 @@ MSS_MMC_packed_read
 
                     /* Command argument */
                     MMC->SRS02 = argument;
-                    /* execute command */
+                    /* Execute command */
                     MMC->SRS03 = (uint32_t)((MMC_CMD_25_WRITE_MULTI_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
 
                     do
                     {
                         blk_write = MMC->SRS12;
-                    } while (MMC_CLEAR == (blk_write & SRS12_BUFFER_WRITE_READY));
+                    }while (MMC_CLEAR == (blk_write & SRS12_BUFFER_WRITE_READY));
                     /* Load the block of data into the
                     * buffer, one byte at a time through the Buffer Data Register.
                     */
@@ -2441,7 +2785,7 @@ MSS_MMC_packed_read
                                             | SRS3_RESPONSE_CHECK_TYPE_R1 | SRS3_RESP_LENGTH_48
                                             | SRS3_CRC_CHECK_EN | SRS3_INDEX_CHECK_EN
                                             | SRS3_DMA_ENABLE);
-                        /* multi block transfer */
+                        /* Multi block transfer */
                         g_mmc_is_multi_blk = MMC_CLEAR;
 
                         /* Set Block count with packed in device using CMD23 */
@@ -2458,11 +2802,11 @@ MSS_MMC_packed_read
                         do
                         {
                             srs9 = MMC->SRS09;
-                        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT) != MMC_CLEAR));
+                        }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
 
                         /* Command argument */
                         MMC->SRS02 = argument;
-                        /* execute command */
+                        /* Execute command */
                         MMC->SRS03 = (uint32_t)((MMC_CMD_18_READ_MULTIPLE_BLOCK << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
 
                         g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
@@ -2536,36 +2880,29 @@ MSS_MMC_cq_single_task_write
             }
             else
             {
-                /* disable PCLI interrupt for MMC */
+                /* Disable PCLI interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
-
+                MMC->SRS14 = MMC_CLEAR;
                 /* Calculate block count */
                 blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
 
-                /* check MMC device is busy */
+                /* Check MMC device is busy */
                 do
                 {
                     response_status = cif_send_cq_direct_command(g_desc_addr, sdcard_RCA,
-                     MMC_CMD_13_SEND_STATUS, MSS_MMC_RESPONSE_R1, CQ_DCMD_TASK_ID);
+                                                MMC_CMD_13_SEND_STATUS, MSS_MMC_RESPONSE_R1, CQ_DCMD_TASK_ID);
                 } while(DEVICE_BUSY == response_status);
 
 
                 flags = (uint32_t)(CQ_DESC_VALID |  CQ_DESC_END | CQ_DESC_ACT_TASK | CQ_DESC_INT);
                 flags |= CQ_DESC_SET_CONTEXT_ID(MMC_SET) | CQ_DESC_DATA_DIR_WRITE;
-#if 0
-                flags |= (uint16_t)CQ_DESC_PRIORITY_HIGH;
-                flags |= (uint16_t)CQ_DESC_QUEUE_BARRIER;
-                flags |= (uint16_t)CQ_DESC_FORCE_PROG;
-                flags |= (uint16_t)CQ_DESC_TAG_REQUEST;
-                flags |= (uint16_t)CQ_DESC_RELIABLE_WRITE;
-                flags |= (uint16_t)CQ_DESC_INT;
-#endif
+
                 dcmdTaskDesc[MMC_CLEAR] = flags | (blockcount << SHIFT_16BIT);
                 dcmdTaskDesc[BYTES_1] = argument;
                 dcmdTaskDesc[BYTES_2] = MMC_CLEAR;
                 dcmdTaskDesc[BYTES_3] = MMC_CLEAR;
 
-                /* supports only 64KB */
+                /* Supports only 64KB */
                 dcmdTaskDesc[BYTES_4] = (uint32_t)((CQ_DESC_VALID | CQ_DESC_ACT_TRAN |  CQ_DESC_END) | (size << SHIFT_16BIT));
                 /* Data buffer address in host memory, lower part */
                 dcmdTaskDesc[BYTES_5] = (uint32_t)(uintptr_t)src;
@@ -2578,7 +2915,7 @@ MSS_MMC_cq_single_task_write
                 MMC->SRS14 = (SRS14_CMD_QUEUING_SIG_EN | SRS14_COMMAND_TIMEOUT_ERR_SIG_EN
                                      | SRS14_DATA_TIMEOUT_ERR_SIG_EN);
                 PLIC_EnableIRQ(MMC_main_PLIC);
-                /* set doorbell to start processing descriptors by controller */
+                /* Set doorbell to start processing descriptors by controller */
                 reg = MMC_SET << task_id;
                 MMC->CQRS10 = reg;
 
@@ -2641,35 +2978,27 @@ MSS_MMC_cq_single_task_read
             }
             else
             {
-                /* disable PCLI interrupt for MMC */
+                /* Disable PCLI interrupt for MMC */
                 PLIC_DisableIRQ(MMC_main_PLIC);
-
+                MMC->SRS14 = MMC_CLEAR;
                 /* Calculate block count */
                 blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
-                /* check MMC device is busy */
+                /* Check MMC device is busy */
                 do
                 {
                    response_status = cif_send_cq_direct_command(g_desc_addr, sdcard_RCA,
-                    MMC_CMD_13_SEND_STATUS, MSS_MMC_RESPONSE_R1, CQ_DCMD_TASK_ID);
+                                                    MMC_CMD_13_SEND_STATUS, MSS_MMC_RESPONSE_R1, CQ_DCMD_TASK_ID);
                 } while(DEVICE_BUSY == response_status);
 
                 flags = (uint32_t)(CQ_DESC_VALID |  CQ_DESC_END | CQ_DESC_ACT_TASK | CQ_DESC_INT);
                 flags |= CQ_DESC_SET_CONTEXT_ID(MMC_CLEAR) | CQ_DESC_DATA_DIR_READ;
-#if 0
-                flags |= (uint16_t)CQ_DESC_PRIORITY_HIGH;
-                flags |= (uint16_t)CQ_DESC_QUEUE_BARRIER;
-                flags |= (uint16_t)CQ_DESC_FORCE_PROG;
-                flags |= (uint16_t)CQ_DESC_TAG_REQUEST;
-                flags |= (uint16_t)CQ_DESC_RELIABLE_WRITE;
-                flags |= (uint16_t)CQ_DESC_INT;
-#endif
 
                 dcmdTaskDesc[MMC_CLEAR] = flags | (blockcount << SHIFT_16BIT);
                 dcmdTaskDesc[BYTES_1] = argument;
                 dcmdTaskDesc[BYTES_2] = MMC_CLEAR;
                 dcmdTaskDesc[BYTES_3] = MMC_CLEAR;
 
-                /* supports only 64KB */
+                /* Supports only 64KB */
                 dcmdTaskDesc[BYTES_4] = (uint32_t)((CQ_DESC_VALID | CQ_DESC_ACT_TRAN |  CQ_DESC_END) | (size << SHIFT_16BIT));
                 /* Data buffer address in host memory, lower part */
                 dcmdTaskDesc[BYTES_5] = (uint32_t)(uintptr_t)dest;
@@ -2683,7 +3012,7 @@ MSS_MMC_cq_single_task_read
                                      | SRS14_DATA_TIMEOUT_ERR_SIG_EN);
                 PLIC_EnableIRQ(MMC_main_PLIC);
 
-                /* set doorbell to start processing descriptors by controller */
+                /* Set doorbell to start processing descriptors by controller */
                 reg = MMC_SET << task_id;
                 MMC->CQRS10 = reg;
                 g_mmc_trs_status.state = MSS_MMC_TRANSFER_IN_PROGRESS;
@@ -2702,33 +3031,43 @@ MSS_MMC_cq_single_task_read
 /*******************************************************************************
 ****************************** Private Functions *******************************
 *******************************************************************************/
-static void phy_training_mmc(uint8_t delay_type, uint32_t clk_rate)
+static mss_mmc_status_t phy_training_mmc(uint8_t delay_type, uint32_t clk_rate)
 {
-
+    uint8_t delay;
     uint32_t max_delay;
-    uint16_t i;
-    uint8_t status;
-    uint8_t pos, length, currLength;
     uint8_t new_delay;
+    uint8_t pos = MMC_CLEAR;
+    uint8_t length = MMC_CLEAR;
+    uint8_t curr_length = MMC_CLEAR;
     uint8_t rx_buff[BLK_SIZE];
+    uint32_t read_srs11;
+    uint32_t cmd_response;
+
     mss_mmc_status_t ret_status = MSS_MMC_NO_ERROR;
+    cif_response_t response_status = TRANSFER_IF_FAIL;
 
-    max_delay = (MSS_MMC_CLOCK_200MHZ /clk_rate) * BYTES_2;
+    if (clk_rate <= MSS_MMC_CLOCK_12_5MHZ)
+    {
+        max_delay = BYTES_20;
+    }
+    else
+    {
+        max_delay = (MSS_MMC_CLOCK_200MHZ / clk_rate) * BYTES_2;
+    }
 
-    pos = length = currLength = MMC_CLEAR;
     /* Reset Data and cmd line */
     MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-    for (i = MMC_CLEAR; i < max_delay; i++)
+    for (delay = MMC_CLEAR; delay < max_delay; delay++)
     {
-        phy_write_set(delay_type, i);
+        phy_write_set(delay_type, delay);
 
         ret_status = read_tune_block((uint32_t *)rx_buff, BLK_SIZE, MMC_CMD_17_READ_SINGLE_BLOCK);
         if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
         {
-            currLength++;
-            if (currLength > length)
+            curr_length++;
+            if (curr_length > length)
             {
-                pos = i - length;
+                pos = delay - length;
                 length++;
                 /* Reset Data and cmd line */
                  MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
@@ -2736,23 +3075,45 @@ static void phy_training_mmc(uint8_t delay_type, uint32_t clk_rate)
         }
         else
         {
-            /* Reset Data and cmd line */
-            MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-            currLength = MMC_CLEAR;
+            do
+            {
+                if (TRANSFER_IF_FAIL == response_status)
+                {
+                    /* Reset Data and cmd line */
+                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            
+                    do
+                    {
+                        read_srs11 = MMC->SRS11;
+                    }while ((read_srs11 & MMC_RESET_DATA_CMD_LINE) != MMC_CLEAR);
+                }
+
+                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
+                                            MMC_CMD_13_SEND_STATUS,
+                                            MSS_MMC_RESPONSE_R1);
+                cmd_response = MMC->SRS04;
+            }while ((TRANSFER_IF_SUCCESS != response_status) ||
+                    ((cmd_response & DEVICE_STATE_MASK) != DEVICE_STATE_TRANS));
+
+            curr_length = MMC_CLEAR;
+            response_status = TRANSFER_IF_FAIL;
         }
     }
-    new_delay = (pos + length) / BYTES_2;
+
+    new_delay = pos + (length / BYTES_2);
     phy_write_set(delay_type, new_delay);
 
     ret_status = read_tune_block((uint32_t *)rx_buff, BLK_SIZE, MMC_CMD_17_READ_SINGLE_BLOCK);
     /* Reset Data and cmd line */
     MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+    return ret_status;
 }
 /******************************************************************************/
 static void phy_write_set(uint8_t delay_type, uint8_t delay_value)
 {
-    uint8_t phyaddr;
-    uint32_t reg, phycfg;
+    uint8_t phyaddr = MMC_CLEAR;
+    uint32_t reg = MMC_CLEAR;
+    uint32_t phycfg = MMC_CLEAR;
 
     /* Phy delay set for eMMC modes */
     get_phy_addr(delay_type, &phyaddr);
@@ -2764,18 +3125,18 @@ static void phy_write_set(uint8_t delay_type, uint8_t delay_value)
 
     phycfg = ((uint32_t)phyaddr | (delay_value << SHIFT_8BIT));
 
-    /* set data and address */
+    /* Set data and address */
     MMC->HRS04 = phycfg;
-    /* send write request */
+    /* Send write request */
     MMC->HRS04 |= (uint32_t)HRS_PHY_WRITE_REQUEST;
-    /* wait for acknowledge */
+    /* Wait for acknowledge */
     do
     {
         reg = MMC->HRS04;
     }while ((reg & HRS_PHY_ACKNOWLEDGE_REQUEST) == MMC_CLEAR);
 
     phycfg &= ~(uint32_t)HRS_PHY_WRITE_REQUEST;
-    /* clear write request */
+    /* Clear write request */
     MMC->HRS04 = phycfg;
     MMC->HRS04 = MMC_CLEAR;
 }
@@ -2841,11 +3202,14 @@ static mss_mmc_status_t adma2_create_descriptor_table
             {
                 current_subsize = size;
             }
-            adma_descriptor_table[j++] = (ADMA2_DESCRIPTOR_TYPE_TRAN
+            adma_descriptor_table[j] = (ADMA2_DESCRIPTOR_TYPE_TRAN
                                                 | ADMA2_DESCRIPTOR_VAL | ADMA2_DESCRIPTOR_INT
                                                 | ((current_subsize & MASK_16BIT) << SHIFT_16BIT));
-            adma_descriptor_table[j++] = ((uint32_t)buf_address & MASK_32BIT);
-            adma_descriptor_table[j++] = (uint32_t)((uint64_t)buf_address >> MMC_64BIT_UPPER_ADDR_SHIFT);
+            j++;
+            adma_descriptor_table[j] = ((uint32_t)buf_address & MASK_32BIT);
+            j++;
+            adma_descriptor_table[j] = (uint32_t)((uint64_t)buf_address >> MMC_64BIT_UPPER_ADDR_SHIFT);
+            j++;
             adma_descriptor_table[j] = MMC_CLEAR;
             j++;
 
@@ -2856,15 +3220,18 @@ static mss_mmc_status_t adma2_create_descriptor_table
     }
     else
     {
-        adma_descriptor_table[j++] = (ADMA2_DESCRIPTOR_TYPE_TRAN
+        adma_descriptor_table[j] = (ADMA2_DESCRIPTOR_TYPE_TRAN
                                     | ADMA2_DESCRIPTOR_VAL | ADMA2_DESCRIPTOR_INT
                                     | ((datasize & MASK_16BIT) << SHIFT_16BIT));
-        adma_descriptor_table[j++] = ((uint32_t)buf_address & MASK_32BIT);
-        adma_descriptor_table[j++] = (uint32_t)((uint64_t)buf_address >> MMC_64BIT_UPPER_ADDR_SHIFT);
+        j++;
+        adma_descriptor_table[j] = ((uint32_t)buf_address & MASK_32BIT);
+        j++;
+        adma_descriptor_table[j] = (uint32_t)((uint64_t)buf_address >> MMC_64BIT_UPPER_ADDR_SHIFT);
+        j++;
         adma_descriptor_table[j] = MMC_CLEAR;
         i = MMC_SET;
     }
-    /* last descriptor finishes transmission */
+    /* Last descriptor finishes transmission */
     offset  = (i * WORD_SIZE) - WORD_SIZE;
     adma_descriptor_table[offset] |= ADMA2_DESCRIPTOR_END;
 
@@ -2888,7 +3255,7 @@ static mss_mmc_status_t mmccard_oper_config(const mss_mmc_cfg_t * cfg)
     if (TRANSFER_IF_SUCCESS == response_status)
     {
         response_reg = MMC->SRS04;
-        if ((cfg->bus_speed_mode == MSS_MMC_MODE_HS400) ||(cfg->bus_speed_mode == MSS_MMC_MODE_HS200))
+        if (cfg->bus_voltage == MSS_MMC_1_8V_BUS_VOLTAGE)
         {
             if ((response_reg & MMC_DEVICE_LOW_POWER) == MMC_DEVICE_LOW_POWER)
             {
@@ -2903,17 +3270,24 @@ static mss_mmc_status_t mmccard_oper_config(const mss_mmc_cfg_t * cfg)
         {
             oper_cond = MMC_DEVICE_3_3V_VOLT_SET;
         }
+
+        if (ret_status == MSS_MMC_NO_ERROR)
+        {
+            do
+            {
+                response_status = cif_send_cmd(oper_cond,
+                                        MMC_CMD_1_SEND_OP_COND,
+                                        MSS_MMC_RESPONSE_R3);
+                response_reg = MMC->SRS04;
+                power_up_status = BUSY_BIT_MASK & response_reg;
+    
+            } while ((BUSY_BIT_MASK != power_up_status) && (TRANSFER_IF_FAIL != response_status));
+        }
+        else
+        {
+            response_status = TRANSFER_IF_FAIL;
+        }
     }
-
-    do
-    {
-        response_status = cif_send_cmd(oper_cond,
-                                       MMC_CMD_1_SEND_OP_COND,
-                                       MSS_MMC_RESPONSE_R3);
-        response_reg = MMC->SRS04;
-        power_up_status = BUSY_BIT_MASK & response_reg;
-
-    } while ((BUSY_BIT_MASK != power_up_status) && (TRANSFER_IF_FAIL != response_status));
 
     if (TRANSFER_IF_SUCCESS == response_status)
     {
@@ -2923,36 +3297,38 @@ static mss_mmc_status_t mmccard_oper_config(const mss_mmc_cfg_t * cfg)
         /* If access_mode = 2 then sector address, if access = 0 then byte mode */
         access_mode = ((SECTOR_ACCESS_MODE_MASK & response_reg) >> SECTOR_SHIFT);
 
-        /* read CID register from device */
+        /* Read CID register from device */
         response_status = cif_send_cmd(STUFF_BITS, MMC_CMD_2_ALL_SEND_CID,
                                                     MSS_MMC_RESPONSE_R2);
-
-        do
+        if (TRANSFER_IF_SUCCESS == response_status)
         {
-             /* Assign a RCA to the device */
-            response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
+            do
+            {
+                /* Assign a RCA to the device */
+                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
                                    MMC_CMD_3_SET_RELATIVE_ADDR,
                                    MSS_MMC_RESPONSE_R1);
-        }while (TRANSFER_IF_SUCCESS != response_status);
+            }while (TRANSFER_IF_SUCCESS != response_status);
+        }
 
         if (TRANSFER_IF_SUCCESS == response_status)
         {
-            /* Configure the data transfer */
-
-
             /* Read CSD register from device */
             response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
                                             MMC_CMD_9_SEND_CSD,
                                             MSS_MMC_RESPONSE_R2);
-            /* Sector size from "Max. write data block length"  of CSD[25:22]*/
-            csd_max_sector_lwr  = MMC->SRS04 & SECT_SIZE_CSD_MASK;
-            max_sector_len = csd_max_sector_lwr >> SECT_SIZE_CSD_SHIFT;
-            sector_size = (uint16_t)((uint32_t)MMC_SET << max_sector_len);
+            if (TRANSFER_IF_SUCCESS == response_status)
+            {
+                /* Sector size from "Max. write data block length"  of CSD[25:22]*/
+                csd_max_sector_lwr  = MMC->SRS04 & SECT_SIZE_CSD_MASK;
+                max_sector_len = csd_max_sector_lwr >> SECT_SIZE_CSD_SHIFT;
+                sector_size = (uint16_t)((uint32_t)MMC_SET << max_sector_len);
 
-            /* Select device */
-            response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
+                /* Select device */
+                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
                                             MMC_CMD_7_SELECT_DESELECT_CARD,
                                             MSS_MMC_RESPONSE_R1);
+            }
 
             if (TRANSFER_IF_SUCCESS == response_status)
             {
@@ -2960,27 +3336,25 @@ static mss_mmc_status_t mmccard_oper_config(const mss_mmc_cfg_t * cfg)
                 response_status = cif_send_cmd( MMC_DW_CSD |(MSS_MMC_DATA_WIDTH_1BIT << SHIFT_8BIT),
                                                 MMC_CMD_6_SWITCH,
                                                 MSS_MMC_RESPONSE_R1B);
-                /*
-                * Writing to the EXT CSD register takes significant time, so function must
-                * not return until the 'READY FOR DATA' bit is set in the Card Status
-                * Register.
-                */
-                while (DEVICE_BUSY == response_status)
+                if (TRANSFER_IF_FAIL != response_status)
                 {
-                    response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                                MMC_CMD_13_SEND_STATUS,
-                                                MSS_MMC_RESPONSE_R1);
+                    response_status = check_device_status(response_status);
                 }
-                /* Up the Host MMC clock frequency */
-                set_host_sdclk(MSS_MMC_CLOCK_12_5MHZ);
-                /* Set Phy delay for select MMC mode */
-                g_mmc_init_complete = MMC_SET;
-                phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_MMC_LEGACY, MSS_MMC_CLOCK_12_5MHZ);
-                /* Data timeout 500ms */
-                ret_status = set_data_timeout(DATA_TIMEOUT_VALUE);
-                if (ret_status == MSS_MMC_NO_ERROR)
+
+                if (TRANSFER_IF_SUCCESS == response_status)
                 {
-                    ret_status =  MSS_MMC_CARD_SELECT_SUCCESS;
+                    /* Set Phy delay for select MMC mode */
+                    ret_status = phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_MMC_LEGACY, MSS_MMC_CLOCK_400KHZ);
+                    if (ret_status == MSS_MMC_TRANSFER_SUCCESS)
+                    {
+                        /* Data timeout 500ms */
+                        ret_status = set_data_timeout(DATA_TIMEOUT_VALUE);
+                        if (ret_status == MSS_MMC_NO_ERROR)
+                        {
+                            g_mmc_init_complete = MMC_SET;
+                            ret_status =  MSS_MMC_CARD_SELECT_SUCCESS;
+                        }
+                    }
                 }
             }
             else
@@ -3032,13 +3406,13 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
         tmp = MMC->SRS18;
         max_current_3_3V = ((tmp & MASK_8BIT) * SHIFT_4BIT);
         max_current_1_8V = (((tmp & BYTE_3_MASK) >> SHIFT_16BIT) * SHIFT_4BIT);
-        /* flag used for SDXC cards
+        /* Flag used for SDXC cards
            if card is initialized with XPC=1
            then it is operating less than 150mA
         */
-         XPC = ((max_current_1_8V >= MAX_CURRENT_MA) && (max_current_3_3V >= MAX_CURRENT_MA)) ? MMC_SET : MMC_CLEAR;
-        /* check if UHS-I is supported by SDIO host controller, then set to 1 */
-         S18R = (is_uhsi_supported() != MMC_CLEAR) ? MMC_SET : MMC_CLEAR;
+        XPC = ((max_current_1_8V >= MAX_CURRENT_MA) && (max_current_3_3V >= MAX_CURRENT_MA)) ? MMC_SET : MMC_CLEAR;
+        /* Check if UHS-I is supported by SDIO host controller, then set to 1 */
+        S18R = (is_uhsi_supported() != MMC_CLEAR) ? MMC_SET : MMC_CLEAR;
 
         response_status = cif_send_cmd(MMC_CLEAR,
                                         SD_CMD_55,
@@ -3058,8 +3432,8 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                 {
                     S18R = MMC_CLEAR;
                 }
-                /* check the voltage capabilities of the SDIO host controller and a card
-                      to set appropriate voltage */
+                /* Check the voltage capabilities of the SDIO host controller and a card
+                   to set appropriate voltage */
                 if ((card_ocr_reg & SDCARD_REG_OCR_3_3_3_4) != MMC_CLEAR)
                 {
                     card_volt = (uint32_t)SDCARD_REG_OCR_3_3_3_4;
@@ -3082,12 +3456,12 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                 }
                 else
                 {
-                    /* default values */
+                    /* Default values */
                     card_volt = (uint32_t)SDCARD_REG_OCR_3_3_3_4;
                     controller_volt = SRS10_SET_3_3V_BUS_VOLTAGE;
                 }
 
-                /* if the voltage is different to 3.3v */
+                /* If the voltage is different to 3.3v */
                 if (controller_volt != SRS10_SET_3_3V_BUS_VOLTAGE)
                 {
                     set_sdhost_power(controller_volt);
@@ -3112,7 +3486,7 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                     }
                 }
                 argument = card_volt;
-                /* if card sent response on CMD8 command
+                /* If card sent response on CMD8 command
                    set host high capacity flag to 1 */
                 argument |= (uint32_t)SDCARD_ACMD41_HCS;
                 if (S18R != MMC_CLEAR)
@@ -3140,13 +3514,17 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                                         SD_ACMD_41_SEND_OP_COND,
                                         MSS_MMC_RESPONSE_R3);
                     }
+                    else
+                    {
+                        break;
+                    }
                     tmp = MMC->SRS04;
                 }while ((tmp & SDCARD_REG_OCR_READY) == MMC_CLEAR);
                 /* If CCS = 0, SDSC card < 2gb. If CCS = 1, SDHC/XC >2gb */
                 CCS = MMC->SRS04 & SDCARD_REG_OCR_CCS;
                 S18A = MMC->SRS04 & SDCARD_REG_OCR_S18A;
                 /* UHI -I Support */
-                if (S18A != MMC_CLEAR)
+                if ((S18A != MMC_CLEAR) && (TRANSFER_IF_SUCCESS == response_status))
                 {
                     if (cfg->data_bus_width == MSS_MMC_DATA_WIDTH_4BIT)
                     {
@@ -3156,6 +3534,7 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                     {
                         return MSS_MMC_MODE_NOT_SUPPORT_DATAWIDTH;
                     }
+
                     const uint32_t dat_level = (SRS9_DAT0_SIGNAL_LEVEL | SRS9_DAT1_SIGNAL_LEVEL
                                               | SRS9_DAT2_SIGNAL_LEVEL | SRS9_DAT3_SIGNAL_LEVEL);
 
@@ -3164,11 +3543,11 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                                                 MSS_MMC_RESPONSE_R1);
                     if (TRANSFER_IF_SUCCESS == response_status)
                     {
-                        /* disable sd clock */
+                        /* Disable sd clock */
                         temp = MMC->SRS11;
                         temp &= ~(uint32_t)SRS11_SD_CLOCK_ENABLE;
                         MMC->SRS11 = temp;
-                        /* if dat line is not 0000b return error */
+                        /* If dat line is not 0000b return error */
                         tmp = MMC->SRS09;
                         if ((tmp & dat_level) != MMC_CLEAR)
                         {
@@ -3181,10 +3560,10 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                             tmp |= SRS15_18V_ENABLE;
                             MMC->SRS15 = tmp;
 
-                            /* wait 5ms */
+                            /* Wait 5ms */
                             mmc_delay(DELAY_COUNT);
                             mmc_delay(DELAY_COUNT);
-                            /* if 1.8V signal enable is cleared by host return with error */
+                            /* If 1.8V signal enable is cleared by host return with error */
                             tmp = MMC->SRS15;
                             if ((tmp & SRS15_18V_ENABLE) == MMC_CLEAR)
                             {
@@ -3192,19 +3571,19 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                             }
                             else
                             {
-                                /* internal clock enable */
+                                /* Internal clock enable */
                                 tmp = MMC->SRS11;
                                 tmp |= (uint32_t)SRS11_INT_CLOCK_ENABLE;
                                 MMC->SRS11 = tmp;
                                 while (MMC_CLEAR == (MMC->SRS11 & SRS11_INT_CLOCK_STABLE));
 
-                                /* enable sd clock */
+                                /* Enable sd clock */
                                 temp = MMC->SRS11;
                                 temp |= (uint32_t)SRS11_SD_CLOCK_ENABLE;
                                 MMC->SRS11 = temp;
-                                /* wait 1ms */
+                                /* Wait 1ms */
                                 mmc_delay(DELAY_COUNT);
-                                /* if dat line is not 1111b return error */
+                                /* If dat line is not 1111b return error */
                                 tmp = MMC->SRS09;
                                 if ((tmp & dat_level) != dat_level)
                                 {
@@ -3219,7 +3598,7 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                         }
                     }
                 }
-                
+
                 if ((TRANSFER_IF_SUCCESS == response_status) && (ret_status == MSS_MMC_TRANSFER_SUCCESS))
                 {
                     response_status = cif_send_cmd(MMC_CLEAR,
@@ -3238,23 +3617,33 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                         {
                             sd_card_uhsi_supported();
                         }
-                        /* Read CSD register from device */
-                        response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                                        MMC_CMD_9_SEND_CSD,
-                                                        MSS_MMC_RESPONSE_R2);
-                        /* Sector size from "Max. write data block length"  of CSD[25:22]*/
-                        csd_max_sector_lwr  = MMC->SRS04 & SECT_SIZE_CSD_MASK;
-                        max_sector_len = csd_max_sector_lwr >> SECT_SIZE_CSD_SHIFT;
-                        sector_size = (uint16_t)((uint32_t)MMC_SET << max_sector_len);
 
-                        response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
-                                                    MMC_CMD_7_SELECT_DESELECT_CARD,
-                                                    MSS_MMC_RESPONSE_R1B);
                         if (TRANSFER_IF_SUCCESS == response_status)
                         {
+                            /* Read CSD register from device */
+                            response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
+                                                        MMC_CMD_9_SEND_CSD,
+                                                        MSS_MMC_RESPONSE_R2);
+                            /* Sector size from "Max. write data block length"  of CSD[25:22]*/
+                            csd_max_sector_lwr  = MMC->SRS04 & SECT_SIZE_CSD_MASK;
+                            max_sector_len = csd_max_sector_lwr >> SECT_SIZE_CSD_SHIFT;
+                            sector_size = (uint16_t)((uint32_t)MMC_SET << max_sector_len);
+                        }
 
+                        if (TRANSFER_IF_SUCCESS == response_status)
+                        {
+                            response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
+                                                    MMC_CMD_7_SELECT_DESELECT_CARD,
+                                                    MSS_MMC_RESPONSE_R1B);
+                            if(TRANSFER_IF_FAIL != response_status)
+                            {
+                                response_status = check_device_status(response_status);
+                            }
+                        }
 
-                            /* disable host normal interrupts for masking  incorrect interrupts
+                        if (TRANSFER_IF_SUCCESS == response_status)
+                        {
+                            /* Disable host normal interrupts for masking  incorrect interrupts
                                 that may occur while changing the bus width.*/
                             tmp = MMC->SRS13;
                             MMC->SRS13 = tmp & ~(uint32_t)SRS13_CARD_INTERRUPT_STAT_EN;
@@ -3274,7 +3663,7 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                                     /* 1-bit bus data width */
                                     bus_width = MMC_CLEAR;
                                 }
-                                /* set bus with in the card 4-bit -2, 1-bit - 0 */
+                                /* Set bus with in the card 4-bit -2, 1-bit - 0 */
                                 response_status = cif_send_cmd(bus_width,
                                                                 SD_ACMD_6,
                                                            MSS_MMC_RESPONSE_R1);
@@ -3285,31 +3674,43 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                                         MMC->SRS10 |= SRS10_DATA_WIDTH_4BIT;
                                     }
                                     MMC->SRS13 = tmp;
-                                    /* mmc init success */
+                                    /* MMC init success */
                                     g_mmc_init_complete = MMC_SET;
-                                    /* get SCR register */
+                                    /* Get SCR register */
                                     ret_status = MSS_MMC_single_block_read(READ_SEND_SCR, scr_reg);
                                     if (ret_status == MSS_MMC_TRANSFER_SUCCESS)
                                     {
                                         ret_status = set_sd_host_device_bus_mode(cfg);
                                         if (ret_status == MSS_MMC_TRANSFER_SUCCESS)
                                         {
-                                            /* up the Host MMC clock frequency */
+                                            /* Up the Host MMC clock frequency */
                                             set_host_sdclk(cfg->clk_rate);
 
                                             switch(cfg->bus_speed_mode)
                                             {
 
                                                 case MSS_SDCARD_MODE_SDR12:
-                                                    phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_SDR12, cfg->clk_rate);
+                                                    ret_status = phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_SDR12, cfg->clk_rate);
+                                                    if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
+                                                    {
+                                                        response_status = TRANSFER_IF_FAIL;
+                                                    }
                                                     break;
                                                 case MSS_SDCARD_MODE_SDR25:
-                                                    phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_SDR25, cfg->clk_rate);
+                                                    ret_status = phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_SDR25, cfg->clk_rate);
+                                                    if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
+                                                    {
+                                                        response_status = TRANSFER_IF_FAIL;
+                                                    }
                                                     break;
                                                 case MSS_SDCARD_MODE_SDR50:
-                                                    phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_SDR50, cfg->clk_rate);
+                                                    ret_status = phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_SDR50, cfg->clk_rate);
+                                                    if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
+                                                    {
+                                                        response_status = TRANSFER_IF_FAIL;
+                                                    }
                                                     tmp = MMC->SRS17;
-                                                    if ((tmp & SRS17_USE_TUNING_SDR50) != MMC_CLEAR)
+                                                    if (((tmp & SRS17_USE_TUNING_SDR50) != MMC_CLEAR) && (response_status != TRANSFER_IF_FAIL))
                                                     {
                                                         ret_status = sd_tuning();
                                                         if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
@@ -3326,10 +3727,26 @@ static mss_mmc_status_t sdcard_oper_config(const mss_mmc_cfg_t * cfg)
                                                     }
                                                     break;
                                                 case MSS_SDCARD_MODE_DDR50:
-                                                    phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_DDR50, cfg->clk_rate);
+                                                    ret_status = phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_DDR50, cfg->clk_rate);
+                                                    if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
+                                                    {
+                                                        response_status = TRANSFER_IF_FAIL;
+                                                    }
                                                     break;
+                                                case MSS_MMC_PHY_DELAY_INPUT_HIGH_SPEED:
+                                                    ret_status = phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_HIGH_SPEED, cfg->clk_rate);
+                                                    if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
+                                                    {
+                                                        response_status = TRANSFER_IF_FAIL;
+                                                    }
+                                                    break;
+
                                                 default:
-                                                    phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_HIGH_SPEED, cfg->clk_rate);
+                                                    ret_status = phy_training_mmc(MSS_MMC_PHY_DELAY_INPUT_DEFAULT_SPEED, cfg->clk_rate);
+                                                    if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
+                                                    {
+                                                        response_status = TRANSFER_IF_FAIL;
+                                                    }
                                                     break;
                                             }
                                         }
@@ -3388,7 +3805,7 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
     uint32_t card_volt = MMC_CLEAR;
     uint32_t controller_volt = MMC_CLEAR;
 
-    /* check if UHS-I is supported by SDIO host controller, then set to 1 */
+    /* Check if UHS-I is supported by SDIO host controller, then set to 1 */
     S18R = (is_uhsi_supported() != MMC_CLEAR) ? MMC_SET : MMC_CLEAR;
 
     response_status = cif_send_cmd(MMC_CLEAR, SD_CMD_5, MSS_MMC_RESPONSE_R4);
@@ -3402,7 +3819,7 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
         {
             S18R = MMC_CLEAR;
         }
-        /* check the voltage capabilities of the SDIO host controller and a card
+        /* Check the voltage capabilities of the SDIO host controller and a card
            to set appropriate voltage */
         if ((card_ocr_reg & SDCARD_REG_OCR_3_3_3_4) != MMC_CLEAR)
         {
@@ -3429,7 +3846,7 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
             card_volt = (uint32_t)SDCARD_REG_OCR_3_3_3_4;
             controller_volt = SRS10_SET_3_3V_BUS_VOLTAGE;
         }
-        /* if the voltage is different to 3.3v */
+        /* If the voltage is different to 3.3v */
         if (controller_volt != SRS10_SET_3_3V_BUS_VOLTAGE)
         {
             set_sdhost_power(controller_volt);
@@ -3454,7 +3871,7 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
 
         S18A = MMC->SRS04 & SDCARD_REG_OCR_S18A;
         /* UHI -I Support */
-        if (S18A != MMC_CLEAR)
+        if ((S18A != MMC_CLEAR) && (TRANSFER_IF_SUCCESS == response_status))
         {
             if (cfg->data_bus_width == MSS_MMC_DATA_WIDTH_4BIT)
             {
@@ -3472,11 +3889,11 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
                                         MSS_MMC_RESPONSE_R1);
             if (TRANSFER_IF_SUCCESS == response_status)
             {
-                /* disable sd clock */
+                /* Disable sd clock */
                 temp = MMC->SRS11;
                 temp &= ~(uint32_t)SRS11_SD_CLOCK_ENABLE;
                 MMC->SRS11 = temp;
-                /* if dat line is not 0000b return error */
+                /* If dat line is not 0000b return error */
                 tmp = MMC->SRS09;
                 if ((tmp & dat_level) != MMC_CLEAR)
                 {
@@ -3494,7 +3911,7 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
                     mmc_delay(DELAY_COUNT);
                     mmc_delay(DELAY_COUNT);
                     mmc_delay(DELAY_COUNT);
-                    /* if 1.8V signal enable is cleared by host return with error */
+                    /* If 1.8V signal enable is cleared by host return with error */
                     tmp = MMC->SRS15;
                     if ((tmp & SRS15_18V_ENABLE) == MMC_CLEAR)
                     {
@@ -3502,20 +3919,20 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
                     }
                     else
                     {
-                        /* internal clock enable */
+                        /* Internal clock enable */
                         tmp = MMC->SRS11;
                         tmp |= (uint32_t)SRS11_INT_CLOCK_ENABLE;
                         MMC->SRS11 = tmp;
                         while (MMC_CLEAR == (MMC->SRS11 & SRS11_INT_CLOCK_STABLE));
     
-                        /* enable sd clock */
+                        /* Enable sd clock */
                         temp = MMC->SRS11;
                         temp |= (uint32_t)SRS11_SD_CLOCK_ENABLE;
                         MMC->SRS11 = temp;
-                        /* wait 1ms */
+                        /* Wait 1ms */
                         mmc_delay(DELAY_COUNT);
                         mmc_delay(DELAY_COUNT);
-                        /* if dat line is not 1111b return error */
+                        /* If dat line is not 1111b return error */
                         tmp = MMC->SRS09;
                         if ((tmp & dat_level) != dat_level)
                         {
@@ -3545,41 +3962,35 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
             {
                 sd_card_uhsi_supported();
             }
-            response_status = cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
+            cif_send_cmd(sdcard_RCA << SHIFT_16BIT,
                                         MMC_CMD_7_SELECT_DESELECT_CARD,
                                         MSS_MMC_RESPONSE_R1B);
-            if (TRANSFER_IF_SUCCESS == response_status)
             {
                 uint8_t dum_tmp;
                 uint8_t tmp_1;
                 uint8_t card_int_stat;
-            /* disable host normal interrupts for masking  incorrect interrupts
-                    that may occur while changing the bus width.*/
+                /* Disable host normal interrupts for masking  incorrect interrupts
+                   that may occur while changing the bus width.*/
                 dum_tmp = MMC->SRS13;
                 MMC->SRS13 = dum_tmp & ~(uint32_t)SRS13_CARD_INTERRUPT_STAT_EN;
                 mmc_delay(DELAY_COUNT);
 
-                /* reset SDIO card */
-                tmp_1 = SHIFT_8BIT;
-                sdio_host_access_cccr(SDIOHOST_CCCR_WRITE, &tmp_1,
-                                             sizeof(tmp_1), MSS_MMC_CCCR_ABORT);
-
-                /* read status of the card interrupt register */
+                /* Read status of the card interrupt register */
                 sdio_host_access_cccr(SDIOHOST_CCCR_READ, &card_int_stat,
-                                sizeof(card_int_stat), MSS_MMC_CCCR_INT_ENABLE);
+                                sizeof(card_int_stat), MSS_MMC_CCCR_INT_ENABLE, MMC_CLEAR);
 
-                /* clear interrupt enable master bit */
+                /* Clear interrupt enable master bit */
                 if ((card_int_stat & CARD_INT_STATUS_MASK) != MMC_CLEAR)
                 {
                     tmp_1 = card_int_stat & CARD_INT_STATUS_MASK;
-                    /* disable all card interrupts */
+                    /* Disable all card interrupts */
                     sdio_host_access_cccr(SDIOHOST_CCCR_WRITE, &tmp_1,
-                                         sizeof(tmp_1), MSS_MMC_CCCR_INT_ENABLE);
+                                         sizeof(tmp_1), MSS_MMC_CCCR_INT_ENABLE, MMC_CLEAR);
                 }
 
-                /* read bus interface control */
+                /* Read bus interface control */
                 sdio_host_access_cccr(SDIOHOST_CCCR_READ, &tmp_1,
-                                        sizeof(tmp_1), MSS_MMC_CCCR_BUS_CONTROL);
+                                        sizeof(tmp_1), MSS_MMC_CCCR_BUS_CONTROL, MMC_CLEAR);
 
                 if (cfg->data_bus_width == MSS_MMC_DATA_WIDTH_1BIT)
                 {
@@ -3590,30 +4001,28 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
                     tmp_1 = (tmp_1 & SDCARD_BUSWIDTH_MASK) | SDCARD_BIS_BUS_WIDTH_4BIT;
                 }
 
-                /* set bus width in the SDIO card */
+                /* Set bus width in the SDIO card */
                 sdio_host_access_cccr(SDIOHOST_CCCR_WRITE, &tmp_1,
-                                         sizeof(tmp_1), MSS_MMC_CCCR_BUS_CONTROL);
+                                         sizeof(tmp_1), MSS_MMC_CCCR_BUS_CONTROL, MMC_CLEAR);
 
 
                 if (cfg->data_bus_width == MSS_MMC_DATA_WIDTH_4BIT)
                 {
                     MMC->SRS10 |= SRS10_DATA_WIDTH_4BIT;
                 }
-                /* check if the interrupts was enabled before */
+                /* Check if the interrupts was enabled before */
                 if ((card_int_stat & CARD_INT_STATUS_MASK) != MMC_CLEAR)
                 {
-                    /* resume card interrupts state */
+                    /* Resume card interrupts state */
                     sdio_host_access_cccr(SDIOHOST_CCCR_WRITE, &card_int_stat,
-                                sizeof(card_int_stat), MSS_MMC_CCCR_INT_ENABLE);
+                                sizeof(card_int_stat), MSS_MMC_CCCR_INT_ENABLE, MMC_CLEAR);
                 }
                 uint16_t blck_size = BLK_SIZE;
-                /* set block size 512 in the SDIO card for Function 0 */
+                /* Set block size 512 in the SDIO card for Function 0 */
                 sdio_host_access_cccr(SDIOHOST_CCCR_WRITE, &blck_size,
-                                 sizeof(blck_size), MSS_MMC_CCCR_FN0_BLOCK_SIZE);
+                                 sizeof(blck_size), MSS_MMC_CCCR_FN0_BLOCK_SIZE, MMC_CLEAR);
 
                 MMC->SRS13 = dum_tmp;
-                /* mmc init success */
-                g_mmc_init_complete = MMC_SET;
 
                 uint16_t manufacturerCode, manufacturer_information;
                 uint8_t buffer[BYTES_4];
@@ -3622,7 +4031,8 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
                 sdio_host_access_cccr(SDIOHOST_CCCR_READ,
                                         &common_cis_address,
                                         sizeof(common_cis_address),
-                                        MSS_MMC_CCCR_CIS_POINTER);
+                                        MSS_MMC_CCCR_CIS_POINTER,
+                                        MMC_CLEAR);
                 /* Get manufacturer ID and manufacturer informations */
                 sdio_host_get_tuple_from_cis(common_cis_address,
                                             MSS_MMC_TUPLE_CISTPL_MANFID,
@@ -3634,8 +4044,37 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
                 ret_status = change_sdio_device_bus_mode(cfg);
                 if (ret_status == MSS_MMC_TRANSFER_SUCCESS)
                 {
-                    /* up the Host MMC clock frequency */
+                    uint8_t sdio_csa_enable = SDIO_CSA_ENABLE;
+                    uint8_t sdio_csa_support;
+                    uint8_t fun_num = BYTES_2;  /* function 1 */
+
+                    /* Up the Host MMC clock frequency */
                     set_host_sdclk(cfg->clk_rate);
+                    mmc_delay(MASK_8BIT);
+                    sdio_host_access_fbr(SDIOHOST_CCCR_READ,  &sdio_csa_support, BYTES_1,
+                                                   MSS_MMC_FBR_STD_SDIO_FN, MMC_SET, MMC_CLEAR);
+                    if ((sdio_csa_support & SDIO_CSA_SUPPORT) != MMC_CLEAR)
+                    {
+                        sdio_host_access_fbr(SDIOHOST_CCCR_WRITE,  &sdio_csa_enable, BYTES_1,
+                                                   MSS_MMC_FBR_STD_SDIO_FN, MMC_SET, MMC_SET);
+                        sdio_host_access_cccr(SDIOHOST_CCCR_WRITE, &fun_num, BYTES_1,
+                                                        MSS_MMC_CCCR_IO_ENABLE, MMC_SET);
+                        sdio_host_access_cccr(SDIOHOST_CCCR_READ, &fun_num, BYTES_1,
+                                                MSS_MMC_CCCR_IO_READY, MMC_CLEAR);
+                        while(fun_num == MMC_CLEAR)
+                        {
+                            sdio_host_access_cccr(SDIOHOST_CCCR_READ, &fun_num, BYTES_1,
+                                                        MSS_MMC_CCCR_IO_READY, MMC_CLEAR);
+                        }
+                        sdio_host_access_fbr(SDIOHOST_CCCR_WRITE,  &blck_size, BYTES_2,
+                                            MSS_MMC_FBR_BLOCK_SIZE, MMC_SET, MMC_CLEAR);
+                        /* SDIO init success */
+                        g_mmc_init_complete = MMC_SET;
+                    }
+                    else
+                    {
+                        response_status = TRANSFER_IF_FAIL;
+                    }
                 }
                 else
                 {
@@ -3660,21 +4099,24 @@ static mss_mmc_status_t sdio_oper_config(const mss_mmc_cfg_t * cfg)
 static mss_mmc_status_t change_sdio_device_bus_mode(const mss_mmc_cfg_t * cfg)
 {
     mss_mmc_status_t ret_status = MSS_MMC_NO_ERROR;
-    uint8_t high_speed_reg, uhsi_support;
+    uint8_t high_speed_reg, uhsi_support = 0;
     uint8_t enable_high_speed = MMC_CLEAR;
     uint32_t tmp;
-    /* get high speed register from a card */
+    /* Get high speed register from a card */
     sdio_host_access_cccr(SDIOHOST_CCCR_READ, &high_speed_reg,
-                                 sizeof(high_speed_reg), MSS_MMC_CCCR_HIGH_SPEED);
+                                sizeof(high_speed_reg),
+                                MSS_MMC_CCCR_HIGH_SPEED,
+                                MMC_CLEAR);
 
-    /* clear all access mode settings */
+    /* Clear all access mode settings */
     high_speed_reg &= ~SDIO_CCCR_13_BSS_MASK;
 
     if (cfg->bus_speed_mode > MSS_SDCARD_MODE_SDR25)
     {
         sdio_host_access_cccr(SDIOHOST_CCCR_READ, &uhsi_support,
-                                     sizeof(uhsi_support),
-                                     MSS_MMC_CCCR_UHSI_SUPPORT);
+                                    sizeof(uhsi_support),
+                                    MSS_MMC_CCCR_UHSI_SUPPORT,
+                                    MMC_CLEAR);
     }
 
     switch (cfg->bus_speed_mode)
@@ -3684,7 +4126,7 @@ static mss_mmc_status_t change_sdio_device_bus_mode(const mss_mmc_cfg_t * cfg)
         break;
     case MSS_SDCARD_MODE_SDR25:
     case MSS_SDCARD_MODE_HIGH_SPEED:
-        /* check if card supports SDR25 mode (high speed) */
+        /* Check if card supports SDR25 mode (high speed) */
         if (MMC_CLEAR == (high_speed_reg & SDIO_CCCR_13_SHS))
         {
             return MSS_MMC_SDIO_ERR_BUS_SPEED_UNSUPP;
@@ -3693,7 +4135,7 @@ static mss_mmc_status_t change_sdio_device_bus_mode(const mss_mmc_cfg_t * cfg)
         enable_high_speed = MMC_SET;
         break;
     case MSS_SDCARD_MODE_SDR50:
-        /* check if card supports SDR50 access mode */
+        /* Check if card supports SDR50 access mode */
         if (MMC_CLEAR == (uhsi_support & SDIO_CCCR_14_SSDR50))
         {
             return MSS_MMC_SDIO_ERR_BUS_SPEED_UNSUPP;
@@ -3702,7 +4144,7 @@ static mss_mmc_status_t change_sdio_device_bus_mode(const mss_mmc_cfg_t * cfg)
         enable_high_speed = MMC_SET;
         break;
     case MSS_SDCARD_MODE_SDR104:
-        /* check if card supports SDR104 access mode */
+        /* Check if card supports SDR104 access mode */
         if (MMC_CLEAR == (uhsi_support & SDIO_CCCR_14_SSDR104))
         {
             return MSS_MMC_SDIO_ERR_BUS_SPEED_UNSUPP;
@@ -3711,7 +4153,7 @@ static mss_mmc_status_t change_sdio_device_bus_mode(const mss_mmc_cfg_t * cfg)
         enable_high_speed = MMC_SET;
         break;
     case MSS_SDCARD_MODE_DDR50:
-        /* check if card supports DDR50 access mode */
+        /* Check if card supports DDR50 access mode */
         if (MMC_CLEAR == (uhsi_support & SDIO_CCCR_14_SDDR50))
         {
             return MSS_MMC_SDIO_ERR_BUS_SPEED_UNSUPP;
@@ -3719,26 +4161,27 @@ static mss_mmc_status_t change_sdio_device_bus_mode(const mss_mmc_cfg_t * cfg)
         high_speed_reg |= SDIO_CCCR_13_BSS_DDR50;
         enable_high_speed = MMC_SET;
         break;
-    default: /* nothing */
+    default: /* Nothing */
         break;
 
     }
 
-    /* apply access bus mode to sdio card */
+    /* Apply access bus mode to sdio card */
     sdio_host_access_cccr(SDIOHOST_CCCR_WRITE, &high_speed_reg,
-                               sizeof(high_speed_reg),
-                               MSS_MMC_CCCR_HIGH_SPEED);
+                                sizeof(high_speed_reg),
+                                MSS_MMC_CCCR_HIGH_SPEED,
+                                MMC_CLEAR);
                                
     if (enable_high_speed != MMC_CLEAR)
     {
-        /* enable high-speed in the SDIO host controller */
+        /* Enable high-speed in the SDIO host controller */
         tmp = MMC->SRS10;
         tmp |= SRS10_HIGH_SPEED_ENABLE;
         MMC->SRS10 = tmp;
     }
     else
     {
-        /* disable high-speed in the SDIO host controller */
+        /* Disable high-speed in the SDIO host controller */
         tmp = MMC->SRS10;
         tmp &= ~SRS10_HIGH_SPEED_ENABLE;
         MMC->SRS10 = tmp;
@@ -3747,41 +4190,21 @@ static mss_mmc_status_t change_sdio_device_bus_mode(const mss_mmc_cfg_t * cfg)
     return MSS_MMC_TRANSFER_SUCCESS;
 }
 /******************************************************************************/
-#if 0
-static void SDIOHost_ReadCCCR(uint8_t *data)
-{
-    /* for SDIO or combo cards read CCCR to get information about supported bus widths */
-    uint8_t CardCapability;
-
-    /* read bus card capabilities */
-    sdio_host_access_cccr(SDIOHOST_CCCR_READ,
-                                 &CardCapability, sizeof(CardCapability),
-                                 MSS_MMC_CCCR_CARD_CAPABILITY);
-
-    if ((CardCapability & SDCARD_CCR_LSC) != MMC_CLEAR
-        && ((CardCapability & SDCARD_CCR_4BLS)) == MMC_CLEAR) {
-       *data =  SDIO_BUS_WIDTH_1;
-    }
-    else {
-        *data = SDIO_BUS_WIDTH_1 | SDIO_BUS_WIDTH_4;
-    }
-}
-#endif
-/******************************************************************************/
 static void sdio_host_access_cccr
 (
     uint8_t transfer_direction,
     void *data,
     uint8_t data_size,
-    uint8_t register_address
+    uint8_t register_address,
+    uint8_t raw
 )
 {
 
     uint8_t number_of_bytes, i = MMC_CLEAR;
     uint32_t argument, response, tmp = MMC_CLEAR;
     cif_response_t response_status = TRANSFER_IF_SUCCESS;
-    /* set numbers of bytes to transfer
-      and check if the data parameter has appropriate size */
+    /* Set numbers of bytes to transfer
+       and check if the data parameter has appropriate size */
     switch (register_address) {
     case MSS_MMC_CCCR_CIS_POINTER:
         number_of_bytes = BYTES_3;
@@ -3800,16 +4223,17 @@ static void sdio_host_access_cccr
         break;
     }
 
-    /* read data from the CCCR register */
+    /* Read data from the CCCR register */
     if (transfer_direction == MMC_CLEAR)
     {
         for (i = MMC_CLEAR; i < number_of_bytes; i++)
         {
-            /* set address of register to read */
+            /* Set address of register to read */
             argument = (uint32_t)((register_address + i) << SHIFT_9BIT)
-                               | (uint32_t)(transfer_direction << SHIFT_31BIT);
+                                | (raw << SHIFT_27BIT)
+                                | (uint32_t)(transfer_direction << SHIFT_31BIT);
 
-            /* execute command CMD52 to read data /from CCCR register */
+            /* Execute command CMD52 to read data /from CCCR register */
             response_status = cif_send_cmd(argument,
                                             SDIO_CMD_52_IO_RW_DIRECT,
                                             MSS_MMC_RESPONSE_R5);
@@ -3831,18 +4255,20 @@ static void sdio_host_access_cccr
             break;
         }
     }
-    /* write data to the CCCR register */
+    /* Write data to the CCCR register */
     else
     {
         uint8_t *data_byte = data;
         for (i = MMC_CLEAR; i < number_of_bytes; i++)
         {
-            /* set address of register to write */
+            /* Set address of register to write */
             argument = (uint32_t)((register_address + i) << SHIFT_9BIT)
-                               | (uint32_t)(transfer_direction << SHIFT_31BIT)
-                               | *data_byte++;
-
-            /* execute command CMD52 to write data to CCCR register */
+                                | (raw << SHIFT_27BIT)
+                                | (uint32_t)(transfer_direction << SHIFT_31BIT)
+                                | *data_byte;
+            data_byte++;
+            
+            /* Execute command CMD52 to write data to CCCR register */
             response_status = cif_send_cmd(argument,
                                         SDIO_CMD_52_IO_RW_DIRECT,
                                         MSS_MMC_RESPONSE_R5);
@@ -3856,15 +4282,17 @@ static void sdio_host_access_fbr
     void *data,
     uint8_t data_size,
     uint32_t register_address,
-    uint8_t fun_num
+    uint8_t fun_num,
+    uint8_t raw
 )
 {
 
     uint8_t number_of_bytes, i = MMC_CLEAR;
     uint32_t argument, response, tmp = MMC_CLEAR;
     cif_response_t response_status = TRANSFER_IF_SUCCESS;
-    /* set numbers of bytes to transfer
-      and check if the data parameter has appropriate size */
+    uint32_t register_address_temp = MMC_CLEAR;
+    /* Set numbers of bytes to transfer
+       and check if the data parameter has appropriate size */
     switch (register_address) {
     case MSS_MMC_FBR_ADDR_CIS:
     case MSS_MMC_FBR_ADDR_CSA:
@@ -3883,18 +4311,25 @@ static void sdio_host_access_fbr
         number_of_bytes = BYTES_1;
         break;
     }
-
-    register_address = register_address + (100u * fun_num);
-    /* read data from the CCCR register */
+    if (fun_num == MMC_CLEAR)
+    {
+        register_address_temp = register_address + SDIO_FBR_BASE_ADDR;
+    }
+    else
+    {
+        register_address_temp = register_address + (SDIO_FBR_BASE_ADDR * fun_num);
+    }
+    /* Read data from the CCCR register */
     if (transfer_direction == MMC_CLEAR)
     {
         for (i = MMC_CLEAR; i < number_of_bytes; i++)
         {
-            /* set address of register to read */
-            argument = (uint32_t)((register_address + i) << SHIFT_9BIT)
-                               | (uint32_t)(transfer_direction << SHIFT_31BIT);
+            /* Set address of register to read */
+            argument = (uint32_t)((register_address_temp + i) << SHIFT_9BIT)
+                                | (raw << SHIFT_27BIT)
+                                | (uint32_t)(transfer_direction << SHIFT_31BIT);
 
-            /* execute command CMD52 to read data /from CCCR register */
+            /* Execute command CMD52 to read data /from CCCR register */
             response_status = cif_send_cmd(argument,
                                             SDIO_CMD_52_IO_RW_DIRECT,
                                             MSS_MMC_RESPONSE_R5);
@@ -3903,7 +4338,7 @@ static void sdio_host_access_fbr
             tmp |= (response & MASK_8BIT) << (i * SHIFT_8BIT);
         }
 
-        switch (register_address)
+        switch (register_address_temp)
         {
         case MSS_MMC_FBR_ADDR_CIS:
         case MSS_MMC_FBR_ADDR_CSA:
@@ -3917,18 +4352,20 @@ static void sdio_host_access_fbr
             break;
         }
     }
-    /* write data to the CCCR register */
+    /* Write data to the CCCR register */
     else
     {
         uint8_t *data_byte = data;
         for (i = MMC_CLEAR; i < number_of_bytes; i++)
         {
-            /* set address of register to write */
-            argument = (uint32_t)((register_address + i) << SHIFT_9BIT)
-                               | (uint32_t)(transfer_direction << SHIFT_31BIT)
-                               | *data_byte++;
+            /* Set address of register to write */
+            argument = (uint32_t)((register_address_temp + i) << SHIFT_9BIT)
+                                | (raw << SHIFT_27BIT)
+                                | (uint32_t)(transfer_direction << SHIFT_31BIT)
+                                | *data_byte;
+            data_byte++;
 
-            /* execute command CMD52 to write data to CCCR register */
+            /* Execute command CMD52 to write data to CCCR register */
             response_status = cif_send_cmd(argument,
                                         SDIO_CMD_52_IO_RW_DIRECT,
                                         MSS_MMC_RESPONSE_R5);
@@ -3948,9 +4385,10 @@ static void sdio_host_get_tuple_from_cis
     uint8_t i;
     uint8_t next_tuple_offset;
     cif_response_t response_status = TRANSFER_IF_SUCCESS;
+    uint32_t tuple_address_temp = tuple_address;
 
-    argument = (tuple_address << SHIFT_9BIT);
-    while (MMC_SET)
+    argument = (tuple_address_temp << SHIFT_9BIT);
+    while (true)
     {
         uint8_t read_tuple_code;
         /* Read tuple code name */
@@ -3958,38 +4396,38 @@ static void sdio_host_get_tuple_from_cis
                                         SDIO_CMD_52_IO_RW_DIRECT,
                                         MSS_MMC_RESPONSE_R5);
         response = MMC->SRS04;
-        if ((response & MASK_8BIT) == MSS_MMC_TUPLE_CISTPL_END)
+        if ((uint32_t)MSS_MMC_TUPLE_CISTPL_END == (response & MASK_8BIT))
         {
            /* SDIO ERR TUPLE NOT FOUND */
         }
-        read_tuple_code = response & MASK_8BIT;
+        read_tuple_code = (uint8_t)response & MASK_8BIT;
 
-        tuple_address++;
-        argument = tuple_address << SHIFT_9BIT;
+        tuple_address_temp++;
+        argument = tuple_address_temp << SHIFT_9BIT;
         /* Read link to next tuple */
         response_status = cif_send_cmd(argument,
                                         SDIO_CMD_52_IO_RW_DIRECT,
                                         MSS_MMC_RESPONSE_R5);
         response = MMC->SRS04;
-        if ((response & MASK_8BIT) == MSS_MMC_TUPLE_CISTPL_END)
+        if ((uint32_t)MSS_MMC_TUPLE_CISTPL_END == (response & MASK_8BIT))
         {
             /* SDIO ERR TUPLE NOT FOUND */
         }
 
-        /* save size of tuple body */
-        next_tuple_offset = response & MASK_8BIT;
-        tuple_address++;
+        /* Save size of tuple body */
+        next_tuple_offset = (uint8_t)response & MASK_8BIT;
+        tuple_address_temp++;
 
         if (read_tuple_code == tuple_code)
         {
             if (buffer_size < next_tuple_offset)
             {
-                /* to small buffer for data */
+                /* To small buffer for data */
             }
 
             for (i = MMC_CLEAR; i < next_tuple_offset; i++)
             {
-                argument = (tuple_address + i) << SHIFT_9BIT;
+                argument = (tuple_address_temp + i) << SHIFT_9BIT;
                 /* Read tuple body */
                 response_status = cif_send_cmd(argument,
                                                 SDIO_CMD_52_IO_RW_DIRECT,
@@ -4002,8 +4440,8 @@ static void sdio_host_get_tuple_from_cis
         }
         else
         {
-            tuple_address += next_tuple_offset;
-            argument = tuple_address << SHIFT_9BIT;
+            tuple_address_temp += next_tuple_offset;
+            argument = tuple_address_temp << SHIFT_9BIT;
         }
     }
 
@@ -4110,19 +4548,19 @@ static mss_mmc_status_t set_host_uhsi_mode
             /* nothing */
             break;
         }
-        
+
         MMC->SRS15 = SRS15;
 
         if (enable_high_speed != MMC_CLEAR)
         {
-            /* enable high-speed in the SDIO host controller */
+            /* Enable high-speed in the SDIO host controller */
             tmp = MMC->SRS10;
             tmp |= SRS10_HIGH_SPEED_ENABLE;
             MMC->SRS10 = tmp;
         }
         else
         {
-            /* disable high-speed in the SDIO host controller */
+            /* Disable high-speed in the SDIO host controller */
             tmp = MMC->SRS10;
             tmp &= ~SRS10_HIGH_SPEED_ENABLE;
             MMC->SRS10 = tmp;
@@ -4158,7 +4596,7 @@ static mss_mmc_status_t sd_host_process_switch_function
     }
 
     argument = argumentBase | (uint32_t)SDCARD_SWITCH_FUNC_MODE_CHECK;
-    /* first check if function is supported */
+    /* First check if function is supported */
     ret_status = sd_host_exec_cmd6_command(argument, tmp_buffer, function_num, group_num);
     if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
     {
@@ -4166,14 +4604,14 @@ static mss_mmc_status_t sd_host_process_switch_function
     }
     else if (SDCARD_SWICH_FUNC_GET_STAT_CODE(tmp_buffer, group_num) == MASK_4BIT)
     {
-        /* if status code for function is 0xF
+        /* If status code for function is 0xF
          then function is not supported by a card */
         ret_status = MSS_MMC_SDCARD_NOT_SUPPORT_BUS_MODE;
     }
     else
     {
         argument = argumentBase | (uint32_t)SDCARD_SWITCH_FUNC_MODE_SWITCH;
-        /* execute command to switch function */
+        /* Execute command to switch function */
         ret_status = sd_host_exec_cmd6_command(argument, tmp_buffer, function_num, group_num);
         if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
         {
@@ -4199,9 +4637,9 @@ static mss_mmc_status_t sd_tuning(void)
     uint32_t read_pattern[BYTES_128];
     tmp = MMC->SRS15;
 
-    /* reset tuning unit */
+    /* Reset tuning unit */
     tmp &= ~SRS15_SAMPLING_CLOCK_SELECT;
-    /* start of tuning */
+    /* Start of tuning */
     tmp |= SRS15_EXECUTE_TUNING;
     MMC->SRS15 = tmp;
 
@@ -4224,7 +4662,7 @@ static mss_mmc_status_t sd_tuning(void)
         ret_status = MSS_MMC_SDCARD_TUNING_FAILED;
     }
 
-    /* tuning completed */
+    /* Tuning completed */
     return (ret_status);
 }
 /******************************************************************************/
@@ -4236,28 +4674,27 @@ static mss_mmc_status_t sd_host_exec_cmd6_command
     uint8_t group_num
 )
 {
-
     mss_mmc_status_t ret_status = MSS_MMC_NO_ERROR;
-    uint32_t timeout = COMMANDS_TIMEOUT;
+    volatile uint32_t timeout = COMMANDS_TIMEOUT;
     uint8_t do_continue = MMC_SET;
-    do 
+    do
     {
         ret_status = cmd6_single_block_read(argument, (uint32_t *)buffer, BYTES_64);
         if (MSS_MMC_TRANSFER_SUCCESS != ret_status)
         {
             break;
         }
-        /* check data structure version
-          if it is 1 then checking the busy status is possible */
+        /* Check data structure version
+           if it is 1 then checking the busy status is possible */
         if (buffer[17u] == MMC_SET)
         {
-            /* if function is busy continue loop
-            wait until function will be ready */
+            /* If function is busy continue loop
+               wait until function will be ready */
             if (SDCARD_SWICH_FUNC_GET_BUSY_STAT(buffer, group_num, function_num) == MMC_CLEAR)
             {
                 do_continue = MMC_CLEAR;
             }
-        } 
+        }
         else
         {
             do_continue = MMC_CLEAR;
@@ -4296,9 +4733,9 @@ static mss_mmc_status_t sd_card_uhsi_supported(void)
     {
         ret_status = MSS_MMC_SDCARD_NOT_SUPPORT_BUS_MODE;
     }
-    else if (SDCARD_SWICH_FUNC_GET_STAT_CODE(tmp_buffer, group_num) == MASK_24BIT)
+    else if (SDCARD_SWICH_FUNC_GET_STAT_CODE(tmp_buffer, group_num) == MASK_4BIT)
     {
-        /* if status code for function is 0xF
+        /* If status code for function is 0xF
          then function is not supported by a card */
         ret_status = MSS_MMC_SDCARD_NOT_SUPPORT_BUS_MODE;
     }
@@ -4306,7 +4743,7 @@ static mss_mmc_status_t sd_card_uhsi_supported(void)
     {
         MMC->SRS10 |= SRS10_DATA_WIDTH_4BIT;
 
-        /* disable sd clock */
+        /* Disable sd clock */
         tmp = MMC->SRS11;
         tmp &= ~(uint32_t)SRS11_SD_CLOCK_ENABLE;
         MMC->SRS11 = tmp;
@@ -4315,11 +4752,11 @@ static mss_mmc_status_t sd_card_uhsi_supported(void)
         tmp |= SRS15_18V_ENABLE;
         MMC->SRS15 = tmp;
 
-        /* wait 5ms */
+        /* Wait 5ms */
         mmc_delay(DELAY_COUNT);
         mmc_delay(DELAY_COUNT);
 
-        /* if 1.8V signal enable is cleared by host return with error */
+        /* If 1.8V signal enable is cleared by host return with error */
         tmp = MMC->SRS15;
         if ((tmp & SRS15_18V_ENABLE) == MMC_CLEAR)
         {
@@ -4327,17 +4764,17 @@ static mss_mmc_status_t sd_card_uhsi_supported(void)
         }
         else
         {
-            /* internal clock enable */
+            /* Internal clock enable */
             tmp = MMC->SRS11;
             tmp |= (uint32_t)SRS11_INT_CLOCK_ENABLE;
             MMC->SRS11 = tmp;
             while (MMC_CLEAR == (MMC->SRS11 & SRS11_INT_CLOCK_STABLE));
 
-            /* enable sd clock */
+            /* Enable sd clock */
             tmp = MMC->SRS11;
             tmp |= (uint32_t)SRS11_SD_CLOCK_ENABLE;
             MMC->SRS11 = tmp;
-            /* wait 1ms */
+            /* Wait 1ms */
             mmc_delay(DELAY_COUNT);
 
             ret_status = MSS_MMC_TRANSFER_SUCCESS;
@@ -4398,43 +4835,33 @@ static mss_mmc_status_t set_device_hs400_mode(const mss_mmc_cfg_t *cfg)
         return ret_status;
     }
 
-    /* set 8-bit bus mode */
+    /* Set 8-bit bus mode */
     srs10 = MMC->SRS10;
     srs10 |= SRS10_EXTENDED_DATA_TRANSFER_WIDTH;
     MMC->SRS10 = srs10;
-    /* do HS400 Mode Operation, not HS400_ES  */
+    /* Do HS400 Mode Operation, not HS400_ES  */
     if (MSS_MMC_MODE_HS400 == cfg->bus_speed_mode)
     {
         /* Set MMC data bus width */
         response_status = cif_send_cmd(MMC_DW_CSD | (data_width << SHIFT_8BIT),
                                 MMC_CMD_6_SWITCH,
                                 MSS_MMC_RESPONSE_R1B);
-    /*
-     * Writing to the EXT CSD register takes significant time, so function must
-     * not return until the 'READY FOR DATA' bit is set in the Card Status
-     * Register.
-     */
-        while (DEVICE_BUSY == response_status)
+        if (TRANSFER_IF_FAIL != response_status)
         {
-            response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                MMC_CMD_13_SEND_STATUS,
-                                MSS_MMC_RESPONSE_R1);
+            response_status = check_device_status(response_status);
         }
+        
+        if (TRANSFER_IF_SUCCESS == response_status)
+        {
+            hs_timing = MMC_HS200_MODE;
 
-        hs_timing = MMC_HS200_MODE;
-
-        response_status = cif_send_cmd(hs_timing,
+            response_status = cif_send_cmd(hs_timing,
                                    MMC_CMD_6_SWITCH,
                                    MSS_MMC_RESPONSE_R1B);
-
-        if ((TRANSFER_IF_SUCCESS == response_status)||(DEVICE_BUSY == response_status))
-        {
-            do
+            if (TRANSFER_IF_FAIL != response_status)
             {
-                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                            MMC_CMD_13_SEND_STATUS,
-                                            MSS_MMC_RESPONSE_R1);
-            } while (DEVICE_BUSY == response_status);
+                response_status = check_device_status(response_status);
+            }
         }
 
         if (TRANSFER_IF_SUCCESS == response_status)
@@ -4448,12 +4875,14 @@ static mss_mmc_status_t set_device_hs400_mode(const mss_mmc_cfg_t *cfg)
             set_host_sdclk(cfg->clk_rate);
             /* HS200 tuning */
             ret_status = execute_tunning_mmc(MSS_MMC_DATA_WIDTH_8BIT);
-    
+            if (MSS_MMC_TRANSFER_SUCCESS != ret_status)
+                return ret_status;
+
             ret_status = MSS_MMC_single_block_read(READ_SEND_EXT_CSD, csd_reg);
             if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
             {
                 pcsd_reg = (uint8_t *)csd_reg;
-                /* offsets defined in JESD84-B51 extended CSD */
+                /* Offsets defined in JESD84-B51 extended CSD */
                 hw_sec_count   = csd_reg[EXT_CSD_SECTOR_COUNT_OFFSET/WORD_SIZE];
                 hw_ext_csd_rev = pcsd_reg[EXT_CSD_REVISION_OFFSET] & BYTE_MASK;
                 hw_hs_timing   = pcsd_reg[EXT_CSD_HS_TIMING_OFFSET];
@@ -4464,6 +4893,7 @@ static mss_mmc_status_t set_device_hs400_mode(const mss_mmc_cfg_t *cfg)
                 return ret_status;
             }
         }
+
         if (TRANSFER_IF_SUCCESS != response_status)
         {
             ret_status = MSS_MMC_TRANSFER_FAIL;
@@ -4473,19 +4903,28 @@ static mss_mmc_status_t set_device_hs400_mode(const mss_mmc_cfg_t *cfg)
 
     /* High Speed Mode set */
     hs_timing = MMC_HS_MODE;
-    
+
     response_status = cif_send_cmd(hs_timing,
                                 MMC_CMD_6_SWITCH,
                                 MSS_MMC_RESPONSE_R1B);
-    
-    if ((TRANSFER_IF_SUCCESS == response_status)||(DEVICE_BUSY == response_status))
+
+    if (TRANSFER_IF_FAIL != response_status)
     {
-        do
+        if (MSS_MMC_MODE_HS400_ES == cfg->bus_speed_mode)
         {
-            response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                            MMC_CMD_13_SEND_STATUS,
-                                            MSS_MMC_RESPONSE_R1);
-        } while (DEVICE_BUSY == response_status);
+            response_status = check_device_status(response_status);
+        }
+        else
+        {
+            uint32_t srs9;
+
+            do
+            {
+                srs9 = MMC->SRS09;
+            }while ((srs9 & SRS9_DAT0_SIGNAL_LEVEL) == MMC_CLEAR);
+
+            response_status = TRANSFER_IF_SUCCESS;
+        }
     }
 
     if (TRANSFER_IF_SUCCESS == response_status)
@@ -4493,7 +4932,7 @@ static mss_mmc_status_t set_device_hs400_mode(const mss_mmc_cfg_t *cfg)
         set_host_sdclk(MSS_MMC_CLOCK_50MHZ);
         /* Enable Host High Speed */
         MMC->SRS10 |= (MMC_SET << SHIFT_2BIT);
-        
+
         if (MSS_MMC_MODE_HS400 == cfg->bus_speed_mode)
         {
             data_width = MMC_DUAL_DATA_WIDTH_8BIT;
@@ -4511,50 +4950,9 @@ static mss_mmc_status_t set_device_hs400_mode(const mss_mmc_cfg_t *cfg)
         response_status = cif_send_cmd(MMC_DW_CSD | (data_width << SHIFT_8BIT),
                                         MMC_CMD_6_SWITCH,
                                         MSS_MMC_RESPONSE_R1B);
-        /*
-        * Writing to the EXT CSD register takes significant time, so function must
-        * not return until the 'READY FOR DATA' bit is set in the Card Status
-        * Register.
-        */
-        while (DEVICE_BUSY == response_status)
+        if (TRANSFER_IF_FAIL != response_status)
         {
-            response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                        MMC_CMD_13_SEND_STATUS,
-                                        MSS_MMC_RESPONSE_R1);
-        }
-        /* eMMC Mode select in Host controller */
-        hrs6 = MMC->HRS06;
-        hrs6 &= ~MSS_MMC_MODE_MASK;
-        hrs6 |= MSS_MMC_MODE_DDR;
-        MMC->HRS06 = hrs6;
-
-        set_host_sdclk(MSS_MMC_CLOCK_50MHZ);
-
-        ret_status = MSS_MMC_single_block_read(READ_SEND_EXT_CSD, csd_reg);
-        if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
-        {
-            pcsd_reg = (uint8_t *)csd_reg;
-            /* offsets defined in JESD84-B51 extended CSD */
-            hw_device_type   =  pcsd_reg[EXT_CSD_CARD_TYPE_OFFSET];
-            hw_sec_count   = csd_reg[EXT_CSD_SECTOR_COUNT_OFFSET/WORD_SIZE];
-            hw_ext_csd_rev = pcsd_reg[EXT_CSD_REVISION_OFFSET] & BYTE_MASK;
-            hw_hs_timing   = pcsd_reg[EXT_CSD_HS_TIMING_OFFSET];
-        }
-
-        /* Set HS400 mode */
-        hs_timing = MMC_HS400_MODE;
-        response_status = cif_send_cmd(hs_timing,
-                                    MMC_CMD_6_SWITCH,
-                                    MSS_MMC_RESPONSE_R1B);
-
-        if ((TRANSFER_IF_SUCCESS == response_status)||(DEVICE_BUSY == response_status))
-        {
-            do
-            {
-                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                                MMC_CMD_13_SEND_STATUS,
-                                                MSS_MMC_RESPONSE_R1);
-            } while (DEVICE_BUSY == response_status);
+            response_status = check_device_status(response_status);
         }
 
         if (TRANSFER_IF_SUCCESS == response_status)
@@ -4562,29 +4960,52 @@ static mss_mmc_status_t set_device_hs400_mode(const mss_mmc_cfg_t *cfg)
             /* eMMC Mode select in Host controller */
             hrs6 = MMC->HRS06;
             hrs6 &= ~MSS_MMC_MODE_MASK;
-            if (MSS_MMC_MODE_HS400 == cfg->bus_speed_mode)
+            hrs6 |= MSS_MMC_MODE_DDR;
+            MMC->HRS06 = hrs6;
+
+            set_host_sdclk(MSS_MMC_CLOCK_50MHZ);
+
+            /* Set HS400 mode */
+            hs_timing = MMC_HS400_MODE;
+            response_status = cif_send_cmd(hs_timing,
+                                    MMC_CMD_6_SWITCH,
+                                    MSS_MMC_RESPONSE_R1B);
+
+            if (TRANSFER_IF_FAIL != response_status)
             {
-                hrs6 |= MSS_MMC_MODE_HS400;
-            }
-            else if (MSS_MMC_MODE_HS400_ES == cfg->bus_speed_mode)
-            {
-                hrs6 |= MSS_MMC_MODE_HS400_ES;
-            }
-            else
-            {
-                hrs6 = MMC_CLEAR;
+                response_status = check_device_status(response_status);
             }
 
-            MMC->HRS06 = hrs6;
-            /* Up the Host MMC clock frequency */
-            set_host_sdclk(cfg->clk_rate);
-            ret_status = MSS_MMC_single_block_read(MMC_CLEAR, (uint32_t *)csd_reg);
-            if (MSS_MMC_TRANSFER_SUCCESS != ret_status)
+            if (TRANSFER_IF_SUCCESS == response_status)
             {
-                ret_status = MSS_MMC_TRANSFER_FAIL;
+                /* eMMC Mode select in Host controller */
+                hrs6 = MMC->HRS06;
+                hrs6 &= ~MSS_MMC_MODE_MASK;
+                if (MSS_MMC_MODE_HS400 == cfg->bus_speed_mode)
+                {
+                    hrs6 |= MSS_MMC_MODE_HS400;
+                }
+                else if (MSS_MMC_MODE_HS400_ES == cfg->bus_speed_mode)
+                {
+                    hrs6 |= MSS_MMC_MODE_HS400_ES;
+                }
+                else
+                {
+                    hrs6 = MMC_CLEAR;
+                }
+
+                MMC->HRS06 = hrs6;
+                /* Up the Host MMC clock frequency */
+                set_host_sdclk(cfg->clk_rate);
+                ret_status = MSS_MMC_single_block_read(MMC_CLEAR, (uint32_t *)csd_reg);
+                if (MSS_MMC_TRANSFER_SUCCESS != ret_status)
+                {
+                    ret_status = MSS_MMC_TRANSFER_FAIL;
+                }
             }
         }
     }
+    
     if (TRANSFER_IF_SUCCESS != response_status)
     {
         ret_status = MSS_MMC_TRANSFER_FAIL;
@@ -4601,12 +5022,12 @@ static mss_mmc_status_t device_set_hs_timing
     cif_response_t response_status = TRANSFER_IF_SUCCESS;
     mss_mmc_status_t ret_status = MSS_MMC_NO_ERROR;
     uint32_t srs10, hrs6;
-    uint32_t hs_timing = MMC_HS_MODE_DEFAULT;
+    volatile uint32_t hs_timing = MMC_HS_MODE_DEFAULT;
     uint8_t phy_delay_type;
 
     uint32_t data_width = cfg->data_bus_width;
 
-    /* set 4/8-bit bus mode */
+    /* Set 4/8-bit bus mode */
     srs10 = MMC->SRS10;
     if (data_width == MSS_MMC_DATA_WIDTH_4BIT)
     {
@@ -4618,13 +5039,15 @@ static mss_mmc_status_t device_set_hs_timing
     }
     else
     {
-        srs10 |= SRS10_DATA_WIDTH_4BIT;
+        srs10 &= ~SRS10_DATA_WIDTH_4BIT;
+        srs10 &= ~SRS10_EXTENDED_DATA_TRANSFER_WIDTH;
     }
     MMC->SRS10 = srs10;
 
     switch (hs_mode)
     {
         case DEVICE_SUPPORT_LEGACY:
+
             hs_timing = MMC_LEGACY_MODE;
             phy_delay_type = MSS_MMC_PHY_DELAY_INPUT_MMC_LEGACY;
             if (cfg->clk_rate > MSS_MMC_CLOCK_26MHZ)
@@ -4632,11 +5055,15 @@ static mss_mmc_status_t device_set_hs_timing
                 response_status = TRANSFER_IF_FAIL;
             }
             break;
+
         case DEVICE_SUPPORT_SDR:
+
             hs_timing = MMC_HS_MODE;
             phy_delay_type = MSS_MMC_PHY_DELAY_INPUT_MMC_SDR;
             break;
+
         case DEVICE_SUPPORT_DDR:
+
             hs_timing = MMC_HS_MODE;
             phy_delay_type = MSS_MMC_PHY_DELAY_INPUT_MMC_DDR;
             if (MSS_MMC_DATA_WIDTH_8BIT == data_width)
@@ -4652,18 +5079,21 @@ static mss_mmc_status_t device_set_hs_timing
                 response_status = TRANSFER_IF_FAIL;
             }
             break;
+
         case DEVICE_SUPPORT_HS200:
+
             hs_timing = MMC_HS200_MODE;
-            phy_delay_type = MSS_MMC_PHY_DELAY_DLL_HS_SDCLK;
             if (MSS_MMC_DATA_WIDTH_1BIT == data_width)
             {
                 response_status = TRANSFER_IF_FAIL;
             }
             break;
+
         default:
             response_status = TRANSFER_IF_FAIL;
             break;
     }
+
     if (TRANSFER_IF_SUCCESS == response_status)
     {
         if (DEVICE_SUPPORT_DDR == hs_mode)
@@ -4671,30 +5101,20 @@ static mss_mmc_status_t device_set_hs_timing
             response_status = cif_send_cmd(hs_timing,
                                            MMC_CMD_6_SWITCH,
                                            MSS_MMC_RESPONSE_R1B);
-
-            if ((TRANSFER_IF_SUCCESS == response_status)||(DEVICE_BUSY == response_status))
+            if (TRANSFER_IF_FAIL != response_status)
             {
-                do
+                response_status = check_device_status(response_status);
+                if (TRANSFER_IF_SUCCESS == response_status)
                 {
-                    response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                                    MMC_CMD_13_SEND_STATUS,
-                                                    MSS_MMC_RESPONSE_R1);
-                } while (DEVICE_BUSY == response_status);
-            }
-            /* Set MMC data bus width */
-            response_status = cif_send_cmd(MMC_DW_CSD | (data_width << SHIFT_8BIT),
+                    /* Set MMC data bus width */
+                    response_status = cif_send_cmd(MMC_DW_CSD | (data_width << SHIFT_8BIT),
                                             MMC_CMD_6_SWITCH,
                                             MSS_MMC_RESPONSE_R1B);
-            /*
-            * Writing to the EXT CSD register takes significant time, so function must
-            * not return until the 'READY FOR DATA' bit is set in the Card Status
-            * Register.
-            */
-            while (DEVICE_BUSY == response_status)
-            {
-                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                            MMC_CMD_13_SEND_STATUS,
-                                            MSS_MMC_RESPONSE_R1);
+                    if (TRANSFER_IF_FAIL != response_status)
+                    {
+                        response_status = check_device_status(response_status);
+                    }
+                }
             }
 
         }
@@ -4704,16 +5124,9 @@ static mss_mmc_status_t device_set_hs_timing
             response_status = cif_send_cmd(MMC_DW_CSD | (data_width << SHIFT_8BIT),
                                         MMC_CMD_6_SWITCH,
                                         MSS_MMC_RESPONSE_R1B);
-            /*
-             * Writing to the EXT CSD register takes significant time, so function must
-             * not return until the 'READY FOR DATA' bit is set in the Card Status
-             * Register.
-             */
-            while (DEVICE_BUSY == response_status)
+            if (TRANSFER_IF_FAIL != response_status)
             {
-                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                        MMC_CMD_13_SEND_STATUS,
-                                        MSS_MMC_RESPONSE_R1);
+                response_status = check_device_status(response_status);
             }
         }
         else
@@ -4722,29 +5135,21 @@ static mss_mmc_status_t device_set_hs_timing
             response_status = cif_send_cmd(MMC_DW_CSD | (data_width << SHIFT_8BIT),
                                         MMC_CMD_6_SWITCH,
                                         MSS_MMC_RESPONSE_R1B);
-            /*
-             * Writing to the EXT CSD register takes significant time, so function must
-             * not return until the 'READY FOR DATA' bit is set in the Card Status
-             * Register.
-             */
-            while (DEVICE_BUSY == response_status)
+            if (TRANSFER_IF_FAIL != response_status)
             {
-                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                        MMC_CMD_13_SEND_STATUS,
-                                        MSS_MMC_RESPONSE_R1);
-            }
-            response_status = cif_send_cmd(hs_timing,
+                response_status = check_device_status(response_status);
+
+                if (TRANSFER_IF_SUCCESS == response_status)
+                {
+                    response_status = cif_send_cmd(hs_timing,
                                            MMC_CMD_6_SWITCH,
                                            MSS_MMC_RESPONSE_R1B);
 
-            if ((TRANSFER_IF_SUCCESS == response_status)||(DEVICE_BUSY == response_status))
-            {
-                do
-                {
-                    response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                                    MMC_CMD_13_SEND_STATUS,
-                                                    MSS_MMC_RESPONSE_R1);
-                } while (DEVICE_BUSY == response_status);
+                    if (TRANSFER_IF_FAIL != response_status)
+                    {
+                        response_status = check_device_status(response_status);
+                    }
+                }
             }
         }
 
@@ -4757,9 +5162,19 @@ static mss_mmc_status_t device_set_hs_timing
             MMC->HRS06 = hrs6;
             /* Up the Host MMC clock frequency */
             set_host_sdclk(cfg->clk_rate);
-            /* Set Phy delay for select MMC mode */
-            phy_training_mmc(phy_delay_type, cfg->clk_rate);
-            ret_status = MSS_MMC_TRANSFER_SUCCESS;
+            if(DEVICE_SUPPORT_HS200 == hs_mode)
+            {
+                ret_status = MSS_MMC_TRANSFER_SUCCESS;
+            }
+            else
+            {
+                /* Set Phy delay for select MMC mode */
+                ret_status = phy_training_mmc(phy_delay_type, cfg->clk_rate);
+                if (ret_status != MSS_MMC_TRANSFER_SUCCESS)
+                {
+                    response_status = TRANSFER_IF_FAIL;
+                }
+            }
         }
     }
     if (TRANSFER_IF_SUCCESS != response_status)
@@ -4776,11 +5191,11 @@ static uint8_t set_host_sdclk(uint32_t frequencyKHz)
     uint32_t i;
     uint32_t setFreqKhz;
 
-    /* disable sd clock */
+    /* Disable sd clock */
     temp = MMC->SRS11;
     temp &= ~(uint32_t)SRS11_SD_CLOCK_ENABLE;
     MMC->SRS11 = temp;
-    /* read base clock frequency for SD clock in kilo herz */
+    /* Read base clock frequency for SD clock in kilo herz */
     temp = MMC->SRS16;
     baseclkkHz = ((temp & 0x0000FF00u) >> 8U) * 1000u;
 
@@ -4788,9 +5203,9 @@ static uint8_t set_host_sdclk(uint32_t frequencyKHz)
     {
         return 1u;
     }
-    /* read current value of SRS11 register */
+    /* Read current value of SRS11 register */
     temp = MMC->SRS11;
-    /* clear old frequency base settings */
+    /* Clear old frequency base settings */
     temp &= ~(uint32_t)SRS11_SEL_FREQ_BASE_MASK;
 
     /* 10-bit Divider Clock Mode */
@@ -4813,7 +5228,7 @@ static uint8_t set_host_sdclk(uint32_t frequencyKHz)
 
     while ((MMC->SRS11 & SRS11_INT_CLOCK_STABLE) == 0u);
 
-    /* enable sd clock */
+    /* Enable sd clock */
     temp = MMC->SRS11;
     temp |= (uint32_t)SRS11_SD_CLOCK_ENABLE;
     MMC->SRS11 = temp;
@@ -4857,11 +5272,11 @@ static mss_mmc_status_t set_data_timeout(uint32_t timeout_val_us)
             sdmclk = sdmclk_Mhz;
             timeoutVal = timeout_val_us;
         }
-        /* calculate data Timeout Counter Value */
+        /* Calculate data Timeout Counter Value */
         timeout_interval = 8192u/*2 ^ 13*/;
         for (j = 0u; j < 15u; j++)
         {
-            /* if  (timeoutVal < ((1 / sdmclk) * timeout_interval)) */
+            /* If  (timeoutVal < ((1 / sdmclk) * timeout_interval)) */
             if (timeoutVal < (timeout_interval / sdmclk))
             {
                 break;
@@ -4880,19 +5295,19 @@ static mss_mmc_status_t set_data_timeout(uint32_t timeout_val_us)
 /******************************************************************************/
 static mss_mmc_status_t  set_sdhost_power(uint32_t voltage)
 {
-    uint32_t temp, srs16,delay;
+    uint32_t temp, srs16;
     mss_mmc_status_t status = MSS_MMC_NO_ERROR;
 
-        /* disable SD bus power */
+        /* Disable SD bus power */
     temp = MMC->SRS10;
     temp &= ~SRS10_SD_BUS_POWER;
     MMC->SRS10 = temp;
 
-    /*clear current voltage settings*/
+    /* Clear current voltage settings*/
     temp &= ~SRS10_BUS_VOLTAGE_MASK;
     srs16 = MMC->SRS16;
 
-    /* if Voltage == 0
+    /* If Voltage == 0
      * disable bus power
      * power is disabled so do nothing, return no error
      */
@@ -4906,7 +5321,7 @@ static mss_mmc_status_t  set_sdhost_power(uint32_t voltage)
                    status = MSS_MMC_INVALID_PARAMETER;
                     break;
                 }
-                /* set new voltage value */
+                /* Set new voltage value */
                 temp |= (SRS10_SET_3_3V_BUS_VOLTAGE | SRS10_SD_BUS_POWER);
                 break;
             case SRS10_SET_3_0V_BUS_VOLTAGE:
@@ -4915,7 +5330,7 @@ static mss_mmc_status_t  set_sdhost_power(uint32_t voltage)
                     status = MSS_MMC_INVALID_PARAMETER;
                     break;
                 }
-                /* set new voltage value */
+                /* Set new voltage value */
                 temp |= (SRS10_SET_3_0V_BUS_VOLTAGE | SRS10_SD_BUS_POWER);
                 break;
             case SRS10_SET_1_8V_BUS_VOLTAGE:
@@ -4924,7 +5339,7 @@ static mss_mmc_status_t  set_sdhost_power(uint32_t voltage)
                     status = MSS_MMC_INVALID_PARAMETER;
                     break;
                 }
-                /* set new voltage value */
+                /* Set new voltage value */
                 temp |= (SRS10_SET_1_8V_BUS_VOLTAGE | SRS10_SD_BUS_POWER);
                 break;
             default:
@@ -4943,7 +5358,9 @@ static mss_mmc_status_t  set_sdhost_power(uint32_t voltage)
 /******************************************************************************/
 static void mmc_delay(uint32_t value)
 {
-    while (value--);
+    uint32_t tempValue = value;
+
+    while (tempValue-- != 0u) asm volatile("");
 }
 /******************************************************************************/
 static mss_mmc_status_t cmd6_single_block_read
@@ -4974,39 +5391,36 @@ static mss_mmc_status_t cmd6_single_block_read
         srs9 = MMC->SRS09;
     }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
 
-    word_cnt = (size/WORD_SIZE);
-            /* Command argument */
+    word_cnt = (uint16_t)(size/WORD_SIZE);
+    /* Command argument */
     MMC->SRS02 = src_addr;
-   /* execute command */
+    /* Execute command */
     MMC->SRS03 = (uint32_t)((SD_CMD_6 << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
 
-    mmc_delay(DELAY_COUNT);
-
     idx_cnt = MMC_CLEAR;
-    blk_read = MMC->SRS12;
-    /* Read in the contents of the Buffer */
-    while (((blk_read & SRS12_BUFFER_READ_READY) != MMC_CLEAR) && (word_cnt > (BUFF_EMPTY)))
-    {
-        dst_addr[idx_cnt] = MMC->SRS08;
-        ++idx_cnt;
-        --word_cnt;
-        blk_read = MMC->SRS12;
-    }
-    /* Check a block read is complete */
+
     do
     {
         blk_read = MMC->SRS12;
-    } while (MMC_CLEAR == (blk_read & SRS12_TRANSFER_COMPLETE));
-
+    } while (MMC_CLEAR == (blk_read & (SRS12_BUFFER_READ_READY | SRS12_ERROR_INTERRUPT)));
+    /* Read in the contents of the Buffer */
+    if ((blk_read & SRS12_BUFFER_READ_READY) != MMC_CLEAR)
+    {
+        while (word_cnt > (BUFF_EMPTY))
+        {
+            dst_addr[idx_cnt] = MMC->SRS08;
+            ++idx_cnt;
+            --word_cnt;
+        }
+    }
     isr_errors = MMC->SRS12;
     /* Abort if any errors*/
-    if ((SRS12_ERROR_STATUS_MASK & isr_errors) == 0u)
+    if ((SRS12_ERROR_STATUS_MASK & isr_errors) == MMC_CLEAR)
     {
         ret_status = MSS_MMC_TRANSFER_SUCCESS;
     }
     else
     {
-
         ret_status = MSS_MMC_ERR_INTERRUPT;
     }
     /* Clear all status interrupts except:
@@ -5024,7 +5438,7 @@ static mss_mmc_status_t execute_tunning_mmc(uint8_t data_width)
 
     uint32_t ReadPattern[128u];
     uint8_t i, j, PatternOk[40u];
-
+    uint8_t Pos;
     uint8_t BufferSize =  (data_width == MSS_MMC_DATA_WIDTH_4BIT)? 64u:128u;
     uint32_t const *WritePattern = calc_write_pattern(data_width);
 
@@ -5039,7 +5453,7 @@ static mss_mmc_status_t execute_tunning_mmc(uint8_t data_width)
         ret_status = read_tune_block(ReadPattern, BufferSize, MMC_CMD_21_SEND_TUNE_BLK);
         if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
         {
-            /* compare data with pattern */
+            /* Compare data with pattern */
             PatternOk[j] = 1u;
             for (i = 0u; i < (BufferSize / 4u); i++)
             {
@@ -5048,7 +5462,7 @@ static mss_mmc_status_t execute_tunning_mmc(uint8_t data_width)
                     PatternOk[j] = 0u;
                     /* Reset Data and cmd line */
                     MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-                    /* read pattern is not correct - exit loop */
+                    /* Read pattern is not correct - exit loop */
                     break;
                 }
             }
@@ -5060,9 +5474,10 @@ static mss_mmc_status_t execute_tunning_mmc(uint8_t data_width)
             PatternOk[j] = 0u;
         }
     }
-    uint8_t Pos = calc_longest_valid_delay_chain_val(PatternOk);
+    Pos = calc_longest_valid_delay_chain_val(PatternOk);
     /* Delay value set to Pos */
     host_mmc_tune(Pos);
+    mmc_delay(0xFFFu);
     ret_status = read_tune_block(ReadPattern, BufferSize, MMC_CMD_21_SEND_TUNE_BLK);
     return ret_status;
 }
@@ -5095,23 +5510,29 @@ static mss_mmc_status_t read_tune_block
     {
         srs9 = MMC->SRS09;
     }while ((srs9 & (SRS9_CMD_INHIBIT_CMD | SRS9_CMD_INHIBIT_DAT)) != MMC_CLEAR);
-    
-    word_cnt = size/WORD_SIZE;
+
+    word_cnt = (uint16_t)size/WORD_SIZE;
     /* Command argument */
     MMC->SRS02 = MMC_CLEAR;
-    /* execute command */
+    /* Execute command */
     MMC->SRS03 = (uint32_t)((cmd << MMC_SRS03_COMMAND_SHIFT) | srs03_data);
-    mmc_delay(DELAY_COUNT);
-    
+
     idx_cnt = MMC_CLEAR;
-    blk_read = MMC->SRS12;
-    /* Read in the contents of the Buffer */
-    while (((blk_read & SRS12_BUFFER_READ_READY) != MMC_CLEAR) && (word_cnt > (BUFF_EMPTY)))
+
+    do
     {
-        read_data[idx_cnt] = MMC->SRS08;
-        ++idx_cnt;
-        --word_cnt;
         blk_read = MMC->SRS12;
+    } while (MMC_CLEAR == (blk_read & (SRS12_BUFFER_READ_READY | SRS12_ERROR_INTERRUPT)));
+
+    /* Read in the contents of the Buffer */
+    if ((blk_read & SRS12_BUFFER_READ_READY) != MMC_CLEAR)
+    {
+        while (word_cnt > (BUFF_EMPTY))
+        {
+            read_data[idx_cnt] = MMC->SRS08;
+            ++idx_cnt;
+            --word_cnt;
+        }
     }
     isr_errors = MMC->SRS12;
     /* Abort if any errors*/
@@ -5121,11 +5542,10 @@ static mss_mmc_status_t read_tune_block
     }
     else
     {
-    
         ret_status = MSS_MMC_ERR_INTERRUPT;
     }
     /* Clear all status interrupts */
-      MMC->SRS12 = MMC_STATUS_CLEAR;
+    MMC->SRS12 = MMC_STATUS_CLEAR;
     return (ret_status);
 }
 /******************************************************************************/
@@ -5215,7 +5635,7 @@ static void host_mmc_tune(uint8_t value)
 /******************************************************************************/
 static uint8_t calc_longest_valid_delay_chain_val(const uint8_t* pattern_ok)
 {
-    /* looking for longest valid delay chain value (the best tuning value) */
+    /* Looking for longest valid delay chain value (the best tuning value) */
     uint8_t pos = 0u;
     uint8_t length = 0u;
     uint8_t curr_length = 0u;
@@ -5231,7 +5651,7 @@ static uint8_t calc_longest_valid_delay_chain_val(const uint8_t* pattern_ok)
                 length++;
             }
         }
-        else 
+        else
         {
             curr_length = 0u;
         }
@@ -5241,6 +5661,31 @@ static uint8_t calc_longest_valid_delay_chain_val(const uint8_t* pattern_ok)
     return (pos);
 }
 /******************************************************************************/
+static cif_response_t check_device_status(cif_response_t rsp_status)
+{
+    uint32_t srs9;
+    cif_response_t device_rsp_status = rsp_status;
+    
+    do
+    {
+        srs9 = MMC->SRS09;
+    }while ((srs9 & SRS9_DAT0_SIGNAL_LEVEL) == MMC_CLEAR);
+
+    /*
+    * Writing to the EXT CSD register takes significant time,
+    * so function must not return until the 'READY FOR DATA'
+    * bit is set in the Card Status Register.
+    */
+    while (DEVICE_BUSY == device_rsp_status)
+    {
+        device_rsp_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
+                                    MMC_CMD_13_SEND_STATUS,
+                                    MSS_MMC_RESPONSE_R1);
+    }
+    return device_rsp_status;
+}
+/******************************************************************************/
+
 #ifdef __cplusplus
 }
 #endif

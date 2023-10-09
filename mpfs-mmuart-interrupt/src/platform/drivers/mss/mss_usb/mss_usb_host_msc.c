@@ -11,10 +11,6 @@
  *  This file implements Host side MSC class specific initialization
  *  and request handling.
  *
- * V2.4 NAKTIMEOUT error handling.
- * V2.4 Naming convention change, other cosmetic changes.
- * V2.3 Host performance improvement changes
- *
  */
 
 #include "mss_usb_host_msc.h"
@@ -23,8 +19,8 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "hal/hal_assert.h"
-#include "mpfs_hal/mss_plic.h"
+#include "mpfs_hal/mss_hal.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -355,7 +351,7 @@ MSS_USBH_MSC_task
                 }
                 else
                 {
-                    HAL_ASSERT(0); /* Invalid CEP event */
+                    ASSERT(0); /* Invalid CEP event */
                 }
 
                 g_usbh_msc_cep_event = 0u;
@@ -394,7 +390,7 @@ MSS_USBH_MSC_task
                 }
                 else
                 {
-                    HAL_ASSERT(0);/* Invalid CEP event */
+                    ASSERT(0);/* Invalid CEP event */
                 }
                 g_usbh_msc_cep_event = 0u;
             }
@@ -477,7 +473,7 @@ MSS_USBH_MSC_task
                 }
                 else if (g_bot_csw[12] == 0x02u)
                 {
-                    HAL_ASSERT(0);            /* phase error, reset recovery required */
+                    ASSERT(0);            /* phase error, reset recovery required */
                 }
             }
 
@@ -739,7 +735,7 @@ MSS_USBH_MSC_task
         
         default:
         {
-            HAL_ASSERT(0);  /*Reset recovery should be tried.*/
+            ASSERT(0);  /*Reset recovery should be tried.*/
         }
         break;
     }
@@ -778,7 +774,7 @@ usbh_msc_construct_class_req
     }
     else
     {
-        HAL_ASSERT(0);/* invalid MSC class class request */
+        ASSERT(0);/* invalid MSC class class request */
     }
 
     buf[7] = 0x00u;
@@ -815,7 +811,7 @@ MSS_USBH_MSC_construct_cbw_cb6byte
     }
     else
     {
-        HAL_ASSERT(0);/* invalid cb6byte command */
+        ASSERT(0);/* invalid cb6byte command */
     }
 
     buf->bCBWCBLength = 0x06u;
@@ -876,7 +872,7 @@ MSS_USBH_MSC_construct_cbw_cb10byte
     }
     else
     {
-        HAL_ASSERT(0);/* invalid cb10byte command */
+        ASSERT(0);/* invalid cb10byte command */
     }
 }
 
@@ -1186,7 +1182,7 @@ usbh_msc_tx_complete_cb
                 }
                 else
                 {
-                    HAL_ASSERT(0);  /* at this point all data must be transfered */
+                    ASSERT(0);  /* at this point all data must be transfered */
                 }
                 break;
 
@@ -1194,7 +1190,7 @@ usbh_msc_tx_complete_cb
                 break;
                 
                 default:
-                    HAL_ASSERT(0);  /* g_msc_bot_state must not be in any other state */
+                    ASSERT(0);  /* g_msc_bot_state must not be in any other state */
                 break;
             }
         }
@@ -1205,7 +1201,7 @@ usbh_msc_tx_complete_cb
         }
         else
         {
-            HAL_ASSERT(0);/* Handling any other error. Not yet supported */
+            ASSERT(0);/* Handling any other error. Not yet supported */
         }
 
     }
@@ -1248,7 +1244,7 @@ usbh_msc_rx_cb
                 }
                 else
                 {
-                    HAL_ASSERT(0);/* at this point all data must be transferred */
+                    ASSERT(0);/* at this point all data must be transferred */
                 }
             break;
 
@@ -1259,7 +1255,7 @@ usbh_msc_rx_cb
             break;
 
             default:
-                HAL_ASSERT(0);/*g_msc_bot_state must not be in any other state */
+                ASSERT(0);/*g_msc_bot_state must not be in any other state */
             break;
             }
         }
@@ -1270,7 +1266,7 @@ usbh_msc_rx_cb
         }
         else
         {
-            HAL_ASSERT(0);/* Handling any other error. Not yet supported */
+            ASSERT(0);/* Handling any other error. Not yet supported */
         }
     }
 

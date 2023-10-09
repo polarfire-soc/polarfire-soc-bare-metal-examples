@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ /*******************************************************************************
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  * 
@@ -32,7 +32,6 @@ extern "C" {
 #define SI_MASK                     (uint8_t)(0x08)
 #define STO_MASK                    (uint8_t)(0x10)
 #define STA_MASK                    (uint8_t)(0x20)
-
 
 #define ENS1_MASK                   (uint8_t)(0x40)
 #define CR2_MASK                    (uint8_t)(0x80)

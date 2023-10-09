@@ -13,13 +13,9 @@
  * the MSS USB core. These interface functions are independent of the USB mode.
  *
  */
-
+#include "mpfs_hal/mss_hal.h"
 #include "mss_usb_common_cif.h"
-
-#include "hal/hal_assert.h"
 #include "mss_usb_common_reg_io.h"
-#include "mss_usb_core_regs.h"
-#include "mpfs_hal/mss_plic.h"
 
 #ifdef MSS_USB_HOST_ENABLED
 #include "mss_usb_host_cif.h"
@@ -278,7 +274,7 @@ MSS_USB_CIF_handle_cep_irq
                 }
                 else
                 {
-                    HAL_ASSERT(0);
+                    ASSERT(0);
                 }
             }
         }
@@ -489,7 +485,7 @@ MSS_USB_CIF_rx_ep_read_prepare
     if (DMA_ENABLE == dma_enable)
     {
         /* Make sure that address is Modulo-4.Bits D0-D1 are read only.*/
-        HAL_ASSERT(!(((uint32_t)buf_addr) & 0x00000002U));
+        ASSERT(!(((uint32_t)buf_addr) & 0x00000002U));
 
         MSS_USB_CIF_dma_write_addr(dma_channel, (uint32_t)buf_addr);
 
@@ -542,7 +538,7 @@ MSS_USB_CIF_ep_write_pkt
         if (DMA_ENABLE == dma_enable)
         {
             /* Make sure that address is Modulo-4.Bits D0-D1 are read only.*/
-            HAL_ASSERT(!(((uint32_t)buf_addr) & 0x00000002u));
+            ASSERT(!(((uint32_t)buf_addr) & 0x00000002u));
 
             MSS_USB_CIF_dma_write_addr(dma_channel,(uint32_t)(buf_addr));
 
@@ -651,7 +647,7 @@ MSS_USB_CIF_tx_ep_configure
     }
     else
     {
-        HAL_ASSERT(0);
+        ASSERT(0);
     }
 
     MSS_USB_CIF_tx_ep_set_max_pkt(core_ep->num,
@@ -727,7 +723,7 @@ MSS_USB_CIF_rx_ep_configure
     }
     else
     {
-        HAL_ASSERT(0);
+        ASSERT(0);
     }
 
     MSS_USB_CIF_rx_ep_set_max_pkt(core_ep->num,

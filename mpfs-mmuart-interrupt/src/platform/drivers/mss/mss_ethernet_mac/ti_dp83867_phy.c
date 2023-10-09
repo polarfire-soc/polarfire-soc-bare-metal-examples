@@ -1,6 +1,5 @@
-
 /*******************************************************************************
- * Copyright 2019 Microchip Corporation.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -27,19 +26,14 @@
  * LED_1   - Strap option 2, RGMII Clock Skew TX[2] = 1, ANEG_SEL = 0
  * LED_0   - Strap option 2, SGMII_Enable = 1, Mirror Enable = 0
  *
- * SVN $Revision$
- * SVN $Date$
  */
-#include "mpfs_hal/mss_plic.h"
-#include "config/hardware/hw_platform.h"
-
-#include "drivers/mss_mac/mss_ethernet_registers.h"
-#include "drivers/mss_mac/mss_ethernet_mac_regs.h"
-#include "drivers/mss_mac/mss_ethernet_mac_user_config.h"
-#include "drivers/mss_mac/mss_ethernet_mac.h"
-#include "drivers/mss_mac/phy.h"
+#include "mpfs_hal/mss_hal.h"
 #include "hal/hal.h"
-#include "hal/hal_assert.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_regs.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/phy.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,7 +50,7 @@ extern "C" {
 /**************************************************************************//**
  * 
  */
-void MSS_MAC_DP83867_phy_init(/* mss_mac_instance_t*/ const void *v_this_mac, uint8_t phy_addr)
+void MSS_MAC_DP83867_phy_init(/* mss_mac_instance_t */ const void *v_this_mac, uint8_t phy_addr)
 {
     const mss_mac_instance_t *this_mac = (const mss_mac_instance_t *)v_this_mac;
     uint16_t phy_reg;
@@ -97,60 +91,101 @@ void MSS_MAC_DP83867_phy_init(/* mss_mac_instance_t*/ const void *v_this_mac, ui
 /**************************************************************************//**
  * 
  */
-void MSS_MAC_DP83867_phy_set_link_speed(/* mss_mac_instance_t*/ const void *v_this_mac, uint32_t speed_duplex_select)
+void MSS_MAC_DP83867_phy_set_link_speed(/* mss_mac_instance_t */ void *v_this_mac, uint32_t speed_duplex_select, mss_mac_speed_mode_t speed_mode)
 {
-    const mss_mac_instance_t *this_mac = (const mss_mac_instance_t *)v_this_mac;
+    mss_mac_instance_t *this_mac = (mss_mac_instance_t *)v_this_mac;
     uint16_t phy_reg;
     uint32_t inc;
     uint32_t speed_select;
     const uint16_t mii_advertise_bits[4] = {ADVERTISE_10FULL, ADVERTISE_10HALF,
                                             ADVERTISE_100FULL, ADVERTISE_100HALF};
     
-    /* Set auto-negotiation advertisement. */
-    
-    /* Set 10Mbps and 100Mbps advertisement. */
-    phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_ADVERTISE);
-    phy_reg &= (uint16_t)(~(ADVERTISE_10HALF | ADVERTISE_10FULL |
-                 ADVERTISE_100HALF | ADVERTISE_100FULL));
+    this_mac->speed_mode = speed_mode;
 
-    phy_reg |= 0x0C00U; /* Set Asymmetric pause and symmetric pause bits */
-
-    speed_select = speed_duplex_select;
-    for(inc = 0U; inc < 4U; ++inc)
+    if(MSS_MAC_SPEED_AN == speed_mode) /* Set auto-negotiation advertisement. */
     {
-        uint32_t advertise;
-        advertise = speed_select & 0x00000001U;
-        if(advertise != 0U)
+        /* Set auto-negotiation advertisement. */
+
+        /* Set 10Mbps and 100Mbps advertisement. */
+        phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_ADVERTISE);
+        phy_reg &= (uint16_t)(~(ADVERTISE_10HALF | ADVERTISE_10FULL |
+                     ADVERTISE_100HALF | ADVERTISE_100FULL));
+
+        phy_reg |= 0x0C00U; /* Set Asymmetric pause and symmetric pause bits */
+
+        speed_select = speed_duplex_select;
+        for(inc = 0U; inc < 4U; ++inc)
         {
-            phy_reg |= mii_advertise_bits[inc];
+            uint32_t advertise;
+            advertise = speed_select & 0x00000001U;
+            if(advertise != 0U)
+            {
+                phy_reg |= mii_advertise_bits[inc];
+            }
+            speed_select = speed_select >> 1;
         }
-        speed_select = speed_select >> 1;
-    }
-    
-    MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_ADVERTISE, phy_reg);
 
-    /* Set 1000Mbps advertisement. */
-    phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000);
-    phy_reg &= (uint16_t)(~(ADVERTISE_1000FULL | ADVERTISE_1000HALF));
+        MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_ADVERTISE, phy_reg);
     
-    if((speed_duplex_select & MSS_MAC_ANEG_1000M_FD) != 0U)
-    {
-        phy_reg |= ADVERTISE_1000FULL;
+        /* Set 1000Mbps advertisement. */
+        phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000);
+        phy_reg &= (uint16_t)(~(ADVERTISE_1000FULL | ADVERTISE_1000HALF));
+
+        if((speed_duplex_select & MSS_MAC_ANEG_1000M_FD) != 0U)
+        {
+            phy_reg |= ADVERTISE_1000FULL;
+        }
+
+        if((speed_duplex_select & MSS_MAC_ANEG_1000M_HD) != 0U)
+        {
+            phy_reg |= ADVERTISE_1000HALF;
+        }
+
+        MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, phy_reg);
     }
-    
-    if((speed_duplex_select & MSS_MAC_ANEG_1000M_HD) != 0U)
+    else
     {
-        phy_reg |= ADVERTISE_1000HALF;
+        uint16_t temp_reg = 0x0000U; /* Default with 10M, half duplex */
+
+        if((MSS_MAC_10_FDX == this_mac->speed_mode) || (MSS_MAC_100_FDX == this_mac->speed_mode) || (MSS_MAC_1000_FDX == this_mac->speed_mode))
+        {
+            temp_reg |= BMCR_FULLDPLX;
+        }
+
+        if((MSS_MAC_100_FDX == this_mac->speed_mode) || (MSS_MAC_100_HDX == this_mac->speed_mode))
+        {
+            temp_reg |= BMCR_SPEED100;
+        }
+
+        if((MSS_MAC_1000_FDX == this_mac->speed_mode) || (MSS_MAC_1000_HDX == this_mac->speed_mode))
+        {
+            temp_reg |=  BMCR_SPEED1000;
+            /* Set Master mode */
+            phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000);
+            phy_reg |= 0x1800U;
+            MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, phy_reg);
+        }
+
+        /* Apply static speed/duplex selection */
+        MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMCR, temp_reg);
+
+        /* Full duplex mode or half duplex, single port device */
+        if((MSS_MAC_10_FDX == this_mac->speed_mode) || (MSS_MAC_100_FDX == this_mac->speed_mode) || (MSS_MAC_1000_FDX == this_mac->speed_mode))
+        {
+            MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, (uint16_t)(ADVERTISE_1000FULL));
+        }
+        else
+        {
+            MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, (uint16_t)(ADVERTISE_1000HALF));
+        }
     }
-    
-    MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, phy_reg);
 }
 
 
 /**************************************************************************//**
  * 
  */
-void MSS_MAC_DP83867_phy_autonegotiate(/* mss_mac_instance_t*/ const void *v_this_mac)
+void MSS_MAC_DP83867_phy_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac)
 {
     const mss_mac_instance_t *this_mac = (const mss_mac_instance_t *)v_this_mac;
     volatile uint16_t phy_reg;
@@ -188,6 +223,15 @@ void MSS_MAC_DP83867_phy_autonegotiate(/* mss_mac_instance_t*/ const void *v_thi
             --sgmii_aneg_timeout;
         } while((0U == autoneg_complete) && (0U != sgmii_aneg_timeout));
     }
+}
+
+
+/**************************************************************************//**
+ *
+ */
+void MSS_MAC_DP83867_mac_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac)
+{
+    (void)v_this_mac;
 }
 
 

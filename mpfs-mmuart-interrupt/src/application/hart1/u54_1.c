@@ -1,13 +1,12 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Application code running on U54_1
+ * @file u54_1.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Application code running on u54_1
  *
- * Example project demonstrating the use of polled and local interrupt driven
- * transmission and reception over MMUART. Please refer README.md in the root
- * folder of this example project
  */
 
 #include <stdio.h>

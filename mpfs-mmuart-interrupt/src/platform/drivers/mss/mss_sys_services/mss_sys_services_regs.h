@@ -1,5 +1,5 @@
  /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  * 
@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 /***************SCBCTRL  SERVICES_CR register*************************/
+
 #define SCBCTRL_SERVICESCR_REQ                      (0u)
 #define SCBCTRL_SERVICESCR_REQ_MASK                 (1u << SCBCTRL_SERVICESCR_REQ)
 
@@ -31,6 +32,7 @@ extern "C" {
 
 
 /***************SCBCTRL  SERVICES_SR registers*************************/
+
 #define SCBCTRL_SERVICESSR_REQ                      (0u)
 #define SCBCTRL_SERVICESSR_REQ_MASK                 (1u << SCBCTRL_SERVICESSR_REQ)
 
@@ -46,7 +48,7 @@ extern "C" {
 #define SCBCTRL_SERVICESSR_STATUS                   (16u)
 #define SCBCTRL_SERVICESSR_STATUS_MASK              (0xFFFFu << SCBCTRL_SERVICESSR_STATUS)
 
-#ifdef __cplusplus                       
+#ifdef __cplusplus
 }
 #endif
 

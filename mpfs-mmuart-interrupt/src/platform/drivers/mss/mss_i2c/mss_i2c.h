@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -21,7 +21,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  * 
- * PolarFire SoC Microprocessor Subsystem I2C bare metal software driver
+ * PolarFire SoC Microprocessor Subsystem(MSS) I2C bare metal software driver
  * public API.
  *
  */
@@ -50,8 +50,8 @@
   subsystem or the FPGA fabric. The MSS I2C serial signals are routed through
   IOMUXs to the PolarFire SoC device external pins. The MSS I2C serial signals
   may also be routed through IOMUXs to the PolarFire SoC FPGA fabric. For more
-  information on IOMUX, refer to the IOMUX section of the PolarFire SoC
-  Microprocessor Subsystem (MSS) User's Guide.
+  information on IOMUX, refer to the I/O Configuration section of the PolarFire 
+  SoC Microprocessor Subsystem (MSS) User's Guide.
   
   The IOMUXs are configured using the PolarFire SoC MSS configurator tool. You
   must ensure that the MSS I2C peripherals are enabled and configured in the
@@ -359,9 +359,6 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
-#include "mpfs_hal/mss_plic.h"
-#include "mss_i2c_regs.h"
-#include "hal/hal.h"
 
 /*-------------------------------------------------------------------------*//**
   The mss_i2c_clock_divider_t type is used to specify the divider to be applied
@@ -807,7 +804,8 @@ void MSS_I2C_init
         
         MSS_I2C_init( &g_mss_i2c0_lo, I2C_DUMMY_ADDR, MSS_I2C_PCLK_DIV_256 );
         
-        MSS_I2C_write( &g_mss_i2c0_lo, target_slave_addr, tx_buffer, write_length,
+        MSS_I2C_write( &g_mss_i2c0_lo, target_slave_addr, tx_buffer, 
+                       write_length,
                        MSS_I2C_RELEASE_BUS );
 
         status = MSS_I2C_wait_complete( &g_mss_i2c0_lo, MSS_I2C_NO_TIMEOUT );
@@ -923,17 +921,17 @@ void MSS_I2C_read
     I2C 0 and MSS I2C 1 when they are connected on the AXI switch slave 5 (main
     APB bus) and g_mss_i2c0_hi and g_mss_i2c1_hi, associated with MSS I2C 0 to
     MSS I2C 1 when they are connected on the AXI switch slave 6 (AMP APB bus).
-    This parameter must point to one of these four global data structure defined
-    within I2C driver.
+    This parameter must point to one of these four global data structure 
+    defined within I2C driver.
   
   @param serial_addr:
     This parameter specifies the serial address of the target I2C device.
   
   @param addr_offset:
     This parameter is a pointer to the buffer containing the data that will be
-    sent to the slave during the write phase of the write-read transaction. This
-    data is typically used to specify an address offset specifying to the I2C
-    slave device what data it must return during the read phase of the
+    sent to the slave during the write phase of the write-read transaction. 
+    This data is typically used to specify an address offset specifying to the 
+    I2C slave device what data it must return during the read phase of the
     write-read transaction.
   
   @param offset_size:
@@ -2087,18 +2085,21 @@ void * MSS_I2C_get_user_data
 
   Example
   @code
-    void i2c0_completion_handler(mss_i2c_instance_t * instance, mss_i2c_status_t status)
+    void i2c0_completion_handler(mss_i2c_instance_t * instance, 
+                                 mss_i2c_status_t status)
     {
         if (status == MSS_I2C_SUCCESS)
         {
-            MSS_UART_polled_tx_string(gp_my_uart, (const uint8_t*)"\rI2C0 Transfer completed.\n\r");
+            MSS_UART_polled_tx_string(gp_my_uart, (const uint8_t*)"\rI2C0 \
+                                      Transfer completed.\n\r");
         }
     }
 
     void main()
     {
         MSS_I2C_init(I2C_MASTER, MASTER_SER_ADDR, MSS_I2C_BCLK_DIV_8);
-        MSS_I2C_register_transfer_completion_handler(I2C_MASTER, i2c0_completion_handler);
+        MSS_I2C_register_transfer_completion_handler(I2C_MASTER, 
+                                                     i2c0_completion_handler);
     }
   @endcode
  */

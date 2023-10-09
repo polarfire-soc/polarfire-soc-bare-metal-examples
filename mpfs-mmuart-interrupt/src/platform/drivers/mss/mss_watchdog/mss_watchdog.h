@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -21,7 +21,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  *
- * 
+ *
  * PolarFire SoC (MPFS) Microprocessor Subsystem Watchdog bare metal software
  * driver public API.
  *
@@ -40,13 +40,13 @@
   adapted for use as part of an operating system, but the implementation of the
   adaptation layer between the driver and the operating system's driver model is
   outside the scope of the driver.
-  
+
   The MSS watchdog driver provides support for the following features:
     - Initialization of the MSS watchdog
     - Reading the current value and status of the watchdog timer
     - Refreshing the watchdog timer value
     - Enabling, disabling and clearing timeout and MVRP interrupts.
-    
+
   ==============================================================================
   Hardware Flow Dependencies
   ==============================================================================
@@ -74,7 +74,7 @@
   are defined as constants in the MPFS HAL. You must ensure that the latest MPFS
   HAL is included in the project settings of the SoftConsole tool chain and that
   it is generated into your project.
-  
+
   ==============================================================================
   Theory of Operation
   ==============================================================================
@@ -83,7 +83,7 @@
     - Reading the current value and status of the watchdog timer
     - Refreshing the watchdog timer value
     - Support for enabling, disabling and clearing time-out and MVRP interrupts.
-    
+
   --------------------------------
   Initialization and Configuration
   --------------------------------
@@ -135,6 +135,7 @@
   --------------------------------------------
   The PolarFire SoC MSS Watchdog generates two interrupts, The MVRP interrupt and
   the timeout interrupt.
+
   The MVRP interrupt is generated when the watchdog down-counter crosses the
   Maximum Value up to which Refresh is Permitted (MVRP). Following functions to
   control MVRP interrupt:
@@ -151,7 +152,7 @@
     - MSS_WD_enable_timeout_irq
     - MSS_WD_disable_timeout_irq
     - MSS_WD_clear_timeout_irq
-    
+
  *//*=========================================================================*/
 
 #ifndef MSS_WATCHDOG_H_
@@ -159,15 +160,21 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 #include <stdint.h>
 
-/*
-  The following constants can be used to configure the MSS Watchdog where a 
-  zero or non-zero value such as enable or disable is to be provided as input
-  parameter as shown below:
+/*-------------------------------------------------------------------------*//**
+  Watchdog Generic constants
+  ============================
+  ##MSS_WDOG_ENABLE & MSS_WDOG_DISABLE
+
+    The following constants can be used to configure the MSS Watchdog where a
+    zero or non-zero value such as enable or disable is to be provided as input
+    parameter as shown below:
+
       wd0lo_config.forbidden_en = MSS_WDOG_DISABLE;
+
       MSS_WD_configure(MSS_WDOG0_LO, &wd0lo_config);
 */
 #define MSS_WDOG_ENABLE                     1u
@@ -215,7 +222,9 @@ typedef enum mss_watchdog_num{
 Time calculation example:
 
    time_val = 0xFFFFF0u
+
    mvrp_val = 0x989680u
+
    timeout_val = 0x3e8u
 
    A presaclar = 256 is used on the MSS AXI clock.
@@ -271,11 +280,11 @@ typedef struct mss_watchdog_config{
 #define MSS_WDOG_TRIGGER_MAX                4095u
 #define MSS_WDOG_TIMER_MAX                  16777200u            /*0xFFFFFFu*/
 
-/*
+/***************************************************************************//**
   The WATCHDOG_TypeDef is the hardware register structure for the PolarFire SoC
   MSS Watchdog.
  */
-typedef struct
+typedef struct WATCHDOG_TypeDef
 {
     volatile   uint32_t  REFRESH;
     volatile   uint32_t  CONTROL;
@@ -288,14 +297,18 @@ typedef struct
 
 extern WATCHDOG_TypeDef* wdog_hw_base[10];
 
-/***************************************************************************//**
+/*-------------------------------------------------------------------------*//**
+  ##MSS_WDOG_REFRESH_KEY
+
   The MSS_WDOG_REFRESH_KEY macro holds the magic value which will cause a reload
   of the watchdog's down counter when written to the watchdog's WDOGREFRESH
   register.
  */
 #define MSS_WDOG_REFRESH_KEY    (uint32_t)0xDEADC0DEU
 
-/***************************************************************************//**
+/*-------------------------------------------------------------------------*//**
+  ##MSS_WDOG_FORCE_RESET_KEY
+
   The MSS_WDOG_FORCE_RESET_KEY macro holds the magic value which will force a
   reset if the Watchdog is already timed out (gone past the timeout value).
   Writing Any other value or writing TRIGGER register at other times will trigger
@@ -303,7 +316,7 @@ extern WATCHDOG_TypeDef* wdog_hw_base[10];
  */
 #define MSS_WDOG_FORCE_RESET_KEY    (uint32_t)0xDEADU
 
-/***************************************************************************//**
+/*-------------------------------------------------------------------------*//**
   The MSS_WD_get_config() function returns the current configurations of the
   PolarFire SoC MSS Watchdog. The MSS Watchdog is pre-initialized by the flash
   bits at the design time. When used for the first time before calling the
@@ -334,7 +347,7 @@ extern WATCHDOG_TypeDef* wdog_hw_base[10];
     This function does not return any value.
 
 
-  Example:
+  @example
   @code
   #include "mss_watchdog.h"
   mss_watchdog_config_t wd0lo_config;
@@ -353,6 +366,7 @@ extern WATCHDOG_TypeDef* wdog_hw_base[10];
           main_task();
       }
   }
+  @endcode
 */
 void MSS_WD_get_config
 (
@@ -392,7 +406,7 @@ void MSS_WD_get_config
     This function returns a zero value when executed successfully. A non-zero
     value is returned when the configuration values are out of bound.
 
-  Example:
+  @example
   @code
   #include "mss_watchdog.h"
   mss_watchdog_config_t wd0lo_config;
@@ -411,6 +425,7 @@ void MSS_WD_get_config
           main_task();
       }
   }
+  @endcode
 */
 uint8_t MSS_WD_configure
 (
@@ -423,7 +438,7 @@ uint8_t MSS_WD_configure
   timer with the load value configured through the MSS configurator in the
   hardware flow. This function must be called regularly to avoid a system reset
   or a watchdog interrupt.
- 
+
   Note that the MSS Watchdog is not enabled at reset, calling this function
   will start the watchdog, it cannot then be disabled and must be refreshed
   periodically.
@@ -450,7 +465,7 @@ static inline void MSS_WD_reload(mss_watchdog_num_t wd_num)
 /***************************************************************************//**
   The MSS_WD_current_value() function returns the current value of the
   watchdog's down-counter.
- 
+
  @param wd_num
     The wd_num parameter is the Watchdog module number in the PolarFire SoC MSS
     on which the operation needs to be performed. The Watchdog module number can
@@ -471,7 +486,7 @@ static inline uint32_t MSS_WD_current_value(mss_watchdog_num_t wd_num)
 /***************************************************************************//**
   The MSS_WD_forbidden_status() function returns the refresh status of the
   MSS Watchdog.
- 
+
   @param wd_num
     The wd_num parameter is the Watchdog module number in the PolarFire SoC MSS
     on which the operation needs to be performed. The Watchdog module number can
@@ -480,7 +495,7 @@ static inline uint32_t MSS_WD_current_value(mss_watchdog_num_t wd_num)
     switch Slave 5. The MSS_WDOG0_HI to MSS_WDOG4_HI correspond to the watchdog
     module number 0 to 5 when the appear on the AXI switch Slave 6.
 
-  @return 
+  @return
     This function returns the refresh status of the watchdog. A value of 1
     indicates that watchdog's down-counter is within the forbidden window and
     that a reload should not be done. A value of 0 indicates that the watchdog's
@@ -508,7 +523,7 @@ static inline uint32_t MSS_WD_forbidden_status(mss_watchdog_num_t wd_num)
 
   Note: This function must be called from appropriate HART context.
 
-   @param wd_num
+  @param wd_num
     The wd_num parameter is the Watchdog module number in the PolarFire SoC MSS
     on which the operation needs to be performed. The Watchdog module number can
     be chosen using mss_watchdog_num_t. The MSS_WDOG0_LO to MSS_WDOG4_LO
@@ -524,7 +539,7 @@ static inline uint32_t MSS_WD_forbidden_status(mss_watchdog_num_t wd_num)
   @return
     This function does not return a value.
 
-  Example:
+  @example
   @code
   #include "mss_watchdog.h"
   void e51( void )
@@ -560,7 +575,7 @@ MSS_WD_enable_mvrp_irq
 /***************************************************************************//**
   The MSS_WD_disable_mvrp_irq() function disables the generation of the
   MVRP interrupt.
- 
+
   Note: This function must be called from appropriate HART context.
 
  @param wd_num
@@ -590,6 +605,7 @@ MSS_WD_disable_mvrp_irq
   The MSS_WD_clear_timeout_irq() function clears the watchdog’s timeout
   interrupt which is connected to the RISC-V NMI interrupt. Calling
   MSS_WD_clear_timeout_irq() results in clearing the RISC-V NMI interrupt.
+
   Note: You must call the MSS_WD_clear_timeout_irq() function as part of your
         implementation of the wdog0_tout_u51_local_IRQHandler_9() timeout
         interrupt service routine (ISR) in order to prevent the same interrupt
@@ -635,6 +651,7 @@ static inline void MSS_WD_clear_timeout_irq(mss_watchdog_num_t wd_num)
   The MSS_WD_clear_mvrp_irq() function clears the mvrp interrupt. This
   function also clears the interrupt in the RISC-V interrupt controller
   through a call to NVIC_ClearPendingIRQ().
+
   Note: You must call the MSS_WD_clear_mvrp_irq() function as part of  your
         implementation of the wdog0_msvp_u51_local_IRQHandler_10() mvrp interrupt service
         routine (ISR) in order to prevent the same interrupt event re-triggering
@@ -686,25 +703,27 @@ static inline void MSS_WD_clear_mvrp_irq(mss_watchdog_num_t wd_num)
     A zero value indicates no watchdog timeout event occurred. A value of 1
     indicates that a timeout event occurred.
 
-  Example:
+  @example
   @code
   #include "mss_watchdog.h"
   void e51( void )
   {
       uint32_t wdg_reset;
+      mss_watchdog_num_t wd_num;
 
-      wdg_reset = MSS_WD_timeout_occured();
+      wdg_reset = MSS_WD_timeout_occured(wd_num);
       if (wdg_reset)
       {
           log_watchdog_event();
           MSS_WD_clear_timeout_event();
       }
-      
+
       for(;;)
       {
           main_task();
       }
   }
+  @endcode
 */
 static inline uint32_t MSS_WD_timeout_occured(mss_watchdog_num_t wd_num)
 {
@@ -732,7 +751,7 @@ static inline uint32_t MSS_WD_timeout_occured(mss_watchdog_num_t wd_num)
 static inline void MSS_WD_force_reset(mss_watchdog_num_t wd_num)
 {
     if (MSS_WDOG_TRIGGERED_MASK ==
-                       (uint32_t)(wdog_hw_base[wd_num]->STATUS |
+                       (uint32_t)(wdog_hw_base[wd_num]->STATUS &
                                                        MSS_WDOG_TRIGGERED_MASK))
     {
         wdog_hw_base[wd_num]->FORCE = 0xDEADu;
