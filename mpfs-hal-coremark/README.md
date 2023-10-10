@@ -449,3 +449,15 @@ The HSS can also be used. Please find the details here:
 [HSS payloads](https://mi-v-ecosystem.github.io/redirects/software-development_hss-payloads)
 The entry points for the yaml file need to match the entry point used in each elf. These are :
 {u54_1: '0x80000000', u54_2: '0x800A0000', u54_3: '0x80140000', u54_4: '0x801E0000'}
+
+## Renode Emulation
+This example can be run on the Renode emulation platform. Build the application as normal, and then launch it using `mpfs-hal-coremark renode all-harts start-platform-and-debug.launch`
+
+UART console display and logging options can be found under the Startup tab in `Debug Configurations` > `mpfs-hal-coremark renode all-harts debug`. More information about using Renode is available on https://renode.readthedocs.io
+
+### DDR training and Renode
+If the firmware has DDR training enabled, then the application will take significantly longer to start up in Renode. Training has no practical impact in this environment as the emulated DDR memory is already reliable.
+
+Training can be controlled by removing `#define DDR_SUPPORT` in your `mss_sw_config.h` file. This change should be made in `src\boards\[BOARD]\platform_config\mpfs_hal_config\`
+
+If your project uses the default configuration file in `src\platform\platform_config_reference\` to enable DDR training, it is recommended to create a copy under the boards directory and disable `DDR_SUPPORT` there.
