@@ -19,7 +19,7 @@
     <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.gdbServerOther" value="-c &quot;set DEVICE G5SOC&quot;&#13;&#10;-f board/microsemi-riscv.cfg"/>
     <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.gdbServerTclPortNumber" value="6666"/>
     <intAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.gdbServerTelnetPortNumber" value="4444"/>
-    <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.otherInitCommands" value="monitor logLevel 3&#13;&#10;monitor showAnalyzer sysbus.mmuart1"/>
+    <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.otherInitCommands" value="monitor logLevel 3&#13;&#10;monitor using sysbus&#13;&#10;monitor showAnalyzer mmuart1&#13;&#10;monitor e51 IsHalted True&#13;&#10;monitor u54_2 IsHalted True&#13;&#10;monitor u54_3 IsHalted True&#13;&#10;monitor u54_4 IsHalted True"/>
     <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.otherRunCommands" value="thread apply all set $pc=_start&#13;&#10;monitor start"/>
     <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.openocd.secondResetType" value="init"/>
     <stringAttribute key="ilg.gnumcueclipse.debug.gdbjtag.svdPath" value=""/>
