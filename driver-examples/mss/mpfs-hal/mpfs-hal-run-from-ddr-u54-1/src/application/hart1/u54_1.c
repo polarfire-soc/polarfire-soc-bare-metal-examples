@@ -20,7 +20,7 @@
 #define small_ver 0x00010000UL
 
 volatile uint32_t count_sw_ints_h1 = 0U;
-mss_uart_instance_t *g_debug_uart= &g_mss_uart1_lo ;
+mss_uart_instance_t *g_debug_uart= &g_mss_uart1_lo;
 #ifdef TEST_DDR_ACCESS
 static void ddr_read_write (uint32_t no_access);
 #endif
