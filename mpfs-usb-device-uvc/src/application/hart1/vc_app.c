@@ -204,7 +204,8 @@ static uint8_t app_usb_uvc_rx(uint8_t status, uint32_t rx_count)
 
 static void app_usb_uvc_notification(uint8_t** buf_p, uint32_t* length_p)
 {
-    
+    expectedPixels      = IMAGE_SIZE;
+    picture_index       = 0u;
 }
 
 static uint8_t app_usb_uvc_cep_tx_complete(uint8_t status)
