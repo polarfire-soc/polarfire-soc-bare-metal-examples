@@ -1,0 +1,47 @@
+; Tera Term Setting:
+; 1. Before running Tera Term Macro script, you should set language as English 
+;   and transmit delay in Serial port setup to 5msec/char and 5msec/line.
+; 2. By default, Tera Term log will be stored in Tera Term installation Directory.
+changedir '.'
+logopen "MAC_hmac_aes_cmac_256.log" 0 0 0 1
+
+settitle 'PolarFire User Crypto MAC service'
+
+setsync 1
+
+; Set baud rate to 115200
+setbaud 115200
+
+; local echo off
+setecho 0
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 1
+; INPUT
+;    Key = f70b8a4eee3518bba071af55f25f7b698a5b7dc8865cdaca6d1c7993657acc95
+;    Msg = 795ee1af7504621aac329f5081912de545fa11174f3979b14f11aa30df813a235b467fd8f3a14734fe5ac9e39105dcb25184673885cd19bc70ee5a53dd4e8149
+;  OUTPUT
+;    Mac = 93542734d6cd43de
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+send '3'
+pause 2
+
+;key
+send 'f70b8a4eee3518bba071af55f25f7b69'
+send '8a5b7dc8865cdaca6d1c7993657acc95'
+pause 1
+
+;Msg
+send '795ee1af7504621aac329f5081912de545fa11174f39'
+send '79b14f11aa30df813a235b467fd8f3a14734fe5ac9e3'
+send '9105dcb25184673885cd19bc70ee5a53dd4e8149'
+pause 1
+send 13
+pause 1
+
+;press any key
+send '5'
+pause 1
+
+
+logclose

@@ -1,0 +1,66 @@
+; Tera Term Setting:
+; 1. Before running Tera Term Macro script, you should set language as English 
+;   and transmit delay in Serial port setup to 5msec/char and 5msec/line.
+; 2. By default, Tera Term log will be stored in Tera Term installation Directory.
+
+changedir '.'
+logopen "key-tree.log" 0 0 0 1
+
+settitle 'PolarFire SoC MSS User Crypto Key Tree Service'
+
+setsync 1
+
+;Clear screen
+clearscreen 0
+
+; Set baud rate to 115200
+setbaud 115200
+
+; local echo off
+setecho 0
+
+; ---------------------------------------------------------------------------------------------------------------
+; KEY DERIVATION SERVICES 
+; ---------------------------------------------------------------------------------------------------------------
+; INPUT
+;   	KEY = 2c82552b5e75eefbe716a1c377292232b2e281bd4d11060dfe3226218a0d4f8b 
+;       NONCE = 46A85E18A798BE38010549CA17983E0D8B7DD1B55B953FB2321A1D66910EB3B0
+;       OPTION = 1
+; OUTPUT
+;       SESSION_KEY = 4DDD52C6509F4F10099743E76B400258
+;                     23BC8D5BA10DBB3CFEC42ECACBB0562C
+; ---------------------------------------------------------------------------------------------------------------
+
+;key
+send '2c82552b5e75eefbe716a1c377292232b2e281bd4d11060dfe3226218a0d4f8b'
+pause 1
+
+;user option
+send '1'
+pause 2
+
+;select send path nonce
+send '1'
+pause 2
+
+;enter nonce 
+send '46A85E18A798BE38010549CA17983E0D8B7DD1B55B953FB2321A1D66910EB3B0'
+pause 10
+ 
+;----------------------------------------------------------------------------------
+; USE AUTO GENERATED NONCE 
+;---------------------------------------------------------------------------------
+
+;key
+send '2c82552b5e75eefbe716a1c377292232b2e281bd4d11060dfe3226218a0d4f8b'
+pause 1
+
+;user option
+send '1'
+pause 2
+
+;select send path nonce
+send '2'
+
+pause 2
+logclose

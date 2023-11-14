@@ -1,0 +1,249 @@
+; Tera Term Setting:
+; 1. Before running Tera Term Macro script, you should set language as English 
+;   and transmit delay in Serial port setup to 5msec/char and 5msec/line.
+; 2. By default, Tera Term log will be stored in Tera Term installation Directory.
+
+changedir '.'
+logopen "DSA_Service.log" 0 0 0 1
+    
+settitle 'PolarFire SoC MSS User Crypto DSA service'
+
+setsync 1
+
+;Clear screen
+clearscreen 0
+
+; Set baud rate to 115200
+setbaud 115200
+
+; local echo off
+setecho 0
+
+; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 1
+; INPUT
+;    P = 
+;     a410d23ed9ad9964d3e401cb9317a25213f75712acbc5c12191abf3f1c0e723e2333b49eb1f95b0f9748d952f04a5ae35885
+;     9d384403ce364aa3f58dd9769909b45048548c55872a6afbb3b15c54882f96c20df1b2df164f0bac849ca17ad2df63abd75c
+;     881922e79a5009f00b7d631622e90e7fa4e980618575e1d6bd1a72d5b6a50f4f6a68b793937c4af95fc11541759a1736577
+;     d9448b87792dff07232415512e933755e12250d466e9cc8df150727d747e51fea7964158326b1365d580cb190f451829159
+;     8221fdf36c6305c8b8a8ed05663dd7b006e945f592abbecae460f77c71b6ec649d3fd5394202ed7bbbd040f7b8fd57cb06a
+;     99be254fa25d71a3760734046c2a0db383e02397913ae67ce65870d9f6c6f67a9d00497be1d763b21937cf9cbf9a24ef97b
+;     bcaa07916f8894e5b7fb03258821ac46140965b23c5409ca49026efb2bf95bce025c4183a5f659bf6aaeef56d7933bb2969
+;     7d7d541348c871fa01f869678b2e34506f6dc0a4c132b689a0ed27dc3c8d53702aa584877
+;  Q = abc67417725cf28fc7640d5de43825f416ebfa80e191c42ee886303338f56045
+;  G = 
+;     867d5fb72f5936d1a14ed3b60499662f3124686ef108c5b3da6663a0e86197ec2cc4c9460193a74ff16028ac9441b0c7d27
+;     c2272d483ac7cd794d598416c4ff9099a61679d417d478ce5dd974bf349a14575afe74a88b12dd5f6d1cbd3f91ddd597ed6
+;     8e79eba402613130c224b94ac28714a1f1c552475a5d29cfcdd8e08a6b1d65661e28ef313514d1408f5abd3e06ebe3a7d81
+;     4d1ede316bf495273ca1d574f42b482eea30db53466f454b51a175a0b89b3c05dda006e719a2e6371669080d768cc038cdf
+;     b8098e9aad9b8d83d4b759f43ac9d22b353ed88a33723550150de0361b7a376f37b45d437f71cb711f2847de671ad105951
+;     6a1d45755224a15d37b4aeada3f58c69a136daef0636fe38e3752064afe598433e80089fda24b144a462734bef8f7763884
+;     5b00e59ce7fa4f1daf487a2cada11eaba72bb23e1df6b66a183edd226c440272dd9b06bec0e57f1a0822d2e00212064b6db
+;     a64562085f5a75929afa5fe509e0b78e630aaf12f91e4980c9b0d6f7e059a2ea3e23479d930
+
+;Msg =
+;     ed9a64d3109ef8a9292956b946873ca4bd887ce624b81be81b82c69c67aaddf5655f70fe4768114db2834c71787f858e516
+;     5da1a7fa961d855ad7e5bc4b7be31b97dbe770798ef7966152b14b86ae35625a28aee5663b9ef3067cbdfbabd87197e5c84
+;     2d3092eb88dca57c6c8ad4c00a19ddf2e1967b59bd06ccaef933bc28e7
+;X = 6d4c934391b7f6fb6e19e3141f8c0018ef5726118a11064358c7d35b37737377
+;Y =
+;     1f0a5c75e7985d6e70e4fbfda51a10b925f6accb600d7c6510db90ec367b93bb069bd286e8f979b22ef0702f717a8755c18
+;     309c87dae3fe82cc3dc8f4b7aa3d5f3876f4d4b3eb68bfe910c43076d6cd0d39fc88dde78f09480db55234e6c8ca59fe270
+;     0efec04feee6b4e8ee2413721858be7190dbe905f456edcab55b2dc2916dc1e8731988d9ef8b619abcf8955aa960ef02b3f
+;     02a8dc649369222af50f1338ed28d667f3f10cae2a3c28a3c1d08df639c81ada13c8fd198c6dae3d62a3fe9f04c985c65f6
+;     10c06cb8faea68edb80de6cf07a8e89c00218185a952b23572e34df07ce5b4261e5de427eb503ee1baf5992db6d438b4743
+;     4c40c22657bc163e7953fa33eff39dc2734607039aadd6ac27e4367131041f845ffa1a13f556bfba2307a5c78f2ccf11298
+;     c762e08871968e48dc3d1569d09965cd09da43cf0309a16af1e20fee7da3dc21b364c4615cd5123fa5f9b23cfc4ffd9cfdc
+;     ea670623840b062d4648d2eba786ad3f7ae337a4284324ace236f9f7174fbf442b99043002f
+;K = 40b5cc685c3d1f59072228af9551683b5b8c8ff65240114ad2dacfccf3928057
+
+; OUTPUT
+;R = 7695698a14755db4206e850b4f5f19c540b07d07e08aac591e20081646e6eedc
+;S = 3dae01154ecff7b19007a953f185f0663ef7f2537f0b15e04fb343c961f36de2
+; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+;                                                  Signature Generation 
+;-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+;select signature generation
+send '1' 
+pause 1 
+
+; Msg
+pause 1
+send 'ed9a64d3109ef8a9292956b946873ca4bd887ce624b81be81b82c69c67aaddf5655f70fe4768114db2834c71787f858e516'
+send '5da1a7fa961d855ad7e5bc4b7be31b97dbe770798ef7966152b14b86ae35625a28aee5663b9ef3067cbdfbabd87197e5c84'
+send '2d3092eb88dca57c6c8ad4c00a19ddf2e1967b59bd06ccaef933bc28e7'
+pause 1
+
+;G
+pause 4
+send '867d5fb72f5936d1a14ed3b60499662f3124686ef108c5b3da6663a0e86197ec2cc4c9460193a74ff16028ac9441b0c7d27c'
+send '2272d483ac7cd794d598416c4ff9099a61679d417d478ce5dd974bf349a14575afe74a88b12dd5f6d1cbd3f91ddd597ed68e'
+send '79eba402613130c224b94ac28714a1f1c552475a5d29cfcdd8e08a6b1d65661e28ef313514d1408f5abd3e06ebe3a7d814d1'
+pause 4
+send 'ede316bf495273ca1d574f42b482eea30db53466f454b51a175a0b89b3c05dda006e719a2e6371669080d768cc038cdfb809'
+send '8e9aad9b8d83d4b759f43ac9d22b353ed88a33723550150de0361b7a376f37b45d437f71cb711f2847de671ad1059516a1d4'
+send '5755224a15d37b4aeada3f58c69a136daef0636fe38e3752064afe598433e80089fda24b144a462734bef8f77638845b00e5'
+send '9ce7fa4f1daf487a2cada11eaba72bb23e1df6b66a183edd226c440272dd9b06bec0e57f1a0822d2e00212064b6dba645620'
+send '85f5a75929afa5fe509e0b78e630aaf12f91e4980c9b0d6f7e059a2ea3e23479d930'
+pause 4
+
+;K
+send '40b5cc685c3d1f59072228af9551683b5b8c8ff65240114ad2dacfccf3928057'
+pause 2
+
+;X
+send '6d4c934391b7f6fb6e19e3141f8c0018ef5726118a11064358c7d35b37737377'
+
+pause 4
+
+;P
+send 'a410d23ed9ad9964d3e401cb9317a25213f75712acbc5c12191abf3f1c0e723e2333b49eb1f95b0f9748d952f04a5ae35885'
+send '9d384403ce364aa3f58dd9769909b45048548c55872a6afbb3b15c54882f96c20df1b2df164f0bac849ca17ad2df63abd75c'
+pause 4
+send '881922e79a5009f00b7d631622e90e7fa4e980618575e1d6bd1a72d5b6a50f4f6a68b793937c4af95fc11541759a1736577d'
+send '9448b87792dff07232415512e933755e12250d466e9cc8df150727d747e51fea7964158326b1365d580cb190f45182915982'
+send '21fdf36c6305c8b8a8ed05663dd7b006e945f592abbecae460f77c71b6ec649d3fd5394202ed7bbbd040f7b8fd57cb06a99b'
+send 'e254fa25d71a3760734046c2a0db383e02397913ae67ce65870d9f6c6f67a9d00497be1d763b21937cf9cbf9a24ef97bbcaa'
+send '07916f8894e5b7fb03258821ac46140965b23c5409ca49026efb2bf95bce025c4183a5f659bf6aaeef56d7933bb29697d7d5'
+send '41348c871fa01f869678b2e34506f6dc0a4c132b689a0ed27dc3c8d53702aa584877'
+pause 4
+
+;Q
+send 'abc67417725cf28fc7640d5de43825f416ebfa80e191c42ee886303338f56045'
+
+pause 4
+; send dummy 
+send '1'
+pause 3
+
+; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+;                                          Signature verification  
+;-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+;select verification 
+send '2' 
+pause 1 
+
+; send option 1 to automatically generate the public key 
+send '1' 
+pause 5
+
+; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 2
+; INPUT
+;    P = 
+;     a410d23ed9ad9964d3e401cb9317a25213f75712acbc5c12191abf3f1c0e723e2333b49eb1f95b0f9748d952f04a5ae35885
+;     9d384403ce364aa3f58dd9769909b45048548c55872a6afbb3b15c54882f96c20df1b2df164f0bac849ca17ad2df63abd75c
+;     881922e79a5009f00b7d631622e90e7fa4e980618575e1d6bd1a72d5b6a50f4f6a68b793937c4af95fc11541759a1736577
+;     d9448b87792dff07232415512e933755e12250d466e9cc8df150727d747e51fea7964158326b1365d580cb190f451829159
+;     8221fdf36c6305c8b8a8ed05663dd7b006e945f592abbecae460f77c71b6ec649d3fd5394202ed7bbbd040f7b8fd57cb06a
+;     99be254fa25d71a3760734046c2a0db383e02397913ae67ce65870d9f6c6f67a9d00497be1d763b21937cf9cbf9a24ef97b
+;     bcaa07916f8894e5b7fb03258821ac46140965b23c5409ca49026efb2bf95bce025c4183a5f659bf6aaeef56d7933bb2969
+;     7d7d541348c871fa01f869678b2e34506f6dc0a4c132b689a0ed27dc3c8d53702aa584877
+;    Q =
+;     abc67417725cf28fc7640d5de43825f416ebfa80e191c42ee886303338f56045
+;    G = 
+;     867d5fb72f5936d1a14ed3b60499662f3124686ef108c5b3da6663a0e86197ec2cc4c9460193a74ff16028ac9441b0c7d27
+;     c2272d483ac7cd794d598416c4ff9099a61679d417d478ce5dd974bf349a14575afe74a88b12dd5f6d1cbd3f91ddd597ed6
+;     8e79eba402613130c224b94ac28714a1f1c552475a5d29cfcdd8e08a6b1d65661e28ef313514d1408f5abd3e06ebe3a7d81
+;     4d1ede316bf495273ca1d574f42b482eea30db53466f454b51a175a0b89b3c05dda006e719a2e6371669080d768cc038cdf
+;     b8098e9aad9b8d83d4b759f43ac9d22b353ed88a33723550150de0361b7a376f37b45d437f71cb711f2847de671ad105951
+;     6a1d45755224a15d37b4aeada3f58c69a136daef0636fe38e3752064afe598433e80089fda24b144a462734bef8f7763884
+;     5b00e59ce7fa4f1daf487a2cada11eaba72bb23e1df6b66a183edd226c440272dd9b06bec0e57f1a0822d2e00212064b6db
+;     a64562085f5a75929afa5fe509e0b78e630aaf12f91e4980c9b0d6f7e059a2ea3e23479d930
+;  Msg =
+;     c737d5ae248a96062d6afa8dcacc0384c5fbfb9d8b6052b52493c60d3edfc524b567b1f896e7447d0e24019403ed83e4889
+;     c0c4de57c70fada6c8b5a09904350a44dfaf77d60af62de3edfd8760d077473f26df2837cfc2015f227dd7d351a5350f142
+;     8f2699fd3f518326fea8aef98fc4ea673130c8079fac3895fe856c77f8
+;    X =
+;     40dbd496fc4644be7ccb24d9dc55895c1b923a05f4da5610589d564ee8aac33f
+;    Y =
+;     6112d3cd3191d17dee7788f568815a0aab50006002c9de2bd1a9bba245ba02894b02e9247517ace698ae0a05176b62b3a02
+;     5a563dda8deb7f2fc3e177ae3477448d39ae4ebe7ae8ec65a4421f754667fd6d7c2eb93f1a18d3d1a6235736bcdb74746f4
+;     6d88e65dc07c2591e1f95dda5e5e20e105ee8b4ddcaaf36021290d6b6493671d8aafae145d9b90bec3cc60179bb8fc30f14
+;     3c575d5d861623721b6547d3aaaade455f05fef9318abcd29bd19b12c35ca756de5108c185ece4aa1bf1a8e38809797067b
+;     d1f52b6cf2c415e73f9246bd5bfadd7b9a9d2b5369701e72147e22da7e092d9b578fb0c044a36effcbd709258500a00cff2
+;     30962c44225712fc43f9e802baead7f9cb46ab4931f663c6e3ed4082d59610f01741b5f24566b01b3e3933b29e028c54bd2
+;     fc75b549fd05e64c58c9ae0ba417a9e98581db77be75233a42f771c99f0a49b494f0955202b19d6c740e866066104e463e6
+;     5e4bad9a081636d05367426153f04bcb2712186dca6834388e82520d34efd8a89313b2c7e60
+;    K =
+;     aa63e91cb3fa545c447a8b8309a569d48104e14d5d05b8951033ac8a7d711c3f
+
+; OUTPUT
+;R = 0041b1c756dd2e42714f9ee7edce21ea33ef49dbf452ccd9357d5f45ffab08f9
+;S = 102c6eaad38d39c0d036335ae19dd0d75e8dcabae59b120f69cbd2b5cf48abdb
+; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+;                                                  Signature Generation 
+;-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+send '5' 
+pause 1 
+
+;select signature generation
+send '1' 
+pause 1 
+
+; Msg
+pause 1
+send 'c737d5ae248a96062d6afa8dcacc0384c5fbfb9d8b6052b52493c60d3edfc524b567b1f896e7447d0e24019403ed83e4889'
+send 'c0c4de57c70fada6c8b5a09904350a44dfaf77d60af62de3edfd8760d077473f26df2837cfc2015f227dd7d351a5350f142'
+send '8f2699fd3f518326fea8aef98fc4ea673130c8079fac3895fe856c77f8'
+pause 1
+
+;G
+pause 4
+send '867d5fb72f5936d1a14ed3b60499662f3124686ef108c5b3da6663a0e86197ec2cc4c9460193a74ff16028ac9441b0c7d27'
+send 'c2272d483ac7cd794d598416c4ff9099a61679d417d478ce5dd974bf349a14575afe74a88b12dd5f6d1cbd3f91ddd597ed6'
+send '8e79eba402613130c224b94ac28714a1f1c552475a5d29cfcdd8e08a6b1d65661e28ef313514d1408f5abd3e06ebe3a7d81'
+pause 4
+send '4d1ede316bf495273ca1d574f42b482eea30db53466f454b51a175a0b89b3c05dda006e719a2e6371669080d768cc038cdf'
+send 'b8098e9aad9b8d83d4b759f43ac9d22b353ed88a33723550150de0361b7a376f37b45d437f71cb711f2847de671ad105951'
+send '6a1d45755224a15d37b4aeada3f58c69a136daef0636fe38e3752064afe598433e80089fda24b144a462734bef8f7763884'
+send '5b00e59ce7fa4f1daf487a2cada11eaba72bb23e1df6b66a183edd226c440272dd9b06bec0e57f1a0822d2e00212064b6db'
+send 'a64562085f5a75929afa5fe509e0b78e630aaf12f91e4980c9b0d6f7e059a2ea3e23479d930'
+pause 4
+
+;K
+send 'aa63e91cb3fa545c447a8b8309a569d48104e14d5d05b8951033ac8a7d711c3f'
+pause 2
+
+;X
+send '40dbd496fc4644be7ccb24d9dc55895c1b923a05f4da5610589d564ee8aac33f'
+
+pause 4
+
+;P
+send 'a410d23ed9ad9964d3e401cb9317a25213f75712acbc5c12191abf3f1c0e723e2333b49eb1f95b0f9748d952f04a5ae35885'
+send '9d384403ce364aa3f58dd9769909b45048548c55872a6afbb3b15c54882f96c20df1b2df164f0bac849ca17ad2df63abd75c'
+pause 4
+send '881922e79a5009f00b7d631622e90e7fa4e980618575e1d6bd1a72d5b6a50f4f6a68b793937c4af95fc11541759a1736577d'
+send '9448b87792dff07232415512e933755e12250d466e9cc8df150727d747e51fea7964158326b1365d580cb190f45182915982'
+send '21fdf36c6305c8b8a8ed05663dd7b006e945f592abbecae460f77c71b6ec649d3fd5394202ed7bbbd040f7b8fd57cb06a99b'
+send 'e254fa25d71a3760734046c2a0db383e02397913ae67ce65870d9f6c6f67a9d00497be1d763b21937cf9cbf9a24ef97bbcaa'
+send '07916f8894e5b7fb03258821ac46140965b23c5409ca49026efb2bf95bce025c4183a5f659bf6aaeef56d7933bb29697d7d5'
+send '41348c871fa01f869678b2e34506f6dc0a4c132b689a0ed27dc3c8d53702aa584877'
+pause 4
+
+;Q
+send 'abc67417725cf28fc7640d5de43825f416ebfa80e191c42ee886303338f56045'
+
+pause 4
+; send dummy 
+send '1'
+pause 3 
+
+; ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+;                                          Signature verification  
+;-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+;select verification 
+send '2' 
+pause 1 
+
+; send option 1 to automatically generate the public key 
+send '1' 
+pause 5
+
+logclose
