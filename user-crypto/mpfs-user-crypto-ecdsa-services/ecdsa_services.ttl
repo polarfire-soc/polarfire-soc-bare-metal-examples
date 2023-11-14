@@ -1,0 +1,170 @@
+; Tera Term Setting:
+; 1. Before running Tera Term Macro script, you should set language as English 
+;   and transmit delay in Serial port setup to 5msec/char and 5msec/line.
+; 2. By default, Tera Term log will be stored in Tera Term installation Directory.
+
+changedir '.'
+logopen "ecdsa_service.log" 0 0 0 1
+
+settitle 'PolarFire SoC MSS User Crypto ECDSA service'
+
+setsync 1
+
+;Clear screen
+clearscreen 0
+
+; Set baud rate to 115200
+setbaud 115200
+
+; local echo off
+setecho 00
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 1
+; INPUT
+;   Xg = aa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760aB7
+;   Yg = 3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5F
+;   Msg=54686973206973206f6e6c7920612074657374206d6573736167652e204974206973203438206279746573206c6f6e67
+;   Hash H = b9210c9d7e20897ab86597266a9d5077e8db1b06f7220ed6ee75bd8b45db37891f8ba5550304004159f4453dc5b3f5a1
+;   K = dc6b44036989a196e39d1cdac000812f4bdd8b2db41bb33af51372585ebd1db63f0ce8275aa1fd45e2d2a735f8749359
+;   D = c838b85253ef8dc7394fa5808a5183981c7deef5a69ba8f4f2117ffea39cfcd90e95f6cbc854abacab701d50c1f3cf24
+
+;  OUTPUT
+;       r = a0c27ec8 93092dea 1e1bd2cc fed3cf94 5c8134ed 0c9f8131 1a0f4a05 942db8db
+;           ed8dd59f 267471d5 462aa14f e72de856
+;       s = 20ab3f45 b74f10b6 e11f96a2 c8eb694d 206b9dda 86d3c7e3 31c26b22 c987b753
+;           77265776 67adadf1 68ebbe80 3794a402
+;----------------------------------------------------------------------------------------------------------------------------------------------------------
+;                               Signature Generation 
+;-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+; select signature generation 
+pause 1
+send '1'
+pause 2
+
+;Msg
+pause 1
+send '54686973206973206f6e6c7920612074657374206d6573736167652e204974206973203438206279746573206c6f6e67'
+pause 2
+
+;Gx
+pause 1
+send 'aa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760aB7'
+pause 2 
+
+;Gy
+pause 1
+send '3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5F'
+pause 2 
+
+;K
+pause 1
+send 'dc6b44036989a196e39d1cdac000812f4bdd8b2db41bb33af51372585ebd1db63f0ce8275aa1fd45e2d2a735f8749359'
+pause 2
+
+;Modulus N 
+pause 1 
+send 'ffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973'
+
+; select option to enter private key
+send '2'
+pause 5
+
+;D
+pause 1
+send 'c838b85253ef8dc7394fa5808a5183981c7deef5a69ba8f4f2117ffea39cfcd90e95f6cbc854abacab701d50c1f3cf24'
+pause 2
+ 
+; send dummy 
+send '1'
+pause 2
+
+;-------------------------------------------------------------------------------------------
+;                                   signature verification
+;-------------------------------------------------------------------------------------------
+ 
+; select signature verification 
+send '2' 
+pause 2
+
+; select automatic public key generation 
+send '1' 
+pause 5
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 2
+; INPUT
+;   Xg = aa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760aB7
+;   Yg = 3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5F
+;   Msg= 4578616D706C65206F66204543445341207769746820502D333834
+;   Hash H = 5AEA187D1C4F6E1B35057D20126D836C6ADBBC7049EE0299C9529F5E0B3F8B5A7411149D6C30D6CB2B8AF70E0A781E89
+;   K = 2E44EF1F8C0BEA8394E3DDA81EC6A7842A459B534701749E2ED95F054F0137680878E0749FC43F85EDCAE06CC2F43FEF
+;   D = F92C02ED629E4B48C0584B1C6CE3A3E3B4FAAE4AFC6ACB0455E73DFC392E6A0AE393A8565E6B9714D1224B57D83F8A08
+
+;  OUTPUT
+;       r = 30EA514FC0D38D8208756F068113C7CADA9F66A3B40EA3B313D040D9B57DD41A332795D02CC7D507FCEF9FAF01A27088
+;       s = CC808E504BE414F46C9027BCBF78ADF067A43922D6FCAA66C4476875FBB7B94EFD1F7D5DBE620BFB821C46D549683AD8
+;----------------------------------------------------------------------------------------------------------------------------------------------------------
+;                               Signature Generation 
+;-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+pause 1
+send '5'
+pause 2
+
+; select signature generation 
+pause 1
+send '1'
+pause 2
+
+;Msg
+pause 1
+send '4578616D706C65206F66204543445341207769746820502D333834'
+send 13
+pause 2
+
+;Gx
+pause 1
+send 'aa87ca22be8b05378eb1c71ef320ad746e1d3b628ba79b9859f741e082542a385502f25dbf55296c3a545e3872760aB7'
+pause 2 
+
+;Gy
+pause 1
+send '3617de4a96262c6f5d9e98bf9292dc29f8f41dbd289a147ce9da3113b5f0b8c00a60b1ce1d7e819d7a431d7c90ea0e5F'
+pause 2 
+
+;K
+pause 1
+send '2E44EF1F8C0BEA8394E3DDA81EC6A7842A459B534701749E2ED95F054F0137680878E0749FC43F85EDCAE06CC2F43FEF'
+pause 2
+
+;Modulus N 
+pause 1 
+send 'ffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973'
+
+; select option to enter private key
+send '2'
+pause 5
+
+;D
+pause 1
+send 'F92C02ED629E4B48C0584B1C6CE3A3E3B4FAAE4AFC6ACB0455E73DFC392E6A0AE393A8565E6B9714D1224B57D83F8A08'
+pause 2
+ 
+; send dummy 
+send '1'
+pause 2
+
+;-------------------------------------------------------------------------------------------
+;                                   signature verification
+;-------------------------------------------------------------------------------------------
+ 
+; select signature verification 
+send '2' 
+pause 2
+
+; select automatic public key generation 
+send '1' 
+pause 3 
+
+logclose

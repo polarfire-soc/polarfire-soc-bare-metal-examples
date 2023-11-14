@@ -1,0 +1,421 @@
+; Tera Term Setting:
+; 1. Before running Tera Term Macro script, you should set language as English 
+;   and transmit delay in Serial port setup to 5msec/char and 5msec/line.
+; 2. By default, Tera Term log will be stored in Tera Term installation Directory.
+
+changedir '.'
+logopen "ccm_msg_auth.log" 0 0 0 1
+
+settitle 'PolarFire SoC MSS User Crypto CCM service'
+
+setsync 1
+
+; Set baud rate to 115200
+setbaud 115200
+
+; local echo off
+setecho 0
+
+;press any key
+send '5'
+pause 1
+
+; -------------------------------------------------------------------------------
+; Test Case 1
+; Inputs
+;    8, 3, 44, 20,
+;    AES key
+;        40414243 44454647 48494A4B 4C4D4E4F
+;    NONCE
+;        10111213 14151617 18191A1B
+;    AAD
+;        00010203 04050607 08090A0B 0C0D0E0F 10111213
+;    Message P 
+;        20212223 24252627 28292A2B 2C2D2E2F 30313233 34353637
+
+; Output - Encrypted Data
+;    E3B201A9 F5B71A7A 9B1CEAEC CD97E70B 6176AAD9 A4428AA5 484392FB C1B09951
+; -----------------------------------------------------------------------------
+send '1'
+pause 2
+
+;Key
+send '404142434445464748494a4b4c4d4e4f'
+pause 1
+
+;Nonce
+send '101112131415161718191a1b'
+pause 1
+send 13
+pause 1
+
+;AAD
+send '000102030405060708090a0b0c0d0e0f10111213'
+pause 1
+send 13
+pause 1
+
+;MSG
+send '202122232425262728292A2B2C2D2E2F3031323334353637'
+pause 1
+send 13
+pause 1
+
+;M
+send '2'
+pause 5
+
+;Send dummy
+send '5'
+pause 2
+
+; -------------------------------------------------------------------------------
+; Test Case 2
+; Inputs
+;    8, 2, 32, 8
+;    AES key
+;        C0C1C2C3  C4C5C6C7  C8C9CACB  CCCDCECF
+;    NONCE
+;        00000004  030201A0  A1A2A3A4  A5
+;    AAD
+;        00010203  04050607
+;    Message P 
+;        08090A0B  0C0D0E0F 10111213  14151617  18191A1B  1C1D1E1F
+
+; Output - Encrypted Data
+;    72C91A36  E135F8CF 291CA894 085C87E3  CC15C439  C9E43A3B A091D56E  10400916
+; -----------------------------------------------------------------------------
+
+send '1'
+pause 2
+
+;Key
+send 'C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF'
+pause 1
+
+;Nonce
+send '00000004030201A0A1A2A3A4A5'
+pause 1
+send 13
+pause 1
+
+;AAD
+send '0001020304050607'
+pause 1
+send 13
+pause 1
+
+;MSG
+send '08090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F'
+pause 1
+send 13
+pause 1
+
+;M
+send '2'
+pause 5
+
+;Send dummy
+send '5'
+pause 2
+
+; -------------------------------------------------------------------------------
+; Test Case 3
+; Inputs
+; 4, 8, 12, 8,
+;    AES key
+;        C0C1C2C3  C4C5C6C7  C8C9CACB  CCCDCECF
+;    NONCE
+;        10111213 141516
+;    AAD
+;        00010203 04050607
+;    Message P 
+;        20212223
+
+; Output - Encrypted Data
+;    7162015B 4DAC255D
+; -----------------------------------------------------------------------------
+
+send '1'
+pause 2
+
+;Key
+send '404142434445464748494A4B4C4D4E4F'
+pause 1
+
+;Nonce
+send '10111213141516'
+pause 1
+send 13
+pause 1
+
+;AAD
+send '0001020304050607'
+pause 1
+send 13
+pause 1
+
+;MSG
+send '20212223'
+pause 1
+send 13
+pause 1
+
+;M
+send '1'
+pause 5
+
+;Send dummy
+send '5'
+pause 2
+
+; -------------------------------------------------------------------------------
+; Test Case 4 Decryption
+; Inputs
+;    8, 3, 44, 20,
+;    AES KEY
+;      40414243 44454647 48494A4B 4C4D4E4F
+;    NONCE
+;      10111213 14151617 18191A1B
+;   AAD
+;      00010203 04050607 08090A0B 0C0D0E0F 10111213
+;   Encrypted Data
+;      E3B201A9 F5B71A7A 9B1CEAEC CD97E70B 6176AAD9 A4428AA5 484392FB C1B09951
+
+; Output - 
+;  P
+;    20212223 24252627 28292A2B 2C2D2E2F 30313233 34353637
+;  MAC
+;    67C99240 C7D51048
+; -----------------------------------------------------------------------------
+send '2'
+pause 2
+
+;Key
+send '404142434445464748494a4b4c4d4e4f'
+pause 1
+
+;Nonce
+send '101112131415161718191a1b'
+pause 1
+send 13
+pause 1
+
+;AAD
+send '000102030405060708090a0b0c0d0e0f10111213'
+pause 1
+send 13
+pause 1
+
+;Encrypted data
+send 'E3B201A9F5B71A7A9B1CEAECCD97E70B6176AAD9A4428AA5484392FBC1B09951'
+pause 1
+send 13
+pause 1
+
+;M
+send '2'
+pause 5
+
+;Send dummy
+send '5'
+pause 2
+
+
+; -------------------------------------------------------------------------------
+; Test Case 5 Decryption
+; Inputs
+;   8, 2, 32, 8,
+;   AES KEY
+;     C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF
+;   NONCE
+;     00000004030201A0A1A2A3A4A5
+;   AAD
+;     0001020304050607
+;   Encrypted Data
+;     72C91A36E135F8CF291CA894085C87E3CC15C439C9E43A3BA091D56E10400916
+
+; Output - 
+:  P
+;     08090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F
+;  MAC
+;     F7B9056A  86926CF3
+; -----------------------------------------------------------------------------
+send '2'
+pause 2
+
+;Key
+send 'C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF'
+pause 1
+
+;Nonce
+send '00000004030201A0A1A2A3A4A5'
+pause 1
+send 13
+pause 1
+
+;AAD
+send '0001020304050607'
+pause 1
+send 13
+pause 1
+
+;Encrypted data
+send '72C91A36E135F8CF291CA894085C87E3CC15C439C9E43A3BA091D56E10400916'
+pause 1
+send 13
+pause 1
+
+;M
+send '2'
+pause 5
+
+;Send dummy
+send '5'
+pause 2
+
+; -------------------------------------------------------------------------------
+; Test Case 6 Decryption
+; Inputs
+;   4, 8, 12, 8,
+;   AES KEY
+;     40414243 44454647 48494A4B 4C4D4E4F
+;   NONCE
+;     10111213 141516
+;   AAD
+;     00010203 04050607
+;   Encrypted Data
+;     7162015B 4DAC255D
+
+; Output 
+;  P
+;     20212223
+;  MAC
+;     6084341B
+; -----------------------------------------------------------------------------
+send '2'
+pause 2
+
+;Key
+send '404142434445464748494A4B4C4D4E4F'
+pause 1
+
+;Nonce
+send '10111213141516'
+pause 1
+send 13
+pause 1
+
+;AAD
+send '0001020304050607'
+pause 1
+send 13
+pause 1
+
+;Encrypted data
+send '7162015B4DAC255D'
+pause 1
+send 13
+pause 1
+
+;M
+send '1'
+pause 5
+
+;Send dummy
+send '5'
+pause 2
+
+; -------------------------------------------------------------------------------
+; Test Case 7
+; Inputs
+;    [Tlen = 4]
+;    Key = 43b1a6bc8d0d22d6d1ca95c18593cca5
+;    Nonce = 9882578e750b9682c6ca7f8f86
+;    Count = 0
+;    Adata = 2084f3861c9ad0ccee7c63a7e05aece5db8b34bd8724cc06b4ca99a7f9c4914f
+;    Payload = a2b381c7d1545c408fe29817a21dc435a154c87256346b05
+
+; Output
+;    CT = cc69ed76985e0ed4c8365a72775e5a19bfccc71aeb116c85a8c74677
+
+; -----------------------------------------------------------------------------
+send '1'
+pause 2
+
+;Key
+send '43b1a6bc8d0d22d6d1ca95c18593cca5'
+pause 1
+
+;Nonce
+send '9882578e750b9682c6ca7f8f86'
+pause 1
+send 13
+pause 1
+
+;AAD
+send '2084f3861c9ad0ccee7c63a7e05aece5db8b34bd8724cc06b4ca99a7f9c4914f'
+pause 1
+
+;MSG
+send 'a2b381c7d1545c408fe29817a21dc435a154c87256346b05'
+pause 1
+send 13
+pause 1
+
+;M
+send '1'
+pause 5
+
+;Send dummy
+send '5'
+pause 2
+
+
+; -------------------------------------------------------------------------------
+; Test Case 8 Decryption
+; Inputs
+;    [Tlen = 4]
+;    Key = 43b1a6bc8d0d22d6d1ca95c18593cca5
+;    Nonce = 9882578e750b9682c6ca7f8f86
+;    Count = 0
+;    Adata = 2084f3861c9ad0ccee7c63a7e05aece5db8b34bd8724cc06b4ca99a7f9c4914f
+;    CT = cc69ed76985e0ed4c8365a72775e5a19bfccc71aeb116c85a8c74677
+
+; Output
+;    Payload = a2b381c7d1545c408fe29817a21dc435a154c87256346b05
+;    MAC =  95DA703C
+; -----------------------------------------------------------------------------
+send '2'
+pause 2
+
+;Key
+send '43b1a6bc8d0d22d6d1ca95c18593cca5'
+pause 1
+
+;Nonce
+send '9882578e750b9682c6ca7f8f86'
+pause 1
+send 13
+pause 1
+
+;AAD
+send '2084f3861c9ad0ccee7c63a7e05aece5db8b34bd8724cc06b4ca99a7f9c4914f'
+pause 1
+
+;Encrypted data
+send 'cc69ed76985e0ed4c8365a72775e5a19bfccc71aeb116c85a8c74677'
+pause 1
+send 13
+pause 1
+
+;M
+send '1'
+pause 5
+
+;Send dummy
+send '5'
+pause 2
+
+pause 5
+logclose

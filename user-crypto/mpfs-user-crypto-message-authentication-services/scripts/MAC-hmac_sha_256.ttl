@@ -1,0 +1,93 @@
+; Tera Term Setting:
+; 1. Before running Tera Term Macro script, you should set language as English 
+;   and transmit delay in Serial port setup to 5msec/char and 5msec/line.
+; 2. By default, Tera Term log will be stored in Tera Term installation Directory.
+changedir '.'
+logopen "MAC_hmac_sha_256.log" 0 0 0 1
+
+settitle 'PolarFire User Crypto MAC HMAC SHA 256 service'
+
+setsync 1
+
+; Set baud rate to 115200
+setbaud 115200
+
+; local echo off
+setecho 0
+
+send 13
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 1 - DMA disabled
+; INPUT
+;     Input Date: "Sample message for keylen<blocklen" 
+;
+;     Text is 5361 6D706C65 206D6573 73616765 20666F72 206B6579 6C656E3C 626C6F63 6B6C656E 
+;
+;     Key is 00010203 04050607 08090A0B 0C0D0E0F 10111213 14151617 18191A1B 1C1D1E1F  (50 bytes)
+; OUTPUT
+;     mac is A28CF431 30EE696A 98F14A37 678B56BC FCBDD9E5 CF69717F ECF5480F 0EBDF790 
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+pause 1
+send '2'
+pause 1
+
+;key
+pause 1
+send '000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F'
+pause 1
+;send 13
+;pause 1
+
+;Data
+pause 1
+send '53616D706C65206D65737361676520666F72206B65796C656E3C626C6F636B6C656E'
+pause 1
+send 13
+;
+pause 1
+
+;DMA disabled
+pause 1
+send '0'
+
+pause 5
+send 13
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 2 - DMA Enabled
+; INPUT
+;     Input Date: "Sample message for keylen<blocklen" 
+;
+;     Text is 5361 6D706C65 206D6573 73616765 20666F72 206B6579 6C656E3C 626C6F63 6B6C656E 
+;
+;     Key is 00010203 04050607 08090A0B 0C0D0E0F 10111213 14151617 18191A1B 1C1D1E1F  (50 bytes)
+; OUTPUT
+;     mac is A28CF431 30EE696A 98F14A37 678B56BC FCBDD9E5 CF69717F ECF5480F 0EBDF790 
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+pause 1
+send '2'
+pause 1
+
+;key
+pause 1
+send '000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F'
+pause 1
+;send 13
+;pause 1
+
+;Data
+pause 1
+send '53616D706C65206D65737361676520666F72206B65796C656E3C626C6F636B6C656E'
+pause 1
+send 13
+;
+pause 1
+
+;DMA Enabled
+pause 1
+send '1'
+
+send 13
+
+logclose

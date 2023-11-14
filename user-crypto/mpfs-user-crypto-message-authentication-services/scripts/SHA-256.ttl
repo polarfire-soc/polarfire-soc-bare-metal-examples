@@ -1,0 +1,132 @@
+; Tera Term Setting:
+; 1. Before running Tera Term Macro script, you should set language as English 
+;   and transmit delay in Serial port setup to 5msec/char and 5msec/line.
+; 2. By default, Tera Term log will be stored in Tera Term installation Directory.
+changedir '.'
+logopen "sha_256.log" 0 0 0 1
+
+settitle 'PolarFire User Crypto SHA 256 service'
+
+setsync 1
+
+; Set baud rate to 115200
+setbaud 115200
+
+; local echo off
+setecho 0
+
+send 13
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 1 - DMA disabled
+; INPUT
+;    Msg = 315e7ae94666cdf653e5a2bf5adfbe89e3d570f556971877a85ae609390ae421
+; OUTPUT
+;    MD = 03c8545dbaa5c177c89631ccb5e6edccc6d88f17655e1d8eae4e9381d138f411                          (50 bytes)
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+pause 1
+send '4'
+pause 1
+
+;Msg
+pause 1
+send '315e7ae94666cdf653e5a2bf5adfbe89e3d570f556971877a85ae609390ae421'
+send 13
+
+;DMA disabled
+pause 1
+send '0'
+pause 5
+;press any key
+send 13
+pause 1
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 2 - DMA enabled
+; INPUT
+;    Msg = 315e7ae94666cdf653e5a2bf5adfbe89e3d570f556971877a85ae609390ae421
+; OUTPUT
+;    MD = 03c8545dbaa5c177c89631ccb5e6edccc6d88f17655e1d8eae4e9381d138f411                          (50 bytes)
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+pause 1
+send '4'
+
+;Msg
+pause 1
+send '315e7ae94666cdf653e5a2bf5adfbe89e3d570f556971877a85ae609390ae421'
+send 13
+
+;DMA Enabled
+pause 1
+send '1'
+pause 5
+;press any key
+send 13
+pause 1
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 3 - DMA enabled
+; INPUT
+;   Msg = 74cb9381d89f5aa73368
+; OUTPUT
+;   MD = 73d6fad1caaa75b43b21733561fd3958bdc555194a037c2addec19dc2d7a52bd
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+pause 1
+send '4'
+
+;Msg
+pause 1
+send '74cb9381d89f5aa73368'
+send 13
+
+;DMA Enabled
+pause 1
+send '1'
+send 13
+pause 5
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 4 - DMA Disabled
+; INPUT
+;   Msg = 64cd363ecce05fdfda2486d011a3db95b5206a19d3054046819dd0d36783955d7e5bf8ba18bf738a
+; OUTPUT
+;   MD = 32caef024f84e97c30b4a7b9d04b678b3d8a6eb2259dff5b7f7c011f090845f8
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+pause 1
+send '4'
+
+;Msg
+pause 1
+send '64cd363ecce05fdfda2486d011a3db95b5206a19d30'
+send '54046819dd0d36783955d7e5bf8ba18bf738a'
+send 13
+
+;DMA Disabled
+pause 1
+send '0'
+send 13
+pause 5
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+; Test Case 5 - DMA Enabled
+; INPUT
+;   Msg = 64cd363ecce05fdfda2486d011a3db95b5206a19d3054046819dd0d36783955d7e5bf8ba18bf738a
+; OUTPUT
+;   MD = 32caef024f84e97c30b4a7b9d04b678b3d8a6eb2259dff5b7f7c011f090845f8
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------
+pause 1
+send '4'
+
+;Msg
+pause 1
+send '64cd363ecce05fdfda2486d011a3db95b5206a19d30'
+send '54046819dd0d36783955d7e5bf8ba18bf738a'
+send 13
+
+;DMA Enabled
+pause 1
+send '1'
+send 13
+
+pause 5
+logclose
