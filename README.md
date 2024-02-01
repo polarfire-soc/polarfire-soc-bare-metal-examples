@@ -4,6 +4,7 @@ This repository provides bare metal embedded software example projects with Micr
 SoftConsole IDE.
 
 - [Repo organization](#Repo-organization)
+- [Supported targets](#Supported-targets)
 - [Build configurations](#Build-configurations)
 - [Debug launchers](#Debug-launchers)
 - [Target hardware](#Target-hardware)
@@ -44,6 +45,67 @@ PolarFire SoC.
 Each project provides a README.md explaining its functionality and usage instructions.
 All projects provide a set of ready to use build configurations and debug launch
 configurations. These are detailed in the following sections.
+
+<a name="Supported-targets"></a>
+## Supported targets
+
+The table below contains a list of the projects in this repository and the boards they
+support.
+
+| Project name | Supported boards |
+|----|-----|
+| [mpfs-dma-benchmarking](./applications/benchmarks/dma_benchmarking/mpfs-dma-benchmarking) | icicle-kit-es |
+| [mpfs-pmp-app-u54-1](./applications/mpfs-pmp-demo/mpfs-pmp-app-u54-1) | icicle-kit-es |
+| [mpfs-pmp-app-u54-3](./applications/mpfs-pmp-demo/mpfs-pmp-app-u54-3) | icicle-kit-es |
+| [mpfs-user-crypto-aes-cryptography](./applications/user-crypto/mpfs-user-crypto-aes-cryptography) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-user-crypto-ccm-services](./applications/user-crypto/mpfs-user-crypto-ccm-services) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-user-crypto-dsa-services](./applications/user-crypto/mpfs-user-crypto-dsa-services) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-user-crypto-ecdsa-services](./applications/user-crypto/mpfs-user-crypto-ecdsa-services) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-user-crypto-key-agreement-services](./applications/user-crypto/mpfs-user-crypto-key-agreement-services) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-user-crypto-key-tree-services](./applications/user-crypto/mpfs-user-crypto-key-tree-services) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-user-crypto-message-authentication-services](./applications/user-crypto/mpfs-user-crypto-message-authentication-services) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-user-crypto-ndrbg-services](./applications/user-crypto/mpfs-user-crypto-ndrbg-services) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-user-crypto-rsa-cryptography-services](./applications/user-crypto/mpfs-user-crypto-rsa-cryptography-services) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-user-crypto-rsa-services](./applications/user-crypto/mpfs-user-crypto-rsa-services) | icicle-kit-es<br>mpfs-video-kit |
+| [mpfs-coreaxi4dma-block-transfer](./driver-examples/fpga-ip/CoreAXI4DMAController/mpfs-coreaxi4dma-block-transfer) | icicle-kit-es |
+| [mpfs-coreaxi4dma-stream](./driver-examples/fpga-ip/CoreAXI4DMAController/mpfs-coreaxi4dma-stream) | icicle-kit-es |
+| [mpfs-hal-coremark](./driver-examples/mss/mpfs-hal/mpfs-hal-coremark) | icicle-kit-es<br>mss-validation-board |
+| [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo) | aries-m100pfsevp<br>ddr-hs-base-board-ddr3<br>ddr-hs-base-board-ddr4<br>icicle-kit-es<br>icicle-kit-es-ddr-666MHz<br>iof-max-verification-board-lpddr3<br>mpfs-tp4100-666Hz<br>mpfs-tp4100-800Hz<br>mpfs-video-kit<br>peripheral-base-board-ddr-x16<br>peripheral-base-board-ddr-x32 |
+| [mpfs-hal-run-from-ddr-u54-1](./driver-examples/mss/mpfs-hal/mpfs-hal-run-from-ddr-u54-1) | icicle-kit-es |
+| [mpfs-hal-run-from-ddr-u54-1-u54-2](./driver-examples/mss/mpfs-hal/mpfs-hal-run-from-ddr-u54-1-u54-2) | icicle-kit-es |
+| [mpfs-hal-run-from-ddr-u54-2](./driver-examples/mss/mpfs-hal/mpfs-hal-run-from-ddr-u54-2) | icicle-kit-es |
+| [mpfs-hal-simple-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-simple-demo) | icicle-kit-es |
+| [mpfs-can-basic](./driver-examples/mss/mss-can/mpfs-can-basic) | icicle-kit-es |
+| [mpfs-can-external-loopback](./driver-examples/mss/mss-can/mpfs-can-external-loopback) | icicle-kit-es |
+| [mpfs-can-full](./driver-examples/mss/mss-can/mpfs-can-full) | icicle-kit-es |
+| [mpfs-mac-mcc-stack](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-mcc-stack) | icicle-kit-es |
+| [mpfs-mac-simple-test](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-simple-test) | icicle-kit-es |
+| [mpfs-mac-simple-test-multi](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-simple-test-multi) | icicle-kit-es |
+| [mpfs-mac-simple-test-multi-emac](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-simple-test-multi-emac) | icicle-kit-es |
+| [mpfs-uart-mac-freertos_lwip](./driver-examples/mss/mss-ethernet-mac/mpfs-uart-mac-freertos_lwip) | icicle-kit-es |
+| [mpfs-gpio-interrupt](./driver-examples/mss/mss-gpio/mpfs-gpio-interrupt) | icicle-kit-es<br>mpfs-discovery-kit |
+| [mpfs-i2c-master-slave](./driver-examples/mss/mss-i2c/mpfs-i2c-master-slave) | icicle-kit-es |
+| [mpfs-i2c-mcp7941x-rtc](./driver-examples/mss/mss-i2c/mpfs-i2c-mcp7941x-rtc) | icicle-kit-es |
+| [mpfs-i2c-pac1934-sensor](./driver-examples/mss/mss-i2c/mpfs-i2c-pac1934-sensor) | icicle-kit-es |
+| [mpfs-emmc-command-queue](./driver-examples/mss/mss-mmc/mpfs-emmc-command-queue) | icicle-kit-es |
+| [mpfs-emmc-fatfs](./driver-examples/mss/mss-mmc/mpfs-emmc-fatfs) | icicle-kit-es |
+| [mpfs-emmc-sd-write-read](./driver-examples/mss/mss-mmc/mpfs-emmc-sd-write-read) | icicle-kit-es |
+| [mpfs-mmuart-interrupt](./driver-examples/mss/mss-mmuart/mpfs-mmuart-interrupt) | icicle-kit-es<br>mpfs-discovery-kit |
+| [mpfs-pdma-read-write](./driver-examples/mss/mss-pdma/mpfs-pdma-read-write) | icicle-kit-es |
+| [mpfs-qspi-mt25q-flash](./driver-examples/mss/mss-qspi/mpfs-qspi-mt25q-flash) | icicle-kit-es |
+| [mpfs-qspi-w25n01gv-flash](./driver-examples/mss/mss-qspi/mpfs-qspi-w25n01gv-flash) | icicle-kit-es |
+| [mpfs-rtc-interrupt](./driver-examples/mss/mss-rtc/mpfs-rtc-interrupt) | icicle-kit-es |
+| [mpfs-rtc-time](./driver-examples/mss/mss-rtc/mpfs-rtc-time) | icicle-kit-es<br>mpfs-discovery-kit |
+| [mpfs-spi-flash](./driver-examples/mss/mss-spi/mpfs-spi-flash) | icicle-kit-es |
+| [mpfs-spi-master-slave](./driver-examples/mss/mss-spi/mpfs-spi-master-slave) | icicle-kit-es |
+| [mpfs-sys-serv-example](./driver-examples/mss/mss-sys-services/mpfs-sys-serv-example) | icicle-kit-es |
+| [mpfs-timer-example](./driver-examples/mss/mss-timer/mpfs-timer-example) | icicle-kit-es |
+| [mpfs-usb-device-hid](./driver-examples/mss/mss-usb/mpfs-usb-device-hid) | icicle-kit-es |
+| [mpfs-usb-device-msc](./driver-examples/mss/mss-usb/mpfs-usb-device-msc) | icicle-kit-es |
+| [mpfs-usb-device-uvc](./driver-examples/mss/mss-usb/mpfs-usb-device-uvc) | icicle-kit-es |
+| [mpfs-usb-host-hid](./driver-examples/mss/mss-usb/mpfs-usb-host-hid) | icicle-kit-es |
+| [mpfs-usb-host-msc](./driver-examples/mss/mss-usb/mpfs-usb-host-msc) | icicle-kit-es |
+| [mpfs-watchdog-interrupt](./driver-examples/mss/mss-watchdog/mpfs-watchdog-interrupt) | icicle-kit-es |
 
 <a name="Build-configurations"></a>
 ## Build configurations
