@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC MSS USB Driver Stack
- *      USB Core Interface Layer (USB-CIFL)
- *          USB-CIF driver
+ * @file mss_usb_common_cif.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
+ *          USB Core Interface Layer (USB-CIFL)
+ *            USB-CIF driver
  *
  * USB-CIF driver implementation:
  * This source file implements MSS USB Interrupt handler functions. This file
@@ -14,12 +16,9 @@
  *
  */
 
+#include "mpfs_hal/mss_hal.h"
 #include "mss_usb_common_cif.h"
-
-#include "hal/hal_assert.h"
 #include "mss_usb_common_reg_io.h"
-#include "mss_usb_core_regs.h"
-#include "mpfs_hal/mss_plic.h"
 
 #ifdef MSS_USB_HOST_ENABLED
 #include "mss_usb_host_cif.h"
@@ -134,6 +133,13 @@ uint8_t usb_mc_plic_IRQHandler
         if (usb_irq & RESUME_IRQ_MASK)
         {
             g_mss_usbd_cb.usbd_resume();
+            MSS_USB_CIF_set_index_reg(MSS_USB_CEP);
+            MSS_USB_CIF_enable_usbirq(DISCONNECT_IRQ_MASK | SUSPEND_IRQ_MASK);
+            cep_state = MSS_USB_CTRL_EP_IDLE;
+            MSS_USB_CIF_clr_usb_irq_reg();
+            MSS_USB_CIF_cep_clr_setupend();
+            MSS_USB_CIF_cep_clr_stall_sent();
+            g_mss_usbd_cb.usbd_reset();
         }
         if (usb_irq & SUSPEND_IRQ_MASK)
         {
@@ -278,7 +284,7 @@ MSS_USB_CIF_handle_cep_irq
                 }
                 else
                 {
-                    HAL_ASSERT(0);
+                    ASSERT(0);
                 }
             }
         }
@@ -489,7 +495,7 @@ MSS_USB_CIF_rx_ep_read_prepare
     if (DMA_ENABLE == dma_enable)
     {
         /* Make sure that address is Modulo-4.Bits D0-D1 are read only.*/
-        HAL_ASSERT(!(((uint32_t)buf_addr) & 0x00000002U));
+        ASSERT(!(((uint32_t)buf_addr) & 0x00000002U));
 
         MSS_USB_CIF_dma_write_addr(dma_channel, (uint32_t)buf_addr);
 
@@ -542,7 +548,7 @@ MSS_USB_CIF_ep_write_pkt
         if (DMA_ENABLE == dma_enable)
         {
             /* Make sure that address is Modulo-4.Bits D0-D1 are read only.*/
-            HAL_ASSERT(!(((uint32_t)buf_addr) & 0x00000002u));
+            ASSERT(!(((uint32_t)buf_addr) & 0x00000002u));
 
             MSS_USB_CIF_dma_write_addr(dma_channel,(uint32_t)(buf_addr));
 
@@ -651,7 +657,7 @@ MSS_USB_CIF_tx_ep_configure
     }
     else
     {
-        HAL_ASSERT(0);
+        ASSERT(0);
     }
 
     MSS_USB_CIF_tx_ep_set_max_pkt(core_ep->num,
@@ -727,7 +733,7 @@ MSS_USB_CIF_rx_ep_configure
     }
     else
     {
-        HAL_ASSERT(0);
+        ASSERT(0);
     }
 
     MSS_USB_CIF_rx_ep_set_max_pkt(core_ep->num,

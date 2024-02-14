@@ -1,9 +1,13 @@
- /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+/*******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Register bit offsets and masks definitions for PolarFire SoC MSS Timer
+ * @file mss_timer_regs.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Register bit offsets and masks definitions for PolarFire SoC
+ * Microprocessor Subsystem (MSS) Timer
+ *
  */
 
 #ifndef MSS_TIMER_REGS_H_
@@ -13,11 +17,11 @@
 extern "C" {
 #endif
 /*----------------------------------------------------------------------------*/
-/*--------------------------MPFS MSS Timer register map------------------------*/
+/*--------------------------MPFS MSS Timer register map-----------------------*/
 /*----------------------------------------------------------------------------*/
 typedef struct
 {
-	/*Timer 1 register declaration*/
+    /* Timer 1 register declaration */
     const volatile  uint32_t TIM1_VAL;
     volatile uint32_t TIM1_LOADVAL;
     volatile uint32_t TIM1_BGLOADVAL;
@@ -25,7 +29,7 @@ typedef struct
     volatile uint32_t TIM1_RIS;
     const volatile  uint32_t TIM1_MIS;
 
-    /*Timer 2 register declaration*/
+    /* Timer 2 register declaration */
     const volatile  uint32_t TIM2_VAL;
     volatile uint32_t TIM2_LOADVAL;
     volatile uint32_t TIM2_BGLOADVAL;
@@ -33,7 +37,7 @@ typedef struct
     volatile uint32_t TIM2_RIS;
     const volatile  uint32_t TIM2_MIS;
 
-    /*Timer 64 register declaration*/
+    /* Timer 64 register declaration */
     const volatile  uint32_t TIM64_VAL_U;
     const volatile  uint32_t TIM64_VAL_L;
     volatile uint32_t TIM64_LOADVAL_U;

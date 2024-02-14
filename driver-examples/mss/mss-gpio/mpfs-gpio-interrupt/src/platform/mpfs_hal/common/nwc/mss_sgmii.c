@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_sgmii.c
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief sgmii related functions
  *
  */
@@ -17,7 +12,6 @@
 #include <string.h>
 #include <stdio.h>
 #include "mpfs_hal/mss_hal.h"
-#include "simulation.h"
 
 #ifdef  MPFS_HAL_HW_CONFIG
 

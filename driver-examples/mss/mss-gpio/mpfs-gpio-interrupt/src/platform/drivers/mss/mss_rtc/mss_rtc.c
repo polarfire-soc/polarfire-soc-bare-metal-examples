@@ -1,10 +1,15 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PoalrFire SoC Microprocessor Subsystem RTC bare metal driver implementation.
+ * @file mss_rtc.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) RTC bare metal driver
+ * implementation.
+ *
  */
+
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #include "mss_rtc.h"
@@ -60,7 +65,7 @@ extern "C" {
  * RTC. This pointer is used by all the mss RTC driver function to carry out the
  * required functionality.
  */
-RTC_TypeDef *      mss_rtc;
+static RTC_TypeDef *      mss_rtc;
 
 static uint8_t
 get_clock_mode
@@ -235,7 +240,7 @@ MSS_RTC_set_calendar_count
         /* Wait for the upload to complete. */
         do {
             upload_in_progress = mss_rtc->CONTROL_REG & CONTROL_UPLOAD_MASK;
-        } while (upload_in_progress);
+        } while (0u != upload_in_progress);
     }
 }
 
@@ -279,7 +284,7 @@ MSS_RTC_set_binary_count
             /* Wait for the upload to complete. */
             do {
                 upload_in_progress = mss_rtc->CONTROL_REG & CONTROL_UPLOAD_MASK;
-            } while (upload_in_progress);
+            } while (0u != upload_in_progress);
         }
     }
 }
@@ -315,7 +320,7 @@ MSS_RTC_get_calendar_count
         /* Set returned calendar count to zero if the RTC is not configured for
          * calendar counter mode. This should make incorrect release application
          * code behave consistently and help application debugging. */
-        memset(p_rtc_calendar, 0, sizeof(mss_rtc_calender_t));
+        (void)memset(p_rtc_calendar, 0, sizeof(mss_rtc_calender_t));
     }
 }
 
@@ -447,7 +452,7 @@ set_rtc_mode
     {
         uint32_t rtc_running;
         rtc_running = mss_rtc->CONTROL_REG & CONTROL_RUNNING_MASK;
-        if (rtc_running)
+        if (1u == rtc_running)
         {
             /* Stop the RTC in order to change the mode register content. */
             MSS_RTC_stop();
@@ -538,8 +543,8 @@ MSS_RTC_stop
     /* Wait for RTC internal synchronization to take place and RTC to actually
      * stop. */
     do {
-        rtc_running =  mss_rtc->CONTROL_REG & CONTROL_RUNNING_MASK;
-    } while(rtc_running);
+        rtc_running = mss_rtc->CONTROL_REG & CONTROL_RUNNING_MASK;
+    } while(1u == rtc_running);
 }
 
 /*-------------------------------------------------------------------------*//**
@@ -558,7 +563,7 @@ MSS_RTC_reset_counter
     /* Wait for the upload to complete. */
     do {
         upload_in_progress = mss_rtc->CONTROL_REG & CONTROL_UPLOAD_MASK;
-    } while (upload_in_progress);
+    } while (0u != upload_in_progress);
 }
 
 /*-------------------------------------------------------------------------*//**

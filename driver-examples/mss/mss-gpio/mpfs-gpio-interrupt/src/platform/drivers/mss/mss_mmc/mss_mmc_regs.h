@@ -1,14 +1,17 @@
- /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+/*******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Register definitions of the PolarFire SoC MSS eMMC SD.
+ * @file mss_mmc_regs.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Register definitions of the PolarFire SoC Microprocessor Subsystem
+ * (MSS) eMMC SD.
  *
  */
 
-#ifndef __MSS_MMC_REGS_H_
-#define __MSS_MMC_REGS_H_
+#ifndef MSS_MMC_REGS_H_
+#define MSS_MMC_REGS_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -1216,4 +1219,4 @@ static inline uint32_t CQ_DESC_DCMD_SET_CMD_INDEX(uint32_t idx)
 }
 #endif
 
-#endif /* __MSS_MMC_REGS_H_ */
+#endif /* MSS_MMC_REGS_H_ */

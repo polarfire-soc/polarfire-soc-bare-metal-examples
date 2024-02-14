@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_nwc_init.c
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief north west corner, calls required startup code
  *
  */
@@ -18,7 +13,6 @@
 #include <stdio.h>
 #include "mpfs_hal/mss_hal.h"
 #include "mss_nwc_init.h"
-#include "simulation.h"
 
 #ifdef DEBUG_DDR_INIT
 #include "drivers/mss/mss_mmuart/mss_uart.h"
@@ -300,13 +294,11 @@ uint8_t mss_nwc_init(void)
      * The SGMII set-upset configures the external clock reference so this must
      * be called before configuring the MSS PLL
      */
-    SIM_FEEDBACK0(2);
     sgmii_setup();
 
     /*
      * Setup the MSS PLL
      */
-    SIM_FEEDBACK0(3);
     mss_pll_config();
 
     return error;

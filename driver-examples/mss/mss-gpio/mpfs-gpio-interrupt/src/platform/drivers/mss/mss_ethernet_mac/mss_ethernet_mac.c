@@ -1,42 +1,51 @@
 /*******************************************************************************
- * Copyright 2019 Microchip Corporation.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC 10/100/1000 Mbps Ethernet MAC bare metal software driver implementation.
+ * @file mss_ethernet_mac.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) 10/100/1000 Mbps Ethernet
+ * MAC bare metal software driver implementation.
  *
- * SVN $Revision$
- * SVN $Date$
  */
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
-#include "mpfs_hal/mss_plic.h"
-#include "mpfs_hal/mss_util.h"
-#include "mpfs_hal/mss_ints.h"
-#include "config/hardware/hw_platform.h"
+#include "mpfs_hal/mss_hal.h"
 
-#include "drivers/mss_mac/mss_ethernet_registers.h"
-#include "drivers/mss_mac/mss_ethernet_mac_regs.h"
-#include "drivers/mss_mac/mss_ethernet_mac_user_config.h"
+#if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
+#include "drivers/mss_gpio/mss_gpio.h"
+#endif
+
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_regs.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
 
 #if defined(USING_FREERTOS)
 #include "FreeRTOS.h"
 #endif
 
-#include "drivers/mss_mac/mss_ethernet_mac.h"
-#include "drivers/mss_mac/phy.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/phy.h"
 #include "hal/hal.h"
-#include "hal/hal_assert.h"
-#include "mpfs_hal/mss_sysreg.h"
-
-#if defined (TI_PHY)
-#include "mss_gpio.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#if (defined(MSS_MAC_VSC8662_NWC_25) || defined(MSS_MAC_VSC8662_NWC_125))
+
+extern PLL_TypeDef *MSS_SCB_MSS_PLL;
+extern  PLL_TypeDef *MSS_SCB_DDR_PLL;
+extern  PLL_TypeDef *MSS_SCB_SGMII_PLL;
+extern IOSCB_CFM_MSS *MSS_SCB_CFM_MSS_MUX;
+extern IOSCB_CFM_SGMII *MSS_SCB_CFM_SGMII_MUX;
+extern IOSCB_IO_CALIB_STRUCT *IOSCB_IO_CALIB_SGMII;
+extern  IOSCB_IO_CALIB_STRUCT *IOSCB_IO_CALIB_DDR;
+
 #endif
 
 /**************************************************************************/
@@ -143,15 +152,17 @@ static void config_mac_hw(mss_mac_instance_t *this_mac, const mss_mac_cfg_t * cf
 static void tx_desc_ring_init(mss_mac_instance_t *this_mac);
 static void rx_desc_ring_init(mss_mac_instance_t *this_mac);
 static void assign_station_addr(mss_mac_instance_t *this_mac, const uint8_t mac_addr[MSS_MAC_MAC_LEN]);
-static void generic_mac_irq_handler(mss_mac_instance_t *this_mac, uint32_t queue_no);
-static void rxpkt_handler(mss_mac_instance_t *this_mac, uint32_t queue_no);
-static void txpkt_handler(mss_mac_instance_t *this_mac, uint32_t queue_no);
+static void generic_mac_irq_handler(mss_mac_instance_t *this_mac, uint64_t queue_no);
+static void rxpkt_handler(mss_mac_instance_t *this_mac, uint64_t queue_no);
+static void txpkt_handler(mss_mac_instance_t *this_mac, uint64_t queue_no);
 static void update_mac_cfg(const mss_mac_instance_t *this_mac);
 static uint8_t probe_phy(const mss_mac_instance_t *this_mac);
 static void instances_init(mss_mac_instance_t *this_mac, mss_mac_cfg_t *cfg);
 
 static void msgmii_init(const mss_mac_instance_t *this_mac);
-static void msgmii_autonegotiate(const mss_mac_instance_t *this_mac);
+
+/* PMCS: Made non static for now for test program use... */
+void msgmii_autonegotiate(const mss_mac_instance_t *this_mac);
 
 /**************************************************************************/
 /* Public Functions                                                       */
@@ -167,16 +178,16 @@ MSS_MAC_init
 )
 {
     int32_t queue_no;
-    HAL_ASSERT(cfg != NULL_POINTER);
+    ASSERT(cfg != NULL_POINTER);
 #if defined(TARGET_ALOE)
-    HAL_ASSERT(this_mac == &g_mac0);
+    ASSERT(this_mac == &g_mac0);
 
     instances_init(this_mac, cfg);
     
     if((cfg != NULL_POINTER) && (this_mac == &g_mac0))
 #endif
 #if defined(TARGET_G5_SOC)
-    HAL_ASSERT((this_mac == &g_mac0) || (this_mac == &g_mac1) || (this_mac == &g_emac0) || (this_mac == &g_emac1));
+    ASSERT((this_mac == &g_mac0) || (this_mac == &g_mac1) || (this_mac == &g_emac0) || (this_mac == &g_emac1));
     instances_init(this_mac, cfg);
 
     /*
@@ -220,31 +231,62 @@ MSS_MAC_init
         SYSREG->SOFT_RESET_CR &= (uint32_t)~4U;
     }
 
-
-/* PMCS: for the Emulation platform we need to select the non default TSU clock
- * for the moment or TX won't work */
+    /*
+     * Disable all queues.
+     *
+     * In theory you only need to write 1UL to the queue pointers but in
+     * practice doing this results in spurious accesses to addresses in the
+     * lower 4K on the AXI bus when enabling a queue which can trigger hresp
+     * errors. To stop this we use real addresses with the lsb set instead.
+     */
+    if(0U == this_mac->is_emac)
+    {
+        *this_mac->queue[0].receive_q_ptr  = (uint32_t)((uint64_t)this_mac->queue[0].rx_desc_tab) | 1U;
+        *this_mac->queue[1].receive_q_ptr  = (uint32_t)((uint64_t)this_mac->queue[1].rx_desc_tab) | 1U;
+        *this_mac->queue[2].receive_q_ptr  = (uint32_t)((uint64_t)this_mac->queue[2].rx_desc_tab) | 1U;
+        *this_mac->queue[3].receive_q_ptr  = (uint32_t)((uint64_t)this_mac->queue[3].rx_desc_tab) | 1U;
+        *this_mac->queue[0].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[0].tx_desc_tab) | 1U;
+        *this_mac->queue[1].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[1].tx_desc_tab) | 1U;
+        *this_mac->queue[2].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[2].tx_desc_tab) | 1U;
+        *this_mac->queue[3].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[3].tx_desc_tab) | 1U;
+    }
+    else
+    {
+        *this_mac->queue[0].receive_q_ptr  = (uint32_t)((uint64_t)this_mac->queue[0].rx_desc_tab) | 1U;
+        *this_mac->queue[0].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[0].tx_desc_tab) | 1U;
+    }
 
     if(0U == this_mac->is_emac)
     {
-        this_mac->mac_base->USER_IO = 1U;
+        this_mac->mac_base->USER_IO = cfg->tsu_clock_select & 1U;
     }
 
     if((cfg != NULL_POINTER) && ((this_mac == &g_mac0) || (this_mac == &g_mac1) || (this_mac == &g_emac0) || (this_mac == &g_emac1)))
 #endif /* defined(TARGET_G5_SOC) */
     {
-        this_mac->phy_addr            = cfg->phy_addr;
-        this_mac->pcs_phy_addr        = cfg->pcs_phy_addr;
-        this_mac->interface_type      = cfg->interface_type;
-        this_mac->jumbo_frame_enable  = cfg->jumbo_frame_enable;
-        this_mac->phy_type            = cfg->phy_type;
-        this_mac->phy_autonegotiate   = cfg->phy_autonegotiate;
-        this_mac->phy_get_link_status = cfg->phy_get_link_status;
-        this_mac->phy_init            = cfg->phy_init;
-        this_mac->phy_set_link_speed  = cfg->phy_set_link_speed;
-        this_mac->append_CRC          = cfg->append_CRC;
+        this_mac->phy_addr              = cfg->phy_addr;
+        this_mac->pcs_phy_addr          = cfg->pcs_phy_addr;
+        this_mac->interface_type        = cfg->interface_type;
+        this_mac->jumbo_frame_enable    = cfg->jumbo_frame_enable;
+        this_mac->phy_type              = cfg->phy_type;
+        this_mac->phy_autonegotiate     = cfg->phy_autonegotiate;
+        this_mac->phy_mac_autonegotiate = cfg->phy_mac_autonegotiate;
+        this_mac->phy_get_link_status   = cfg->phy_get_link_status;
+        this_mac->phy_init              = cfg->phy_init;
+        this_mac->phy_set_link_speed    = cfg->phy_set_link_speed;
+        this_mac->append_CRC            = cfg->append_CRC;
+#if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
+        this_mac->phy_soft_reset_gpio   = cfg->phy_soft_reset_gpio;
+        this_mac->phy_soft_reset_pin    = cfg->phy_soft_reset_pin;
+        this_mac->phy_hard_reset_gpio   = cfg->phy_hard_reset_gpio;
+        this_mac->phy_hard_reset_pin    = cfg->phy_hard_reset_pin;
+#endif
+        this_mac->phy_controller        = cfg->phy_controller;
+        this_mac->speed_mode            = cfg->speed_mode;
+        this_mac->speed_duplex_select   = cfg->speed_duplex_select;
 #if MSS_MAC_USE_PHY_DP83867
-        this_mac->phy_extended_read   = cfg->phy_extended_read;
-        this_mac->phy_extended_write  = cfg->phy_extended_write;
+        this_mac->phy_extended_read     = cfg->phy_extended_read;
+        this_mac->phy_extended_write    = cfg->phy_extended_write;
 #endif
 
 #if defined(TARGET_G5_SOC)
@@ -307,13 +349,15 @@ MSS_MAC_init
             this_mac->queue[queue_no].pckt_tx_callback        = (mss_mac_transmit_callback_t)NULL_POINTER;
             this_mac->queue[queue_no].pckt_rx_callback        = (mss_mac_receive_callback_t)NULL_POINTER;
 
-            /* Added these to MAC structure to make them MAC specific... */
+            /* Added these to MAC structure to make them MAC and queue specific... */
 
             this_mac->queue[queue_no].ingress     = 0U;
             this_mac->queue[queue_no].egress      = 0U;
             this_mac->queue[queue_no].rx_overflow = 0U;
             this_mac->queue[queue_no].hresp_error = 0U;
             this_mac->queue[queue_no].rx_restart  = 0U;
+            this_mac->queue[queue_no].tx_restart  = 0U;
+            this_mac->queue[queue_no].tx_reenable = 0U;
         }
 #if 0        
         /* Initialize PHY interface */
@@ -332,8 +376,27 @@ MSS_MAC_init
             this_mac->phy_addr = 0U;
 #endif
 
-            this_mac->phy_init(this_mac, 0U);
-            this_mac->phy_set_link_speed(this_mac, cfg->speed_duplex_select);
+            this_mac->phy_init(this_mac, (uint8_t)this_mac->phy_addr);
+
+#if (defined(MSS_MAC_VSC8662_NWC_25) || defined(MSS_MAC_VSC8662_NWC_125))
+            /* 0U => configure using scb, 1U => NVMAP reset */
+                pre_configure_sgmii_and_ddr_pll_via_scb(1U);
+            {
+                volatile uint32_t timer_out=0x00000FFFU;
+                while(((MSS_SCB_SGMII_PLL->PLL_CTRL & ((0x01U) << 25U))) == 0U)
+                {
+                #ifdef RENODE_DEBUG
+                    break;
+                #endif
+                    if (timer_out == 0U)
+                    {
+                        timer_out--;
+                    }
+                }
+            }
+
+#endif
+            this_mac->phy_set_link_speed(this_mac, this_mac->speed_duplex_select, this_mac->speed_mode);
             this_mac->phy_autonegotiate(this_mac);
 
             if(TBI == this_mac->interface_type)
@@ -357,6 +420,10 @@ MSS_MAC_init
         {
             this_mac->emac_base->INT_ENABLE = GEM_RECEIVE_OVERRUN_INT | GEM_TRANSMIT_COMPLETE |
                                               GEM_RX_USED_BIT_READ | GEM_RECEIVE_COMPLETE | GEM_RESP_NOT_OK_INT;
+
+            this_mac->emac_base->NETWORK_CONTROL |= GEM_ENABLE_TRANSMIT;
+            this_mac->emac_base->NETWORK_CONTROL |= GEM_TRANSMIT_START;
+
         }
         else
         {
@@ -368,7 +435,7 @@ MSS_MAC_init
                     *this_mac->queue[queue_no].int_enable = GEM_RECEIVE_OVERRUN_INT | GEM_TRANSMIT_COMPLETE |
                             GEM_RX_USED_BIT_READ | GEM_RECEIVE_COMPLETE | GEM_RESP_NOT_OK_INT |
                             GEM_PAUSE_FRAME_TRANSMITTED | GEM_PAUSE_TIME_ELAPSED |
-                            GEM_PAUSE_FRAME_WITH_NON_0_PAUSE_QUANTUM_RX;
+                            GEM_PAUSE_FRAME_WITH_NON_0_PAUSE_QUANTUM_RX | GEM_AMBA_ERROR;
                 }
                 else
                 {
@@ -376,7 +443,7 @@ MSS_MAC_init
                             GEM_RX_USED_BIT_READ | GEM_RECEIVE_COMPLETE | GEM_RESP_NOT_OK_INT;
                 }
 
-#if 1 /* PMCS - set this to 0 if you want to check for un-handled interrupt conditions */
+#if 0 /* PMCS - set this to 1 if you want to check for un-handled interrupt conditions */
                 *this_mac->queue[queue_no].int_enable |= GEM_PAUSE_FRAME_TRANSMITTED | GEM_PAUSE_TIME_ELAPSED |
                         GEM_PAUSE_FRAME_WITH_NON_0_PAUSE_QUANTUM_RX | GEM_LINK_CHANGE |
                         GEM_TX_LOCKUP_DETECTED | GEM_RX_LOCKUP_DETECTED |
@@ -384,6 +451,9 @@ MSS_MAC_init
                         GEM_TRANSMIT_UNDER_RUN;
 #endif
             }
+
+            this_mac->mac_base->NETWORK_CONTROL |= GEM_ENABLE_TRANSMIT;
+            this_mac->mac_base->NETWORK_CONTROL |= GEM_TRANSMIT_START;
         }
 
         /*
@@ -407,7 +477,7 @@ MSS_MAC_update_hw_address
     const mss_mac_cfg_t * cfg
 )
 {
-    HAL_ASSERT(cfg != NULL_POINTER);
+    ASSERT(cfg != NULL_POINTER);
 
     if(MSS_MAC_AVAILABLE == this_mac->mac_available)
     {
@@ -423,6 +493,12 @@ MSS_MAC_update_hw_address
 /******************************************************************************
  * 
  */
+#if defined(DEBUG_SPEED_CHANGE)
+mac_speed_info_t mac_speed_history[MAX_SPEED_HISTORY];
+uint32_t mac_speed_history_count = 0;
+#endif
+
+
 static void update_mac_cfg(const mss_mac_instance_t *this_mac)
 {
     mss_mac_speed_t speed;
@@ -431,7 +507,15 @@ static void update_mac_cfg(const mss_mac_instance_t *this_mac)
     uint32_t temp_cr;
     
     link_up = this_mac->phy_get_link_status(this_mac, &speed, &fullduplex);
-
+#if defined(DEBUG_SPEED_CHANGE)
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].time_stamp = g_tick_counter;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].mac_ref    = this_mac;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].speed      = speed;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].location   = 0;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].link_state = link_up;
+    mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].duplex     = fullduplex;
+    mac_speed_history_count++;
+#endif
     if(link_up != MSS_MAC_LINK_DOWN)
     {
         if(0U != this_mac->is_emac)
@@ -492,6 +576,11 @@ static void update_mac_cfg(const mss_mac_instance_t *this_mac)
 /******************************************************************************
  * See mss_ethernet_mac.h for details of how to use this function.
  */
+static mss_mac_speed_t previous_speed_0 = INVALID_SPEED;
+static mss_mac_speed_t previous_speed_1 = INVALID_SPEED;
+static uint8_t previous_duplex_0 = 0xAAU;
+static uint8_t previous_duplex_1 = 0xAAU;
+
 uint8_t MSS_MAC_get_link_status
 (
     const mss_mac_instance_t *this_mac,
@@ -499,27 +588,55 @@ uint8_t MSS_MAC_get_link_status
     uint8_t *     fullduplex
 )
 {
-    /* Todo: These statics will only work for the single MAC Aloe case... */
-    static mss_mac_speed_t previous_speed = INVALID_SPEED;
-    static uint8_t previous_duplex = 0xAAU;
     mss_mac_speed_t link_speed;
     uint8_t link_fullduplex;
     uint8_t link_up;
+    mss_mac_speed_t *previous_speed;
+    uint8_t *previous_duplex;
+
+    if((this_mac == &g_mac0) || (this_mac == &g_emac0))
+    {
+        previous_speed  = &previous_speed_0;
+        previous_duplex = &previous_duplex_0;
+    }
+    else
+    {
+        previous_speed  = &previous_speed_1;
+        previous_duplex = &previous_duplex_1;
+    }
     
     link_up = MSS_MAC_LINK_DOWN; /* Default condition in case we are not active yet */
     
     if(MSS_MAC_AVAILABLE == this_mac->mac_available)
     {
         link_up = this_mac->phy_get_link_status(this_mac, &link_speed, &link_fullduplex);
+#if defined(DEBUG_SPEED_CHANGE)
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].time_stamp = g_tick_counter;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].mac_ref    = this_mac;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].speed      = link_speed;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].location   = 1;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].link_state = link_up;
+        mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].duplex     = link_fullduplex;
+        mac_speed_history_count++;
+#endif
 
         if(link_up != MSS_MAC_LINK_DOWN)
         {
             /*----------------------------------------------------------------------
              * Update MAC configuration if link characteristics changed.
              */
-            if((link_speed != previous_speed) || (link_fullduplex != previous_duplex))
+            if((link_speed != *previous_speed) || (link_fullduplex != *previous_duplex))
             {
                 uint32_t temp_cr;
+#if defined(DEBUG_SPEED_CHANGE)
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].time_stamp = g_tick_counter;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].mac_ref    = this_mac;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].speed      = link_speed;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].location   = 2;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].link_state = link_up;
+                mac_speed_history[mac_speed_history_count % MAX_SPEED_HISTORY].duplex     = link_fullduplex;
+                mac_speed_history_count++;
+#endif
 
                 if(0U != this_mac->is_emac)
                 {
@@ -574,8 +691,8 @@ uint8_t MSS_MAC_get_link_status
                 }
             }
 
-            previous_speed = link_speed;
-            previous_duplex = link_fullduplex;
+            *previous_speed = link_speed;
+            *previous_duplex = link_fullduplex;
             
             /*----------------------------------------------------------------------
              * Return current link speed and duplex mode.
@@ -670,55 +787,70 @@ MSS_MAC_cfg_struct_def_init
     mss_mac_cfg_t * cfg
 )
 {
-    HAL_ASSERT(NULL_POINTER != cfg);
+    ASSERT(NULL_POINTER != cfg);
     if(NULL_POINTER != cfg)
     {
         (void)memset(cfg, 0, sizeof(mss_mac_cfg_t)); /* Start with clean slate */
 
-        cfg->speed_duplex_select = MSS_MAC_ANEG_ALL_SPEEDS;
+        cfg->speed_duplex_select   = MSS_MAC_ANEG_ALL_SPEEDS;
+        cfg->speed_mode            = MSS_MAC_SPEED_AN;
 #if defined(TARGET_ALOE)
-        cfg->phy_addr            = 0U;
+        cfg->phy_addr              = 0U;
 #endif
-#if defined(TARGET_G5_SOC)
-        cfg->phy_addr            = PHY_NULL_MDIO_ADDR;
+#if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
+        cfg->phy_addr              = PHY_NULL_MDIO_ADDR;
+        cfg->phy_soft_reset_gpio   = (GPIO_TypeDef *)0UL;
+        cfg->phy_soft_reset_pin    = MSS_GPIO_0;
+        cfg->phy_hard_reset_gpio   = (GPIO_TypeDef *)0UL;
+        cfg->phy_hard_reset_pin    = MSS_GPIO_0;
 #endif
-        cfg->tx_edc_enable       = MSS_MAC_ERR_DET_CORR_DISABLE;
-        cfg->rx_edc_enable       = MSS_MAC_ERR_DET_CORR_DISABLE;
-        cfg->jumbo_frame_enable  = MSS_MAC_JUMBO_FRAME_DISABLE;
-        cfg->jumbo_frame_default = MSS_MAC_MAX_PACKET_SIZE;
-        cfg->length_field_check  = MSS_MAC_LENGTH_FIELD_CHECK_ENABLE;
-        cfg->append_CRC          = MSS_MAC_CRC_ENABLE;
-        cfg->loopback            = MSS_MAC_LOOPBACK_DISABLE;
-        cfg->rx_flow_ctrl        = MSS_MAC_RX_FLOW_CTRL_ENABLE;
-        cfg->tx_flow_ctrl        = MSS_MAC_TX_FLOW_CTRL_ENABLE;
-        cfg->ipg_multiplier      = MSS_MAC_IPG_DEFVAL;
-        cfg->ipg_divisor         = MSS_MAC_IPG_DEFVAL;
-        cfg->phyclk              = MSS_MAC_DEF_PHY_CLK;
-        cfg->mac_addr[0]         = 0x00U;
-        cfg->mac_addr[1]         = 0x00U;
-        cfg->mac_addr[2]         = 0x00U;
-        cfg->mac_addr[3]         = 0x00U;
-        cfg->mac_addr[4]         = 0x00U;
-        cfg->mac_addr[5]         = 0x00U;
-        cfg->queue_enable[0]     = MSS_MAC_QUEUE_DISABLE;
-        cfg->queue_enable[1]     = MSS_MAC_QUEUE_DISABLE;
-        cfg->queue_enable[2]     = MSS_MAC_QUEUE_DISABLE;
-        cfg->phy_type            = MSS_MAC_DEV_PHY_NULL;
-        cfg->interface_type      = NULL_PHY;
-        cfg->phy_autonegotiate   = MSS_MAC_NULL_phy_autonegotiate;
-        cfg->phy_get_link_status = MSS_MAC_NULL_phy_get_link_status;
-        cfg->phy_init            = MSS_MAC_NULL_phy_init;
-        cfg->phy_set_link_speed  = MSS_MAC_NULL_phy_set_link_speed;
-        cfg->use_hi_address      = MSS_MAC_DISABLE;
-        cfg->use_local_ints      = MSS_MAC_DISABLE;
-        cfg->queue0_int_priority = 7U; /* Give them highest priority by default */
-        cfg->queue1_int_priority = 7U;
-        cfg->queue2_int_priority = 7U;
-        cfg->queue3_int_priority = 7U;
-        cfg->mmsl_int_priority   = 7U;
+        cfg->phy_controller        = (mss_mac_instance_t *)0UL;
+        cfg->tx_edc_enable         = MSS_MAC_ERR_DET_CORR_DISABLE;
+        cfg->rx_edc_enable         = MSS_MAC_ERR_DET_CORR_DISABLE;
+        cfg->jumbo_frame_enable    = MSS_MAC_JUMBO_FRAME_DISABLE;
+        cfg->jumbo_frame_default   = MSS_MAC_MAX_PACKET_SIZE;
+        cfg->length_field_check    = MSS_MAC_LENGTH_FIELD_CHECK_ENABLE;
+        cfg->append_CRC            = MSS_MAC_CRC_ENABLE;
+        cfg->loopback              = MSS_MAC_LOOPBACK_DISABLE;
+        cfg->rx_flow_ctrl          = MSS_MAC_RX_FLOW_CTRL_ENABLE;
+        cfg->tx_flow_ctrl          = MSS_MAC_TX_FLOW_CTRL_ENABLE;
+        cfg->ipg_multiplier        = MSS_MAC_IPG_DEFVAL;
+        cfg->ipg_divisor           = MSS_MAC_IPG_DEFVAL;
+        cfg->phyclk                = MSS_MAC_DEF_PHY_CLK;
+        cfg->mac_addr[0]           = 0x00U;
+        cfg->mac_addr[1]           = 0x00U;
+        cfg->mac_addr[2]           = 0x00U;
+        cfg->mac_addr[3]           = 0x00U;
+        cfg->mac_addr[4]           = 0x00U;
+        cfg->mac_addr[5]           = 0x00U;
+        cfg->queue_enable[0]       = MSS_MAC_QUEUE_DISABLE;
+        cfg->queue_enable[1]       = MSS_MAC_QUEUE_DISABLE;
+        cfg->queue_enable[2]       = MSS_MAC_QUEUE_DISABLE;
+        cfg->queue_enable[3]       = MSS_MAC_QUEUE_DISABLE;
+        cfg->phy_type              = MSS_MAC_DEV_PHY_NULL;
+        cfg->interface_type        = NULL_PHY;
+        cfg->phy_autonegotiate     = MSS_MAC_NULL_phy_autonegotiate;
+        cfg->phy_mac_autonegotiate = MSS_MAC_NULL_phy_mac_autonegotiate;
+        cfg->phy_get_link_status   = MSS_MAC_NULL_phy_get_link_status;
+        cfg->phy_init              = MSS_MAC_NULL_phy_init;
+        cfg->phy_set_link_speed    = MSS_MAC_NULL_phy_set_link_speed;
+        cfg->use_hi_address        = MSS_MAC_DISABLE;
+        cfg->use_local_ints        = MSS_MAC_DISABLE;
+        cfg->queue0_int_priority   = 7U; /* Give them highest priority by default */
+        cfg->queue1_int_priority   = 7U;
+        cfg->queue2_int_priority   = 7U;
+        cfg->queue3_int_priority   = 7U;
+        cfg->mmsl_int_priority     = 7U;
+        /*
+         * PMCS: Note for the Emulation platform we need to select the non
+         * default TSU clock the moment or TX won't work
+         */
+        cfg->tsu_clock_select      = 0U;
+        cfg->amba_burst_length     = MSS_MAC_AMBA_BURST_16;
+
 #if MSS_MAC_USE_PHY_DP83867
-        cfg->phy_extended_read   = NULL_ti_read_extended_regs;
-        cfg->phy_extended_write  = NULL_ti_write_extended_regs;
+        cfg->phy_extended_read     = NULL_ti_read_extended_regs;
+        cfg->phy_extended_write    = NULL_ti_write_extended_regs;
 #endif
     }
 }
@@ -944,18 +1076,18 @@ static void config_mac_hw(mss_mac_instance_t *this_mac, const mss_mac_cfg_t * cf
 {
     uint32_t temp_net_config = 0U;
     uint32_t temp_net_control = 0U;
+    uint32_t temp_dma_config = 0U;
     uint32_t temp_length;
     
     /* Check for validity of configuration parameters */
-    HAL_ASSERT( IS_STATE(cfg->tx_edc_enable) );
-    HAL_ASSERT( IS_STATE(cfg->rx_edc_enable) );
-    HAL_ASSERT( MSS_MAC_PREAMLEN_MAXVAL >= cfg->preamble_length );
-    HAL_ASSERT( IS_STATE(cfg->jumbo_frame_enable) );
-    HAL_ASSERT( IS_STATE(cfg->length_field_check) );
-    HAL_ASSERT( IS_STATE(cfg->append_CRC) );
-    HAL_ASSERT( IS_STATE(cfg->loopback) );
-    HAL_ASSERT( IS_STATE(cfg->rx_flow_ctrl) );
-    HAL_ASSERT( IS_STATE(cfg->tx_flow_ctrl) );
+    ASSERT( IS_STATE(cfg->tx_edc_enable) );
+    ASSERT( IS_STATE(cfg->rx_edc_enable) );
+    ASSERT( IS_STATE(cfg->jumbo_frame_enable) );
+    ASSERT( IS_STATE(cfg->length_field_check) );
+    ASSERT( IS_STATE(cfg->append_CRC) );
+    ASSERT( IS_STATE(cfg->loopback) );
+    ASSERT( IS_STATE(cfg->rx_flow_ctrl) );
+    ASSERT( IS_STATE(cfg->tx_flow_ctrl) );
     
 #if defined(TARGET_ALOE)
     config_mac_pll_and_reset();
@@ -963,7 +1095,8 @@ static void config_mac_hw(mss_mac_instance_t *this_mac, const mss_mac_cfg_t * cf
     /*--------------------------------------------------------------------------
      * Configure MAC Network Control register
      */
-    temp_net_control = GEM_MAN_PORT_EN | GEM_CLEAR_ALL_STATS_REGS | GEM_PFC_ENABLE;
+/*    temp_net_control = GEM_MAN_PORT_EN | GEM_CLEAR_ALL_STATS_REGS | GEM_PFC_ENABLE; */
+    temp_net_control = GEM_MAN_PORT_EN | GEM_CLEAR_ALL_STATS_REGS | GEM_PFC_ENABLE | GEM_ALT_SGMII_MODE;
 #if 0
     temp_net_control |= GEM_LOOPBACK_LOCAL; /* PMCS: Enable this to force local loop back */
 #endif
@@ -1063,37 +1196,38 @@ static void config_mac_hw(mss_mac_instance_t *this_mac, const mss_mac_cfg_t * cf
     /*--------------------------------------------------------------------------
      * Configure MAC Network DMA Config register
      */
-    if(0U != this_mac->is_emac)
-    {
-#if defined(MSS_MAC_TIME_STAMPED_MODE)
-        this_mac->emac_base->DMA_CONFIG = GEM_DMA_ADDR_BUS_WIDTH_1 | (MSS_MAC_RX_BUF_VALUE << GEM_RX_BUF_SIZE_SHIFT) |
-                                         GEM_TX_PBUF_SIZE | (((uint32_t)(0x3UL)) << GEM_RX_PBUF_SIZE_SHIFT) | ((uint32_t)(16UL)) |
-                                         GEM_TX_BD_EXTENDED_MODE_EN | GEM_RX_BD_EXTENDED_MODE_EN;
 
+    temp_dma_config =  (MSS_MAC_RX_BUF_VALUE << GEM_RX_BUF_SIZE_SHIFT) |
+                       GEM_TX_PBUF_SIZE |
+                       (((uint32_t)(0x3UL)) << GEM_RX_PBUF_SIZE_SHIFT) |
+                       ((uint32_t)(cfg->amba_burst_length & MSS_MAC_AMBA_BURST_MASK));
+
+#if defined(MSS_MAC_TIME_STAMPED_MODE)
+    temp_dma_config |= GEM_TX_BD_EXTENDED_MODE_EN | GEM_RX_BD_EXTENDED_MODE_EN;
+#endif
+
+#if defined(MSS_MAC_64_BIT_ADDRESS_MODE)
+    temp_dma_config |= GEM_DMA_ADDR_BUS_WIDTH_1;
+#endif
+
+if(0U != this_mac->is_emac)
+    {
+    this_mac->emac_base->DMA_CONFIG = temp_dma_config;
+
+#if defined(MSS_MAC_TIME_STAMPED_MODE)
         /* Record TS for all packets by default */
         this_mac->emac_base->TX_BD_CONTROL = GEM_BD_TS_MODE;
         this_mac->emac_base->RX_BD_CONTROL = GEM_BD_TS_MODE;
-#else
-        this_mac->emac_base->DMA_CONFIG = GEM_DMA_ADDR_BUS_WIDTH_1 | (MSS_MAC_RX_BUF_VALUE << GEM_RX_BUF_SIZE_SHIFT) |
-                                         GEM_TX_PBUF_SIZE | (((uint32_t)(0x3UL)) << GEM_RX_PBUF_SIZE_SHIFT) | ((uint32_t)(16UL));
-
 #endif
     }
     else
     {
         int32_t queue_index;
-
+        this_mac->mac_base->DMA_CONFIG = temp_dma_config;
 #if defined(MSS_MAC_TIME_STAMPED_MODE)
-        this_mac->mac_base->DMA_CONFIG = GEM_DMA_ADDR_BUS_WIDTH_1 |  (MSS_MAC_RX_BUF_VALUE << GEM_RX_BUF_SIZE_SHIFT) |
-                                         GEM_TX_PBUF_SIZE | (((uint32_t)(0x3UL)) << GEM_RX_PBUF_SIZE_SHIFT) | ((uint32_t)(16UL)) |
-                                         GEM_TX_BD_EXTENDED_MODE_EN | GEM_RX_BD_EXTENDED_MODE_EN;
-
         /* Record TS for all packets by default */
         this_mac->mac_base->TX_BD_CONTROL = GEM_BD_TS_MODE;
         this_mac->mac_base->RX_BD_CONTROL = GEM_BD_TS_MODE;
-#else
-        this_mac->mac_base->DMA_CONFIG  = GEM_DMA_ADDR_BUS_WIDTH_1 |  (MSS_MAC_RX_BUF_VALUE << GEM_RX_BUF_SIZE_SHIFT) |
-                                         GEM_TX_PBUF_SIZE | (((uint32_t)(0x3UL)) << GEM_RX_PBUF_SIZE_SHIFT) | (uint32_t)(16UL);
 #endif
 #if (MSS_MAC_QUEUE_COUNT > 1)
         for(queue_index = 1; queue_index < MSS_MAC_QUEUE_COUNT; queue_index++)
@@ -1166,7 +1300,7 @@ static void config_mac_hw(mss_mac_instance_t *this_mac, const mss_mac_cfg_t * cf
 void
 MSS_MAC_write_phy_reg
 (
-    const mss_mac_instance_t *this_mac, 
+    const mss_mac_instance_t *this_mac_in,
     uint8_t phyaddr,
     uint8_t regaddr,
     uint16_t regval
@@ -1174,9 +1308,21 @@ MSS_MAC_write_phy_reg
 {
     volatile uint32_t phy_op;
     psr_t lev;
+    const mss_mac_instance_t *this_mac;
 
-    HAL_ASSERT(MSS_MAC_PHYADDR_MAXVAL >= phyaddr);
-    HAL_ASSERT(MSS_MAC_PHYREGADDR_MAXVAL >= regaddr);
+    ASSERT(MSS_MAC_PHYADDR_MAXVAL >= phyaddr);
+    ASSERT(MSS_MAC_PHYREGADDR_MAXVAL >= regaddr);
+
+    /* Check to see which MAC is actually in charge of PHY interface */
+    if((struct mss_mac_instance *)0UL != this_mac_in->phy_controller)
+    {
+        this_mac = (const mss_mac_instance_t *)this_mac_in->phy_controller;
+    }
+    else
+    {
+        this_mac = this_mac_in;
+    }
+
     /* 
      * Write PHY address in MII Mgmt address register.
      * Makes previous register address 0 & invalid.
@@ -1209,22 +1355,36 @@ MSS_MAC_write_phy_reg
 }
 
 
+
+
 /******************************************************************************
  * See mss_ethernet_mac.h for details of how to use this function.
  */
 uint16_t
 MSS_MAC_read_phy_reg
 (
-    const mss_mac_instance_t *this_mac, 
+    const mss_mac_instance_t *this_mac_in,
     uint8_t phyaddr,
     uint8_t regaddr
 )
 {
     volatile uint32_t phy_op;
     psr_t lev;
+    const mss_mac_instance_t *this_mac;
 
-    HAL_ASSERT(MSS_MAC_PHYADDR_MAXVAL >= phyaddr);
-    HAL_ASSERT(MSS_MAC_PHYREGADDR_MAXVAL >= regaddr);
+    ASSERT(MSS_MAC_PHYADDR_MAXVAL >= phyaddr);
+    ASSERT(MSS_MAC_PHYREGADDR_MAXVAL >= regaddr);
+
+    /* Check to see which MAC is actually in charge of PHY interface */
+    if((struct mss_mac_instance *)0UL != this_mac_in->phy_controller)
+    {
+        this_mac = (const mss_mac_instance_t *)this_mac_in->phy_controller;
+    }
+    else
+    {
+        this_mac = this_mac_in;
+    }
+
     /* 
      * Write PHY address in MII Mgmt address register.
      * Makes previous register address 0 & invalid.
@@ -1268,6 +1428,51 @@ MSS_MAC_read_phy_reg
     }
 
     return((uint16_t)phy_op);
+}
+
+
+/******************************************************************************
+ * See mss_ethernet_mac.h for details of how to use this function.
+ */
+void
+MSS_MAC_phy_reset
+(
+    const mss_mac_instance_t *this_mac,
+    mss_mac_phy_reset_t reset_type,
+    bool     reset_state
+)
+{
+#if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
+    /* Reset pointer to base MAC structure */
+    if(&g_emac0 == this_mac)
+    {
+        this_mac = &g_mac0;
+    }
+
+    if(&g_emac1 == this_mac)
+    {
+        this_mac = &g_mac1;
+    }
+
+    if(MSS_MAC_SOFT_RESET == reset_type)
+    {
+        if((GPIO_TypeDef *)0UL != this_mac->phy_soft_reset_gpio)
+        {
+            MSS_GPIO_set_output(this_mac->phy_soft_reset_gpio, this_mac->phy_soft_reset_pin, reset_state);
+        }
+    }
+    else
+    {
+        if((GPIO_TypeDef *)0UL != this_mac->phy_hard_reset_gpio)
+        {
+            MSS_GPIO_set_output(this_mac->phy_hard_reset_gpio, this_mac->phy_hard_reset_pin, reset_state);
+        }
+    }
+#else
+    (void)this_mac;
+    (void)reset_type;
+    (void)reset_state;
+#endif
 }
 
 
@@ -1405,8 +1610,8 @@ MSS_MAC_receive_pkt
             }
         }
 
-        HAL_ASSERT(NULL_POINTER != rx_pkt_buffer);
-        HAL_ASSERT(IS_WORD_ALIGNED(rx_pkt_buffer));
+        ASSERT(NULL_POINTER != rx_pkt_buffer);
+        ASSERT(IS_WORD_ALIGNED(rx_pkt_buffer));
         
         if(this_mac->queue[queue_no].nb_available_rx_desc > 0U)
         {
@@ -1486,11 +1691,11 @@ MSS_MAC_receive_pkt
                     
                     if(0U != this_mac->is_emac)
                     {
-                        temp_cr = this_mac->emac_base->NETWORK_CONFIG;
+                        temp_cr = this_mac->emac_base->NETWORK_CONTROL;
                     }
                     else
                     {
-                        temp_cr = this_mac->mac_base->NETWORK_CONFIG;
+                        temp_cr = this_mac->mac_base->NETWORK_CONTROL;
                     }
                     if(0U == (temp_cr & GEM_ENABLE_RECEIVE))
                     {
@@ -1534,11 +1739,36 @@ MSS_MAC_receive_pkt
     return status;
 }
 
+#if defined(MSS_MAC_UNH_TEST)
+/******************************************************************************
+ * We take a lot of short cuts here as we "know" we are called from ISR and
+ * are only supposed to be called for pMAC queue 0, we assume the packet buffer
+ * for this descriptor has not changed,  we ignore caller_info etc...
+ */
+void
+MSS_MAC_receive_pkt_isr
+(
+    mss_mac_instance_t *this_mac
+)
+{
+    mss_mac_queue_t *p_queue = &this_mac->queue[0];
+
+    --p_queue->nb_available_rx_desc;
+
+    /* clear used bit and time stamp present bit */
+    p_queue->rx_desc_tab[p_queue->next_free_rx_desc_index].addr_low &= 0xFFFFFFFA;
+
+    /* Point the next_rx_desc to next free descriptor in the ring */
+    /* Wrap around in case next descriptor is pointing to last in the ring */
+    ++p_queue->next_free_rx_desc_index;
+    p_queue->next_free_rx_desc_index %= MSS_MAC_RX_RING_SIZE;
+}
+#endif
 
 /*******************************************************************************
  * See mss_ethernet_mac.h for details of how to use this function.
  */
-uint8_t 
+int32_t
 MSS_MAC_send_pkt
 (
     mss_mac_instance_t *this_mac,
@@ -1553,6 +1783,9 @@ MSS_MAC_send_pkt
      * 
      * 1. The TX DMA buffer size is big enough to contain a full packet.
      * 2. We will only transmit one packet at a time.
+     * 3. We wait for any outstanding transmits on other queues to complete
+     *    because we need to ALWAYS write to the queue 0 pointer to trigger
+     *    internal restart of the DMA process.
      *
      * We do transmission by using two buffer descriptors. The first contains the
      * packet to transmit and the second is a dummy one with the USED bit set. This
@@ -1561,13 +1794,17 @@ MSS_MAC_send_pkt
      * to juggle buffer positions or worry about wrap.
      */
     uint32_t tx_length = length;
-    uint8_t status = MSS_MAC_FAILED;
-    /* Hack for system testing. If b31 of the tx_length is 1 then we want to
+    int32_t status = MSS_MAC_ERR_NOT_DONE;
+    /*
+     *  Hack for system testing. If b31 of the tx_length is 1 then we want to
      * send without a CRC appended. This is used for loopback testing where we
      * can get the GEM to receive packets with CRC appended and send them
      * straight back.
-     * */
+     */
     int32_t no_crc = 0;
+    volatile int delay;
+    volatile uint32_t *p_nw_control;
+    volatile uint32_t *p_tx_status;
 
     if(MSS_MAC_AVAILABLE == this_mac->mac_available)
     {
@@ -1599,16 +1836,52 @@ MSS_MAC_send_pkt
             }
         }
 
-        HAL_ASSERT(NULL_POINTER != tx_buffer);
-        HAL_ASSERT(0U != tx_length);
-        HAL_ASSERT(IS_WORD_ALIGNED(tx_buffer));
-        
+        ASSERT(NULL_POINTER != tx_buffer);
+        ASSERT(0U != tx_length);
+        ASSERT(IS_WORD_ALIGNED(tx_buffer));
+
+        /* We use these a lot and this cuts down on conditional code later on */
+        if(0U != this_mac->is_emac)
+        {
+            p_nw_control = &this_mac->emac_base->NETWORK_CONTROL;
+            p_tx_status  = &this_mac->emac_base->TRANSMIT_STATUS;
+        }
+        else
+        {
+            p_nw_control = &this_mac->mac_base->NETWORK_CONTROL;
+            p_tx_status  = &this_mac->mac_base->TRANSMIT_STATUS;
+        }
+
 #if defined(MSS_MAC_SIMPLE_TX_QUEUE)
         if(this_mac->queue[queue_no].nb_available_tx_desc == (uint32_t)MSS_MAC_TX_RING_SIZE)
         {
-            this_mac->queue[queue_no].nb_available_tx_desc    = 0U;
+            /* Queue is fully available for transmit so clear retry count */
+            this_mac->queue[queue_no].tries = 0UL;
+
+            /* Make sure transmit is enabled */
+            if(0 == (*p_nw_control & GEM_ENABLE_TRANSMIT))
+                {
+                *p_nw_control = *p_nw_control | GEM_ENABLE_TRANSMIT;
+                }
+            /*
+             * Wait for pending transmits to complete as you cannot alter
+             * tx queue pointers while transmit is active...
+             */
+            while(0 != (*p_tx_status & GEM_TRANSMIT_GO))
+            {
+                delay++; /* Empty loop will cause debug issues... */
+            }
+
+            /* Make sure queue is currently disabled */
+            *this_mac->queue[queue_no].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[queue_no].tx_desc_tab) | 1UL;
+
+            /* Set up tx descriptor for this packet */
+            this_mac->queue[queue_no].nb_available_tx_desc--;
+            this_mac->queue[queue_no].current_tx_desc = 0;
             this_mac->queue[queue_no].tx_desc_tab[0].addr_low = (uint32_t)((uint64_t)tx_buffer);
-            this_mac->queue[queue_no].tx_desc_tab[0].status   = (tx_length & GEM_TX_DMA_BUFF_LEN) | GEM_TX_DMA_LAST; /* Mark as last buffer for frame */
+
+            /* Mark as last buffer for frame */
+            this_mac->queue[queue_no].tx_desc_tab[0].status   = (tx_length & GEM_TX_DMA_BUFF_LEN) | GEM_TX_DMA_LAST;
             if(0 != no_crc)
             {
                 this_mac->queue[queue_no].tx_desc_tab[0].status |= GEM_TX_DMA_NO_CRC;
@@ -1620,23 +1893,87 @@ MSS_MAC_send_pkt
             this_mac->queue[queue_no].tx_desc_tab[0].addr_high = (uint32_t)((uint64_t)tx_buffer >> 32);
             this_mac->queue[queue_no].tx_desc_tab[0].unused    = 0U;
 #endif
+
+            this_mac->queue[queue_no].tx_desc_tab[1].status   =  GEM_TX_DMA_WRAP | GEM_TX_DMA_LAST |  GEM_TX_DMA_USED ;
+
             this_mac->queue[queue_no].tx_caller_info[0] = p_user_data;
 
-            if(0U != this_mac->is_emac)
+            *this_mac->queue[queue_no].transmit_q_ptr = (uint32_t)((uint64_t)&this_mac->queue[queue_no].tx_desc_tab[0]);
+            /*
+             * If not queue 0 then we need to write disabled value to queue 0 to
+             * get the DMA engine reloaded...
+             */
+            if(0 != queue_no)
             {
-                this_mac->emac_base->NETWORK_CONTROL |= GEM_ENABLE_TRANSMIT | GEM_TRANSMIT_HALT;
-                this_mac->emac_base->TRANSMIT_Q_PTR   = (uint32_t)((uint64_t)this_mac->queue[queue_no].tx_desc_tab);
-                this_mac->emac_base->NETWORK_CONTROL |= GEM_TRANSMIT_START;
+                *this_mac->queue[0].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[0].tx_desc_tab) | 1U;
+            }
+
+            /* When transmitting at 10M, this delay is needed, 625MHz cpu clock - YMMV */
+            for(delay = 0; delay != 8; delay++)
+            {
+            }
+
+            *p_nw_control = *p_nw_control | GEM_TRANSMIT_START;
+
+            this_mac->queue[queue_no].egress += tx_length;
+            status = MSS_MAC_ERR_OK;
+        }
+        else
+        {
+            /*
+             * Queue not available so lets check some things...
+             */
+            if(0 == (*p_nw_control & GEM_ENABLE_TRANSMIT))
+            {
+                /*
+                 * TX is currently disabled so re-enable it and restart the last
+                 * operation on this queue to see if that gets us a completion.
+                 */
+                this_mac->queue[queue_no].tx_reenable++;
+                *p_nw_control = *p_nw_control | GEM_ENABLE_TRANSMIT;
+                *this_mac->queue[queue_no].transmit_q_ptr = (uint32_t)((uint64_t)&this_mac->queue[queue_no].tx_desc_tab[0]);
+                if(0 != queue_no)
+                {
+                    *this_mac->queue[0].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[0].tx_desc_tab) | 1U;
+                }
+
+                /* When transmitting at 10M, this delay is needed, 625MHz cpu clock - YMMV */
+                for(delay = 0; delay != 8; delay++)
+                {
+                }
+
+                *p_nw_control = *p_nw_control | GEM_TRANSMIT_START;
             }
             else
             {
-                this_mac->mac_base->NETWORK_CONTROL       |= GEM_ENABLE_TRANSMIT | GEM_TRANSMIT_HALT;
-                *this_mac->queue[queue_no].transmit_q_ptr  = (uint32_t)((uint64_t)this_mac->queue[queue_no].tx_desc_tab);
-                this_mac->mac_base->NETWORK_CONTROL       |= GEM_TRANSMIT_START;
+                /* Kick the tx start bit in case we are stalled... */
+                this_mac->queue[queue_no].tx_restart++;
+                *p_nw_control = *p_nw_control | GEM_TRANSMIT_START;
             }
 
-            this_mac->queue[queue_no].egress += tx_length;
-            status = MSS_MAC_SUCCESS;
+            /*
+             * TX might have completed since we entered the function but if we
+             * seem to be spinning on this and buffers haven't been returned to
+             * the queue then just give up and reset queue.
+             */
+            if(this_mac->queue[queue_no].tx_desc_tab[0].status & GEM_TX_DMA_USED)
+            {
+                this_mac->queue[queue_no].tries++;
+
+                if(this_mac->queue[queue_no].tries > 3) /* Been here too often? */
+                {
+                    /* Give up and reset FW queue count */
+                    this_mac->queue[queue_no].nb_available_tx_desc = (uint32_t)MSS_MAC_TX_RING_SIZE;
+                    status = MSS_MAC_ERR_TX_TIMEOUT;
+                }
+            }
+
+            if(this_mac->queue[queue_no].tx_desc_tab[0].status & (GEM_TX_DMA_RETRY_ERROR | GEM_TX_DMA_UNDERRUN | GEM_TX_DMA_BUS_ERROR | GEM_TX_DMA_LATE_COL_ERROR | GEM_TX_DMA_OFFLOAD_ERRORS))
+            {
+                /* Give up and reset FW queue count */
+                this_mac->queue[queue_no].nb_available_tx_desc = (uint32_t)MSS_MAC_TX_RING_SIZE;
+                status = MSS_MAC_ERR_TX_FAIL;
+            }
         }
 #else
         /* TBD PMCS need to implement multi packet queuing... */
@@ -1659,6 +1996,478 @@ MSS_MAC_send_pkt
     return status;
 }
 
+
+/*******************************************************************************
+ * See mss_ethernet_mac.h for details of how to use this function.
+ */
+int32_t
+MSS_MAC_send_pkts
+(
+    mss_mac_instance_t    *this_mac,
+    uint32_t               queue_mask,
+    mss_mac_tx_pkt_info_t *p_packets
+)
+{
+    /*
+     * Multi packet, multi queue transmit operation which depends on the
+     * following assumptions:
+     *
+     * 1. queue_mask indicates the queues which may be involved so that we can
+     *    properly handle ISR vs normal calling.
+     *    Set the mask to 0x0000000F to indicate all queues if there is any
+     *    uncertainty.
+     *    Set the mask to 0xFFFFFFF0 to indicate we are being called from a GEM
+     *    ISR.
+     * 2. We wait for any outstanding transmits on other queues to complete
+     *    because we need to ALWAYS write to the queue 0 pointer to trigger
+     *    internal restart of the DMA process.
+     * 3. We accept at most MSS_MAC_TX_RING_SIZE-1 packets as the final packet
+     *    in the chain is a dummy one to get the TX DMA engine to stop. Any
+     *    packets beyond that are silently dropped.
+     *
+     * We do transmission by using multiple buffer descriptors. The initial
+     * descriptors are for the packet(s) to transmit and the last is a dummy one
+     * with the USED bit set. This halts transmission once the first packet is
+     * transmitted. We always reset the TX DMA to point to the first packet when
+     * we send packets so we don't have to juggle buffer positions or worry
+     * about wrap.
+     */
+    uint32_t mask_bit;
+    uint32_t counter;
+    int32_t  status = MSS_MAC_ERR_NOT_DONE;
+    bool tx_done;
+    uint32_t queues;
+    mss_mac_tx_pkt_info_t *tx_rover;
+    /*
+     */
+    int32_t no_crc = 0;
+    volatile int delay;
+    volatile uint32_t *p_nw_control;
+    volatile uint32_t *p_tx_status;
+
+    if(MSS_MAC_AVAILABLE == this_mac->mac_available)
+    {
+        /* We use these a lot and this cuts down on conditional code later on */
+        if(0U != this_mac->is_emac)
+        {
+            p_nw_control = &this_mac->emac_base->NETWORK_CONTROL;
+            p_tx_status  = &this_mac->emac_base->TRANSMIT_STATUS;
+            queues = 1;
+        }
+        else
+        {
+            p_nw_control = &this_mac->mac_base->NETWORK_CONTROL;
+            p_tx_status  = &this_mac->mac_base->TRANSMIT_STATUS;
+            queues = 4;
+        }
+
+        /* PLIC_DisableIRQ() et al should not be called from the associated interrupt... */
+        if(0xFFFFFFF0U != queue_mask) /* Not called from ISR */
+        {
+            /*
+             * Make this function atomic w.r.to EMAC interrupt for the queues we
+             * are using and queue 0.
+             */
+            mask_bit = 1;
+            queue_mask |= 1U; /* Force queue 0 interrupt disable */
+            for(counter = 0; counter != 4; counter++)
+            {
+                if(0 != (mask_bit & queue_mask))
+                {
+                    if(0U != this_mac->use_local_ints)
+                    {
+                        __disable_local_irq(this_mac->mac_q_int[counter]);
+                    }
+                    else
+                    {
+                        PLIC_DisableIRQ(this_mac->mac_q_int[counter]); /* Single interrupt from GEM? */
+                    }
+                }
+
+                mask_bit <<= 1;
+            }
+        }
+
+        tx_done = true;
+        for(counter = 0; counter != queues; counter++)
+        {
+            if(this_mac->queue[counter].nb_available_tx_desc != (uint32_t)MSS_MAC_TX_RING_SIZE)
+            {
+                tx_done = false; /* Not done if any queue still active */
+            }
+        }
+
+        if(tx_done)
+        {
+            /* Queues are fully available for transmit so clear retry counts */
+            for(counter = 0; counter != queues; counter++)
+            {
+                /* Make sure queue is currently disabled */
+                *this_mac->queue[counter].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[counter].tx_desc_tab) | 1UL;
+                this_mac->queue[counter].tries = 0UL;
+            }
+
+
+            /* Make sure transmit is enabled */
+            if(0 == (*p_nw_control & GEM_ENABLE_TRANSMIT))
+                {
+                *p_nw_control = *p_nw_control | GEM_ENABLE_TRANSMIT;
+                }
+            /*
+             * Wait for pending transmits to complete as you cannot alter
+             * tx queue pointers while transmit is active...
+             */
+            while(0 != (*p_tx_status & GEM_TRANSMIT_GO))
+            {
+                delay++; /* Empty loop will cause debug issues... */
+            }
+
+            /* All is quiet now so let's construct the TX queue(s) */
+
+            tx_rover = p_packets;
+            while(0 != tx_rover->length)
+            {
+                uint32_t tx_length;
+                mss_mac_queue_t *p_queue;
+
+                tx_length = tx_rover->length;
+
+                /* Is config option for disabling CRC set? */
+                if(MSS_MAC_CRC_DISABLE == this_mac->append_CRC)
+                {
+                    no_crc = 1;
+                }
+
+                /* Or has the user requested just this packet? */
+                if(0U != (tx_length & 0x80000000U))
+                {
+                    no_crc = 1;
+                    tx_length &= 0x7FFFFFFFU; /* Make sure high bit is now clear */
+                }
+
+
+                /*
+                 * We need to leave one spare at the end to halt the DMA when we
+                 * are done...
+                 */
+                p_queue  = &this_mac->queue[tx_rover->queue_no];
+                if(p_queue->nb_available_tx_desc > 1)
+                {
+                    uint32_t position;
+                    mss_mac_tx_desc_t *p_desc;
+
+
+                    /* Set up tx descriptor for this packet */
+                    position = MSS_MAC_TX_RING_SIZE - p_queue->nb_available_tx_desc;
+                    p_desc   = &p_queue->tx_desc_tab[position];
+
+                    p_queue->nb_available_tx_desc--;
+                    p_queue->current_tx_desc = 0;
+                    p_desc->addr_low = (uint32_t)((uint64_t)tx_rover->tx_buffer);
+
+                    /* Mark as last buffer for frame */
+                    p_desc->status = (tx_length & GEM_TX_DMA_BUFF_LEN) | GEM_TX_DMA_LAST;
+                    if(0 != no_crc)
+                    {
+                        p_desc->status |= GEM_TX_DMA_NO_CRC;
+                    }
+#if defined(MSS_MAC_64_BIT_ADDRESS_MODE)
+                    p_desc->addr_high = (uint32_t)((uint64_t)tx_rover->tx_buffer >> 32);
+                    p_desc->unused    = 0U;
+#endif
+
+                    (p_desc + 1)->status |= GEM_TX_DMA_WRAP | GEM_TX_DMA_USED;
+                    p_queue->tx_caller_info[position] = tx_rover->p_user_data;
+
+                    p_queue->egress += tx_length;
+                }
+
+                tx_rover++;
+            }
+
+            counter = queues;
+            while(0 != counter)
+            {
+                counter--;
+                if(this_mac->queue[counter].nb_available_tx_desc != (uint32_t)MSS_MAC_TX_RING_SIZE)
+                {
+                    *this_mac->queue[counter].transmit_q_ptr = (uint32_t)((uint64_t)&this_mac->queue[counter].tx_desc_tab[0]);
+                }
+            }
+
+            /* If queue 0 not used we still need a dummy write... */
+            if(this_mac->queue[0].nb_available_tx_desc == (uint32_t)MSS_MAC_TX_RING_SIZE)
+            {
+                *this_mac->queue[0].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[0].tx_desc_tab) | 1U;
+            }
+
+            /* When transmitting at 10M, this delay is needed, 625MHz cpu clock - YMMV */
+            for(delay = 0; delay != 8; delay++)
+            {
+            }
+
+            *p_nw_control = *p_nw_control | GEM_TRANSMIT_START;
+
+            status = MSS_MAC_ERR_OK;
+        }
+        else /* tx_done */
+        {
+            /*
+             * Queues not available so lets check some things...
+             */
+            if(0 == (*p_nw_control & GEM_ENABLE_TRANSMIT))
+            {
+                /*
+                 * TX is currently disabled so re-enable it and restart the last
+                 * operation on the queues to see if that gets us a completion.
+                 */
+                counter = queues;
+                while(0 != counter)
+                {
+                    counter--;
+                    if(this_mac->queue[counter].nb_available_tx_desc != (uint32_t)MSS_MAC_TX_RING_SIZE)
+                    {
+                        bool test_done = false;
+                        mss_mac_tx_desc_t *p_descriptor;
+
+                        /* Scan descriptor lists to see where they are at */
+                        p_descriptor = &this_mac->queue[counter].tx_desc_tab[0];
+                        while(!test_done)
+                        {
+                            if((p_descriptor->status & GEM_TX_DMA_USED) && (p_descriptor->status & GEM_TX_DMA_WRAP))
+                            {
+                                /*
+                                 * End of chain and no unsent packets...
+                                 * Mark as all sent and disable queue.
+                                 */
+                                *this_mac->queue[counter].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[counter].tx_desc_tab) | 1U;
+                                this_mac->queue[counter].nb_available_tx_desc = (uint32_t)MSS_MAC_TX_RING_SIZE;
+                                test_done = true;
+                            }
+                            else if(p_descriptor->status & GEM_TX_DMA_USED)
+                            {
+                                /* Used but not last so try next one */
+                                p_descriptor++;
+                            }
+                            else /* Not used - restart from here */
+                            {
+                                this_mac->queue[counter].tx_reenable++;
+                                *this_mac->queue[counter].transmit_q_ptr = (uint32_t)((uint64_t)p_descriptor);
+                                test_done = true;
+                            }
+                        }
+                    }
+                }
+
+                *p_nw_control = *p_nw_control | GEM_ENABLE_TRANSMIT;
+                /* When transmitting at 10M, this delay is needed, 625MHz cpu clock - YMMV */
+                for(delay = 0; delay != 8; delay++)
+                {
+                }
+
+                *p_nw_control = *p_nw_control | GEM_TRANSMIT_START;
+            }
+            else
+            {
+                /* Kick the tx start bit in case we are stalled... */
+                this_mac->queue[0].tx_restart++;
+                *p_nw_control = *p_nw_control | GEM_TRANSMIT_START;
+            }
+
+            /*
+             * TX might have completed since we entered the function but if we
+             * seem to be spinning on this and buffers haven't been returned to
+             * the queue then just give up and reset queue.
+             */
+            for(counter = 0; counter != queues; counter++)
+            {
+                bool test_done = false;
+                bool all_sent = false;
+                mss_mac_tx_desc_t *p_descriptor;
+
+                /* Scan descriptor lists to see where they are at */
+                p_descriptor = &this_mac->queue[counter].tx_desc_tab[0];
+                while(!test_done)
+                {
+                    if((p_descriptor->status & GEM_TX_DMA_USED) && (p_descriptor->status & GEM_TX_DMA_WRAP))
+                    {
+                        /*
+                         * End of chain and no unsent packets...
+                         * Mark as all sent and disable queue.
+                         */
+                        all_sent  = true;
+                        test_done = true;
+                    }
+                    else if(p_descriptor->status & GEM_TX_DMA_USED)
+                    {
+                        /* Used but not last so try next one */
+                        p_descriptor++;
+                    }
+                    else /* Not used - not all sent yet */
+                    {
+                        test_done = true;
+                    }
+                }
+
+                if(true == all_sent)
+                {
+                    this_mac->queue[counter].tries++;
+
+                    if(this_mac->queue[counter].tries > 3) /* Been here too often? */
+                    {
+                        /* Give up and reset FW queue count */
+                        this_mac->queue[counter].nb_available_tx_desc = (uint32_t)MSS_MAC_TX_RING_SIZE;
+                        status = MSS_MAC_ERR_TX_TIMEOUT;
+                    }
+                }
+            }
+
+            for(counter = 0; counter != queues; counter++) /* Scan for TX fails */
+            {
+                bool test_done = false;
+                mss_mac_tx_desc_t *p_descriptor;
+
+                /* Scan descriptor lists to see where they are at */
+                p_descriptor = &this_mac->queue[counter].tx_desc_tab[0];
+                while(!test_done)
+                {
+                    if(p_descriptor->status & (GEM_TX_DMA_RETRY_ERROR | GEM_TX_DMA_UNDERRUN | GEM_TX_DMA_BUS_ERROR | GEM_TX_DMA_LATE_COL_ERROR | GEM_TX_DMA_OFFLOAD_ERRORS))
+                    {
+                        /* Give up and reset FW queue count on first fail */
+                        this_mac->queue[counter].nb_available_tx_desc = (uint32_t)MSS_MAC_TX_RING_SIZE;
+                        status = MSS_MAC_ERR_TX_FAIL;
+                        test_done = true;
+                    }
+
+                    if(p_descriptor->status & GEM_TX_DMA_WRAP)
+                    {
+                        /* End of chain so bail */
+                        test_done = true;
+                    }
+
+                    p_descriptor++;
+                }
+            }
+        }
+
+        /* Ethernet Interrupt Enable function. */
+        /* PLIC_DisableIRQ() et al should not be called from the associated interrupt... */
+        if(0xFFFFFFF0U != queue_mask) /* Not called from ISR */
+        {
+            mask_bit = 1;
+            for(counter = 0; counter != 4; counter++)
+            {
+                if(0 != (mask_bit & queue_mask))
+                {
+                    if(0U != this_mac->use_local_ints)
+                    {
+                        __enable_local_irq(this_mac->mac_q_int[counter]);
+                    }
+                    else
+                    {
+                        PLIC_EnableIRQ(this_mac->mac_q_int[counter]); /* Single interrupt from GEM? */
+                    }
+                }
+
+                mask_bit <<= 1;
+            }
+        }
+    }
+    return status;
+}
+
+#if defined(MSS_MAC_SPEED_TEST)
+/* Very stripped down queue 0 packet blaster - assumes full tx queue0 is being
+ * used on pMAC and does little or no checking. Don't call from GEM interrupts!
+ * Don't use with local interrupts or eMAC either...
+ */
+
+void copy8b(uint64_t *dest, uint64_t *source, uint32_t count)
+{
+    while(count--)
+        *dest++ = *source++;
+}
+
+int32_t
+MSS_MAC_send_pkts_fast
+(
+    mss_mac_instance_t    *this_mac,
+    mss_mac_tx_desc_t *descriptors,
+    uint32_t tx_count
+)
+{
+    /*
+     * Multi packet, multi queue transmit operation which depends on the
+     * following assumptions:
+     *
+     * 1. queue_mask indicates the queues which may be involved so that we can
+     *    properly handle ISR vs normal calling.
+     *    Set the mask to 0x0000000F to indicate all queues if there is any
+     *    uncertainty.
+     *    Set the mask to 0xFFFFFFF0 to indicate we are being called from a GEM
+     *    ISR.
+     * 2. We wait for any outstanding transmits on other queues to complete
+     *    because we need to ALWAYS write to the queue 0 pointer to trigger
+     *    internal restart of the DMA process.
+     * 3. We accept at most MSS_MAC_TX_RING_SIZE-1 packets as the final packet
+     *    in the chain is a dummy one to get the TX DMA engine to stop. Any
+     *    packets beyond that are silently dropped.
+     *
+     * We do transmission by using multiple buffer descriptors. The initial
+     * descriptors are for the packet(s) to transmit and the last is a dummy one
+     * with the USED bit set. This halts transmission once the first packet is
+     * transmitted. We always reset the TX DMA to point to the first packet when
+     * we send packets so we don't have to juggle buffer positions or worry
+     * about wrap.
+     */
+    volatile int delay;
+    volatile uint32_t *p_nw_control;
+    volatile uint32_t *p_tx_status;
+
+    p_nw_control = &this_mac->mac_base->NETWORK_CONTROL;
+    p_tx_status  = &this_mac->mac_base->TRANSMIT_STATUS;
+
+    /* Wait for queue to empty */
+    while(this_mac->queue[0].nb_available_tx_desc != (uint32_t)MSS_MAC_TX_RING_SIZE)
+        {
+        /* Make sure transmit stays enabled */
+        if(0 == (*p_nw_control & GEM_ENABLE_TRANSMIT))
+            {
+            *p_nw_control = *p_nw_control | GEM_ENABLE_TRANSMIT;
+            }
+        }
+
+    PLIC_DisableIRQ(this_mac->mac_q_int[0]); /* Single interrupt from GEM? */
+
+    /*
+     * Wait for pending transmits to complete as you cannot alter
+     * tx queue pointers while transmit is active...
+     */
+    while(0 != (*p_tx_status & GEM_TRANSMIT_GO))
+    {
+        delay++; /* Empty loop will cause debug issues... */
+    }
+
+    *this_mac->queue[0].transmit_q_ptr = (uint32_t)((uint64_t)this_mac->queue[0].tx_desc_tab) | 1UL;
+    this_mac->queue[0].tries = 0UL;
+
+    /* All is quiet now so let's construct the TX queue(s) */
+
+    copy8b((uint64_t *)this_mac->queue[0].tx_desc_tab, (uint64_t *)descriptors, sizeof(this_mac->queue[0].tx_desc_tab) / 8);
+
+    this_mac->queue[0].egress += tx_count;
+
+    this_mac->queue[0].nb_available_tx_desc = 1;
+    this_mac->queue[0].current_tx_desc = 0;
+    *this_mac->queue[0].transmit_q_ptr = (uint32_t)((uint64_t)&this_mac->queue[0].tx_desc_tab[0]);
+    *p_nw_control = *p_nw_control | GEM_TRANSMIT_START;
+
+    PLIC_EnableIRQ(this_mac->mac_q_int[0]); /* Single interrupt from GEM? */
+
+    return(MSS_MAC_ERR_OK);
+}
+
+#endif /* defined(MSS_MAC_SPEED_TEST) */
 
 /******************************************************************************
  * 
@@ -1772,8 +2581,10 @@ uint8_t mac0_emac_plic_IRQHandler(void)
  */
 uint8_t mac0_mmsl_plic_IRQHandler(void)
 {
+    g_mac0.mac_base->MMSL_INT_DISABLE = 0x3F; /* Acknowledge ints */
     return(EXT_IRQ_KEEP_ENABLED);
 }
+
 
 
 /******************************************************************************
@@ -1861,6 +2672,7 @@ uint8_t mac1_emac_plic_IRQHandler(void)
  */
 uint8_t mac1_mmsl_plic_IRQHandler(void)
 {
+    g_mac1.mac_base->MMSL_INT_DISABLE = 0x3F; /* Acknowledge ints */
     return(EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -1871,6 +2683,7 @@ uint8_t mac1_mmsl_plic_IRQHandler(void)
 /* U54 1 */
 void mac_mmsl_u54_1_local_IRQHandler_3(void)
 {
+    g_mac0.mac_base->MMSL_INT_DISABLE = 0x3F; /* Acknowledge ints */
 }
 
 
@@ -1990,6 +2803,7 @@ void mac_int_u54_1_local_IRQHandler_8(void)
 /* U54 2 */
 void mac_mmsl_u54_2_local_IRQHandler_3(void)
 {
+    g_mac0.mac_base->MMSL_INT_DISABLE = 0x3F; /* Acknowledge ints */
 }
 
 
@@ -2109,6 +2923,7 @@ void mac_int_u54_2_local_IRQHandler_8(void)
 /* U54 3 */
 void mac_mmsl_u54_3_local_IRQHandler_3(void)
 {
+    g_mac1.mac_base->MMSL_INT_DISABLE = 0x3F; /* Acknowledge ints */
 }
 
 
@@ -2228,6 +3043,7 @@ void mac_int_u54_3_local_IRQHandler_8(void)
 /* U54 4 */
 void mac_mmsl_u54_4_local_IRQHandler_3(void)
 {
+    g_mac1.mac_base->MMSL_INT_DISABLE = 0x3F; /* Acknowledge ints */
 }
 
 
@@ -2347,18 +3163,21 @@ void mac_int_u54_4_local_IRQHandler_8(void)
  * In this case you should not write to the int status reg ... */
 /* #define GEM_FLAGS_CLR_ON_RD */
 
-static void generic_mac_irq_handler(mss_mac_instance_t *this_mac, uint32_t queue_no)
+static void generic_mac_irq_handler(mss_mac_instance_t *this_mac, uint64_t queue_no)
 {
     volatile uint32_t int_pending;  /* We read and hold a working copy as many
                                      * of the bits can be clear on read if
                                      * the GEM is configured that way... */
-    volatile uint32_t *rx_status;   /* Address of receive status register */
-    volatile uint32_t *tx_status;   /* Address of transmit status register */
-    volatile uint32_t *int_status;  /* Address of interrupt status register */
+    uint32_t volatile *rx_status;   /* Address of receive status register */
+    uint32_t volatile *tx_status;   /* Address of transmit status register */
+    uint32_t volatile *int_status;  /* Address of interrupt status register */
+    mss_mac_queue_t *p_queue;
+
+    p_queue = &this_mac->queue[queue_no];
     
-    this_mac->queue[queue_no].in_isr = 1U;
-    int_status  = this_mac->queue[queue_no].int_status;
-    int_pending =  *int_status & ~(*this_mac->queue[queue_no].int_mask);
+    p_queue->in_isr = 1U;
+    int_status  = p_queue->int_status;
+    int_pending =  *int_status;
 
     if(0U != this_mac->is_emac)
     {
@@ -2377,7 +3196,10 @@ static void generic_mac_irq_handler(mss_mac_instance_t *this_mac, uint32_t queue
      * course of the ISR to be picked up later.
      */
 
-    /* Packet received interrupt - first in line as most time critical */
+    /*
+     * Packet received interrupt - first in line as most time critical. Followed
+     * by transmit interrupt and then the less frequent ones.
+     */
     if((int_pending & GEM_RECEIVE_COMPLETE) != 0U)
     {
        *rx_status = GEM_FRAME_RECEIVED;
@@ -2388,49 +3210,8 @@ static void generic_mac_irq_handler(mss_mac_instance_t *this_mac, uint32_t queue
         *int_status = (uint32_t)2U;
 #endif
         rxpkt_handler(this_mac, queue_no);
-        this_mac->queue[queue_no].overflow_counter = 0U; /* Reset counter as we have received something */
+        p_queue->overflow_counter = 0U; /* Reset counter as we have received something */
 #endif
-    }
-
-    if((int_pending & GEM_RECEIVE_OVERRUN_INT) != 0U)
-    {
-        *rx_status = GEM_RECEIVE_OVERRUN;
-#if !defined(GEM_FLAGS_CLR_ON_RD)
-        *int_status = GEM_RECEIVE_OVERRUN_INT;
-#endif
-        rxpkt_handler(this_mac, queue_no);
-        this_mac->queue[queue_no].overflow_counter++;
-        this_mac->queue[queue_no].rx_overflow++;
-    }
-
-    if((int_pending & GEM_RX_USED_BIT_READ) != 0U)
-    {
-        *rx_status = GEM_BUFFER_NOT_AVAILABLE;
-#if !defined(GEM_FLAGS_CLR_ON_RD)
-        *int_status = GEM_RX_USED_BIT_READ;
-#endif
-        rxpkt_handler(this_mac, queue_no);
-        this_mac->queue[queue_no].rx_overflow++;
-        this_mac->queue[queue_no].overflow_counter++;
-    }
-
-    if((int_pending & GEM_RESP_NOT_OK_INT) != 0U) /* Hope this is transient and restart rx... */
-    {
-        *rx_status = GEM_RX_RESP_NOT_OK;
-#if !defined(GEM_FLAGS_CLR_ON_RD)
-        *int_status = GEM_RESP_NOT_OK_INT;
-#endif
-        rxpkt_handler(this_mac, queue_no);
-        if(0U != this_mac->is_emac)
-        {
-            this_mac->emac_base->NETWORK_CONTROL |= GEM_ENABLE_RECEIVE;
-        }
-        else
-        {
-            this_mac->mac_base->NETWORK_CONTROL |= GEM_ENABLE_RECEIVE;
-        }
-
-        this_mac->queue[queue_no].hresp_error++;
     }
 
     /* Transmit packet sent interrupt */
@@ -2439,97 +3220,151 @@ static void generic_mac_irq_handler(mss_mac_instance_t *this_mac, uint32_t queue
         if((*tx_status & GEM_STAT_TRANSMIT_COMPLETE) != 0U) /* If loopback test or other hasn't taken care of this... */
         {
             *tx_status  = GEM_STAT_TRANSMIT_COMPLETE;
-#if !defined(GEM_FLAGS_CLR_ON_RD)
             *int_status = GEM_TRANSMIT_COMPLETE;
+#if !defined(GEM_FLAGS_CLR_ON_RD)
 #endif
             txpkt_handler(this_mac, queue_no);
         }
     }
 
-    if(this_mac->queue[queue_no].overflow_counter > 4U) /* looks like we are stuck in a rut here... */
+    /*
+     * RX and TX are the majority cases so see if all done rather than testing
+     * remaining one by one. Move on to one by one testing if not finished. Cuts
+     * down on interrupt processing impact for 'normal' case...
+     */
+    if((int_pending & ~(GEM_RECEIVE_COMPLETE | GEM_TRANSMIT_COMPLETE)) != 0U)
     {
-        uint32_t descriptor;
-        /* Restart receive operation from scratch */
-        this_mac->queue[queue_no].overflow_counter = 0U;
-        this_mac->queue[queue_no].rx_restart++;
-
-        if(0U != this_mac->is_emac)
+        if((int_pending & GEM_RECEIVE_OVERRUN_INT) != 0U)
         {
-            this_mac->emac_base->NETWORK_CONTROL &= ~GEM_ENABLE_RECEIVE;
-        }
-        else
-        {
-            this_mac->mac_base->NETWORK_CONTROL &= ~GEM_ENABLE_RECEIVE;
-        }
-
-        this_mac->queue[queue_no].nb_available_rx_desc = MSS_MAC_RX_RING_SIZE;
-        this_mac->queue[queue_no].next_free_rx_desc_index = 0U;
-        this_mac->queue[queue_no].first_rx_desc_index = 0U;
-        
-        for(descriptor = 0U; descriptor < MSS_MAC_RX_RING_SIZE; descriptor++) /* Discard everything */
-        {
-            this_mac->queue[queue_no].rx_desc_tab[descriptor].addr_low &= GEM_RX_DMA_USED;
-        }
-
-        if(0U != this_mac->is_emac)
-        {
-            this_mac->emac_base->RECEIVE_Q_PTR = (uint32_t)((uint64_t)this_mac->queue[queue_no].rx_desc_tab);
-#if defined(MSS_MAC_64_BIT_ADDRESS_MODE)
-            this_mac->emac_base->UPPER_RX_Q_BASE_ADDR = (uint32_t)((uint64_t)this_mac->queue[queue_no].rx_desc_tab >> 32);
+            *rx_status = GEM_RECEIVE_OVERRUN;
+#if !defined(GEM_FLAGS_CLR_ON_RD)
+            *int_status = GEM_RECEIVE_OVERRUN_INT;
 #endif
-            this_mac->emac_base->NETWORK_CONTROL |= GEM_ENABLE_RECEIVE;
+            p_queue->overflow_counter++;
+            p_queue->rx_overflow++;
         }
-        else
-        {
-            this_mac->mac_base->RECEIVE_Q_PTR = (uint32_t)((uint64_t)this_mac->queue[queue_no].rx_desc_tab);
-#if defined(MSS_MAC_64_BIT_ADDRESS_MODE)
-            this_mac->mac_base->UPPER_RX_Q_BASE_ADDR = (uint32_t)((uint64_t)this_mac->queue[queue_no].rx_desc_tab >> 32);
-#endif
-            this_mac->mac_base->NETWORK_CONTROL |= GEM_ENABLE_RECEIVE;
-        }
-    }
 
-    if((int_pending & GEM_PAUSE_FRAME_TRANSMITTED) != 0U)
-    {
-        *int_status = GEM_PAUSE_FRAME_TRANSMITTED;
-        this_mac->tx_pause++;
-    }
-    if((int_pending & GEM_PAUSE_TIME_ELAPSED) != 0U)
-    {
-        *int_status = GEM_PAUSE_TIME_ELAPSED;
-        this_mac->pause_elapsed++;
-    }
-    if((int_pending & GEM_PAUSE_FRAME_WITH_NON_0_PAUSE_QUANTUM_RX) != 0U)
-    {
-        *int_status = GEM_PAUSE_FRAME_WITH_NON_0_PAUSE_QUANTUM_RX;
-        this_mac->rx_pause++;
-    }
-
-    /* Mask off checked ints and see if any left pending */
-    int_pending &= ~(GEM_RECEIVE_OVERRUN_INT | GEM_RX_USED_BIT_READ | GEM_RECEIVE_COMPLETE |
-                     GEM_TRANSMIT_COMPLETE | GEM_RESP_NOT_OK_INT | GEM_PAUSE_FRAME_TRANSMITTED |
-                     GEM_PAUSE_TIME_ELAPSED | GEM_PAUSE_FRAME_WITH_NON_0_PAUSE_QUANTUM_RX);
-    if(0U != int_pending)
-    {
-        if((int_pending & GEM_AMBA_ERROR) != 0U)
+        if((int_pending & GEM_RX_USED_BIT_READ) != 0U)
         {
-            *int_status = (uint32_t)0x60U; /* Should be 0x40 but that doesn't clear it... */
-            *tx_status  = GEM_STAT_AMBA_ERROR;
-            this_mac->queue[queue_no].tx_amba_errors++;
-            this_mac->queue[queue_no].nb_available_tx_desc = MSS_MAC_TX_RING_SIZE;
+            *rx_status = GEM_BUFFER_NOT_AVAILABLE;
+    #if !defined(GEM_FLAGS_CLR_ON_RD)
+            *int_status = GEM_RX_USED_BIT_READ;
+    #endif
+            rxpkt_handler(this_mac, queue_no);
+            p_queue->rx_overflow++;
+            p_queue->overflow_counter++;
         }
-        else
+
+        if((int_pending & GEM_RESP_NOT_OK_INT) != 0U) /* Hope this is transient and restart rx... */
         {
-            volatile int32_t index;
-            HAL_ASSERT(0); /* Need to think about how to deal with this... */
-            while(1)
+            *rx_status = GEM_RX_RESP_NOT_OK; /* One of them did it... */
+            *tx_status = GEM_TX_RESP_NOT_OK;
+    #if !defined(GEM_FLAGS_CLR_ON_RD)
+            *int_status = GEM_RESP_NOT_OK_INT;
+    #endif
+            if(0U != this_mac->is_emac)
             {
-                index++;
+                this_mac->emac_base->NETWORK_CONTROL |= GEM_ENABLE_RECEIVE;
+            }
+            else
+            {
+                this_mac->mac_base->NETWORK_CONTROL |= GEM_ENABLE_RECEIVE;
+            }
+
+            p_queue->hresp_error++;
+        }
+
+    /*
+     * This may cause more problems than it cures so disabling for now until we
+     * figure out a better strategy...
+     */
+    #if 0
+        if(p_queue->overflow_counter > 4U) /* looks like we are stuck in a rut here... */
+        {
+            uint32_t descriptor;
+            /* Restart receive operation from scratch */
+            p_queue->overflow_counter = 0U;
+            p_queue->rx_restart++;
+
+            if(0U != this_mac->is_emac)
+            {
+                this_mac->emac_base->NETWORK_CONTROL &= ~GEM_ENABLE_RECEIVE;
+            }
+            else
+            {
+                this_mac->mac_base->NETWORK_CONTROL &= ~GEM_ENABLE_RECEIVE;
+            }
+
+            p_queue->nb_available_rx_desc = MSS_MAC_RX_RING_SIZE;
+            p_queue->next_free_rx_desc_index = 0U;
+            p_queue->first_rx_desc_index = 0U;
+
+            for(descriptor = 0U; descriptor < MSS_MAC_RX_RING_SIZE; descriptor++) /* Discard everything */
+            {
+                p_queue->rx_desc_tab[descriptor].addr_low &= ~GEM_RX_DMA_USED;
+            }
+
+            if(0U != this_mac->is_emac)
+            {
+                this_mac->emac_base->RECEIVE_Q_PTR = (uint32_t)((uint64_t)p_queue->rx_desc_tab);
+    #if defined(MSS_MAC_64_BIT_ADDRESS_MODE)
+                this_mac->emac_base->UPPER_RX_Q_BASE_ADDR = (uint32_t)((uint64_t)p_queue->rx_desc_tab >> 32);
+    #endif
+                this_mac->emac_base->NETWORK_CONTROL |= GEM_ENABLE_RECEIVE;
+            }
+            else
+            {
+                this_mac->mac_base->RECEIVE_Q_PTR = (uint32_t)((uint64_t)p_queue->rx_desc_tab);
+    #if defined(MSS_MAC_64_BIT_ADDRESS_MODE)
+                this_mac->mac_base->UPPER_RX_Q_BASE_ADDR = (uint32_t)((uint64_t)p_queue->rx_desc_tab >> 32);
+    #endif
+                this_mac->mac_base->NETWORK_CONTROL |= GEM_ENABLE_RECEIVE;
+            }
+        }
+    #endif
+        if((int_pending & GEM_PAUSE_FRAME_TRANSMITTED) != 0U)
+        {
+            *int_status = GEM_PAUSE_FRAME_TRANSMITTED;
+            this_mac->tx_pause++;
+        }
+        if((int_pending & GEM_PAUSE_TIME_ELAPSED) != 0U)
+        {
+            *int_status = GEM_PAUSE_TIME_ELAPSED;
+            this_mac->pause_elapsed++;
+        }
+        if((int_pending & GEM_PAUSE_FRAME_WITH_NON_0_PAUSE_QUANTUM_RX) != 0U)
+        {
+            *int_status = GEM_PAUSE_FRAME_WITH_NON_0_PAUSE_QUANTUM_RX;
+            this_mac->rx_pause++;
+        }
+
+        /* Mask off checked ints and see if any left pending */
+        int_pending &= ~(GEM_RECEIVE_OVERRUN_INT | GEM_RX_USED_BIT_READ | GEM_RECEIVE_COMPLETE |
+                         GEM_TRANSMIT_COMPLETE | GEM_RESP_NOT_OK_INT | GEM_PAUSE_FRAME_TRANSMITTED |
+                         GEM_PAUSE_TIME_ELAPSED | GEM_PAUSE_FRAME_WITH_NON_0_PAUSE_QUANTUM_RX);
+        if(0U != int_pending)
+        {
+            if((int_pending & GEM_AMBA_ERROR) != 0U)
+            {
+                /* *int_status = (uint32_t)0x60U; */ /* Should be 0x40 but that doesn't clear it... */
+                *int_status = (uint32_t)0x40U;
+                *tx_status  = GEM_STAT_AMBA_ERROR;
+                *rx_status  = GEM_AMBA_ERROR;
+                p_queue->tx_amba_errors++;
+                p_queue->nb_available_tx_desc = MSS_MAC_TX_RING_SIZE;
+            }
+            else
+            {
+                volatile int32_t index;
+                ASSERT(0); /* Need to think about how to deal with this... */
+                while(1)
+                {
+                    index++;
+                }
             }
         }
     }
-
-    this_mac->queue[queue_no].in_isr = 0U;
+    p_queue->in_isr = 0U;
 }
 
 
@@ -2563,6 +3398,91 @@ void MSS_MAC_set_rx_callback
     if(MSS_MAC_AVAILABLE == this_mac->mac_available)
     {
         this_mac->queue[queue_no].pckt_rx_callback = rx_callback;
+    }
+}
+
+
+/******************************************************************************
+ * See mss_ethernet_mac.h for details of how to use this function.
+ */
+void MSS_MAC_change_speed
+(
+    mss_mac_instance_t *this_mac, uint32_t speed_duplex_select, mss_mac_speed_mode_t speed_mode
+)
+{
+    uint32_t temp_cr;
+
+    if(MSS_MAC_AVAILABLE == this_mac->mac_available)
+    {
+        /* Only change HW settings if there is a change in status */
+        if((this_mac->speed_duplex_select != speed_duplex_select) || (this_mac->speed_mode != speed_mode))
+        {
+            this_mac->speed_duplex_select = speed_duplex_select;
+            this_mac->speed_mode = speed_mode;
+
+            /* Apply settings to the PHY */
+            this_mac->phy_set_link_speed(this_mac, this_mac->speed_duplex_select, speed_mode);
+            this_mac->phy_autonegotiate(this_mac); /* Do this in case it is needed */
+            if(MSS_MAC_SPEED_AN == speed_mode) /* Apply results of AN to MAC */
+            {
+                update_mac_cfg(this_mac);
+            }
+            else
+            {
+                if(0U != this_mac->is_emac)
+                {
+                    temp_cr = this_mac->emac_base->NETWORK_CONFIG;
+                }
+                else
+                {
+                    temp_cr = this_mac->mac_base->NETWORK_CONFIG;
+                }
+
+                temp_cr &= ~(GEM_GIGABIT_MODE_ENABLE | GEM_SPEED | GEM_FULL_DUPLEX);
+
+                if((MSS_MAC_1000_HDX == this_mac->speed_mode) || (MSS_MAC_1000_FDX == this_mac->speed_mode))
+                {
+    #if defined(TARGET_ALOE)
+                    *GEMGXL_tx_clk_sel = (uint32_t)0U;
+                    *GEMGXL_speed_mode = (uint32_t)2U;
+    #endif
+                    temp_cr |= GEM_GIGABIT_MODE_ENABLE;
+                }
+                else
+                {
+                    if((MSS_MAC_100_HDX == this_mac->speed_mode) || (MSS_MAC_100_FDX == this_mac->speed_mode))
+                    {
+    #if defined(TARGET_ALOE)
+                    *GEMGXL_tx_clk_sel = (uint32_t)1U;
+                    *GEMGXL_speed_mode = (uint32_t)1U;
+    #endif
+                    temp_cr |= (uint32_t)GEM_SPEED;
+                    }
+    #if defined(TARGET_ALOE)
+                    else
+                    {
+                        *GEMGXL_tx_clk_sel = (uint32_t)1U;
+                        *GEMGXL_speed_mode = (uint32_t)0U;
+                    }
+    #endif
+                }
+
+                /* Configure duplex mode */
+                if((MSS_MAC_10_FDX == this_mac->speed_mode) || (MSS_MAC_100_FDX == this_mac->speed_mode) || (MSS_MAC_1000_FDX == this_mac->speed_mode))
+                {
+                    temp_cr |= GEM_FULL_DUPLEX;
+                }
+
+                if(0U != this_mac->is_emac)
+                {
+                    this_mac->emac_base->NETWORK_CONFIG = temp_cr;
+                }
+                else
+                {
+                    this_mac->mac_base->NETWORK_CONFIG = temp_cr;
+                }
+            }
+        }
     }
 }
 
@@ -3223,7 +4143,7 @@ void MSS_MAC_set_sa_filter(const mss_mac_instance_t *this_mac, uint32_t filter, 
     uint32_t address32_l;
     uint32_t address32_h;
 
-    HAL_ASSERT(NULL_POINTER!= mac_addr);
+    ASSERT(NULL_POINTER!= mac_addr);
 
     if((MSS_MAC_AVAILABLE == this_mac->mac_available) && (NULL_POINTER != mac_addr))
     {
@@ -4169,12 +5089,13 @@ bool MSS_MAC_get_pause_frame_copy_to_mem(const mss_mac_instance_t *this_mac)
 static void 
 rxpkt_handler
 (
-    mss_mac_instance_t *this_mac, uint32_t queue_no
+    mss_mac_instance_t *this_mac, uint64_t queue_no
 )
 {
     mss_mac_queue_t *this_queue = &this_mac->queue[queue_no];
     mss_mac_rx_desc_t * cdesc = &this_queue->rx_desc_tab[this_queue->first_rx_desc_index];
-    
+    uint64_t burst = MSS_MAC_RX_RING_SIZE;
+
     if(0U != (cdesc->addr_low & GEM_RX_DMA_USED)) /* Check in case we already got it... */
     {
         /* Execution comes here because at-least one packet is received. */
@@ -4197,18 +5118,22 @@ rxpkt_handler
 #endif
             p_rx_packet = (uint8_t *)addr_temp;
             /*
-             * Pass received packet up to application layer - if enabled... 
+             * Pass received packet up to application layer - if enabled...
              *
              * Note if rx_packet comes back as 0 we can't recover and will leave a
              * used packet stuck in the queue...
              */
+#if !defined(MSS_MAC_UNH_TEST)
             if((NULL_POINTER != this_queue->pckt_rx_callback) && (NULL_POINTER != p_rx_packet) && (0U == this_mac->rx_discard))
+#endif
             {
                 pckt_length = cdesc->status & (GEM_RX_DMA_BUFF_LEN | GEM_RX_DMA_JUMBO_BIT_13);
                 this_queue->ingress += pckt_length;
 
                 this_queue->pckt_rx_callback(this_mac, queue_no, p_rx_packet, pckt_length, cdesc, this_queue->rx_caller_info[this_queue->first_rx_desc_index]);
             }
+
+#if !defined(MSS_MAC_UNH_TEST)
             if((NULL_POINTER != p_rx_packet) && (0U != this_mac->rx_discard))
             {
                 /*
@@ -4217,16 +5142,21 @@ rxpkt_handler
                  */
                 (void)MSS_MAC_receive_pkt(this_mac, queue_no, p_rx_packet, this_queue->rx_caller_info[this_queue->first_rx_desc_index], MSS_MAC_INT_ENABLE);
             }
-
-            cdesc->addr_low &= ~GEM_RX_DMA_USED; /* Mark buffer as unused again */
+#endif
 
             /* Point the curr_rx_desc to next descriptor in the ring */
             /* Wrap around in case next descriptor is pointing to last in the ring */
             ++this_queue->first_rx_desc_index;
             this_queue->first_rx_desc_index %= MSS_MAC_RX_RING_SIZE;
 
-           cdesc = &this_queue->rx_desc_tab[this_queue->first_rx_desc_index];
-        } while(0 != (cdesc->addr_low & GEM_RX_DMA_USED)); /* loop while there are packets available */
+            cdesc = &this_queue->rx_desc_tab[this_queue->first_rx_desc_index];
+            burst--;
+        } while(0 != (cdesc->addr_low & GEM_RX_DMA_USED) && (0 != burst)); /* loop while there are packets available */
+    }
+
+    if(0U == (this_mac->mac_base->NETWORK_CONTROL & GEM_ENABLE_RECEIVE))
+    {
+        this_mac->mac_base->NETWORK_CONTROL |= GEM_ENABLE_RECEIVE;
     }
 }
 
@@ -4236,69 +5166,53 @@ rxpkt_handler
  * descriptor that transmitted the packet and caused the interrupt.
  * This relinquishes the packet buffer from the associated DMA descriptor.
  */
+
 static void 
 txpkt_handler
 (
-        mss_mac_instance_t *this_mac, uint32_t queue_no
+        mss_mac_instance_t *this_mac, uint64_t queue_no
 )
 {
 #if defined(MSS_MAC_SIMPLE_TX_QUEUE)
     mss_mac_queue_t *this_queue = &this_mac->queue[queue_no];
+    mss_mac_tx_desc_t *p_current_desc;
+    uint32_t finished;
 
     /*
-     * Simple single packet TX queue where only the one packet buffer is needed
-     * but two descriptors are required to stop DMA engine running over itself...
+     * Simple multi packet TX queue where only the one packet buffer is used
+     * per frame but we do have 1 extra descriptor to stop DMA engine running
+     * over itself...
      */
-    if(NULL_POINTER != this_queue->pckt_tx_callback)
-    {
-        this_queue->pckt_tx_callback(this_mac, queue_no, this_queue->tx_desc_tab, this_queue->tx_caller_info[0]);
-    }
 
-    this_queue->nb_available_tx_desc = MSS_MAC_TX_RING_SIZE; /* Release transmit queue... */
-
-#else    
-    uint32_t empty_flag;
-    uint32_t index;
-    uint32_t completed = 0U;
-    HAL_ASSERT(g_mac.first_tx_index != INVALID_INDEX);
-    HAL_ASSERT(g_mac.last_tx_index != INVALID_INDEX);
-    /* TBD PMCS multi packet tx queue not implemented yet */
-    index = g_mac.first_tx_index;
-    do
+    p_current_desc = &this_queue->tx_desc_tab[this_queue->current_tx_desc];
+    finished = 0;
+    while(!finished)
     {
-        ++g_mac.nb_available_tx_desc;
-        /* Call packet Tx completion handler if it exists. */
-        if(NULL_POINTER != g_mac.pckt_tx_callback)
+        if(this_queue->nb_available_tx_desc == MSS_MAC_TX_RING_SIZE)
         {
-            g_mac.pckt_tx_callback(g_mac.tx_desc_tab[index].caller_info);
-        }
-        
-        if(index == g_mac.last_tx_index)
-        {
-            /* all pending tx packets sent. */
-            g_mac.first_tx_index = INVALID_INDEX;
-            g_mac.last_tx_index = INVALID_INDEX;
-            completed = 1U;
+            *this_queue->transmit_q_ptr = (uint32_t)((uint64_t)this_queue->tx_desc_tab) | 1UL; /* Disable the TX queue */
+            finished = 1;
         }
         else
         {
-            /* Move on to next transmit descriptor. */
-            ++index;
-            index %= MSS_MAC_TX_RING_SIZE;
-            g_mac.first_tx_index = index;
-            /* Check if we reached a descriptor still pending tx. */
-            empty_flag = g_mac.tx_desc_tab[index].pkt_size & DMA_DESC_EMPTY_FLAG_MASK;
-            if(0U == empty_flag)
+            if(p_current_desc->status & GEM_TX_DMA_USED)
             {
-                completed = 1U;
+                if(NULL_POINTER != this_queue->pckt_tx_callback)
+                {
+                    this_queue->pckt_tx_callback(this_mac, queue_no, p_current_desc, this_queue->tx_caller_info[this_queue->current_tx_desc]);
+                }
+                this_queue->nb_available_tx_desc++;
+                p_current_desc++;
+                this_queue->current_tx_desc++;
+            }
+            else
+            {
+                finished = 1;
             }
         }
-        
-        
-        /* Clear the tx packet sent interrupt. Please note that this must be
-         * done for every packet sent as it decrements the TXPKTCOUNT. */
-        set_bit_reg32(&MAC->DMA_TX_STATUS, DMA_TXPKTSENT);
-    } while(0U == completed);
+    }
+#else    
+#error "Multi packet TX not implemented!"
 #endif
 }
 
@@ -4374,7 +5288,7 @@ static void assign_station_addr
     uint32_t address32_l;
     uint32_t address32_h;
 
-    HAL_ASSERT(NULL_POINTER != mac_addr);
+    ASSERT(NULL_POINTER != mac_addr);
 
     if((NULL_POINTER != mac_addr) && (NULL_POINTER != this_mac))
     {
@@ -4394,23 +5308,37 @@ static void assign_station_addr
         {
             this_mac->emac_base->SPEC_ADD1_BOTTOM = address32_l;
             this_mac->emac_base->SPEC_ADD1_TOP    = address32_h;
-            this_mac->emac_base->SPEC_ADD2_BOTTOM = 0U;
-            this_mac->emac_base->SPEC_ADD2_TOP    = 0U;
-            this_mac->emac_base->SPEC_ADD3_BOTTOM = 0U;
-            this_mac->emac_base->SPEC_ADD3_TOP    = 0U;
-            this_mac->emac_base->SPEC_ADD4_BOTTOM = 0U;
-            this_mac->emac_base->SPEC_ADD4_TOP    = 0U;
+            /*
+             * If being done from init for first time we also make sure the
+             * specific address filters are disabled...
+             */
+            if(this_mac->mac_available != MSS_MAC_AVAILABLE)
+            {
+                this_mac->emac_base->SPEC_ADD2_TOP    = 0U;
+                this_mac->emac_base->SPEC_ADD2_BOTTOM = 0U;
+                this_mac->emac_base->SPEC_ADD3_TOP    = 0U;
+                this_mac->emac_base->SPEC_ADD3_BOTTOM = 0U;
+                this_mac->emac_base->SPEC_ADD4_TOP    = 0U;
+                this_mac->emac_base->SPEC_ADD4_BOTTOM = 0U;
+            }
         }
         else
         {
             this_mac->mac_base->SPEC_ADD1_BOTTOM  = address32_l;
             this_mac->mac_base->SPEC_ADD1_TOP     = address32_h;
-            this_mac->mac_base->SPEC_ADD2_BOTTOM  = 0U;
-            this_mac->mac_base->SPEC_ADD2_TOP     = 0U;
-            this_mac->mac_base->SPEC_ADD3_BOTTOM  = 0U;
-            this_mac->mac_base->SPEC_ADD3_TOP     = 0U;
-            this_mac->mac_base->SPEC_ADD4_BOTTOM  = 0U;
-            this_mac->mac_base->SPEC_ADD4_TOP     = 0U;
+            /*
+             * If being done from init for first time we also make sure the
+             * specific address filters are disabled...
+             */
+            if(this_mac->mac_available != MSS_MAC_AVAILABLE)
+            {
+                this_mac->mac_base->SPEC_ADD2_TOP     = 0U;
+                this_mac->mac_base->SPEC_ADD2_BOTTOM  = 0U;
+                this_mac->mac_base->SPEC_ADD3_TOP     = 0U;
+                this_mac->mac_base->SPEC_ADD3_BOTTOM  = 0U;
+                this_mac->mac_base->SPEC_ADD4_TOP     = 0U;
+                this_mac->mac_base->SPEC_ADD4_BOTTOM  = 0U;
+            }
         }
     }
 }
@@ -4480,7 +5408,7 @@ static void msgmii_init(const mss_mac_instance_t *this_mac)
 /*******************************************************************************
  *
  */
- static void msgmii_autonegotiate(const mss_mac_instance_t *this_mac)
+void msgmii_autonegotiate(const mss_mac_instance_t *this_mac)
  {
     uint16_t phy_reg;
     uint16_t autoneg_complete;

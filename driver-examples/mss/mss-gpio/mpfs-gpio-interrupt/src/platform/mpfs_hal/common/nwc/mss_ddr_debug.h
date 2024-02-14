@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_ddr_debug.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief mss_ddr_debug related defines
  *
  */
@@ -235,10 +230,7 @@ uint32_t no_of_regs
 void
 load_ddr_pattern
 (
-uint64_t base,
-uint64_t size,
-uint32_t pattern_type,
-volatile uint8_t pattern_offset
+volatile PATTERN_TEST_PARAMS *pattern_test
 );
 
 /***************************************************************************//**
@@ -248,7 +240,7 @@ uint32_t
 test_ddr
 (
 uint32_t no_of_iterations,
-uint32_t size
+volatile PATTERN_TEST_PARAMS *pattern_test
 );
 
 /***************************************************************************//**
