@@ -1,9 +1,12 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC MSS eMMC SD Interface Level Header File.
+ * @file mss_mmc_if.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) eMMC SD Interface Level
+ * Header File.
  *
  * This eMMC SD Interface header file provides access to functions which are
  * used to configure and program the eMMC/SD device to allow data transfers
@@ -11,14 +14,15 @@
  *
  */
 
-#ifndef __MSS_MMC_IF_H
-#define __MSS_MMC_IF_H
+#ifndef MSS_MMC_IF_H
+#define MSS_MMC_IF_H
+
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
 #endif
-
-#include "hal/cpu_types.h"
 
 /***************************************************************************//**
  * Macro Definitions
@@ -157,4 +161,4 @@ cif_response_t cif_send_cq_direct_command
 }
 #endif
 
-#endif  /* __MSS_MMC_IF_H */
+#endif  /* MSS_MMC_IF_H */

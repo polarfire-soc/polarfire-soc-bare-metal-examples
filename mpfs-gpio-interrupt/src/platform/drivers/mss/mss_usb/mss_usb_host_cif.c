@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC MSS USB Driver Stack
- *      USB Core Interface Layer (USB-CIFL)
- *          USBH-CIF driver
+ * @file mss_usb_host_cif.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
+ *          USB Core Interface Layer (USB-CIFL)
+ *            USBH-CIF driver
  *
  * USBH-CIF driver implementation:
  * This file implements MSS USB core initialization in host mode and
@@ -14,8 +16,7 @@
  *
  */
 
-#include "hal/hal_assert.h"
-#include "mpfs_hal/mss_plic.h"
+#include "mpfs_hal/mss_hal.h"
 #include "mss_usb_host_cif.h"
 #include "mss_usb_common_cif.h"
 #include "mss_usb_common_reg_io.h"
@@ -78,13 +79,13 @@ MSS_USBH_CIF_cep_configure
         MSS_USBH_CIF_cep_enable_ping();
     }
 
-    HAL_ASSERT(cep->interval <= 32768u);
+    ASSERT(cep->interval <= 32768u);
 
     /* Value 0 or 1 disables the NAKTIMEOUT functionality.*/
     if (cep->interval <= 32768u)
     {
         /*Value must be true and power of 2*/
-        HAL_ASSERT(((cep->interval != 0U) &&
+        ASSERT(((cep->interval != 0U) &&
                 (!(cep->interval & (cep->interval- 1)))));
 
         /*2 pow (m-1)*/
@@ -329,7 +330,7 @@ MSS_USBH_CIF_cep_write_pkt
     mss_usb_ep_t* hcep
 )
 {
-    HAL_ASSERT((hcep->num == MSS_USB_CEP) &&
+    ASSERT((hcep->num == MSS_USB_CEP) &&
            (hcep->buf_addr != 0) &&
            (hcep->xfr_type == MSS_USB_XFR_CONTROL));
 
@@ -358,13 +359,13 @@ MSS_USBH_CIF_cep_read_pkt
 {
        uint16_t received_count = 0u;
 
-    HAL_ASSERT((hcep->num == MSS_USB_CEP) &&
+    ASSERT((hcep->num == MSS_USB_CEP) &&
            (hcep->buf_addr != 0) &&
            (hcep->xfr_type == MSS_USB_XFR_CONTROL));
 
     /* TODO: check stalled, null buffer, xfr type, transaction type */
     received_count = MSS_USB_CIF_cep_rx_byte_count();
-    HAL_ASSERT(received_count <= hcep->txn_length);
+    ASSERT(received_count <= hcep->txn_length);
     MSS_USB_CIF_read_rx_fifo(MSS_USB_CEP, hcep->buf_addr, received_count);
     hcep->buf_addr += received_count;
     MSS_USBH_CIF_cep_clr_rxpktrdy();

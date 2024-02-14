@@ -132,6 +132,17 @@ SECTIONS
     PROVIDE(__u54_4_itim_end = ORIGIN(u54_4_itim) + LENGTH(u54_4_itim));
     
     . = __envm_start;
+    
+    .text_init : ALIGN(0x10)
+    {
+        *(.text.init)
+        *system_startup.o (.text .text* .rodata .rodata* .srodata*)
+        *mtrap.o (.text .text* .rodata .rodata* .srodata*)
+        *mss_h2f.o (.text .text* .rodata .rodata* .srodata*)
+        *mss_l2_cache.o (.text .text* .rodata .rodata* .srodata*)
+        . = ALIGN(0x10);
+    } >envm 
+    
     .text : ALIGN(0x10)
     {
         __text_load = LOADADDR(.text);

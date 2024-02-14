@@ -1,12 +1,15 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
- * 
- * Register bit offsets and masks definitions for PolarFire SoC Microprocessor 
- * Subsystem I2C bare metal software driver.
+ *
+ * @file mss_i2c_regs.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Register bit offsets and masks definitions for PolarFire SoC
+ * Microprocessor Subsystem (MSS) I2C bare metal software driver.
  *
  */
+
 #ifndef MSS_I2C_REGS_H_
 #define MSS_I2C_REGS_H_
 
@@ -32,7 +35,6 @@ extern "C" {
 #define SI_MASK                     (uint8_t)(0x08)
 #define STO_MASK                    (uint8_t)(0x10)
 #define STA_MASK                    (uint8_t)(0x20)
-
 
 #define ENS1_MASK                   (uint8_t)(0x40)
 #define CR2_MASK                    (uint8_t)(0x80)

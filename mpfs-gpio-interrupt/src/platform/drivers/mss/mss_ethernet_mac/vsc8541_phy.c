@@ -1,25 +1,23 @@
-
 /*******************************************************************************
- * Copyright 2019 Microchip Corporation.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Microsemi VSC8541 PHY interface driver implementation to support the FU540
- * Aloe board.
+ * @file vsc8541_phy.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Microsemi VSC8541 PHY interface driver implementation to support the
+ * FU540 Aloe board.
  *
- * SVN $Revision$
- * SVN $Date$
  */
-#include "mpfs_hal/mss_plic.h"
-#include "config/hardware/hw_platform.h"
 
-#include "drivers/mss_mac/mss_ethernet_registers.h"
-#include "drivers/mss_mac/mss_ethernet_mac_regs.h"
-#include "drivers/mss_mac/mss_ethernet_mac_user_config.h"
-#include "drivers/mss_mac/mss_ethernet_mac.h"
-#include "drivers/mss_mac/phy.h"
+#include "mpfs_hal/mss_hal.h"
 #include "hal/hal.h"
-#include "hal/hal_assert.h"
+
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_regs.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
+#include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
+#include "drivers/mss/mss_ethernet_mac/phy.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,7 +57,7 @@ typedef struct
 } AloeGPIO_TypeDef;
 
 
-void MSS_MAC_VSC8541_phy_init(/* mss_mac_instance_t*/ const void *v_this_mac, uint8_t phy_addr)
+void MSS_MAC_VSC8541_phy_init(/* mss_mac_instance_t */ const void *v_this_mac, uint8_t phy_addr)
 {
 #if defined(TARGET_ALOE)
     volatile uint32_t loop;
@@ -102,82 +100,266 @@ void MSS_MAC_VSC8541_phy_init(/* mss_mac_instance_t*/ const void *v_this_mac, ui
     {
         ;
     }
+#else
+    volatile uint16_t temp_reg;
+    const mss_mac_instance_t *this_mac = (const mss_mac_instance_t *)v_this_mac;
+    mss_mac_instance_t *phy_mac;
+
+    /* Assume this is done by app for the moment */
+#if 0
+    /* Do hardware reset if possible/necessary */
+
+    /* Phy is actually attached to another MAC... */
+    if((struct mss_mac_instance *)0UL != this_mac->phy_controller)
+    {
+        phy_mac = (mss_mac_instance_t *)this_mac->phy_controller;
+    }
+    else
+    {
+        phy_mac = (mss_mac_instance_t *)this_mac;
+    }
+
+    if(0 == phy_mac->phy_hard_reset_done)
+    {
+        /* Active low reset pulse */
+        MSS_MAC_phy_reset(phy_mac, MSS_MAC_SOFT_RESET, false);
+        MSS_MAC_phy_reset(phy_mac, MSS_MAC_SOFT_RESET, true);
+
+#if defined(TARGET_G5_SOC)
+        /*
+         * Multiple MACs may be involved and we need to ensure all relevant MACs
+         * have the phy_hard_reset_done flag set
+         */
+
+        if(phy_mac != this_mac) /* Simple case, set flag for all 4 MACs */
+        {
+            g_mac0.phy_hard_reset_done  = true;
+            g_emac0.phy_hard_reset_done = true;
+            g_mac1.phy_hard_reset_done  = true;
+            g_emac1.phy_hard_reset_done = true;
+        }
+        else if((&g_mac0 == phy_mac) || (&g_emac0 == phy_mac))
+        {
+            g_mac0.phy_hard_reset_done  = true;
+            g_emac0.phy_hard_reset_done = true;
+        }
+        else
+        {
+            g_mac1.phy_hard_reset_done  = true;
+            g_emac1.phy_hard_reset_done = true;
+        }
+#else
+        phy_mac->phy_hard_reset_done = true;
 #endif
+    }
+#endif
+
+    /* Select standard registers page */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 31, 0x0000U);
+
+    /* Select GMII mode */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 23, (uint16_t)(0x0000));
+
+    /* Software Reset */
+    temp_reg = MSS_MAC_read_phy_reg(this_mac, phy_addr, 0);
+    temp_reg |= 0x8000U;
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 0, temp_reg);
+
+    /* Wait for soft reset to complete */
+    do
+    {
+        temp_reg = MSS_MAC_read_phy_reg(this_mac, phy_addr, 0);
+    } while(0 != (temp_reg & 0x8000U));
+
+    /* Full duplex, autonegotiation and 1000Mbps as starting point */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, MII_BMCR, (uint16_t)(BMCR_ANENABLE | BMCR_FULLDPLX | BMCR_SPEED1000));
+
+    /* Full duplex modes */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, MII_ADVERTISE, (uint16_t)(ADVERTISE_FULL));
+
+    /* Full duplex mode */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, MII_CTRL1000, (uint16_t)(ADVERTISE_1000FULL));
+
+
+    /* Select page 2 */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 31, 0x0002U);
+
+    /* Adjust MAC interface slew rate - default is 111 but recommended for 3.3V i/o is 100 */
+    temp_reg = MSS_MAC_read_phy_reg(this_mac, phy_addr, 27);
+    temp_reg &= 0xFF1FU;
+    temp_reg |= 0x0080U;
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 27, temp_reg);
+
+    /* Select page 0 */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 31, 0x0000U);
+
+    #if 0
+    /* Auto MDI/MDI-X, Do not ignore advertised ability, disable CLKOUT */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 18, (uint16_t)(0x0084U));
+
+    /* Enable SGMII MAC link autonegotiation and Force copper media only */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 23, (uint16_t)(0x2880U));
+
+    /* SGMII no input preamble, 2 byte output preamble, 9/12K jumbo frames (12K for 60ppm clock) */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 23, (uint16_t)(0xC050U));
+
+    /* Select selection of LED activity modes for 4 LEDs */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 29, (uint16_t)(0x0123U));
+
+    /* Clear this for consistency as many bits are CMODE selections */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 30, (uint16_t)(0x0000U));
+
+    /* Select extended registers page */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 31, 0x0001U);
+
+    /* Clear SIGDET polarity to active high */
+    temp_reg = MSS_MAC_read_phy_reg(this_mac, phy_addr, 19);
+    temp_reg &= 0xFFFE;
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 19, temp_reg);
+
+    /* Ensure all CMODE bits are clear */
+    temp_reg = MSS_MAC_read_phy_reg(this_mac, phy_addr, 20);
+    temp_reg &= 0xFE6F;
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 20, temp_reg);
+
+    /* Select general purpose registers page */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 31, 0x0010U);
+
+    /* Disable SIGDET operation */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 13, (uint16_t)(0x000FU));
+
+    /* Select standard registers page */
+    MSS_MAC_write_phy_reg(this_mac, phy_addr, 31, 0x0000U);
+#endif
+
+#endif
+
 }
 
 /**************************************************************************//**
  * 
  */
-void MSS_MAC_VSC8541_phy_set_link_speed(/* mss_mac_instance_t*/ const void *v_this_mac, uint32_t speed_duplex_select)
+void MSS_MAC_VSC8541_phy_set_link_speed(/* mss_mac_instance_t */ void *v_this_mac, uint32_t speed_duplex_select, mss_mac_speed_mode_t speed_mode)
 {
-    const mss_mac_instance_t *this_mac = (const mss_mac_instance_t *)v_this_mac;
+    mss_mac_instance_t *this_mac = (mss_mac_instance_t *)v_this_mac;
     uint16_t phy_reg;
     uint32_t inc;
     uint32_t speed_select;
     const uint16_t mii_advertise_bits[4] = {ADVERTISE_10FULL, ADVERTISE_10HALF,
                                             ADVERTISE_100FULL, ADVERTISE_100HALF};
     
-    /* Set auto-negotiation advertisement. */
+    this_mac->speed_mode = speed_mode;
     
-    /* Set 10Mbps and 100Mbps advertisement. */
-    phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_ADVERTISE);
-    phy_reg &= (uint16_t)(~(ADVERTISE_10HALF | ADVERTISE_10FULL |
-                 ADVERTISE_100HALF | ADVERTISE_100FULL));
-                 
-    speed_select = speed_duplex_select;
-    for(inc = 0U; inc < 4U; ++inc)
+    if(MSS_MAC_SPEED_AN == speed_mode) /* Set auto-negotiation advertisement. */
     {
-        uint32_t advertise;
-        advertise = speed_select & 0x00000001U;
-        if(advertise != 0U)
-        {
-            phy_reg |= mii_advertise_bits[inc];
-        }
-        speed_select = speed_select >> 1U;
-    }
-    
-    MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_ADVERTISE, phy_reg);
+        /* Set 10Mbps and 100Mbps advertisement. */
+        phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_ADVERTISE);
+        phy_reg &= (uint16_t)(~(ADVERTISE_10HALF | ADVERTISE_10FULL |
+                     ADVERTISE_100HALF | ADVERTISE_100FULL));
 
-    /* Set 1000Mbps advertisement. */
-    phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000);
-    phy_reg &= (uint16_t)(~(ADVERTISE_1000FULL | ADVERTISE_1000HALF));
+        speed_select = speed_duplex_select;
+        for(inc = 0U; inc < 4U; ++inc)
+        {
+            uint32_t advertise;
+            advertise = speed_select & 0x00000001U;
+            if(advertise != 0U)
+            {
+                phy_reg |= mii_advertise_bits[inc];
+            }
+            speed_select = speed_select >> 1U;
+        }
+
+        MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_ADVERTISE, phy_reg);
     
-    if((speed_duplex_select & MSS_MAC_ANEG_1000M_FD) != 0U)
-    {
-        phy_reg |= ADVERTISE_1000FULL;
+        /* Set 1000Mbps advertisement. */
+        phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000);
+        phy_reg &= (uint16_t)(~(ADVERTISE_1000FULL | ADVERTISE_1000HALF));
+
+        if((speed_duplex_select & MSS_MAC_ANEG_1000M_FD) != 0U)
+        {
+            phy_reg |= ADVERTISE_1000FULL;
+        }
+
+        if((speed_duplex_select & MSS_MAC_ANEG_1000M_HD) != 0U)
+        {
+            phy_reg |= ADVERTISE_1000HALF;
+        }
+
+        MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, phy_reg);
     }
-    
-    if((speed_duplex_select & MSS_MAC_ANEG_1000M_HD) != 0U)
+    else
     {
-        phy_reg |= ADVERTISE_1000HALF;
+        uint16_t temp_reg = 0x0000U; /* Default with 10M, half duplex */
+
+        if((MSS_MAC_10_FDX == this_mac->speed_mode) || (MSS_MAC_100_FDX == this_mac->speed_mode) || (MSS_MAC_1000_FDX == this_mac->speed_mode))
+        {
+            temp_reg |= BMCR_FULLDPLX;
+        }
+
+        if((MSS_MAC_100_FDX == this_mac->speed_mode) || (MSS_MAC_100_HDX == this_mac->speed_mode))
+        {
+            temp_reg |= BMCR_SPEED100;
+        }
+
+        if((MSS_MAC_1000_FDX == this_mac->speed_mode) || (MSS_MAC_1000_HDX == this_mac->speed_mode))
+        {
+            temp_reg |=  BMCR_SPEED1000;
+            /* Set Master mode */
+            phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000);
+            phy_reg |= 0x1800U;
+            MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, phy_reg);
+        }
+
+        /* Apply static speed/duplex selection */
+        MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMCR, temp_reg);
+
+        /* Full duplex mode or half duplex, single port device */
+        if((MSS_MAC_10_FDX == this_mac->speed_mode) || (MSS_MAC_100_FDX == this_mac->speed_mode) || (MSS_MAC_1000_FDX == this_mac->speed_mode))
+        {
+            MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, (uint16_t)(ADVERTISE_1000FULL));
+        }
+        else
+        {
+            MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, (uint16_t)(ADVERTISE_1000HALF));
+        }
     }
-    
-    MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_CTRL1000, phy_reg);
 }
 
 /**************************************************************************//**
  * 
  */
-void MSS_MAC_VSC8541_phy_autonegotiate(/* mss_mac_instance_t*/ const void *v_this_mac)
+void MSS_MAC_VSC8541_phy_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac)
 {
     const mss_mac_instance_t *this_mac = (const mss_mac_instance_t *)v_this_mac;
     volatile uint16_t phy_reg;
     uint16_t autoneg_complete;
-    volatile uint32_t copper_aneg_timeout = 1000000U;
+    volatile uint32_t copper_aneg_timeout = 10000U;
     
-    phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, 2U);
-    phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, 3U);
+    if(MSS_MAC_SPEED_AN == this_mac->speed_mode) /* Only do if allowed */
+    {
+        phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, 2U);
+        phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, 3U);
+    
+        /* Enable auto-negotiation. */
+        phy_reg = 0x1340U;
+        MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMCR, phy_reg);
 
-    /* Enable auto-negotiation. */
-    phy_reg = 0x1340U;
-    MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMCR, phy_reg);
-    
-    /* Wait for copper auto-negotiation to complete. */
-    do {
-        phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMSR);
-        autoneg_complete = phy_reg & BMSR_AUTO_NEGOTIATION_COMPLETE;
-        --copper_aneg_timeout;
-    } while(((0U == autoneg_complete) && (copper_aneg_timeout != 0u)) || (0xFFFF == phy_reg));
+        /* Wait for copper auto-negotiation to complete. */
+        do {
+            phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMSR);
+            autoneg_complete = phy_reg & BMSR_AUTO_NEGOTIATION_COMPLETE;
+            --copper_aneg_timeout;
+        } while(((0U == autoneg_complete) && (copper_aneg_timeout != 0u)) || (0xFFFF == phy_reg));
+    }
+}
+
+
+/**************************************************************************//**
+ *
+ */
+void MSS_MAC_VSC8541_mac_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac)
+{
+    (void)v_this_mac;
 }
 
 
@@ -198,7 +380,6 @@ uint8_t MSS_MAC_VSC8541_phy_get_link_status
 
     phy_reg = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, MII_BMSR);
     link_up = phy_reg & BMSR_LSTATUS;
-    
     if(link_up != MSS_MAC_LINK_DOWN)
     {
         uint16_t duplex;
@@ -260,10 +441,10 @@ uint16_t VSC8541_reg_16[32];
 void dump_vsc8541_regs(const mss_mac_instance_t * this_mac);
 void dump_vsc8541_regs(const mss_mac_instance_t * this_mac)
 {
-    int32_t count;
-    uint16_t page;
-    uint16_t old_page;
-    uint16_t *pdata;
+    volatile int32_t count;
+    volatile uint16_t page;
+    volatile uint16_t old_page;
+    volatile uint16_t *pdata;
     volatile psr_t lev;
 
     for(page = 0U; page <= 0x10U; page++)
@@ -301,6 +482,7 @@ void dump_vsc8541_regs(const mss_mac_instance_t * this_mac)
                 pdata[count] = MSS_MAC_read_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, (uint8_t)count);
 
                 MSS_MAC_write_phy_reg(this_mac, (uint8_t)this_mac->phy_addr, 0x1FU, old_page);
+                MSS_MAC_read_phy_reg(this_mac, (uint8_t)10, (uint8_t)count);
                 HAL_restore_interrupts(lev);
             }
         }

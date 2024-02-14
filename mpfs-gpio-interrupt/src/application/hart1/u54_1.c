@@ -13,7 +13,8 @@
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_gpio/mss_gpio.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
-
+#include "inc/uart_mapping.h"
+extern struct mss_uart_instance* p_uartmap_u54_1;
 /******************************************************************************
  * Instruction message. These message will be displayed on the UART terminal 
    when the program starts.
@@ -79,24 +80,21 @@ void u54_1(void)
 
     /* Reset the peripherals turn on the clocks */
 
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART2, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART3, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART_U54_1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART_U54_2, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART_U54_3, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
     (void)mss_config_clk_rst(MSS_PERIPH_GPIO0, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
     (void)mss_config_clk_rst(MSS_PERIPH_GPIO1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
     (void)mss_config_clk_rst(MSS_PERIPH_GPIO2, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
     (void)mss_config_clk_rst(MSS_PERIPH_CFM, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
 
-   /* mmuart0 initialization */
-
-
    /* mmuart1 initialization */
 
-    MSS_UART_init( &g_mss_uart1_lo,
+    MSS_UART_init( p_uartmap_u54_1,
             MSS_UART_115200_BAUD,
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
-    MSS_UART_polled_tx_string(&g_mss_uart1_lo,
+    MSS_UART_polled_tx_string(p_uartmap_u54_1,
                        g_message2 );
 
     mcycle_start = readmcycle();
@@ -149,7 +147,7 @@ void u54_1(void)
 
     while (1u)
     {
-        g_rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, g_rx_buff,
+        g_rx_size = MSS_UART_get_rx(p_uartmap_u54_1, g_rx_buff,
                                             sizeof(g_rx_buff));
 
         if (g_rx_size > 0u)
@@ -172,7 +170,7 @@ void u54_1(void)
 
                 /* Echo the characters received from the terminal */
 
-                MSS_UART_polled_tx_string(&g_mss_uart1_lo,
+                MSS_UART_polled_tx_string(p_uartmap_u54_1,
                                    g_rx_buff );
             }
 
@@ -185,7 +183,7 @@ void u54_1(void)
 
 uint8_t  gpio1_bit16_or_gpio2_bit30_plic_30_IRQHandler(void)
 {
-    MSS_UART_polled_tx_string(&g_mss_uart1_lo,
+    MSS_UART_polled_tx_string(p_uartmap_u54_1,
            "gpio2_pin 30 Interrupt\r\n");
     MSS_GPIO_set_outputs(GPIO2_LO, 0u);
     MSS_GPIO_clear_irq(GPIO2_LO, MSS_GPIO_30);
@@ -194,7 +192,7 @@ uint8_t  gpio1_bit16_or_gpio2_bit30_plic_30_IRQHandler(void)
 
 uint8_t gpio1_bit17_or_gpio2_bit31_plic_31_IRQHandler(void)
 {
-    MSS_UART_polled_tx_string(&g_mss_uart1_lo,
+    MSS_UART_polled_tx_string(p_uartmap_u54_1,
            "gpio2_pin 31 Interrupt\r\n" );
     MSS_GPIO_set_outputs(GPIO2_LO, 0u);
     MSS_GPIO_clear_irq(GPIO2_LO, MSS_GPIO_31);
@@ -203,7 +201,7 @@ uint8_t gpio1_bit17_or_gpio2_bit31_plic_31_IRQHandler(void)
 
 uint8_t fabric_f2h_0_plic_IRQHandler(void)
 {
-    MSS_UART_polled_tx_string(&g_mss_uart1_lo,
+    MSS_UART_polled_tx_string(p_uartmap_u54_1,
                "f2h_0 interrupt\r\n" );
     MSS_GPIO_set_outputs(GPIO2_LO, 0u);
     return EXT_IRQ_KEEP_ENABLED;
@@ -225,6 +223,6 @@ void SysTick_Handler_h1_IRQHandler(void)
             value = 0x00u;
         }
 
-        MSS_GPIO_set_output(GPIO2_LO, MSS_GPIO_16, value);
+        MSS_GPIO_set_output(GPIO2_LO, MSS_GPIO_17, value);
     }
 }

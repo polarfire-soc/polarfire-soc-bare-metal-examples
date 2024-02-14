@@ -1,25 +1,24 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC MSS USB Driver Stack
- *      USB Logical Layer (USB-LL)
- *          USBH-HID class driver.
+ * @file mss_usb_host_hid.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
+ *         USB Logical Layer (USB-LL)
+ *           USBH-HID class driver.
  *
- *  This file implements Host side HID class specific initialization
- *  and request handling.
+ * This file implements Host side HID class specific initialization
+ * and request handling.
  *
  */
 
+#include "mpfs_hal/mss_hal.h"
 #include "mss_usb_host_hid.h"
 #include "mss_usb_host.h"
 #include "mss_usb_std_def.h"
 
-#include <string.h>
-#include <stdio.h>
-#include "hal/hal_assert.h"
-#include "mpfs_hal/mss_plic.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -431,7 +430,7 @@ MSS_USBH_HID_task
 
         default:
         {
-            HAL_ASSERT(0);  /*Reset recovery should be tried.*/
+            ASSERT(0);  /*Reset recovery should be tried.*/
         }
         break;
     }
@@ -556,7 +555,7 @@ usbh_hid_rx_cb
         }
         else
         {
-            HAL_ASSERT(0);/* Handling any other error. Not yet supported */
+            ASSERT(0);/* Handling any other error. Not yet supported */
         }
     }
 
