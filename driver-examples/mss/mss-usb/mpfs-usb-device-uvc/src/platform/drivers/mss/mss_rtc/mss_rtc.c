@@ -1,10 +1,15 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PoalrFire SoC Microprocessor Subsystem RTC bare metal driver implementation.
+ * @file mss_rtc.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) RTC bare metal driver
+ * implementation.
+ *
  */
+
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #include "mss_rtc.h"

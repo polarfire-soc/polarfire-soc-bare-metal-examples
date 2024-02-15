@@ -3,16 +3,12 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/***************************************************************************
  * @file mss_utils.S
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief utilities used by mpfs-hal startup code
  *
  */
+
   .section .text.init,"ax", %progbits
   .align 3
 
@@ -232,4 +228,32 @@ fill_cache_new_seg_address:
 .early_exit:
     ret
 
+/***********************************************************************************
+ *
+ * clear_64_mem - clear memory using 64 bit writes, addresses must be on 64 bit
+ * boundary
+ *
+ *  Note: This function is useful for initializing LIM as 64 bit writes are
+ *  required to initialize ECC. The MPFS HAL does initialize all LIM on boot from
+ *  eNVM, but when debugging bare metal projects from LIM, only the memory associated
+ *  with the footprint of the program is initialised. So when debugging, if LIM memory
+ *  outside the program itself is accessed, it must be initialized if it has not been
+ *  initialized previously by a bootloader.
+ *
+ *  clear_64_mem helper function:
+ *      a0 = start address
+ *      a1 = end address
+ *
+ */
+    .globl  clear_64_mem
+    .type   clear_64_mem @function
+ clear_64_mem:
+    mv  t1, a0          # start address to clear
+    mv  t2, a1          # end address to clear
+1:
+    sd   x0, 0(t1)
+    add t1, t1, __SIZEOF_POINTER__
+    blt t1, t2, 1b
+.done_clear:
+    ret
 

@@ -133,6 +133,13 @@ uint8_t usb_mc_plic_IRQHandler
         if (usb_irq & RESUME_IRQ_MASK)
         {
             g_mss_usbd_cb.usbd_resume();
+            MSS_USB_CIF_set_index_reg(MSS_USB_CEP);
+            MSS_USB_CIF_enable_usbirq(DISCONNECT_IRQ_MASK | SUSPEND_IRQ_MASK);
+            cep_state = MSS_USB_CTRL_EP_IDLE;
+            MSS_USB_CIF_clr_usb_irq_reg();
+            MSS_USB_CIF_cep_clr_setupend();
+            MSS_USB_CIF_cep_clr_stall_sent();
+            g_mss_usbd_cb.usbd_reset();
         }
         if (usb_irq & SUSPEND_IRQ_MASK)
         {

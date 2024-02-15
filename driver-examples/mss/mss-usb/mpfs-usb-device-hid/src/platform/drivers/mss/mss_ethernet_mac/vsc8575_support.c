@@ -1,12 +1,16 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Support routines for the VTS API for the Microsemi VSC8575 PHY interface
- * to support the peripheral daughter board for the G5 SoC Emulation Platform.
+ * @file vsc8575_support.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Support routines for the VTS API for the Microsemi VSC8575 PHY
+ * interface to support the peripheral daughter board for the G5 SoC Emulation
+ * Platform.
  *
  */
+
 #include <stdio.h>
 #include <stdarg.h> /* For va_list */
 #include <stdlib.h>

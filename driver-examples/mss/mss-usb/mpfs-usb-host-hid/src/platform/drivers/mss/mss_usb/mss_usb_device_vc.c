@@ -65,6 +65,9 @@ extern "C" {
 /* get status with self powered(SP) and remote wakeup(RW) bits */
 #define GET_STATUS_RW_SP                                0x83
 
+/* video probe control request */
+#define GET_REQUEST_DEF                                 0x87
+
 #define BCDUSB_NUMBER_OF_USB_1_DOT_0                    0x0100
 #define BCDUSB_NUMBER_OF_USB_2_DOT_0                    0x0200
 
@@ -602,6 +605,12 @@ UVC_process_request_cb
                 case GET_STATUS_RW_SP:
                    memset(&videoProbeControl,0xff,34);
                   *buf_pp = (uint8_t*)&videoProbeControl;
+                  *length = setup_pkt->length;
+                break;
+
+                case GET_REQUEST_DEF:
+                   memset(&videoProbeControl, 0xff, 34);
+                  *buf_pp = (uint8_t*) &videoProbeControl;
                   *length = setup_pkt->length;
                 break;
 
