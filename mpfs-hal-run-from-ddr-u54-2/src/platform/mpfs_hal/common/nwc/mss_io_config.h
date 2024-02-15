@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_io_config.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief MSS IO related code
  *
  */
@@ -446,29 +441,29 @@ uint8_t  mss_is_alternate_io_setting_sd(void);
 
   @code
 
-	case SD_MSSIO_CONFIGURATION:
-	    if (mss_is_alternate_io_setting_sd() == true)
-	    {
-	        io_mux_and_bank_config_alt();
-	    }
-	    else
-	    {
-	        io_mux_and_bank_config();
-	    }
-	    switch_demux_using_fabric_ip(SD_MSSIO_CONFIGURATION);
-	    break;
-	
-	case EMMC_MSSIO_CONFIGURATION:
-	    if (mss_is_alternate_io_setting_emmc() == true)
-	    {
-	        io_mux_and_bank_config_alt();
-	    }
-	    else
-	    {
-	        io_mux_and_bank_config();
-	    }
-	    switch_demux_using_fabric_ip(EMMC_MSSIO_CONFIGURATION);
-	    break;
+  case SD_MSSIO_CONFIGURATION:
+      if (mss_is_alternate_io_setting_sd() == true)
+      {
+          io_mux_and_bank_config_alt();
+      }
+      else
+      {
+          io_mux_and_bank_config();
+      }
+      switch_demux_using_fabric_ip(SD_MSSIO_CONFIGURATION);
+      break;
+  
+  case EMMC_MSSIO_CONFIGURATION:
+      if (mss_is_alternate_io_setting_emmc() == true)
+      {
+          io_mux_and_bank_config_alt();
+      }
+      else
+      {
+          io_mux_and_bank_config();
+      }
+      switch_demux_using_fabric_ip(EMMC_MSSIO_CONFIGURATION);
+      break;
 
 
   @endcode
