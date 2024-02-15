@@ -1,17 +1,18 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC MSS USB Driver Stack
- *      USB Logical Layer (USB-LL)
- *          USBH driver
+ * @file mss_usb_host.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
+ *          USB Logical Layer (USB-LL)
+ *            USBH driver
  *
  * USBH driver implementation:
  * This source file implements the common functionality of USB host mode
  *
  */
-
 
 #include "mpfs_hal/mss_hal.h"
 #include "mss_usb_common_cif.h"
@@ -20,7 +21,6 @@
 #include "mss_usb_host_cif.h"
 #include "mss_usb_host_reg_io.h"
 #include "mss_usb_std_def.h"
-
 
 #ifdef __cplusplus
 extern "C" {

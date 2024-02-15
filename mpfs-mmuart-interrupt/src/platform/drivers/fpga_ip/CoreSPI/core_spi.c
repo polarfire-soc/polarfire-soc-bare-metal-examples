@@ -17,8 +17,6 @@
 
 #include "core_spi.h"
 #include "corespi_regs.h"
-#include "hal.h"
-#include "hal_assert.h"
 #include <string.h>
 
 /*******************************************************************************

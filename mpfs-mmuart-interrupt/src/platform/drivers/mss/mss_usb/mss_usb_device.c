@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC MSS USB Driver Stack
- *      USB Logical Layer (USB-LL)
- *          USBD driver
+ * @file mss_usb_device.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
+ *         USB Logical Layer (USB-LL)
+ *           USBD driver
  *
  * USBD driver implementation:
  * This source file implements the common functionality of USB device mode,
@@ -13,6 +15,7 @@
  * handling, distribution of requests to specific class, interface or endpoints.
  *
  */
+
 #include "mpfs_hal/mss_hal.h"
 #include "mss_usb_device.h"
 #include "mss_usb_config.h"
@@ -387,6 +390,9 @@ MSS_USBD_tx_ep_configure
                 case MSS_USB_XFR_ISO:
                     std_max_pkt_sz = USB_HS_ISO_MAX_PKT_SIZE;
                 break;
+                case MSS_USB_XFR_HB_ISO:
+                    std_max_pkt_sz = USB_HS_HB_ISO_MAX_PKT_SIZE;
+                break;
             default:
                 err_check = USB_FAIL;
         }
@@ -482,6 +488,9 @@ MSS_USBD_rx_ep_configure
             case MSS_USB_XFR_ISO:
                 std_max_pkt_sz = USB_HS_ISO_MAX_PKT_SIZE;
                 break;
+            case MSS_USB_XFR_HB_ISO:
+                std_max_pkt_sz = USB_HS_HB_ISO_MAX_PKT_SIZE;
+                break;
             default:
                 err_check = USB_FAIL;
         }
@@ -498,6 +507,9 @@ MSS_USBD_rx_ep_configure
                 break;
             case MSS_USB_XFR_ISO:
                 std_max_pkt_sz = USB_FS_ISO_MAX_PKT_SIZE;
+                break;
+            case MSS_USB_XFR_HB_ISO:
+                std_max_pkt_sz = USB_FS_HB_ISO_MAX_PKT_SIZE;
                 break;
             default:
                 err_check = USB_FAIL;
@@ -660,6 +672,18 @@ MSS_USBD_tx_ep_write
             if(length >= (txep_ptr->max_pkt_size * dpb))
             {
                 txep_ptr->txn_length = (txep_ptr->max_pkt_size * dpb);
+            }
+            else
+            {
+                txep_ptr->txn_length = length;
+            }
+        }
+        else if(MSS_USB_XFR_HB_ISO == txep_ptr->xfr_type)
+        {
+
+            if(length >= (txep_ptr->max_pkt_size * txep_ptr->num_usb_pkt * dpb))
+            {
+                txep_ptr->txn_length = (txep_ptr->max_pkt_size * txep_ptr->num_usb_pkt  * dpb);
             }
             else
             {

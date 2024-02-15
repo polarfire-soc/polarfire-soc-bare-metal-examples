@@ -1,11 +1,15 @@
- /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+/*******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Register bit offsets and masks definitions for PolarFire SoC MSS PDMA
+ * @file mss_pdma_regs.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Register bit offsets and masks definitions for PolarFire SoC
+ * Microprocessor Subsystem (MSS) PDMA
  *
  */
+
 #ifndef MSS_PDMA_REGS_H_
 #define MSS_PDMA_REGS_H_
 

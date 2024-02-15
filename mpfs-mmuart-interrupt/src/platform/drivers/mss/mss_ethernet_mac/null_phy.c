@@ -1,18 +1,20 @@
-
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * NULL PHY implementation.
+ * @file null_phy.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief NULL PHY implementation.
  *
- * This PHY interface is used when there is a direct connection between two GEM
- * instances which does not involve the use of a PHY device.
+ * This PHY interface is used when there is a direct connection between
+ * two GEM instances which does not involve the use of a PHY device.
  *
  * Also used when setting up the default config so that the pointers for the
  * PHY functions in the config always have some valid values.
  *
  */
+
 #include "mpfs_hal/mss_hal.h"
 
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
