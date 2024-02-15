@@ -1,21 +1,14 @@
 /*******************************************************************************
- * Copyright 2021-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
+ * @file mss_legacy_defines.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief MPFS legacy defines
  *
  */
 
-/*******************************************************************************
- *
- * @file mss_hart_ints.h
- * @author Microchip-FPGA Embedded Systems Solutions
- * @brief MPFS legacy defines
- *
- * Mapping of older defines to newer defines to allow older code compile
- *
- */
 #ifndef MSS_LEGACY_DEFINES_H
 #define MSS_LEGACY_DEFINES_H
 
