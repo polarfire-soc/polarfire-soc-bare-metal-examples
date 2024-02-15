@@ -14,6 +14,8 @@
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
+#include "inc/uart_mapping.h"
+extern struct mss_uart_instance* p_uartmap_e51;
 
 volatile uint32_t count_sw_ints_h4 = 0U;
 
@@ -47,7 +49,7 @@ void u54_4(void)
 
     __enable_irq();
 
-    MSS_UART_polled_tx_string(&g_mss_uart0_lo,
+    MSS_UART_polled_tx_string(p_uartmap_e51,
                                     "Hello World from u54 core 4 - hart4.\r\n");
 
     while (1U)

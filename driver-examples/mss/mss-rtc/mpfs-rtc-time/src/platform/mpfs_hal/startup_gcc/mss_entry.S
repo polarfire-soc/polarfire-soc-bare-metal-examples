@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
- * @file entry.S
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @file mss_entry.S
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief entry functions.
  *
  */

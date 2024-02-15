@@ -1,18 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
- * @file mss_ddr.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @file mss_ddr.c
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief DDR related code
  *
  */
+
 /* #define PRINT_CA_VREF_WINDOW "1" */
 #define MOVE_CK
 #define MANUAL_ADDCMD_TRAINIG
