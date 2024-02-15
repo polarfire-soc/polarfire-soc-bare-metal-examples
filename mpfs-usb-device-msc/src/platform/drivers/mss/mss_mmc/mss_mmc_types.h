@@ -1,12 +1,15 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- *  PolarFire SoC MSS eMMC SD driver data structures.
+ * @file mss_mmc_types.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) eMMC SD driver data
+ * structures.
  *
- * This eMMC Interface header file provides a subset of definitions from the eMMC
- * protocol JESD84-B51
+ * This eMMC Interface header file provides a subset of definitions from the
+ * eMMC protocol JESD84-B51
  *
  */
 

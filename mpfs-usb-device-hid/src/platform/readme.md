@@ -2,7 +2,7 @@
 
 ## Repo organization
 
-```
+```text
 <platform>
   |
   |-- drivers
@@ -31,20 +31,20 @@
   |     |
   |-- platform_config_reference
   |     |     |- linker
-  |     |     |     |- mpfs-ddr-loaded-by-boot-loader.ld                
+  |     |     |     |- mpfs-ddr-loaded-by-boot-loader.ld
   |     |     |     |- mpfs-envm-lma-scratchpad-vma.ld
-  |     |     |     |- mpfs-envm.ld                
+  |     |     |     |- mpfs-envm.ld
   |     |     |     |- mpfs-lim-lma-scratchpad-vma.ld
   |     |     |     |- mpfs-lim.ld
   |     |     |
   |     |     |
   |     |     |- mpfs_hal_config
-  |     |           |- mss_sw_config.h 
-  |     | 
+  |     |           |- mss_sw_config.h
+  |     |
   |-- soc_config_generator
   |           |
   |           |- mpfs_configuration_generator.py
-  
+
 ```
 
 This repository will always contain the latest and greatest of the platform contents. Some of the example projects under [polarfire-soc-bare-metal-examples](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples)

@@ -1,11 +1,15 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC MSS eMMC SD bare metal driver implementation.
+ * @file mss_mmc.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) eMMC SD bare metal driver
+ * implementation.
  *
  */
+
 #include "mpfs_hal/mss_hal.h"
 #include "mss_mmc_if.h"
 #include "mss_mmc_regs.h"

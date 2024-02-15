@@ -1,18 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/***************************************************************************
- * @file mss_l2_cache.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @file  mss_l2_cache.h
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief MACROs defines and prototypes associated with L2 Cache
  *
  */
+
 #ifndef MSS_L2_CACHE_H
 #define MSS_L2_CACHE_H
 

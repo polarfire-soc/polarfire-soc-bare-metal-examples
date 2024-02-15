@@ -1,12 +1,15 @@
- /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+/*******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
- * 
- * Register bit offsets and masks definitions for PolarFire SoC(MPFS) MSS QSPI.
- * 
+ *
+ * @file mss_qspi_reqs.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Register bit offsets and masks definitions for PolarFire SoC
+ * Microprocessor Subsystem (MSS) QSPI.
  *
  */
+
 #ifndef MSS_QSPI_REGS_H_
 #define MSS_QSPI_REGS_H_
 

@@ -1,19 +1,13 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_scb_nwc_regs.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief SCB registers and associated structures relating to the NWC
  *
  */
-
 
 #ifndef MSS_DDR_SGMII_MSS_SCB_NWC_REGS_H_
 #define MSS_DDR_SGMII_MSS_SCB_NWC_REGS_H_

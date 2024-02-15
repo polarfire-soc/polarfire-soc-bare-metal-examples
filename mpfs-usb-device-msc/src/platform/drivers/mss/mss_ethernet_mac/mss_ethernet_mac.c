@@ -1,11 +1,15 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC 10/100/1000 Mbps Ethernet MAC bare metal software driver implementation.
+ * @file mss_ethernet_mac.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) 10/100/1000 Mbps Ethernet
+ * MAC bare metal software driver implementation.
  *
  */
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>

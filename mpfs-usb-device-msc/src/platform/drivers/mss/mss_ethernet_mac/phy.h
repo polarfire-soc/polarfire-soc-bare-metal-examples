@@ -1,14 +1,17 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Register bit definitions for MII STA (station management entity) standard
- * interface. All basic MII register bits and enhanced capability register bits
- * are defined.
+ * @file phy.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Register bit definitions for MII STA (station management entity)
+ * standard interface. All basic MII register bits and enhanced capability
+ * register bits are defined.
  * Complies with Clauses 22, 28, 37, 40 of IEEE RFC 802.3
  * 
  */
+
 #ifndef PSE_PHY_H
 #define PSE_PHY_H
 #include "../mss_ethernet_mac/mss_ethernet_mac_types.h"
