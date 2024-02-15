@@ -1,16 +1,12 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
-*/
-
-/******************************************************************************
  * @file system_startup.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief Macros and APIs for the system_startup.c
+ *
  */
 
 #ifndef SYSTEM_STARTUP_H
@@ -133,6 +129,7 @@ char * config_copy(void *dest, const void * src, size_t len);
 char * config_16_copy(void *dest, const void * src, size_t len);
 char * config_32_copy(void *dest, const void * src, size_t len);
 char * config_64_copy(void *dest, const void * src, size_t len);
+char * clear_64_mem(uint64_t *start_address, uint64_t *end_address);
 
 void copy_section
 (

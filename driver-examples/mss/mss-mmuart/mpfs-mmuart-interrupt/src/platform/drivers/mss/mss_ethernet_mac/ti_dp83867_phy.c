@@ -1,10 +1,12 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * TI DP83867ISRGZ PHY interface driver implementation for use with the G5 SoC
- * Emulation Platform.
+ * @file ti_dp83867_phy.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief TI DP83867ISRGZ PHY interface driver implementation for use with the
+ * G5 SoC Emulation Platform.
  *
  * This system uses the SGMII interface.
  *
@@ -27,6 +29,7 @@
  * LED_0   - Strap option 2, SGMII_Enable = 1, Mirror Enable = 0
  *
  */
+
 #include "mpfs_hal/mss_hal.h"
 #include "hal/hal.h"
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"

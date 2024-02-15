@@ -14,6 +14,8 @@
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 
+extern struct mss_uart_instance* p_uartmap_u54_3;
+
 volatile uint32_t count_sw_ints_h3 = 0U;
 
 const uint8_t polled_message3[] =
@@ -50,10 +52,10 @@ void u54_3(void)
 
     __enable_irq();
 
-    MSS_UART_init(&g_mss_uart3_lo,
+    MSS_UART_init(p_uartmap_u54_3,
         MSS_UART_115200_BAUD,
         MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
-    MSS_UART_polled_tx(&g_mss_uart3_lo,polled_message3,
+    MSS_UART_polled_tx(p_uartmap_u54_3,polled_message3,
             sizeof(polled_message3));
 
     while(1U)

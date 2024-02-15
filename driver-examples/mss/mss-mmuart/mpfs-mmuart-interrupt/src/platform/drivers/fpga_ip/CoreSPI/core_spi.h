@@ -267,7 +267,13 @@
 #ifndef CORE_SPI_H_
 #define CORE_SPI_H_
 
-#include "cpu_types.h"
+#ifndef LEGACY_DIR_STRUCTURE
+#include "hal/hal.h"
+
+#else
+#include "hal.h"
+#include "hal_assert.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -279,6 +285,12 @@ extern "C" {
  SPI_MAX_FIFO_DEPTH & SPI_MIN_FIFO_DEPTH constants define the maximum and minimum 
  FIFO depths allowed for the CoreSPI instance. User need to inform the driver of 
  the FIFO depth for each CoreSPI instance to ensure that the FIFOs are managed correctly.
+ 
+  | Constant           | Description                           				|
+  |--------------------|----------------------------------------------------|
+  | SPI_MAX_FIFO_DEPTH | Maximum FIFO depth allowed for the CoreSPI instance|
+  | SPI_MIN_FIFO_DEPTH | Minimum FIFO depth allowed for the CoreSPI instance|
+  
  */
 #define SPI_MAX_FIFO_DEPTH               32u
 #define SPI_MIN_FIFO_DEPTH               1u
@@ -407,10 +419,10 @@ struct spi_instance{
     uint32_t slave_rx_size;             /* Slave receive buffer size */
     uint32_t slave_rx_idx;              /* Current index into slave receive buffer */
 
-    /** Slave received frame handler: */
+    /* Slave received frame handler: */
     spi_frame_rx_handler_t frame_rx_handler;    /* Pointer to function that will be called when a frame
                                                      is received when the SPI block is configured as slave */
-    /** Slave transmitted frame handler: */
+    /* Slave transmitted frame handler: */
     uint32_t slave_tx_frame;                    /* Value of the data frame that will be transmitted
                                                      when the SPI block is configured as slave */
     spi_slave_frame_tx_handler_t slave_tx_frame_handler; /* Callback function pointer to update slave_tx_frame */

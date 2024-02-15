@@ -1,8 +1,8 @@
 /*******************************************************************************
- * (c) Copyright 2009-2018 Microsemi SoC Products Group.  All rights reserved.
- * 
- * SVN $Revision$
- * SVN $Date$
+ * Copyright 2009-2023 Microchip FPGA Embedded Systems Solutions.
+ *
+ * SPDX-License-Identifier: MIT
+ *
  */
 
 #ifndef __CORE_SMBUS_REGISTERS

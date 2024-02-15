@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC MSS USB Driver Stack
- *    USB Logical Layer (USB-LL)
- *    USBD-HID class driver
+ * @file mss_usb_device_hid.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
+ *          USB Logical Layer (USB-LL)
+ *            USBD-HID class driver
  *
  * This file implements HID class functionality.
  * HID Mouse report is supported.

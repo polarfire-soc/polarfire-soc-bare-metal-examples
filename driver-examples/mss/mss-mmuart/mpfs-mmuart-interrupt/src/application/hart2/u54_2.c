@@ -14,6 +14,8 @@
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 #include "inc/common.h"
+#include "inc/uart_mapping.h"
+extern struct mss_uart_instance* p_uartmap_u54_2;
 
 /******************************************************************************
  * Instruction message. This message will be transmitted over the UART when
@@ -39,10 +41,18 @@ const uint8_t polled_message2[] =
 const uint8_t intr_message2[] =
         "This message has been transmitted using external interrupt method. \r\n";
 
+#if defined(MPFS_DISCOVERY_KIT)
+const uint8_t intr_message3[] =
+        "This message has been transmitted using external interrupt method, "
+        "through the user defined tx handler.\r\n\r\nhart3 is now  "
+        "out of WFI.\r\n";
+#else
 const uint8_t intr_message3[] =
         "This message has been transmitted using external interrupt method, "
         "through the user defined tx handler.\r\n\r\nWatch UART3 to see hart3 "
         "out of WFI.\r\n";
+#endif
+
 
 #define RX_BUFF_SIZE               16U
 #define EXTERNAL_IRQ_PRIORITY      4U
@@ -89,39 +99,39 @@ void u54_2(void)
     __enable_irq();
 
     /* Bring all the MMUARTs out of Reset */
-    (void) mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) 2, PERIPHERAL_ON);
-    (void) mss_config_clk_rst(MSS_PERIPH_MMUART2, (uint8_t) 2, PERIPHERAL_ON);
-    (void) mss_config_clk_rst(MSS_PERIPH_MMUART3, (uint8_t) 2, PERIPHERAL_ON);
-    (void) mss_config_clk_rst(MSS_PERIPH_MMUART4, (uint8_t) 2, PERIPHERAL_ON);
+    (void) mss_config_clk_rst(MSS_PERIPH_MMUART_U54_1, (uint8_t) 2, PERIPHERAL_ON);
+    (void) mss_config_clk_rst(MSS_PERIPH_MMUART_U54_2, (uint8_t) 2, PERIPHERAL_ON);
+    (void) mss_config_clk_rst(MSS_PERIPH_MMUART_U54_3, (uint8_t) 2, PERIPHERAL_ON);
+    (void) mss_config_clk_rst(MSS_PERIPH_MMUART_U54_4, (uint8_t) 2, PERIPHERAL_ON);
     (void) mss_config_clk_rst(MSS_PERIPH_CFM, (uint8_t) 2, PERIPHERAL_ON);
 
     /* All clocks ON */
-    MSS_UART_init(&g_mss_uart2_lo,
+    MSS_UART_init(p_uartmap_u54_2,
         MSS_UART_115200_BAUD,
         MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
-    MSS_UART_set_rx_handler(&g_mss_uart2_lo, uart2_rx_handler,
+    MSS_UART_set_rx_handler(p_uartmap_u54_2, uart2_rx_handler,
             MSS_UART_FIFO_SINGLE_BYTE);
 
     PLIC_init();
-    MSS_UART_enable_irq(&g_mss_uart2_lo, (MSS_UART_RBF_IRQ | MSS_UART_TBE_IRQ));
+    MSS_UART_enable_irq(p_uartmap_u54_2, (MSS_UART_RBF_IRQ | MSS_UART_TBE_IRQ));
 
     /* It is required to set a priority for a PLIC interrupt, even if no other
      * interrupt is used */
-    PLIC_SetPriority(MMUART2_PLIC, EXTERNAL_IRQ_PRIORITY);
+    PLIC_SetPriority(PLIC_IRQ_MMUART_U54_2, EXTERNAL_IRQ_PRIORITY);
     PLIC_SetPriority_Threshold(PLIC_PRIORITY_THRESHOLD);
 
     /* Demonstrating polled MMUART transmission */
-    MSS_UART_polled_tx(&g_mss_uart2_lo,g_message4,
+    MSS_UART_polled_tx(p_uartmap_u54_2,g_message4,
             sizeof(g_message4));
 
     /* Demonstrating interrupt method of transmission */
-    MSS_UART_irq_tx(&g_mss_uart2_lo, g_message5,
+    MSS_UART_irq_tx(p_uartmap_u54_2, g_message5,
             sizeof(g_message5));
 
     /* Makes sure that the previous interrupt based transmission is completed.
      * Alternatively, you could register TX complete handler using
      * MSS_UART_set_tx_handler() */
-    while (0u == MSS_UART_tx_complete(&g_mss_uart2_lo))
+    while (0u == MSS_UART_tx_complete(p_uartmap_u54_2))
     {
         ;
     }
@@ -138,32 +148,32 @@ void u54_2(void)
                 delta_mcycle = mcycle_end - mcycle_start;
                 sprintf(info_string2, "hart %ld, %ld delta_mcycle \r\n", hartid,
                         delta_mcycle);
-                MSS_UART_polled_tx(&g_mss_uart2_lo, info_string2,
+                MSS_UART_polled_tx(p_uartmap_u54_2, info_string2,
                         strlen(info_string2));
                 break;
             case '1':
                 /* show menu */
-                MSS_UART_irq_tx(&g_mss_uart2_lo, g_message5,
+                MSS_UART_irq_tx(p_uartmap_u54_2, g_message5,
                         sizeof(g_message5));
                 break;
             case '2':
                 /* polled method of transmission */
-                MSS_UART_polled_tx(&g_mss_uart2_lo, polled_message2,
+                MSS_UART_polled_tx(p_uartmap_u54_2, polled_message2,
                         sizeof(polled_message2));
                 break;
             case '3':
                 /* interrupt method of transmission */
-                MSS_UART_irq_tx(&g_mss_uart2_lo, intr_message2,
+                MSS_UART_irq_tx(p_uartmap_u54_2, intr_message2,
                         sizeof(intr_message2));
                 break;
             case '4':
                 /* Set the handler, then trigger the tx interrupt. */
-                MSS_UART_set_tx_handler(&g_mss_uart2_lo, uart2_tx_handler);
-                MSS_UART_irq_tx(&g_mss_uart2_lo, intr_message3,
+                MSS_UART_set_tx_handler(p_uartmap_u54_2, uart2_tx_handler);
+                MSS_UART_irq_tx(p_uartmap_u54_2, intr_message3,
                         sizeof(intr_message3));
                 break;
             default:
-                MSS_UART_polled_tx(&g_mss_uart2_lo, g_rx_buff2,
+                MSS_UART_polled_tx(p_uartmap_u54_2, g_rx_buff2,
                         g_rx_size2);
                 break;
             }
@@ -186,7 +196,7 @@ void uart2_rx_handler(mss_uart_instance_t *this_uart)
     /* This will execute when interrupt from hart 2 is raised */
     g_rx_size2 = MSS_UART_get_rx(this_uart, g_rx_buff2, sizeof(g_rx_buff2));
 
-    MSS_UART_polled_tx(&g_mss_uart2_lo, info_string2,
+    MSS_UART_polled_tx(p_uartmap_u54_2, info_string2,
             strlen(info_string2));
 }
 

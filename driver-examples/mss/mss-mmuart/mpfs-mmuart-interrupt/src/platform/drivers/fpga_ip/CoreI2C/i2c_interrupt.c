@@ -1,13 +1,11 @@
 /*******************************************************************************
- * (c) Copyright 2009-2018 Microsemi SoC Products Group.  All rights reserved.
+ * Copyright 2009-2023 Microchip FPGA Embedded Systems Solutions.
+ *
+ * SPDX-License-Identifier: MIT
  * 
  * CoreI2C driver interrupt control.
  * 
- * SVN $Revision$
- * SVN $Date$
  */
-#include "hal.h"
-#include "hal_assert.h"
 #include "core_i2c.h"
 
 /*------------------------------------------------------------------------------

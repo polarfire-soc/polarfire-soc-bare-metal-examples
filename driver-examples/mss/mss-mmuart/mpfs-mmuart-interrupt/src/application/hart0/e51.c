@@ -15,6 +15,9 @@
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 volatile uint32_t count_sw_ints_h0 = 0U;
 
+#include "inc/uart_mapping.h"
+extern struct mss_uart_instance* p_uartmap_e51;
+
 /* Main function for the hart0(e51 processor).
  * Application code running on hart0 is placed here
  *
@@ -23,42 +26,26 @@ volatile uint32_t count_sw_ints_h0 = 0U;
  */
 
 #define RX_BUFF_SIZE    16U
-uint8_t g_rx_buff0[RX_BUFF_SIZE] = {0};
-uint8_t rx_size0 = 0U;
 
 const uint8_t g_message3[] =
         " \r\n\r\n-------------------------------------------------------------\
---------\r\n\r\nPress 1 to demonstrate how to use local interrupts\r\n\r\n\
-Press 2 to demonstrate how to use external interrupts\r\n\r\n------------------\
+--------\r\n\r\nApplication code executes from the U54_1. \r\n "
+        "Please observe its UART for application messages.\r\n\r\n------------------\
 ---------------------------------------------------\r\n";
-
-const uint8_t g_message7[] =
-        " \r\n\r\n------------------------------------\
----------------------------------\r\n\r\n\
-Please observe UART1 for a demonstration of local interrupt\
-\r\n\r\n--------------------------------\
--------------------------------------\r\n";
-
-const uint8_t g_message8[] =
-        " \r\n\r\n------------------------------------\
----------------------------------\r\n\r\n\
-Please observe UART2 for a demonstration of external interrupt\
-\r\n\r\n--------------------------------\
--------------------------------------\r\n";
 
 void e51(void)
 {
     volatile uint32_t icount = 0U;
     uint64_t hartid = read_csr(mhartid);
 
-    (void) mss_config_clk_rst(MSS_PERIPH_MMUART0, (uint8_t) 1, PERIPHERAL_ON);
+    (void) mss_config_clk_rst(MSS_PERIPH_MMUART_E51, (uint8_t) 1, PERIPHERAL_ON);
 
-    MSS_UART_init(&g_mss_uart0_lo,
+    MSS_UART_init(p_uartmap_e51,
     MSS_UART_115200_BAUD,
     MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
     /* Message on uart0 */
-    MSS_UART_polled_tx(&g_mss_uart0_lo, g_message3,
+    MSS_UART_polled_tx(p_uartmap_e51, g_message3,
             sizeof(g_message3));
 
 #if (IMAGE_LOADED_BY_BOOTLOADER == 0)
@@ -68,38 +55,20 @@ void e51(void)
     clear_soft_interrupt();
     set_csr(mie, MIP_MSIP);
 
-    while (1U)
-    {
-        rx_size0 = MSS_UART_get_rx(&g_mss_uart0_lo, g_rx_buff0, sizeof(g_rx_buff0));
-        if(rx_size0 > 0)
-        {
-            switch (g_rx_buff0[0u])
-            {
-            case '1':
-                /* Raise software interrupt to wake hart 1 */
-                raise_soft_interrupt(1U);
-                MSS_UART_polled_tx(&g_mss_uart0_lo, g_message7,
-                            sizeof(g_message7));
-                __enable_irq();
-                break;
-            case '2':
-                /* Raise software interrupt to wake hart 2 */
-                raise_soft_interrupt(2U);
-                MSS_UART_polled_tx(&g_mss_uart0_lo, g_message8,
-                            sizeof(g_message8));
-                __enable_irq();
-                break;
-            default:
-                MSS_UART_polled_tx(&g_mss_uart0_lo, g_message3,
-                        sizeof(g_message3));
-                break;
+    /* Raise software interrupt to wake hart 1 */
+    raise_soft_interrupt(1U);
 
-            }
-        }
-    }
+    /* Raise software interrupt to wake hart 2 */
+    raise_soft_interrupt(2U);
+
+    __enable_irq();
 
 #endif
 
+    while (1U)
+          {
+
+          }
     /* never return */
 }
 

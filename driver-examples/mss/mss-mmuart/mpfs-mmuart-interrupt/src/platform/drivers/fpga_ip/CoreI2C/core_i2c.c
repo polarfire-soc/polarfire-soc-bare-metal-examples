@@ -1,17 +1,14 @@
 /*******************************************************************************
- * (c) Copyright 2009-2018 Microsemi  SoC Products Group.  All rights reserved.
- * 
+ * Copyright 2009-2023 Microchip FPGA Embedded Systems Solutions.
+ *
+ * SPDX-License-Identifier: MIT
+ *
  * CoreI2C software driver implementation.
- * 
- * SVN $Revision$
- * SVN $Date$
+ *
  */
-#include "cpu_types.h"
+
 #include "core_smbus_regs.h"
 #include "core_i2c.h"
-#include "hal.h"
-#include "hal_assert.h"
-
 #include <string.h>
 
 #ifdef __cplusplus
