@@ -16,6 +16,8 @@
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 #include "drivers/mss/mss_rtc/mss_rtc.h"
+#include "inc/uart_mapping.h"
+extern struct mss_uart_instance* p_uartmap_u54_1;
 
 /* Constant used for setting RTC control register. */
 #define BIT_SET 0x00010000U
@@ -70,15 +72,15 @@ void u54_1(void)
 
     PLIC_SetPriority(RTC_WAKEUP_PLIC, 2);
 
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) MPFS_HAL_LAST_HART, PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART_U54_1, (uint8_t) MPFS_HAL_LAST_HART, PERIPHERAL_ON);
     (void)mss_config_clk_rst(MSS_PERIPH_RTC, (uint8_t) MPFS_HAL_LAST_HART, PERIPHERAL_ON);
 
-    MSS_UART_init(&g_mss_uart1_lo,
+    MSS_UART_init(p_uartmap_u54_1,
             MSS_UART_115200_BAUD,
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT
     );
 
-    MSS_UART_polled_tx_string(&g_mss_uart1_lo, g_greeting_msg);
+    MSS_UART_polled_tx_string(p_uartmap_u54_1, g_greeting_msg);
 
     SYSREG->RTC_CLOCK_CR &= ~BIT_SET;
     SYSREG->RTC_CLOCK_CR = LIBERO_SETTING_MSS_EXT_SGMII_REF_CLK / LIBERO_SETTING_MSS_RTC_TOGGLE_CLK;
@@ -102,8 +104,8 @@ void u54_1(void)
             snprintf((char *)display_buffer, sizeof(display_buffer),
                       "Seconds: %02d",(int)(calendar_count.second));
 
-            MSS_UART_polled_tx_string (&g_mss_uart1_lo, display_buffer);
-            MSS_UART_polled_tx_string (&g_mss_uart1_lo, "\r\n");
+            MSS_UART_polled_tx_string (p_uartmap_u54_1, display_buffer);
+            MSS_UART_polled_tx_string (p_uartmap_u54_1, "\r\n");
             MSS_RTC_clear_update_flag();
         }
     }

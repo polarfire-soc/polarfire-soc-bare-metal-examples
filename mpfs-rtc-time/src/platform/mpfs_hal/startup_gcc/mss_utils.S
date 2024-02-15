@@ -3,16 +3,12 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/***************************************************************************
  * @file mss_utils.S
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief utilities used by mpfs-hal startup code
  *
  */
+
   .section .text.init,"ax", %progbits
   .align 3
 

@@ -1,20 +1,13 @@
 /*******************************************************************************
- * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-/*******************************************************************************
  * @file mss_l2_cache.c
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief The code in this file is executed before any code/data sections are
  * copied. This code must not rely sdata/data section content. Hence, global
  * variables should not be used unless they are constants.
- *
- */
-/*==============================================================================
  *
  */
 
