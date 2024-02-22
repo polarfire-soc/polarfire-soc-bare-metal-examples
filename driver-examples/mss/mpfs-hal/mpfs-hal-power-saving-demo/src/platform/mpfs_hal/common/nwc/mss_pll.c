@@ -292,6 +292,119 @@ __attribute__((section(".ram_codetext"))) \
 }
 
 /***************************************************************************//**
+ * mss_mux_post_mss_pll_config(void)
+ *
+ * Once MSS locked, feed through to MSS
+ * We must run this code from RAM, as we need to modify the clock of the eNVM
+ * The first thing we do is change the eNVM clock, to prevent L1 cache accessing
+ * eNVM as it will do as we approach the return instruction
+ * The mb() makes sure order of processing is not changed by the compiler
+ ******************************************************************************/
+__attribute__((section(".ram_codetext"))) \
+        void mss_freq_scaling(uint32_t required_freq_scaling)
+{
+   /*
+    * Modify the eNVM clock, so it now matches new MSS clock
+    *
+    * [5:0]
+    * Sets the number of AHB cycles used to generate the PNVM clock,.
+    * Clock period = (Value+1) * (1000/AHBFREQMHZ)
+    * Value must be 1 to 63 (0 defaults to 15)
+    * e.g.
+    * 7 will generate a 40ns period 25MHz clock if the AHB clock is 200MHz
+    * 11 will generate a 40ns period 25MHz clock if the AHB clock is 250MHz
+    * 15 will generate a 40ns period 25MHz clock if the AHB clock is 400MHz
+    *
+    */
+    SYSREG->ENVM_CR = LIBERO_SETTING_MSS_ENVM_CR;
+
+    mb();  /* make sure we change clock in eNVM first so ready by the time we
+             leave */
+
+    /*
+    * When you're changing the eNVM clock frequency, there is a bit
+    * (ENVM_CR_clock_okay) in the eNVM_CR which can be polled to check that
+    * the frequency change has happened before bumping up the AHB frequency.
+    */
+    volatile uint32_t wait_for_true = 0U;
+    while ((SYSREG->ENVM_CR & ENVM_CR_CLOCK_OKAY_MASK) !=\
+            ENVM_CR_CLOCK_OKAY_MASK)
+    {
+#ifdef RENODE_DEBUG
+        break;
+#endif
+        wait_for_true++; /* need something here to stop debugger freezing */
+    }
+
+   /*
+    * Change the MSS clock as required.
+    *
+    * CLOCK_CONFIG_CR
+    * [5:0]
+    * Sets the master synchronous clock divider
+    * bits [1:0] CPU clock divider
+    * bits [3:2] AXI clock divider
+    * bits [5:4] AHB/APB clock divider
+    * 00=/1 01=/2 10=/4 11=/8 (AHB/APB divider may not be set to /1)
+    * Reset = 0x3F
+    *
+    * SYSREG->CLOCK_CONFIG_CR = (0x0U<<0U) | (0x1U<<2U) | (0x2U<<4U);
+    * MSS clk= 80Mhz, implies CPU = 80Mhz, AXI = 40Mhz, AHB/APB = 20Mhz
+    * Until we switch in MSS PLL clock (MSS_SCB_CFM_MSS_MUX->MSSCLKMUX = 0x01)
+    * e.g. If MSS clk 800Mhz
+    * MSS clk= 800Mhz, implies CPU = 800Mhz, AXI = 400Mhz, AHB/APB = 200Mhz
+    *
+    */
+    switch(required_freq_scaling)
+    {
+        default:
+        case MSS_CLK_SCALING_NORMAL:
+            SYSREG->CLOCK_CONFIG_CR = LIBERO_SETTING_MSS_CLOCK_CONFIG_CR;
+            break;
+        case MSS_CLK_SCALING_MEDIUM:
+            SYSREG->CLOCK_CONFIG_CR = MSS_CLOCK_CONFIG_CR_MED;
+            break;
+        case MSS_CLK_SCALING_LOW:
+            SYSREG->CLOCK_CONFIG_CR = MSS_CLOCK_CONFIG_CR_LOW;
+            break;
+    }
+
+}
+
+uint32_t mss_current_pclk_freq(void)
+{
+    uint32_t pclk_freq;
+    uint32_t scale = LIBERO_SETTING_MSS_CLOCK_CONFIG_CR & (0x3UL<<4U);
+    uint32_t current_scale = SYSREG->CLOCK_CONFIG_CR & (0x3UL<<4U);
+
+    pclk_freq = LIBERO_SETTING_MSS_APB_AHB_CLK * (current_scale/scale);
+
+    return pclk_freq;
+}
+
+uint32_t mss_current_axi_freq(void)
+{
+    uint32_t axi_freq;
+    uint32_t scale = LIBERO_SETTING_MSS_CLOCK_CONFIG_CR & (0x3UL<<2U);
+    uint32_t current_scale = SYSREG->CLOCK_CONFIG_CR & (0x3UL<<2U);
+
+    axi_freq = LIBERO_SETTING_MSS_AXI_CLK * (current_scale/scale);
+
+    return axi_freq;
+}
+
+uint32_t mss_current_mss_freq(void)
+{
+    uint32_t mss_freq;
+    uint32_t scale = LIBERO_SETTING_MSS_CLOCK_CONFIG_CR & (0x3UL<<0U);
+    uint32_t current_scale = SYSREG->CLOCK_CONFIG_CR & (0x3UL<<0U);
+
+    mss_freq = LIBERO_SETTING_MSS_SYSTEM_CLK * (current_scale/scale);
+
+    return mss_freq;
+}
+
+/***************************************************************************//**
  * sgmii_mux_config(uint8_t option)
  * @param option 1 => soft reset, load RPC settings
  *               0 => write values using SCB
@@ -568,7 +681,7 @@ void ddr_pll_config(REG_LOAD_METHOD option)
                                                 LIBERO_SETTING_DDR_PLL_DIV_2_3;
             CFG_DDR_SGMII_PHY->PLL_CTRL2_MAIN.PLL_CTRL2_MAIN      =\
                                                    LIBERO_SETTING_DDR_PLL_CTRL2;
-            /* Read only in RPC  todo: verify this is correct
+            /*
              * CFG_DDR_SGMII_PHY->PLL_CAL_MAIN.PLL_CAL_MAIN  =\
              *                                   LIBERO_SETTING_DDR_PLL_CAL; */
             CFG_DDR_SGMII_PHY->PLL_PHADJ_MAIN.PLL_PHADJ_MAIN      =\
