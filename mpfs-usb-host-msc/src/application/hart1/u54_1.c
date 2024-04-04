@@ -23,7 +23,9 @@
 
 #define USB_DMA_PLIC_PRIORITY                           2u
 #define USB_MC_PLIC_PRIORITY                            2u
-#define LOGICAL_DRIVE_NUMBER_ZERO                       0u
+
+#define DO_NOT_MOUNT                                    0u
+#define MOUNT_IMMEDIATELY                               1u
 
 #define SELECT_OPTION_FROM_MENU                         0u
 #define LIST_ROOT_DIRECTORY_ELEMENTS                    1u
@@ -35,6 +37,8 @@
 
 uint8_t g_copy_file_index = 0;
 char path[] = "0:";
+
+char local_drive_number = 0; /* Logical drive number to be mounted : 0 for USB*/
 
 /* Global variables */
 extern uint8_t volatile g_msc_driver_ready;
@@ -130,7 +134,7 @@ void u54_1(void)
              * If an Unformatted Drive is connected, this API will take long
              * time to complete its operation (Depending on drive size).
              */
-            f_mount(LOGICAL_DRIVE_NUMBER_ZERO, &fs);
+            f_mount(&fs, &local_drive_number, MOUNT_IMMEDIATELY);
         }
 
         rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, &key, 1u);

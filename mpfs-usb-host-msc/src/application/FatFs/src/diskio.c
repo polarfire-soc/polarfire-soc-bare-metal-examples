@@ -1,55 +1,66 @@
 /*-----------------------------------------------------------------------*/
-/* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2007        */
+/* Low level disk I/O module SKELETON for FatFs     (C)ChaN, 2019        */
 /*-----------------------------------------------------------------------*/
-/* This is a stub disk I/O module that acts as front end of the existing */
-/* disk I/O modules and attach it to FatFs module with common interface. */
+/* If a working storage control module is available, it should be        */
+/* attached to the FatFs via a glue function rather than modifying it.   */
+/* This is an example of glue functions to attach various exsisting      */
+/* storage control modules to the FatFs module with a defined API.       */
 /*-----------------------------------------------------------------------*/
 
-#include "diskio.h"
+#include "ff.h"			/* Obtains integer types */
+#include "diskio.h"		/* Declarations of disk functions */
 #include "drivers/mss/mss_usb/mss_usb_host_msc.h"
 
+/* Definitions of physical drive number for each drive */
+#define DEV_RAM		2	/* Example: Map Ramdisk to physical drive 2 */
+#define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
+#define DEV_USB		0	/* Example: Map USB MSD to physical drive 0 */
+
+#define PHY_DRIVE_ZERO 0u /* Physical drive number 0 : USB MSD */
+#define SUCCESS        0U
+#define ERROR          1U
+
 /*-----------------------------------------------------------------------*/
-/* Correspondence between physical drive number and physical drive.      */
+/* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
 
-#define USB		0
-#define MMC		1
-#define ATA		2
+DSTATUS disk_status (
+	BYTE pdrv		/* Physical drive nmuber to identify the drive */
+)
+{
+    return 0; /* success */
+}
+
+
 
 /*-----------------------------------------------------------------------*/
 /* Inidialize a Drive                                                    */
 /*-----------------------------------------------------------------------*/
 
 DSTATUS disk_initialize (
-	BYTE pdrv				/* Physical drive nmuber (0..) */
+	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-    return 0;   //success
+    return 0; /* success */
 }
 
-/*-----------------------------------------------------------------------*/
-/* Return Disk Status                                                    */
-/*-----------------------------------------------------------------------*/
 
-DSTATUS disk_status (
-	BYTE drv		/* Physical drive nmuber (0..) */
-)
-{
-	return 0;
-}
 
 /*-----------------------------------------------------------------------*/
 /* Read Sector(s)                                                        */
 /*-----------------------------------------------------------------------*/
+
 DRESULT disk_read (
-	BYTE drv,		/* Physical drive nmuber (0..) */
+	BYTE pdrv,		/* Physical drive nmuber to identify the drive */
 	BYTE *buff,		/* Data buffer to store read data */
-	DWORD sector,	/* Sector address (LBA) */
-	BYTE count		/* Number of sectors to read (1..255) */
+	LBA_t sector,	/* Start sector in LBA */
+	UINT count		/* Number of sectors to read */
 )
 {
-    if(0u != drv)
+    if( (PHY_DRIVE_ZERO != pdrv) && (NULL == buff) )
+    {
         return(RES_ERROR);
+    }
 
     if(USBH_MSC_DEVICE_READY < MSS_USBH_MSC_get_state())
     {
@@ -57,37 +68,42 @@ DRESULT disk_read (
     }
     else if(USBH_MSC_DEVICE_READY == MSS_USBH_MSC_get_state())
     {
-        if(0== MSS_USBH_MSC_read(buff, sector, count))
+
+        if(SUCCESS == MSS_USBH_MSC_read(buff, sector, count))
         {
             while(MSS_USBH_MSC_is_scsi_req_complete());
             return(RES_OK);
         }
         else
+        {
             return(RES_ERROR);
+        }
     }
     else
+    {
         return(RES_ERROR);
+    }
 }
+
+
 
 /*-----------------------------------------------------------------------*/
 /* Write Sector(s)                                                       */
 /*-----------------------------------------------------------------------*/
-/* The FatFs module will issue multiple sector transfer request
-/  (count > 1) to the disk I/O layer. The disk function should process
-/  the multiple sector transfer properly Do. not translate it into
-/  multiple single sector transfers to the media, or the data read/write
-/  performance may be drasticaly decreased. */
 
-#if _READONLY == 0
+#if FF_FS_READONLY == 0
+
 DRESULT disk_write (
-	BYTE pdrv,			/* Physical drive nmuber (0..) */
+	BYTE pdrv,			/* Physical drive nmuber to identify the drive */
 	const BYTE *buff,	/* Data to be written */
-	DWORD sector,		/* Sector address (LBA) */
-	BYTE count			/* Number of sectors to write (1..255) */
+	LBA_t sector,		/* Start sector in LBA */
+	UINT count			/* Number of sectors to write */
 )
 {
-    if(0u != pdrv)
+    if( (PHY_DRIVE_ZERO != pdrv) && (NULL == buff) )
+    {
         return(RES_ERROR);
+    }
 
     if(USBH_MSC_DEVICE_READY < MSS_USBH_MSC_get_state())
     {
@@ -95,51 +111,55 @@ DRESULT disk_write (
     }
     else if(USBH_MSC_DEVICE_READY == MSS_USBH_MSC_get_state())
     {
-        if(0 == MSS_USBH_MSC_write((uint8_t*)buff, sector, count))
+        if(SUCCESS == MSS_USBH_MSC_write((uint8_t*)buff, sector, count))
         {
             while(MSS_USBH_MSC_is_scsi_req_complete());
             return(RES_OK);
         }
         else
+        {
             return(RES_ERROR);
+        }
     }
     else
+    {
         return(RES_ERROR);
+    }
 }
-#endif /* _READONLY */
 
+#endif
 
 
 /*-----------------------------------------------------------------------*/
 /* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
-uint32_t sect_size1;
-uint32_t sect_size2;
-
-/*
- Number of Drives(Logical Units) is always 1.
- _DRIVES must be eualt to 1 in ffconfig.h
- */
 
 DRESULT disk_ioctl (
 	BYTE pdrv,		/* Physical drive nmuber (0..) */
-	BYTE ctrl,		/* Control code */
+	BYTE cmd,		/* Control code */
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	UINT *result = (UINT *)buff;
-    if(0u != pdrv)
-        return(RES_ERROR);
+    UINT *result;
 
-	switch (ctrl) {
+    if( (NULL != buff) && (PHY_DRIVE_ZERO == pdrv))
+    {
+        result = (UINT *)buff;
+    }
+    else
+    {
+        return(RES_ERROR);
+    }
+
+    switch (cmd) {
     case CTRL_SYNC:
-    	break;
+        break;
     case CTRL_POWER:
-    	break;
+        break;
     case CTRL_LOCK:
-    	break;
+        break;
     case CTRL_EJECT:
-    	break;
+        break;
     case GET_SECTOR_COUNT:
         if(USBH_MSC_DEVICE_READY == MSS_USBH_MSC_get_state())
         {
@@ -175,11 +195,11 @@ DRESULT disk_ioctl (
         }
 
     case GET_BLOCK_SIZE:
-    	*result = 512;/*Erase Block Size */
-    	break;
+        *result = 512;/*Erase Block Size */
+        break;
     default:
-    	break;
+        break;
     }
-	return (DRESULT)0;
-
+    return (DRESULT)0;
 }
+
