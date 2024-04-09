@@ -6,6 +6,7 @@
  * MPFS HAL Embedded Software example
  *
  */
+
 /*******************************************************************************
  *
  * Code running on E51
@@ -17,6 +18,7 @@
 #include "mpfs_hal/mss_hal.h"
 #include "mpfs_hal/mpfs_hal_version.h"
 #include "inc/common.h"
+#include "inc/menu_prints.h"
 
 #include "../../middleware/ymodem/ymodem.h"
 
@@ -25,96 +27,7 @@
  * terminal emulator when the program starts.
  ******************************************************************************/
 
-const uint8_t msg_turn_on_park_hart_ram[] =
-"\r\n"
-"1  How to turn on Parked Hart RAM at bootup:\r\n"
-"Go to the application source code: [u51_1, u51_2, u51_3, u51_4] \r\n"
-"and COMMENT OUT the line: #ifdef TURN_OFF_POWER_TO_PARKED_HARTS\r\n"
-"to turn on RAM to Parked Hart at bootup.\r\n"
-"Save changes, build, and run project to measure the power.\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
 
-const uint8_t msg_turn_off_park_hart_ram[] =
-"\r\n"
-"2  How to turn off Parked Hart RAM at bootup:\r\n"
-"Go to the application source code: [u51_1, u51_2, u51_3, u51_4] \r\n"
-"and UNCOMMENT the line: #ifdef TURN_OFF_POWER_TO_PARKED_HARTS\r\n"
-"to turn off RAM to Parked Hart at bootup.\r\n"
-"Save changes, build, and run project to measure the power.\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
-
-const uint8_t msg_turn_on_fpu[] =
-"\r\n"
-"3  How to turn on U54 Floating Point Units(FPU) at bootup:\r\n"
-"Go to the mss_sw_config.h in the boards/ folder of this project\r\n"
-"and COMMENT OUT the line: #define TURN_ALL_FPU_OFF\r\n"
-"to turn on u54 Floating Point Units (FPU).\r\n"
-"Save changes, build, and run project to measure the power.\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
-
-const uint8_t msg_turn_off_fpu[] =
-"\r\n"
-"4  How to turn off U54 Floating Point Units(FPU) at bootup:\r\n"
-"Go to the mss_sw_config.h in the boards/ folder of this project\r\n"
-"and COMMENT OUT the line: #define TURN_ALL_FPU_ON\r\n"
-"to turn off u54 Floating Point Units (FPU).\r\n"
-"Save changes, build, and run project to measure the power.\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
-
-const uint8_t msg_turn_on_unused_perif_ram[] =
-"\r\n"
-"5  How to turn on RAM of Unused Peripherals at bootup:\r\n"
-"Go to the bottom of the e51 application file of this project\r\n"
-"and UNCOMMENT the line: #define MEASURED_UNUSED_PERIPHERAL_RAM\r\n"
-"to turn on RAM Unused Peripherals RAM at bootup.\r\n"
-"Save changes, build, and run project to measure the power.\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
-
-const uint8_t msg_turn_off_unused_perif_ram[] =
-"\r\n"
-"6  How to turn off RAM of Unused Peripherals at bootup:\r\n"
-"Go to the bottom of the e51 application file of this project\r\n"
-"and COMMENT OUT the line: #define MEASURED_UNUSED_PERIPHERAL_RAM\r\n"
-"to turn off RAM Unused Peripherals RAM at bootup.\r\n"
-"Save changes, build, and run project to measure the power.\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
-
-const uint8_t menu_power_saving[] =
-"\r\n\r\n\r\n"
-"This program is run from E51\r\n"
-"\r\n"
-"MPFS HAL Power Saving Options:\r\n"
-"1  How to turn on Parked Hart RAM at bootup\r\n"
-"2  How to turn off Parked Hart RAM at bootup\r\n"
-"3  How to turn on U54 Floating Point Units(FPU) at bootup\r\n"
-"4  How to turn off U54 Floating Point Units(FPU) at bootup\r\n"
-"5  How to turn on RAM of Unused Peripherals at bootup\r\n"
-"6  How to turn off RAM of Unused Peripherals at bootup\r\n"
-"7  Display DDR self refresh menu\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
-
-const uint8_t menu_ddr_sr[] =
-"\r\n\r\n\r\n"
-"Select the DDR self refresh test:\r\n"
-"\r\n"
-"Make sure that u54_1 hart is turned on before selecting an option:\r\n"
-"1  Clear pattern in memory\r\n"
-"2  Place pattern in memory\r\n"
-"3  Verify if pattern is in memory\r\n"
-"4  Turn on ddr self refresh\r\n"
-"5  Turn off ddr self refresh\r\n"
-"6  Check ddr self refresh status\r\n"
-"7  Go back to main menu\r\n"
-"WARNING: DDR is not accessible when in self-refresh mode\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
 
 #define twoGb 0x10000000UL  /* ((1024*1024*1024)*2)/sizeof(uint32_t) */
 #define small_ver 0x00010000UL
@@ -162,7 +75,10 @@ uint32_t pattern_offset = 12U;
 static void ddr_read_write_nc(uint32_t no_access);
 static void display_clocks(void);
 static void display_mss_regs(void);
-void menu_ddr_self_refresh(void);
+static void main_menu_options(uint8_t* rx_buff, uint8_t get_uart_rx);
+static void select_ddr_self_refresh_option(void);
+static void select_clock_scaling_option(void);
+static uint8_t bus_error_unit(void);
 
 /*
  * Extern functions
@@ -260,7 +176,8 @@ void e51(void)
 
     /* set point for sharing across harts */
     hart_share->g_mss_uart0_lo = &g_mss_uart0_lo;
-    hart_share->mutex_uart0 = 0U; /* Init spinlock mutex */
+    /* Init spinlock mutex */
+    hart_share->mutex_uart0 = 0U;
 
     sprintf(info_string,
             "\r\nHart %u, HLS mem address 0x%lx, Shared mem 0x%lx\r\n",
@@ -298,59 +215,12 @@ void e51(void)
     while (1)
     {
         get_uart_rx = (uint8_t)MSS_UART_get_rx(g_uart, (uint8_t*)rx_buff,
-                                               (uint32_t)sizeof(rx_buff));
-
+                                                (uint32_t)sizeof(rx_buff));
         if (get_uart_rx++)
         {
-            switch(rx_buff[0])
-            {
-                case '0':
-                    MSS_UART_polled_tx_string(g_uart, menu_power_saving);
-                    break;
-                case '1':
-                    /* 1  How to turn on RAM to Parked Hart RAM at bootup */
-                    MSS_UART_polled_tx_string(g_uart,
-                                              msg_turn_on_park_hart_ram);
-                    break;
-                case '2':
-                    /* 2  How to turn off RAM to Parked Hart RAM at bootup */
-                    MSS_UART_polled_tx_string(g_uart,
-                                              msg_turn_off_park_hart_ram);
-                    break;
-                case '3':
-                    /* 3  How to turn on U54 Floating Point Units(FPU) at
-                    bootup */
-                    MSS_UART_polled_tx_string(g_uart, msg_turn_on_fpu);
-                    break;
-                case '4':
-                    /* 4  How to turn off U54 Floating Point Units(FPU) at
-                    bootup */
-                    MSS_UART_polled_tx_string(g_uart, msg_turn_off_fpu);
-                    break;
-                case '5':
-                    /* 5  How to turn on RAM of Unused Peripherals at bootup */
-                    MSS_UART_polled_tx_string(g_uart,
-                                              msg_turn_on_unused_perif_ram);
-                    break;
-                case '6':
-                    /* 6  How to turn off RAM of Unused Peripherals at bootup */
-                    MSS_UART_polled_tx_string(g_uart,
-                                              msg_turn_off_unused_perif_ram);
-                    mss_turn_off_unused_ram_clks();
-                    break;
-                case '7':
-                    /* 7  Display DDR self refresh menu */
-                    MSS_UART_polled_tx_string(g_uart, menu_ddr_sr);
-                    menu_ddr_self_refresh();
-                    break;
-                default:
-                    /* echo input */
-                    MSS_UART_polled_tx_string(g_uart, rx_buff);
-                    break;
-            }
+            main_menu_options(rx_buff, get_uart_rx);
         }
-
-    } /* while(1) */
+    } /* End while(1) loop */
 }
 
 /* HART0 Software interrupt handler */
@@ -360,7 +230,62 @@ void Software_h0_IRQHandler(void)
 }
 
 
-void menu_ddr_self_refresh(void)
+static void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
+{
+    switch(rx_buff[0])
+    {
+        default:
+            MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+            break;
+        case '0':
+            MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+            break;
+        case '1':
+            /* 1  How to turn on RAM to Parked Hart RAM at bootup */
+            MSS_UART_polled_tx_string(g_uart,
+                                        msg_turn_on_park_hart_ram);
+            break;
+        case '2':
+            /* 2  How to turn off RAM to Parked Hart RAM at bootup */
+            MSS_UART_polled_tx_string(g_uart,
+                                        msg_turn_off_park_hart_ram);
+            break;
+        case '3':
+            /* 3  How to turn on U54 Floating Point Units(FPU) at
+            bootup */
+            MSS_UART_polled_tx_string(g_uart, msg_turn_on_fpu);
+            break;
+        case '4':
+            /* 4  How to turn off U54 Floating Point Units(FPU) at
+            bootup */
+            MSS_UART_polled_tx_string(g_uart, msg_turn_off_fpu);
+            break;
+        case '5':
+            /* 5  How to turn on RAM of Unused Peripherals at bootup */
+            MSS_UART_polled_tx_string(g_uart,
+                                        msg_turn_on_unused_perif_ram);
+            break;
+        case '6':
+            /* 6  How to turn off RAM of Unused Peripherals at bootup */
+            MSS_UART_polled_tx_string(g_uart,
+                                        msg_turn_off_unused_perif_ram);
+            mss_turn_off_unused_ram_clks();
+            break;
+        case '7':
+            /* 7  Display DDR self refresh menu */
+            MSS_UART_polled_tx_string(g_uart, display_menu_self_refresh);
+            select_ddr_self_refresh_option();
+            break;
+        case '8':
+            /* 8  Display clock scaling menu */
+            MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
+            select_clock_scaling_option();
+            break;
+    } /* End of switch statement */
+}
+
+
+static void select_ddr_self_refresh_option(void)
 {
     uint8_t rx_buff[1];
     uint8_t get_uart_rx = 0;
@@ -375,8 +300,11 @@ void menu_ddr_self_refresh(void)
         {
             switch(rx_buff[0])
             {
+                default:
+                    MSS_UART_polled_tx_string(g_uart, display_menu_self_refresh);
+                    break;
                 case '0':
-                    MSS_UART_polled_tx_string(g_uart, menu_ddr_sr);
+                    MSS_UART_polled_tx_string(g_uart, display_menu_self_refresh);
                     break;
                 case '1':
                     /* 1  Clear pattern in memory */
@@ -410,6 +338,7 @@ void menu_ddr_self_refresh(void)
             } /* End of switch statement */
         } /* End of receive buffer check */
 
+        /* Leave this fuction if flag is raised */
         if (leave_function == 1)
         {
             break; /* Break from while(1) loop */
@@ -418,7 +347,62 @@ void menu_ddr_self_refresh(void)
     } /* End of while loop */
 }
 
+static void select_clock_scaling_option(void)
+{
+    uint8_t rx_buff[1];
+    uint8_t get_uart_rx = 0;
+    uint8_t leave_function = 0;
 
+    while (1)
+    {
+        get_uart_rx = (uint8_t)MSS_UART_get_rx(g_uart, (uint8_t*)rx_buff,
+                                               (uint32_t)sizeof(rx_buff));
+
+        if (get_uart_rx++)
+        {
+            switch (rx_buff[0])
+            {
+                default:
+                    MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
+                    break;
+                case '0':
+                    MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
+                    break;
+                case '1':
+                    /* 1  Change CPU clock frequency to 300MHz (half) */
+                    mss_freq_scaling(MSS_CLK_SCALING_MEDIUM);
+                    MSS_UART_polled_tx_string(g_uart, msg_medium_frequency_enabled);
+                    display_clocks();
+                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    break;
+                case '2':
+                    /* 2  Change CPU clock frequency to 600MHz (default) */
+                    mss_freq_scaling(MSS_CLK_SCALING_NORMAL);
+                    MSS_UART_polled_tx_string(g_uart, msg_normal_frequency_enabled);
+                    display_clocks();
+                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    break;
+                case '3':
+                    /* 3  Display clock status */
+                    display_clocks();
+                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    break;
+                case '7':
+                    /* 7  Print main menu for power saving and leave function */
+                    MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+                    leave_function = 1;
+                    break;
+            } /* End of switch statement */
+        } /* End of receive buffer check */
+
+        /* Leave this fuction if flag is raised */
+        if (leave_function == 1)
+        {
+            break; /* Break from while(1) loop */
+        }
+
+    } /* End of while loop */
+}
 
 #if defined(TARGET_RENODE)
 #define TIMER_INCREMENT 35 /* Adjust this to get the C prompt from YMODEM giving
@@ -526,8 +510,7 @@ static void ddr_read_write_nc(uint32_t num_access)
  * modify to test interrupts as required
  * @return
  */
-uint8_t bus_error_unit(void);
-uint8_t bus_error_unit(void)
+static uint8_t bus_error_unit(void)
 {
     uint8_t hart_id;
     /* Init BEU in all harts - enable local interrupt */
