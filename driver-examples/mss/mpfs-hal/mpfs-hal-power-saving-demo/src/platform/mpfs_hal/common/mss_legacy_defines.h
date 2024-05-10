@@ -470,7 +470,7 @@ extern "C" {
 #define     fabric_f2h_62_plic_IRQHandler   PLIC_f2m_62_IRQHandler
 #define     fabric_f2h_63_plic_IRQHandler   PLIC_f2m_63_IRQHandler
 
-#define     bus_error_unit_hart_0_plic_IRQHandler    PLIC_E51_bus_error_unit_hart_0_IRQHandler
+#define     bus_error_unit_hart_0_plic_IRQHandler    PLIC_E51_bus_error_unit_IRQHandler
 #define     bus_error_unit_hart_1_plic_IRQHandler    PLIC_U54_1_bus_error_unit_IRQHandler
 #define     bus_error_unit_hart_2_plic_IRQHandler    PLIC_U54_2_bus_error_unit_IRQHandler
 #define     bus_error_unit_hart_3_plic_IRQHandler    PLIC_U54_3_bus_error_unit_IRQHandler

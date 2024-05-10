@@ -2616,10 +2616,7 @@ static void set_ddr_rpc_regs(DDR_TYPE ddr_type)
         MSSIO from reset- non default values
             Needs non default values to completely go completely OFF
             Drive bits and ibuff mode
-            Ciaran to define what need to be done
-              SAR107676
         DDR - by default put to DDR4 mode so needs active intervention
-            Bills sac spec (DDR PHY SAC spec section 6.1)
             Mode register set to 7
             Ibuff mode set to 7 (rx turned off)
             P-Code/ N-code of no relevance as not used
@@ -2629,8 +2626,6 @@ static void set_ddr_rpc_regs(DDR_TYPE ddr_type)
             DDR APB ( three resets - soft reset bit 0 to 1)
                 Drive odt etc
        SGMII - from reset nothing to be done
-           See Jeff's spread sheet- default values listed
-           Extn clock off also defined in spread sheet
  */
 
 
@@ -2645,7 +2640,7 @@ static void set_ddr_rpc_regs(DDR_TYPE ddr_type)
  *  IP:
  *  DECODER_DRIVER, ODT, IO all out of reset
  *
- *  DDR PHY off mode that I took from version 1.58 of the DDR SAC spec.
+ *  DDR PHY off mode procedure.
  *  1.  DDR PHY OFF mode (not used at all).
  *  1.  Set the DDR_MODE register to 7
  *  This will disable all the drive and ODT to 0, as well as set all WPU bits.
@@ -3305,10 +3300,6 @@ static uint8_t FPGA_VREFDQ_calibration_using_mtc(void)
     /*
      * To manipulate the FPGA VREF value, firmware must write to the
      * DPC_BITS register, located at physical address 0x2000 7184.
-     * Full documentation for this register can be found in
-     * DFICFG Register Map [4].
-     */
-    /*
      * See DPC_BITS definition in .h file
      */
     /* CFG_DDR_SGMII_PHY->DPC_BITS.bitfield.dpc_vrgen_h; */
@@ -3550,7 +3541,6 @@ static uint8_t MTC_test(uint8_t mask, uint64_t start_address, uint32_t size, MTC
          *  configure common memory test interface by writing registers:
          *  MT_STOP_ON_ERROR, MT_DATA_PATTERN, MT_ADDR_PATTERN, MT_ADDR_BITS
          */
-        /* see MTC user guide */
         DDRCFG->MEM_TEST.MT_STOP_ON_ERROR.MT_STOP_ON_ERROR = 0U;
         /* make sure off, will turn on later. */
         DDRCFG->MEM_TEST.MT_EN_SINGLE.MT_EN_SINGLE = 0x00U;

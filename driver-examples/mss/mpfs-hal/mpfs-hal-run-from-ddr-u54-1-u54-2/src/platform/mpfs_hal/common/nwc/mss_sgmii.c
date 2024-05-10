@@ -445,7 +445,6 @@ void ddr_pvt_calibration(void)
      * Wait for IOEN from power detectors DDR and SGMII - IO enable signal from
      * System Control powers on
      *
-     * From DDR phy SAC spec:
      *      MSS processor releases dce bus to send RPC bits to IO buffer,
      *      setting each to it's programmed mode and then asserts
      *      ioen high at end of this state.

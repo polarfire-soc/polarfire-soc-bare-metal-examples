@@ -162,8 +162,6 @@ static void mss_mux_pre_mss_pll_config(void)
      * 9:5  bclk1_sel
      * 4:0  bclk0_sel
      *
-     * From SAC spec:
-     * Table 9 1: Each gbim bank clock mux programming in MSS corner
      * The DDRPHY bank clocks bclk_horz<5:0> and bclk_vert<5:0> are driven
      * from mux's gbim<5:0> in the MSS corner. Each mux uses 5 configuration
      * bits.
@@ -294,11 +292,11 @@ __attribute__((section(".ram_codetext"))) \
 /***************************************************************************//**
  * mss_mux_post_mss_pll_config(void)
  *
- * Once MSS locked, feed through to MSS
- * We must run this code from RAM, as we need to modify the clock of the eNVM
- * The first thing we do is change the eNVM clock, to prevent L1 cache accessing
- * eNVM as it will do as we approach the return instruction
- * The mb() makes sure order of processing is not changed by the compiler
+ * Once the MSS is locked, the output mux is set up. This code must run from
+ * RAM, as the clock of the eNVM must be modified. The first thing changed is
+ * the eNVM clock. This will prevent L1 cache from accessing the eNVM, which it
+ * will do after the return instruction.
+ *
  ******************************************************************************/
 __attribute__((section(".ram_codetext"))) \
         void mss_freq_scaling(uint32_t required_freq_scaling)
@@ -318,21 +316,20 @@ __attribute__((section(".ram_codetext"))) \
     */
     SYSREG->ENVM_CR = LIBERO_SETTING_MSS_ENVM_CR;
 
-    mb();  /* make sure we change clock in eNVM first so ready by the time we
-             leave */
+    /* mb() makes sure clock is changed in eNVM first so its ready by the time
+    function returns. In short, it makes sure the order of processing is not
+    changed by the compiler */
+    mb();
 
     /*
-    * When you're changing the eNVM clock frequency, there is a bit
-    * (ENVM_CR_clock_okay) in the eNVM_CR which can be polled to check that
-    * the frequency change has happened before bumping up the AHB frequency.
+    * The eNVM control register has a bit (ENVM_CR_CLOCK_OKAY) which may be
+    * polled to confirm the frequency has changed, prior to bumping the AHB
+    * frequency.
     */
     volatile uint32_t wait_for_true = 0U;
     while ((SYSREG->ENVM_CR & ENVM_CR_CLOCK_OKAY_MASK) !=\
             ENVM_CR_CLOCK_OKAY_MASK)
     {
-#ifdef RENODE_DEBUG
-        break;
-#endif
         wait_for_true++; /* need something here to stop debugger freezing */
     }
 

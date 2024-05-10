@@ -70,13 +70,13 @@ __attribute__((weak)) uint32_t my_num_dcache_ways(uint32_t hartid)
                 way_enable = (uint32_t)LIBERO_SETTING_WAY_MASK_U54_1_DCACHE;
                 break;
             case 2:
-                way_enable = (uint32_t)LIBERO_SETTING_WAY_MASK_U54_1_DCACHE;
+                way_enable = (uint32_t)LIBERO_SETTING_WAY_MASK_U54_2_DCACHE;
                 break;
             case 3:
-                way_enable = (uint32_t)LIBERO_SETTING_WAY_MASK_U54_1_DCACHE;
+                way_enable = (uint32_t)LIBERO_SETTING_WAY_MASK_U54_3_DCACHE;
                 break;
             case 4:
-                way_enable = (uint32_t)LIBERO_SETTING_WAY_MASK_U54_1_DCACHE;
+                way_enable = (uint32_t)LIBERO_SETTING_WAY_MASK_U54_4_DCACHE;
                 break;
         }
     }

@@ -1309,7 +1309,7 @@ void setup_ddr_segments(SEG_SETUP option);
   Example:
   @code
 
-      setup_ddr_segments(DEFAULT_SEG_SETUP);
+      clear_bootup_cache_ways(DEFAULT_SEG_SETUP);
 
   @endcode
 
@@ -1325,7 +1325,7 @@ void clear_bootup_cache_ways(void);
   Example:
   @code
 
-      setup_ddr_segments(DEFAULT_SEG_SETUP);
+      fill_cache_new_seg_address(DEFAULT_SEG_SETUP);
 
   @endcode
 
@@ -1345,7 +1345,7 @@ char * fill_cache_new_seg_address(void *dest, void *dest_end);
   Example:
   @code
 
-      setup_ddr_segments(DEFAULT_SEG_SETUP);
+      mpfs_hal_turn_ddr_selfrefresh_on(DEFAULT_SEG_SETUP);
 
   @endcode
 

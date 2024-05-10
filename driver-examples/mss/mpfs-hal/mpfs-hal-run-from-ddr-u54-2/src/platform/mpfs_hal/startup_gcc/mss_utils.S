@@ -140,7 +140,7 @@ config_16_copy:
 
 /*******************************************************************************
  *
- * config_32_copy () Copies a word at a time, used when copying to contigous
+ * config_32_copy () Copies a word at a time, used when copying to contiguous
  * registers
  */
     // config_copy helper function:
@@ -246,9 +246,9 @@ fill_cache_new_seg_address:
 turn_on_fpu:
     mv  t1,a0
     csrr t2, mhartid
-    la  t4, 1
+    li  t4, 1
     sll t4,t4,t2
-    and t4,t4,t2
+    and t4,t4,t1
     beqz t4,1f
     # enable FPU and accelerator if present, setting ignored on E51
     li t0, MSTATUS_FS | MSTATUS_XS
