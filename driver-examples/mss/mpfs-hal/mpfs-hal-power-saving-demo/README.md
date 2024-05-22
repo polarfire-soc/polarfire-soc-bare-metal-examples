@@ -19,24 +19,46 @@ self-refresh. DDR self-refresh is a power-saving mode used in dynamic
 random-access memory (DRAM) devices. It allows the DRAM to retain data without
 external clocking, thus performing its own auto-refresh cycles and results in
 power saving. There are also features that enable a user to disable peripheral
-clocks, use floating point units (FPU) and turn off peripheral RAMs. See the
-following table to see the power comparisons with these features.
+clocks, use floating point units (FPU), turn off peripheral RAMs, and scale the
+CPU frequency to half its default state.
 
-|| 1P1V Power Rail (mW) | Total Power (mW) | Total saved power percentage (%)|
-|:----------------------|:----------|:------------|:------|
-| Self-Refresh enabled             | 43.77     | 7886.18     |       |
-| Self-Refresh disabled         | ==34.42== | 7875.56     | 0.13% (ref. 1P1V)|
-| FPU disabled                      | 7287      | 7957.90     |       |
-| FPU enabled                       | 7314      | ==7949.64== | 0.10% |
+See the following tables to see the power comparisons with these features.
+
+|| 1P1V power rail (mW) | 1P1V saved power percentage (%)|
+|:-|:-|:-|
+| Self-Refresh disabled | 43.77  |        |
+| Self-Refresh enabled  | 34.42  |  ~27%  |
+
+|| VDDI1 power rail (mW) | VDDI1 saved power percentage (%) |
+|:-|:-|:-|
+| FPU disabled      | 13.71    |        |
+| FPU enabled       | 0.61     |  ~95%  |
+
+|| VDD power rail (mW) | VDD saved power percentage (%) |
+|:-|:-|:-|
+| Clock scaling default (600MHz)      | 838.22    |        |
+| Clock scaling half (300MHz)         | 659.42    |  ~20%  |
 
 For peripherals that are enabled in the mss configurator:
 
-|| 1P1V Power Rail (mW) | Total Power (mW) | Total saved power percentage (%)|
-|:----------------------|:----------|:------------|:------|
-| Peripheral clocks enabled         | 34.48     | 7872.39     |       |
-| Peripheral clocks disabled        | 34.33     | ==7860.52== | 0.15% |
-| All peripheral RAMs               | 7307      | 7954.69     |       |
-| No peripheral RAMs                | 7344      | ==7725.84== | 2.96% |
+|| 3P3V power rail (mW) | 5P0V power rail (mW) | 1P2V power rail (mW) | Total power (mW) | Total saved power percentage (%) |
+|:-|:-|:-|:-|:-|:-|
+| Peripheral clocks enabled  |  4572.48  |  1256.76  |  744.79  |  7872.39  |        |
+| Peripheral clocks disabled |  4567.36  |  1250.51  |  742.83  |  7860.52  | ~0.15% |
+
+|| VDD power rail (mW) | VDD25 power rail (mW) | 3P3V power rail (mW) | 5P0V power rail (mW) | 1P2V power rail (mW) | Total power (mW) | Total saved power percentage (%) |
+|:-|:-|:-|:-|:-|:-|:-|:-|
+| All peripheral RAMs | 691.11 | 38.98 | 4606.02 | 1253.51 | 742.38 | 7954.69 |     |
+| No peripheral RAMs  | 643.96 | 30.52 | 4472.40 | 1225.36 | 731.29 | 7725.84 | ~3% |
+
+If all power saving options are implemented:
+
+|| Self-refresh enabled (mW) | Peripheral clocks disabled (mW) | FPU Enabled (mW) | Peripheral RAMs disabled (mW) | Clock scaling half (mW) | Total power (mW) |
+|:-|:-|:-|:-|:-|:-|:-|
+| Total power average (TPA) |       |       |      |        |        | 7917.80 |
+| Power saved (PS)          | 10.63 | 11.87 | 8.27 | 222.85 | 178.80 | 432.42  |
+| TPA - PS                  |       |       |      |        |        | 7485.38 (~5% power saved in total) |
+
 
 ## Target boards:
 
@@ -87,18 +109,41 @@ for each board.
   5  How to turn on RAM of Unused Peripherals at bootup
   6  How to turn off RAM of Unused Peripherals at bootup
   7  Display DDR self refresh menu
+  8  Display clock scaling menu
+
+  Type 0 to show the menu again
   ```
 
 2. When the DDR self refresh menu is displayed:
 
   ```
-  DDR options:
+  Select the DDR self refresh test:
+
+  Make sure that u54_1 hart is turned on before selecting an option:
   1  Clear pattern in memory
   2  Place pattern in memory
-  3  Turn on ddr self refresh
-  4  Turn off ddr self refresh
-  5  Verify data in memory
-  6  Go back to main menu
+  3  Verify if pattern is in memory
+  4  Turn on ddr self refresh
+  5  Turn off ddr self refresh
+  6  Check ddr self refresh status
+  7  Go back to main menu
+  WARNING: DDR is not accessible when in self-refresh mode
+
+  Type 0 to show the menu again
+  ```
+
+3. When the clock scaling menu is displayed:
+
+  ```
+  Select a clock frequency option:
+
+  Make sure that u54_1 hart is turned on before selecting an option:
+  1  Change CPU clock frequency to 300MHz (half)
+  2  Change CPU clock frequency to 600MHz (default)
+  3  Display clock status
+  7  Go back to main menu
+
+  Type 0 to show the menu again;
   ```
 
 ## UART configuration
