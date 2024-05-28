@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2024 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -34,7 +34,7 @@ extern  "C" {
 
 #if !defined (LIBERO_SETTING_SGMII_MODE)
 /*SGMII mode control (SEU) */
-#define LIBERO_SETTING_SGMII_MODE    0x08C0E6FFUL
+#define LIBERO_SETTING_SGMII_MODE    0x08C0F2FFUL
     /* REG_PLL_EN                        [0:1]   RW value= 0x1 */
     /* REG_DLL_EN                        [1:1]   RW value= 0x1 */
     /* REG_PVT_EN                        [2:1]   RW value= 0x1 */
@@ -44,7 +44,7 @@ extern  "C" {
     /* REG_TX1_EN                        [6:1]   RW value= 0x1 */
     /* REG_RX1_EN                        [7:1]   RW value= 0x1 */
     /* REG_DLL_LOCK_FLT                  [8:2]   RW value= 0x2 */
-    /* REG_DLL_ADJ_CODE                  [10:4]  RW value= 0x9 */
+    /* REG_DLL_ADJ_CODE                  [10:4]  RW value= 0xC */
     /* REG_CH0_CDR_RESET_B               [14:1]  RW value= 0x1 */
     /* REG_CH1_CDR_RESET_B               [15:1]  RW value= 0x1 */
     /* REG_BC_VRGEN                      [16:6]  RW value= 0x0 */

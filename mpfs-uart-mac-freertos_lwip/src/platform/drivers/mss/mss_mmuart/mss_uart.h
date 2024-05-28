@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -1685,17 +1685,17 @@ MSS_UART_set_loopback
 
 /***************************************************************************//**
   The MSS_UART_enable_irq() function enables the MSS UART interrupts specified
-  by the irq_mask parameter. The irq_mask parameter identifies the MSS UART
-  interrupts by bit position, as defined in the interrupt enable register (IER)
-  of MSS UART. The MSS UART interrupts and their identifying irq_mask bit
-  positions are as follows:
-  When an irq_mask bit position is set to 1, this function enables the
-  corresponding MSS UART interrupt in the IER register. When an irq_mask bit
-  position is set to 0, the state of the corresponding interrupt remains 
-  unchanged in the IER register.
-  
-  Note: The MSS_UART_enable_irq() function also enables the MSS UART instance
-        interrupt in the PolarFire SoC Core Complex PLIC.
+  by the irq_mask parameter. The irq_mask parameter identifies the MSS UART 
+  interrupts by bit position, as defined in the interrupt enable register (IER) 
+  of MSS UART. The MSS UART interrupts and their identifying irq_mask bit 
+  positions are as follows: When an irq_mask bit position is set to 1, this 
+  function enables the corresponding MSS UART interrupt in the IER register.
+
+  Note: the Transmit Buffer Empty interrupt is not enabled in this API. Indeed, 
+  enabling it here leads to an interrupt occuring before any data is passed to 
+  the UART, causing a crash. The TBE bit in the IER register is set 
+  in the MSS_UART_irq_tx() function, that actually starts the transmission.
+
         
   @param this_uart
     The this_uart parameter is a pointer to an mss_uart_instance_t
@@ -1721,6 +1721,7 @@ MSS_UART_set_loopback
       - MSS_UART_PIDPE_IRQ      (bit mask = 0x040)
       - MSS_UART_LINB_IRQ       (bit mask = 0x080)
       - MSS_UART_LINS_IRQ       (bit mask = 0x100)
+
       
   @return
      This function does not return a value.
@@ -1732,12 +1733,17 @@ MSS_UART_set_loopback
       int main(void)
       {
          uint8_t tx_buff[10] = "abcdefghi";
+         uint32_t interrupt_priority = 4;
 
+         enable_interrupts();
+         (void) mss_config_clk_rst(MSS_PERIPH_MMUART0, (uint8_t) 1, PERIPHERAL_ON);
          MSS_UART_init(&g_mss_uart0_lo,
-                  MSS_UART_57600_BAUD,
-                  MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
-
-         MSS_UART_enable_irq(&g_mss_uart0_lo,(MSS_UART_RBF_IRQ | MSS_UART_TBE_IRQ));
+                   MSS_UART_57600_BAUD,
+                   MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
+         PLIC_init();
+         MSS_UART_enable_irq(&g_mss_uart0_lo, (MSS_UART_RBF_IRQ | MSS_UART_TBE_IRQ));
+         PLIC_SetPriority(MMUART0_PLIC_77, interrupt_priority);
+         PLIC_SetPriority_Threshold(0);
 
          return(0);
       }

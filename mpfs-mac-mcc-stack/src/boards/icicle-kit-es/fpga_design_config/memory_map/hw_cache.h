@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2024 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -66,7 +66,7 @@ masters, so they can not evict the way. */
     /* WAY_MASK_15                       [15:1]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_WAY_MASK_AXI4_PORT_0)
-/*Way mask register master DMA. Set field to zero to disable way from this
+/*Way mask registerAXI slave port 0. Set field to zero to disable way from this
 master. The available cache ways are 0 to number set in WAY_ENABLE register. If
 using scratch pad memory, the ways you want reserved for scrathpad are not
 available for selection, you must set to 0. e.g. If three ways reserved for
@@ -91,7 +91,7 @@ masters, so they can not evict the way. */
     /* WAY_MASK_15                       [15:1]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_WAY_MASK_AXI4_PORT_1)
-/*Way mask register master DMA. Set field to zero to disable way from this
+/*Way mask registerAXI slave port 1. Set field to zero to disable way from this
 master. The available cache ways are 0 to number set in WAY_ENABLE register. If
 using scratch pad memory, the ways you want reserved for scrathpad are not
 available for selection, you must set to 0. e.g. If three ways reserved for
@@ -141,13 +141,12 @@ masters, so they can not evict the way. */
     /* WAY_MASK_15                       [15:1]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_WAY_MASK_AXI4_PORT_3)
-/*Way mask register AXI slave port 3. Set field to 1 to disable way from this
-master. Set field to zero to disable way from this master. The available cache
-ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory,
-the ways you want reserved for scrathpad are not available for selection, you
-must set to 0. e.g. If three ways reserved for scratchpad, WAY_MASK_0,
-WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not
-evict the way. */
+/*Way mask register AXI slave port 3.Set field to zero to disable way from this
+master. The available cache ways are 0 to number set in WAY_ENABLE register. If
+using scratch pad memory, the ways you want reserved for scrathpad are not
+available for selection, you must set to 0. e.g. If three ways reserved for
+scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all
+masters, so they can not evict the way. */
 #define LIBERO_SETTING_WAY_MASK_AXI4_PORT_3    0x0000FFFFUL
     /* WAY_MASK_0                        [0:1]   RW value= 0x1 */
     /* WAY_MASK_1                        [1:1]   RW value= 0x1 */
@@ -167,12 +166,12 @@ evict the way. */
     /* WAY_MASK_15                       [15:1]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_WAY_MASK_E51_DCACHE)
-/*Way mask register E51 data cache (hart0). Set field to zero to disable way
-from this master. The available cache ways are 0 to number set in WAY_ENABLE
-register. If using scratch pad memory, the ways you want reserved for scrathpad
-are not available for selection, you must set to 0. e.g. If three ways reserved
-for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for
-all masters, so they can not evict the way. */
+/*Way mask register for E51 data cache (hart0). Set field to zero to disable
+way from this master. The available cache ways are 0 to number set in
+WAY_ENABLE register. If using scratch pad memory, the ways you want reserved
+for scrathpad are not available for selection, you must set to 0. e.g. If three
+ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set
+to zero for all masters, so they can not evict the way. */
 #define LIBERO_SETTING_WAY_MASK_E51_DCACHE    0x0000FFFFUL
     /* WAY_MASK_0                        [0:1]   RW value= 0x1 */
     /* WAY_MASK_1                        [1:1]   RW value= 0x1 */
@@ -192,8 +191,8 @@ all masters, so they can not evict the way. */
     /* WAY_MASK_15                       [15:1]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_WAY_MASK_E51_ICACHE)
-/*Way mask registerE52 instruction cache (hart0). Set field to zero to disable
-way from this master. The available cache ways are 0 to number set in
+/*Way mask register for E51 instruction cache (hart0). Set field to zero to
+disable way from this master. The available cache ways are 0 to number set in
 WAY_ENABLE register. If using scratch pad memory, the ways you want reserved
 for scrathpad are not available for selection, you must set to 0. e.g. If three
 ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set
@@ -318,13 +317,12 @@ all masters, so they can not evict the way. */
     /* WAY_MASK_15                       [15:1]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_WAY_MASK_U54_3_DCACHE)
-/*Way mask register data cache (hart3). Set field to 1 to disable way from this
-master.Set field to zero to disable way from this master. The available cache
-ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory,
-the ways you want reserved for scrathpad are not available for selection, you
-must set to 0. e.g. If three ways reserved for scratchpad, WAY_MASK_0,
-WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not
-evict the way. */
+/*Way mask register data cache (hart3). Set field to zero to disable way from
+this master. The available cache ways are 0 to number set in WAY_ENABLE
+register. If using scratch pad memory, the ways you want reserved for scrathpad
+are not available for selection, you must set to 0. e.g. If three ways reserved
+for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for
+all masters, so they can not evict the way. */
 #define LIBERO_SETTING_WAY_MASK_U54_3_DCACHE    0x0000FFFFUL
     /* WAY_MASK_0                        [0:1]   RW value= 0x1 */
     /* WAY_MASK_1                        [1:1]   RW value= 0x1 */

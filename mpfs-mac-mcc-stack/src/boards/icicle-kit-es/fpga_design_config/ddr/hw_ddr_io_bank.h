@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2024 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -34,12 +34,12 @@ extern  "C" {
 
 #if !defined (LIBERO_SETTING_DPC_BITS)
 /*DPC Bits Register */
-#define LIBERO_SETTING_DPC_BITS    0x0004C422UL
+#define LIBERO_SETTING_DPC_BITS    0x00050422UL
     /* DPC_VS                            [0:4]   RW value= 0x2 */
     /* DPC_VRGEN_H                       [4:6]   RW value= 0x2 */
     /* DPC_VRGEN_EN_H                    [10:1]  RW value= 0x1 */
     /* DPC_MOVE_EN_H                     [11:1]  RW value= 0x0 */
-    /* DPC_VRGEN_V                       [12:6]  RW value= 0xC */
+    /* DPC_VRGEN_V                       [12:6]  RW value= 0x10 */
     /* DPC_VRGEN_EN_V                    [18:1]  RW value= 0x1 */
     /* DPC_MOVE_EN_V                     [19:1]  RW value= 0x0 */
     /* RESERVE01                         [20:12] RSVD */
@@ -47,8 +47,8 @@ extern  "C" {
 #if !defined (LIBERO_SETTING_RPC_ODT_DQ)
 /*Need to be set by software in all modes but OFF mode. Decoding options should
 follow ODT_STR table, depends on drive STR setting */
-#define LIBERO_SETTING_RPC_ODT_DQ    0x00000006UL
-    /* RPC_ODT_DQ                        [0:32]  RW value= 0x6 */
+#define LIBERO_SETTING_RPC_ODT_DQ    0x00000003UL
+    /* RPC_ODT_DQ                        [0:32]  RW value= 0x3 */
 #endif
 #if !defined (LIBERO_SETTING_RPC_ODT_DQS)
 /*Need to be set by software in all modes but OFF mode. Decoding options should
@@ -501,6 +501,11 @@ corresponding IOG lane, starting from p_pair0 to n_pair5. */
     /* MSS_DDR_DQS_P4                    [4:1]   RW value= 0x1 */
     /* MSS_DDR_DQS_N4                    [5:1]   RW value= 0x1 */
     /* MSS_DDR_DM4                       [6:1]   RW value= 0x1 */
+#endif
+#if !defined (LIBERO_SETTING_RPC_156_VALUE)
+/*Sets starting DQDQS start training window offset. It should default to 1. */
+#define LIBERO_SETTING_RPC_156_VALUE    0x00000001UL
+    /* VALUE                             [0:32]  RW value= 0x1 */
 #endif
 
 #ifdef __cplusplus

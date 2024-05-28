@@ -1646,7 +1646,13 @@ void Device_Init(
 {
     struct object_functions *pObject = NULL;
 
+#if defined(TARGET_BEAGLEV_FIRE)
+    characterstring_init_ansi(&My_Object_Name, "PFSoC BeagleV-Fire");
+#elif defined(TARGET_ICICLE_KIT)
+    characterstring_init_ansi(&My_Object_Name, "PFSoC Icicle Kit");
+#else
     characterstring_init_ansi(&My_Object_Name, "PolarFire SoC");
+#endif
     /* we don't use the object table passed in */
     (void) object_table;
     pObject = &Object_Table[0];

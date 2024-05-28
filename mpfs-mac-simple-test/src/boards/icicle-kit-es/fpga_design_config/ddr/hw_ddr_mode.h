@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2024 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -35,12 +35,12 @@ extern  "C" {
 #if !defined (LIBERO_SETTING_DDRPHY_MODE)
 /*DDRPHY MODE (binary)- 000 ddr3, 001 ddr33L, 010 ddr4, 011 LPDDR3, 100 LPDDR4,
 111 OFF_MODE */
-#define LIBERO_SETTING_DDRPHY_MODE    0x00014B24UL
+#define LIBERO_SETTING_DDRPHY_MODE    0x00014A24UL
     /* DDRMODE                           [0:3]   RW value= 0x4 */
     /* ECC                               [3:1]   RW value= 0x0 */
     /* CRC                               [4:1]   RW value= 0x0 */
     /* BUS_WIDTH                         [5:3]   RW value= 0x1 */
-    /* DMI_DBI                           [8:1]   RW value= 0x1 */
+    /* DMI_DBI                           [8:1]   RW value= 0x0 */
     /* DQ_DRIVE                          [9:2]   RW value= 0x1 */
     /* DQS_DRIVE                         [11:2]  RW value= 0x1 */
     /* ADD_CMD_DRIVE                     [13:2]  RW value= 0x2 */

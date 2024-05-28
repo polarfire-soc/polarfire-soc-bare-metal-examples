@@ -1,10 +1,12 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * This file contains system specific definitions for the PolarFire SoC MSS
- * Ethernet MAC device driver.
+ * @file mss_ethernet_mac_sw_cfg.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief This file contains system specific definitions for the PolarFire SoC
+ * Microprocessor Subsystem (MSS) Ethernet MAC device driver.
  * 
  * Note: This file is maintained in the driver source repository in the same
  *       folder as the driver source to keep them consistent but in the example
@@ -14,8 +16,8 @@
  *
  */
 
-#ifndef MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_8_102_CONFIGURATION_HEADER
-#define MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_8_102_CONFIGURATION_HEADER
+#ifndef MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_8_104_CONFIGURATION_HEADER
+#define MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_8_104_CONFIGURATION_HEADER
 
 
 /***************************************************************************//**
@@ -29,7 +31,6 @@
 #if 0
 #define MSS_MAC_DOCUMENTATION
 #endif
-
 
 /***************************************************************************//**
  * Define this macro to add support for lower latency receive interrupt handling
@@ -58,7 +59,7 @@
 #define CORE_VENDOR "Microsemi"
 #define CORE_LIBRARY "Firmware"
 #define CORE_NAME "PolarFire_SoC_MSS_Ethernet_MAC_Driver"
-#define CORE_VERSION "1.8.102"
+#define CORE_VERSION "1.8.104"
 
 
 /***************************************************************************//**
@@ -109,7 +110,7 @@
 #define MSS_MAC_DEV_PHY_DP83867         (0x0008U) /*!< @brief TI DP83867 */
 #define MSS_MAC_DEV_PHY_VSC8575_LITE    (0x0010U) /*!< @brief VSC8575 using Lite VTSS API */
 #define MSS_MAC_DEV_PHY_VSC8662         (0x0020U) /*!< @brief VSC8662 without VTSS API */
-
+#define MSS_MAC_DEV_PHY_RTL8211         (0x0040U) /*!< @brief RTL8211FS-CG BeagleV-Fire */
 
 /***************************************************************************//**
  * Defines for the different hardware configurations for the applications using
@@ -145,6 +146,8 @@
 #define MSS_MAC_DESIGN_ICICLE_STD_GEM1          (23) /*!< @brief Icicle board GEM1 Standard Reference Design */
 #define MSS_MAC_DESIGN_ICICLE_STD_GEMS          (24) /*!< @brief Icicle board GEM0 and GEM1 Standard Reference Design */
 #define MSS_MAC_DESIGN_SVG_GMII_GEM0_SGMII_GEM1 (25) /*!< @brief Silicon validation  board GEM0 (GMII) and GEM1 (SGMII) */
+#define MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL    (26) /*!< @brief Icicle board local ints on U54 1 */
+#define MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0        (27) /*!< @brief BeagleV-Fire board GEM0 Standard Reference Design */
 
 #if defined(TARGET_ALOE)
 #define MSS_MAC_PHY_INTERFACE GMII /* Only one option allowed here... */
@@ -169,15 +172,19 @@
  * This macro is a bit map that indicates which PHY sub drivers are included in
  * this build.
  */
-#define MSS_MAC_PHYS (MSS_MAC_DEV_PHY_NULL | MSS_MAC_DEV_PHY_VSC8575_LITE | MSS_MAC_DEV_PHY_DP83867 | MSS_MAC_DEV_PHY_VSC8662 | MSS_MAC_DEV_PHY_VSC8541)
+#define MSS_MAC_PHYS (MSS_MAC_DEV_PHY_NULL | MSS_MAC_DEV_PHY_VSC8575_LITE | MSS_MAC_DEV_PHY_DP83867 | MSS_MAC_DEV_PHY_VSC8662 | MSS_MAC_DEV_PHY_VSC8541 | MSS_MAC_DEV_PHY_RTL8211)
 
 /***************************************************************************//**
  * Set this macro to one of the _MSS_MAC_DESIGN_XX_ macros to configure the
  * hardware platform for the application.
  */
+#if defined(TARGET_ICICLE_KIT)
 #define MSS_MAC_HW_PLATFORM MSS_MAC_DESIGN_ICICLE_STD_GEM0
-//#define MSS_MAC_HW_PLATFORM MSS_MAC_DESIGN_SVG_SGMII_GEM1
-//#define MSS_MAC_HW_PLATFORM MSS_MAC_DESIGN_EMUL_DUAL_EX_VTS
+#elif defined(TARGET_BEAGLEV_FIRE)
+#define MSS_MAC_HW_PLATFORM MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0
+#else
+#define MSS_MAC_HW_PLATFORM MSS_MAC_DESIGN_ICICLE_STD_GEM0
+#endif
 /***************************************************************************//**
  * Number of receive buffer descriptors per queue.
  *
@@ -210,6 +217,7 @@
 #define MSS_MAC_USE_PHY_DP83867      (0U != (MSS_MAC_PHYS & MSS_MAC_DEV_PHY_DP83867))
 #define MSS_MAC_USE_PHY_NULL         (0U != (MSS_MAC_PHYS & MSS_MAC_DEV_PHY_NULL))
 #define MSS_MAC_USE_PHY_VSC8662      (0U != (MSS_MAC_PHYS & MSS_MAC_DEV_PHY_VSC8662))
+#define MSS_MAC_USE_PHY_RTL8211      (0U != (MSS_MAC_PHYS & MSS_MAC_DEV_PHY_RTL8211))
 
 /***************************************************************************//**
  * Macros for selecting options which change the size of the DMA descriptors.
@@ -275,7 +283,7 @@
 #define MSS_MAC_PHY_HW_RESET /*!< @brief If this is defined, the hard reset of the PHY is controllable via GPIO. */
 #endif
 #if defined(MSS_MAC_DOCUMENTATION)
-#define MSS_MAC_PHY_HW_SRESET /*!< @brief If this is defined, the hard reset of the PHY is controllable via GPIO. */
+#define MSS_MAC_PHY_HW_SRESET /*!< @brief If this is defined, the soft reset of the PHY is controllable via GPIO. */
 #endif
 
-#endif /* MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_7_107_CONFIGURATION_HEADER */
+#endif /* MICROSEMI__FIRMWARE__POLARFIRE_SOC_MSS_ETHERNET_MAC_DRIVER__1_8_104_CONFIGURATION_HEADER */

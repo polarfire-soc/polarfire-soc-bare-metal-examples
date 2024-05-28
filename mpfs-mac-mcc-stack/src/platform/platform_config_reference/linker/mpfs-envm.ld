@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -50,6 +50,8 @@ MEMORY
     /* start at page 1 of the envm */
     envm (rx) : ORIGIN  = 0x20220100, LENGTH = 128k - 0x100
     dtim (rwx) : ORIGIN  = 0x01000000, LENGTH = 7k       
+    /* This 1K of DTIM is used to run code when switching the envm clock */
+    switch_code_dtim (rx) : ORIGIN = 0x01001c00, LENGTH = 1k 
     e51_itim (rwx)     : ORIGIN = 0x01800000, LENGTH = 28k
     u54_1_itim (rwx)   : ORIGIN = 0x01808000, LENGTH = 28k
     u54_2_itim (rwx)   : ORIGIN = 0x01810000, LENGTH = 28k
@@ -57,8 +59,6 @@ MEMORY
     u54_4_itim (rwx)   : ORIGIN = 0x01820000, LENGTH = 28k
     l2lim (rwx)        : ORIGIN = 0x08000000, LENGTH = 256k
     scratchpad(rwx)    : ORIGIN = 0x0A000000, LENGTH = 256k
-    /* This 1K of DTIM is used to run code when switching the envm clock */
-    switch_code_dtim (rx) : ORIGIN = 0x01001c00, LENGTH = 1k 
     /* DDR sections example */
     ddr_cached_32bit (rwx) : ORIGIN  = 0x80000000, LENGTH = 768M
     ddr_non_cached_32bit (rwx) : ORIGIN  = 0xC0000000, LENGTH = 256M
@@ -76,16 +76,16 @@ HEAP_SIZE           = 8k;   /* needs to be calculated for your application */
 SIZE_OF_COMMON_HART_MEM = 4k;
 
 /* 
- * The stack size needs to be calculated for your                                
- * application. It must be Must be aligned                                       
+ * The stack size needs to be calculated for your application. It must be aligned.
  * Also Thread local storage (AKA hart local storage) is allocated for each hart 
- * as part of the stack                                                          
+ * as part of the stack. 
  * So the memory map will look like once apportion in startup code:              
- * stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE)  
- * TLS hart 0                                                                    
+ * stack hart0    
+ * HLS hart 0                                                                    
  * stack hart1                                                                   
- * TLS hart 1                                                                    
+ * HLS hart 1                                                                    
  * etc                                                                           
+ * Actual Stack size per hart = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE)                                                                 
  * note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h                       
  */
  
@@ -132,12 +132,22 @@ SECTIONS
     PROVIDE(__u54_4_itim_end = ORIGIN(u54_4_itim) + LENGTH(u54_4_itim));
     
     . = __envm_start;
+    
+    .text_init : ALIGN(0x10)
+    {
+        *(.text.init)
+        *system_startup.o (.text .text* .rodata .rodata* .srodata*)
+        *mtrap.o (.text .text* .rodata .rodata* .srodata*)
+        *mss_h2f.o (.text .text* .rodata .rodata* .srodata*)
+        *mss_l2_cache.o (.text .text* .rodata .rodata* .srodata*)
+        . = ALIGN(0x10);
+    } >envm 
+    
     .text : ALIGN(0x10)
     {
         __text_load = LOADADDR(.text);
         __text_start = .; 
         *(.text.init)
-        /*  *entry.o(.text); */
         . = ALIGN(0x10);
         *(.text .text.* .gnu.linkonce.t.*)
         *(.plt)
@@ -197,7 +207,7 @@ SECTIONS
      *   This can not be done when running from envm
      *   This will need to be copied to ram, before any of this code is run.
      */
-    .ram_code :
+    .ram_code : ALIGN(0x10)
     {
         . = ALIGN (4);
         __sc_load = LOADADDR (.ram_code);
@@ -217,7 +227,7 @@ SECTIONS
     .ddr_code :
     {
         . = ALIGN (4);
-        __ddr_load = LOADADDR (.ram_code);
+        __ddr_load = LOADADDR (.ddr_code);
         __ddr_start = .;
         *(.ddr_codetext)        /* .ram_codetext sections (code) */
         *(.ddr_codetext*)       /* .ram_codetext* sections (code)  */
@@ -287,11 +297,8 @@ SECTIONS
         _heap_end = __heap_end;
     } > l2lim
    
-    /* must be on 4k boundary (0x1000) - corresponds to page size, when using 
-       memory mem */
-    /* protection */
-    /* .stack : ALIGN(0x1000) */
-    .stack : ALIGN(0x10)
+    /* must be on 4k boundary- corresponds to page size */
+    .stack : ALIGN(0x1000)
     {
         PROVIDE(__stack_bottom_h0$ = .);
         PROVIDE(__app_stack_bottom_h0 = .);
@@ -323,9 +330,6 @@ SECTIONS
         PROVIDE(__app_stack_top_h4 = .);
         PROVIDE(__stack_top_h4$ = .);
         
-        /* place __start_of_free_lim$ after last allocation of l2_lim */
-        . = ALIGN(0x10);
-        PROVIDE(__start_of_free_lim$ = .);
     } > l2lim
     
     /* 

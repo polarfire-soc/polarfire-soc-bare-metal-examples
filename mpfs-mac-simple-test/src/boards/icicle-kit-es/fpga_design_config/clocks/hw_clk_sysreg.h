@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2024 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -58,8 +58,8 @@ extern  "C" {
 #if !defined (LIBERO_SETTING_MSS_ENVM_CR)
 /*ENVM AHB Controller setup - - Clock period = (Value+1) * (1000/AHBFREQMHZ)
 e.g. 7 will generate a 40ns period 25MHz clock if the AHB clock is 200MHz */
-#define LIBERO_SETTING_MSS_ENVM_CR    0x40050006UL
-    /* CLOCK_PERIOD                      [0:6]   RW value= 0x6 */
+#define LIBERO_SETTING_MSS_ENVM_CR    0x40050005UL
+    /* CLOCK_PERIOD                      [0:6]   RW value= 0x5 */
     /* CLOCK_CONTINUOUS                  [8:1]   RW value= 0x0 */
     /* CLOCK_SUPPRESS                    [9:1]   RW value= 0x0 */
     /* READAHEAD                         [16:1]  RW value= 0x1 */

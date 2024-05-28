@@ -3,8 +3,9 @@
 
 
 This program implements a test shell for the PolarFire SoC MSS MAC Ethernet
-driver which can be used to exercise the driver on the G5 SoC Emulation Platform
-with the Peripheral Daughter Board or the Icicle Kit.
+driver which can be used to exercise the driver on the G5 SoC Emulation
+Platform with the Peripheral Daughter Board, the Icicle Kit and the
+BeagleV-Fire.
 
 Please note that the sample application assigns a MAC address for the GEM 0 of
 00:FC:00:12:34:56 and 00:FC:00:12:34:57 for GEM 1. If you are using multiple 
@@ -13,34 +14,29 @@ low_level_init() in e51.c to ensure each GEM device has a unique MAC address.
 
 The following project defines are used to configure the system:
 
-G5_SOC_EMU_USE_GEM0 - Define this to test GEM 0
-G5_SOC_EMU_USE_GEM1 - Define this to test GEM 1
-
-TI_PHY - Use G5 SoC Emulation Platform onboard PHY Otherwise VSC8575 PHY is used.
-
 Configurations for VTSS API for VSC8575
 
-VTSS_CHIP_CU_PHY
-VTSS_FEATURE_SYNCE
-VTSS_FEATURE_PHY_TS_ONE_STEP_TXFIFO_OPTION
-VTSS_FEATURE_SERDES_MACRO_SETTINGS
-VTSS_OPT_PORT_COUNT=4
-VTSS_OPT_VCORE_III=0
-VTSS_PRODUCT_CHIP="PHY"
-VTSS_PHY_API_ONLY
-VTSS_OPT_TRACE=0
-VTSS_OS_BARE_METAL_RV
+	VTSS_CHIP_CU_PHY
+	VTSS_FEATURE_SYNCE
+	VTSS_FEATURE_PHY_TS_ONE_STEP_TXFIFO_OPTION
+	VTSS_FEATURE_SERDES_MACRO_SETTINGS
+	VTSS_OPT_PORT_COUNT=4
+	VTSS_OPT_VCORE_III=0
+	VTSS_PRODUCT_CHIP="PHY"
+	VTSS_PHY_API_ONLY
+	VTSS_OPT_TRACE=0
+	VTSS_OS_BARE_METAL_RV
 
-CMSIS_PROT
-TARGET_G5_SOC   - Define when building for G5 SoC Emulation Platform board.
-PSE=1           - Define as 1 when building for G5 SoC Emulation Platform
-                  board 0 otherwise.
+	CMSIS_PROT
+	TARGET_G5_SOC   - Define when building for G5 SoC Emulation Platform board.
+	PSE=1           - Define as 1 when building for G5 SoC Emulation Platform
+					board 0 otherwise.
                   
-MSS_MAC_64_BIT_ADDRESS_MODE - Sets address bus width for DMA
-MSS_MAC_SIMPLE_TX_QUEUE     - Set this, multipacket TX queue is not implemented
-CALCONFIGH=\"config_user.h\"
-TEST_H2F_CONTROLLER=0
-_ZL303XX_MIV
+	MSS_MAC_64_BIT_ADDRESS_MODE - Sets address bus width for DMA
+	MSS_MAC_SIMPLE_TX_QUEUE     - Set this, multipacket TX queue is not implemented
+	CALCONFIGH=\"config_user.h\"
+	TEST_H2F_CONTROLLER=0
+	_ZL303XX_MIV
 
 The MSS_MAC_HW_PLATFORM macro should be defined in 
 mss_ethernet_mac_user_config.h with a value that identifies the hardware
@@ -52,8 +48,8 @@ Valid values are:
                                        with GMII to SGMII bridge on GEM0
     MSS_MAC_DESIGN_EMUL_TBI          - G5 Emulation Platform VSC8575 designs
                                        with TBI to SGMII bridge on GEM0
-    MSS_MAC_DESIGN_EMUL_TI_GMII      - G5 Emulation Platform DP83867 design with
-                                       GMII to SGMII bridge
+    MSS_MAC_DESIGN_EMUL_TI_GMII      - G5 Emulation Platform DP83867 design 
+									   with GMII to SGMII bridge
     MSS_MAC_DESIGN_EMUL_DUAL_EX_TI   - G5 Emulation Platform Dual GEM design 
                                      - with external TI PHY on GEM1 (GMII)
     MSS_MAC_DESIGN_EMUL_DUAL_EX_VTS  - G5 Emulation Platform Dual GEM design
@@ -74,6 +70,12 @@ Valid values are:
                                        Design
     MSS_MAC_DESIGN_ICICLE_STD_GEM1   - Icicle board GEM1 Standard Reference
                                        Design
+	MSS_MAC_DESIGN_ICICLE_STD_GEMS   - Icicle board GEM0 and GEM1 Standard
+									   Reference Design
+									   
+	MSS_MAC_DESIGN_SVG_GMII_GEM0_SGMII_GEM1 - Silicon validation board GEM0 
+	                                         (GMII) and GEM1 (SGMII)
+	MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0 - BeagleV-Fire board GEM0
 
 The serial port baud rate is 115200.
 
@@ -88,88 +90,88 @@ To use this project you will need a UART terminal configured as below:
 The test program responds to the following single key commands via the serial
 console:
 
-a - Initiate a PHY autonegotiation cycle on the Ethernet link
-A - Initiate a PHY/MAC autonegotiation cycle on the SGMII link
-b - Toggle HW Loopback mode. The default is disabled.
-B - Toggle broadcast RX mode. The default is to receive broadcasts.
-c - Arms the single packet capture feature. A hex dump of the next received
-    packet will be displayed via the serial port.
-C - Reset the SGMII CDR block
-d - Toggle TX Cutthru. The default is disabled.
-D - Toggle RX Cutthru. The default is disabled.
-e - Display contents of various PHY, MAC and MSS registers for debug purposes
-f - Measure and display system clock frequencies
-g - Display MSS GPIO 2 input values.
-h - Display command help information.
-i - Increments the GEM statistics counters using the test feature in the Network
-    Control Register.
-j - Toggle Jumbo Packet Mode. The default is disabled. If Jumbo packet mode is
-    disabled, packets larger than 1536 bytes will not be received.
-k - Toggle capture re-trigger mode. The default is disabled. When re-trigger
-    mode is enabled, the software will automatically re-enable packet capture
-    after displaying a captured packet.
-l - Toggles software loopback mode - all received packets are immediately
-    re-transmitted. The default is disabled.
-L - Toggle SGMII Link Status display mode. When enabled, the display will
-    rapidly fill up with repeated + or - characters to show the current link
-    status (up or down). The default is disabled.
-m - Transmit contents of LIM incrementally, halt if an AMBA error is detected 
-M - Transmit contents of LIM incrementally, halt if no AMBA error is detected 
-o - Cycle through SGMII TX ODT settings
-O - Cycle through SGMII RX ODT settings
-n - When in loopback mode, toggles adding of an extra byte(s) to the
-    re-transmitted packets. This can be useful when examining Wireshark captures
-    as it provides a way of identifying the echoed packets.
-p - Toggles promiscuous mode. In promiscuous mode the MAC will receive all
-    packets but in normal mode it will only receive broadcast packets and
-    packets addressed directly to its MAC address - which defaults to 
-    00:FC:00:12:34:56.
-P - Step through VSC8662 SGMII loopback modes. None, pad loopback, serial 
-    loopback, parallel loopback and non loopback recovered tx clock mode.
-q - Enter user mode loopback test.
-r - Clears the statistics counts.
-s - Displays the GEM statistics, some PHY statistics and some internal software
-    generated statistics.
-S - Initiate a MAC SGMII autonegotiation cycle.
-t - Transmits sample ARP packet.
-T - Transmits sample ARP packet with padding that increments after every
-    transmit. Packet length varies between 64 and 128 bytes and loops back to 64
-    bytes after transmitting a 128 byte packet.
-u - Toggle PCS enable bit
-U - Toggle SGMII mode enable bit
-v - Toggle PCS loopback mode
-V - Toggle PCS autonegotiation mode
-w - Transmit LIM contents as packets without length field fixup
-W - Transmit LIM contents as packets length field fixup
-x - Toggles reading of PHY registers. When disabled, the PHY statistics are not
-    updated when displaying the statistics. This may help when testing with high
-    network loads.
-X - Transmit 10 packets in single burst.
-y - Transmit LIM as 64 byte packets for 10 minutes using 1000 packet bursts with
-    length field fixup.
-Y - Transmit LIM as 1518 byte packets for 10 minutes using 1000 packet bursts
-    with length field fixup
-z - Toggle FCS passthrough mode. When FCS passthrough is enabled, the receive
-    packet FCS not checked and is copied to memory. For transmit packets, the 
-    GEM assumes the packet already has an FCS and does not append one. The
-    default is disabled.
-' - Transmit a standard Pause Frame.
-, - Transmit a Zero Quantum Pause Frame.
-. - Transmit a Priority Based Pause Frame.
-+/- Increment/Decrement length adjust. Adjusts the additional length added to
-    loopbacked packets when the 'n' command is active.
-#/~ Adjust SGMII TX drive strenght up and down
->/< Adjust PHY SGMII TX drive strenght up and down
-]/[ Adjust PHY SGMII TX offset up and down
-(   Display contents of PHY register as 16 bit hex value. The register number
-    is entered as a 4 digit hex number with the first 2 digits representing the
-    page number and the second 2 digits representing the register number. 
-)   Display current contents of PHY register as 16 bit hex value and then allow
-    the user enter a new 4 digit hex value for the register. The register number
-    is entered as a 4 digit hex number with the first 2 digits representing the
-    page number and the second 2 digits representing the register number. 
-2/3/4/5/6/7/8/ select speed mode of Autonegotiate, 10M HDX, 10M FDX, 100M HDX,
-               100M FDX, 1000M HDX and 1000M FDX respectively.
+	a - Initiate a PHY autonegotiation cycle on the Ethernet link
+	A - Initiate a PHY/MAC autonegotiation cycle on the SGMII link
+	b - Toggle HW Loopback mode. The default is disabled.
+	B - Toggle broadcast RX mode. The default is to receive broadcasts.
+	c - Arms the single packet capture feature. A hex dump of the next received
+	packet will be displayed via the serial port.
+	C - Reset the SGMII CDR block
+	d - Toggle TX Cutthru. The default is disabled.
+	D - Toggle RX Cutthru. The default is disabled.
+	e - Display contents of various PHY, MAC and MSS registers for debug purposes
+	f - Measure and display system clock frequencies
+	g - Display MSS GPIO 2 input values.
+	h - Display command help information.
+	i - Increments the GEM statistics counters using the test feature in the Network
+	Control Register.
+	j - Toggle Jumbo Packet Mode. The default is disabled. If Jumbo packet mode is
+	disabled, packets larger than 1536 bytes will not be received.
+	k - Toggle capture re-trigger mode. The default is disabled. When re-trigger
+	mode is enabled, the software will automatically re-enable packet capture
+	after displaying a captured packet.
+	l - Toggles software loopback mode - all received packets are immediately
+	re-transmitted. The default is disabled.
+	L - Toggle SGMII Link Status display mode. When enabled, the display will
+	rapidly fill up with repeated + or - characters to show the current link
+	status (up or down). The default is disabled.
+	m - Transmit contents of LIM incrementally, halt if an AMBA error is detected 
+	M - Transmit contents of LIM incrementally, halt if no AMBA error is detected 
+	o - Cycle through SGMII TX ODT settings
+	O - Cycle through SGMII RX ODT settings
+	n - When in loopback mode, toggles adding of an extra byte(s) to the
+	re-transmitted packets. This can be useful when examining Wireshark captures
+	as it provides a way of identifying the echoed packets.
+	p - Toggles promiscuous mode. In promiscuous mode the MAC will receive all
+	packets but in normal mode it will only receive broadcast packets and
+	packets addressed directly to its MAC address - which defaults to 
+	00:FC:00:12:34:56.
+	P - Step through VSC8662 SGMII loopback modes. None, pad loopback, serial 
+	loopback, parallel loopback and non loopback recovered tx clock mode.
+	q - Enter user mode loopback test.
+	r - Clears the statistics counts.
+	s - Displays the GEM statistics, some PHY statistics and some internal software
+	generated statistics.
+	S - Initiate a MAC SGMII autonegotiation cycle.
+	t - Transmits sample ARP packet.
+	T - Transmits sample ARP packet with padding that increments after every
+	transmit. Packet length varies between 64 and 128 bytes and loops back to 64
+	bytes after transmitting a 128 byte packet.
+	u - Toggle PCS enable bit
+	U - Toggle SGMII mode enable bit
+	v - Toggle PCS loopback mode
+	V - Toggle PCS autonegotiation mode
+	w - Transmit LIM contents as packets without length field fixup
+	W - Transmit LIM contents as packets length field fixup
+	x - Toggles reading of PHY registers. When disabled, the PHY statistics are not
+	updated when displaying the statistics. This may help when testing with high
+	network loads.
+	X - Transmit 10 packets in single burst.
+	y - Transmit LIM as 64 byte packets for 10 minutes using 1000 packet bursts with
+	length field fixup.
+	Y - Transmit LIM as 1518 byte packets for 10 minutes using 1000 packet bursts
+	with length field fixup
+	z - Toggle FCS passthrough mode. When FCS passthrough is enabled, the receive
+	packet FCS not checked and is copied to memory. For transmit packets, the 
+	GEM assumes the packet already has an FCS and does not append one. The
+	default is disabled.
+	' - Transmit a standard Pause Frame.
+	, - Transmit a Zero Quantum Pause Frame.
+	. - Transmit a Priority Based Pause Frame.
+	+/- Increment/Decrement length adjust. Adjusts the additional length added to
+	loopbacked packets when the 'n' command is active.
+	#/~ Adjust SGMII TX drive strenght up and down
+	>/< Adjust PHY SGMII TX drive strenght up and down
+	]/[ Adjust PHY SGMII TX offset up and down
+	(   Display contents of PHY register as 16 bit hex value. The register number
+	is entered as a 4 digit hex number with the first 2 digits representing the
+	page number and the second 2 digits representing the register number. 
+	)   Display current contents of PHY register as 16 bit hex value and then allow
+	the user enter a new 4 digit hex value for the register. The register number
+	is entered as a 4 digit hex number with the first 2 digits representing the
+	page number and the second 2 digits representing the register number. 
+	2/3/4/5/6/7/8/ select speed mode of Autonegotiate, 10M HDX, 10M FDX, 100M HDX,
+			100M FDX, 1000M HDX and 1000M FDX respectively.
                 
 This test program responds to the above single key commands and will display
 responses as appropriate. At any time the list of available commands can be
@@ -181,8 +183,8 @@ statistic information, turns on promiscuous mode, turns on capture auto
 re-trigger mode and enables packet capture so that any received packets are
 dumped to the console. This should produce a display something like this:
 
-
-## PolarFire MSS Ethernet MAC Test program
+~~~
+PolarFire MSS Ethernet MAC Test program
 
 Polling method for TXRX. Typed characters will be echoed.
 Link is currently Up, Duplex = Full, Speed = 1Gb
@@ -191,22 +193,17 @@ RX Over Flow 0, TX Retries 0
 TX Pause 0, RX Pause 0, Pause Elapsed 0
 HRESP not ok 0 RX Restarts 0
 
-~~~
 PHY Statistics
 PHY CU RX GOOD                   0  PHY CU RX ERRORS                 0
 PHY MAC RX GOOD                  0  PHY MAC RX ERRORS                0
 PHY MAC TX GOOD                  0  PHY MAC TX ERRORS                0
 PHY FALSE CARRIER ERR            0  PHY LINK DISCONNECTS             0
-~~~
 
-~~~
 SGMII Registers
 SGMII Control Register  0000
 SGMII Status Register   0000
 SGMII AN Advertisement  0000
-~~~
 
-~~~
 GEM Statistics
 TX_OCTETS_LOW                    0  TX_OCTETS_HIGH                   0
 TX_FRAMES_OK                     0  TX_BCAST_FRAMES_OK               0
@@ -231,13 +228,12 @@ RX_SYMBOL_ERRORS                 0  RX_ALIGNMENT_ERRORS              0
 RX_RESOURCE_ERRORS               0  RX_OVERRUNS                      0
 RX_IP_CHECKSUM_ERRORS            0  RX_TCP_CHECKSUM_ERRORS           0
 RX_UDP_CHECKSUM_ERRORS           0  RX_AUTO_FLUSHED_PACKETS          0
-~~~
 
 Promiscuous mode on
 Capture reload is enabled
 Packet capture armed
 143 byte packet captured
-~~~
+
 0000 01 00 5E 7F FF FA 00 E0 4C 68 39 02 08 00 45 00 ..^.....Lh9...E.
 0010 00 81 09 05 00 00 04 11 B1 06 0A 02 02 65 EF FF .............e..
 0020 FF FA EE EC 07 6C 00 6D 85 3F 4D 2D 53 45 41 52 .....l.m.?M-SEAR
@@ -577,30 +573,39 @@ Target hardware
 --------------------------------------------------------------------------------
 This example project can be used on PolarFire SoC FPGA family hardware 
 platforms.
+
 There are configurations that need to be set for this example project. The
 configurations are categorized into hardware and software configurations.
-The hardware configurations are located in ./src/boards/<target_board> folder.
-The default software configurations are stored under 
+
+The hardware configurations are located in the 
+./src/boards/<target_board>/<platform_config> folder.
+
+The default software configurations are stored under the 
 .src/platform/platform_config_reference folder.
-The include files in the "./src/boards/<target_board>/soc_config" folder define 
-the hardware configurations such as clocks. You must make sure that the 
-configurations in this example project match the actual configurations of your 
-target Libero design that you are using to test this example project.
+
 If you need to change the software configurations, you are advised to create a 
 new folder to replicate this folder under the ./src/boards directory and do the 
-modifications there. It would look like 
+modifications there. It would look like: 
 ./src/boards/<target_board>/platform_config
+
+The include files in the "./src/boards/<target_board>/fpga_design_config" folder
+define the hardware configurations such as clocks. You must make sure that the 
+configurations in this example project match the actual configurations of your 
+target Libero design that you are using to test this example project.
+
 The include files in the "platform_config" folder define the software 
 configurations such as how many harts are being used in the software, what is 
 the tick rate of the internal timer of each hart. These configurations have no 
 dependency on the hardware configurations in "soc_config" folder. Note that 
 changing these software configurations may require a change in your application 
 code.
+
 ## Executing project on the PolarFire SoC hardware
-This application can be used on PolarFire hardware platform as well e.g. Icicle 
+This application can be used on PolarFire SoC hardware platform as well e.g. Icicle 
 Kit. In this case, the MMUART0 must be connected to a host PC. The host PC must 
 connect to the serial port using a terminal emulator such as Tera Term or PuTTY 
 or the SoftConsole built-in terminal view.
+
 Build the project and launch the debug configuration named 
 "mpfs-mac-simple-test hw all-harts debug" which is configured for 
 PolarFire SoC hardware platform.

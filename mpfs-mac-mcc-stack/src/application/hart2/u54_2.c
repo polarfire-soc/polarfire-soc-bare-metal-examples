@@ -1,5 +1,5 @@
 /***********************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -23,7 +23,8 @@ volatile uint32_t count_sw_ints_h2 = 0U;
 
 static uint8_t g_rx_buff2[5] = {0};
 
-void u54_2_uart0_rx_handler (mss_uart_instance_t * this_uart)
+void
+u54_2_uart0_rx_handler(mss_uart_instance_t *this_uart)
 {
     MSS_UART_get_rx(&g_mss_uart2_lo, g_rx_buff2, sizeof(g_rx_buff2));
     MSS_UART_polled_tx_string(&g_mss_uart2_lo, "hart2 MMUART2 local IRQ.\r\n");
@@ -35,7 +36,8 @@ void u54_2_uart0_rx_handler (mss_uart_instance_t * this_uart)
  * The hart2 goes into WFI. hart0 brings it out of WFI when it raises the first
  * Software interrupt to this hart.
  */
-void u54_2(void)
+void
+u54_2(void)
 {
     uint8_t info_string[100];
     uint64_t hartid = read_csr(mhartid);
@@ -51,7 +53,7 @@ void u54_2(void)
     do
     {
         __asm("wfi");
-    }while(0 == (read_csr(mip) & MIP_MSIP));
+    } while (0 == (read_csr(mip) & MIP_MSIP));
 
     /* The hart is now out of WFI, clear the SW interrupt. Here onwards the
      * application can enable and use any interrupts as required */
@@ -59,39 +61,34 @@ void u54_2(void)
 
     __enable_irq();
 
-    MSS_UART_init(&g_mss_uart2_lo, MSS_UART_115200_BAUD,
-                   MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY);
+    MSS_UART_init(&g_mss_uart2_lo, MSS_UART_115200_BAUD, MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY);
 
-    MSS_UART_polled_tx_string(&g_mss_uart2_lo,
-                              "Hello World from U54_2\r\n");
+    MSS_UART_polled_tx_string(&g_mss_uart2_lo, "Hello World from U54_2\r\n");
 
-    MSS_UART_set_rx_handler(&g_mss_uart2_lo,
-                            u54_2_uart0_rx_handler,
-                            MSS_UART_FIFO_SINGLE_BYTE);
+    MSS_UART_set_rx_handler(&g_mss_uart2_lo, u54_2_uart0_rx_handler, MSS_UART_FIFO_SINGLE_BYTE);
 
     MSS_UART_enable_local_irq(&g_mss_uart2_lo);
 
-    while(1U)
+    while (1U)
     {
         icount++;
 
-        if(0x100000U == icount)
+        if (0x100000U == icount)
         {
             icount = 0U;
-            sprintf(info_string,"hart %d\r\n", hartid);
-            MSS_UART_polled_tx(&g_mss_uart2_lo, info_string,
-                               strlen(info_string));
+            sprintf(info_string, "hart %d\r\n", hartid);
+            MSS_UART_polled_tx(&g_mss_uart2_lo, info_string, strlen(info_string));
         }
     }
 
-  /* Never return */
+    /* Never return */
 }
 
 /* hart2 software interrupt handler */
-void Software_h2_IRQHandler(void)
+void
+U54_2_software_IRQHandler(void)
 {
     uint64_t hart_id = read_csr(mhartid);
     count_sw_ints_h2++;
 }
 #endif
-
