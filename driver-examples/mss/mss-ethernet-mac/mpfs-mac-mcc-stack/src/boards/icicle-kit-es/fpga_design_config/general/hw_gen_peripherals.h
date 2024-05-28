@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2024 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -50,6 +50,31 @@ extern  "C" {
     /* RESERVED                          [2:1]   RO */
     /* STREAM_ENABLE                     [3:1]   RO */
     /* RESERVED1                         [4:28]  RO */
+#endif
+#if !defined (LIBERO_SETTING_CONFIGURED_PERIPHERALS)
+/*MSS peripherals configured in this instance of MSS Configurator generated
+output. 1 implies it has been configured, 0 it has not been configured. */
+#define LIBERO_SETTING_CONFIGURED_PERIPHERALS    0x0009FFFFUL
+    /* EMMC                              [0:1]   RW value= 0x1 */
+    /* SD_SDIO                           [1:1]   RW value= 0x1 */
+    /* USB                               [2:1]   RW value= 0x1 */
+    /* MAC0                              [3:1]   RW value= 0x1 */
+    /* MAC1                              [4:1]   RW value= 0x1 */
+    /* QSPI                              [5:1]   RW value= 0x1 */
+    /* SPI0                              [6:1]   RW value= 0x1 */
+    /* SPI1                              [7:1]   RW value= 0x1 */
+    /* MMUART0                           [8:1]   RW value= 0x1 */
+    /* MMUART1                           [9:1]   RW value= 0x1 */
+    /* MMUART2                           [10:1]  RW value= 0x1 */
+    /* MMUART3                           [11:1]  RW value= 0x1 */
+    /* MMUART4                           [12:1]  RW value= 0x1 */
+    /* I2C0                              [13:1]  RW value= 0x1 */
+    /* I2C1                              [14:1]  RW value= 0x1 */
+    /* CAN0                              [15:1]  RW value= 0x1 */
+    /* CAN1                              [16:1]  RW value= 0x1 */
+    /* GPIO0                             [17:1]  RW value= 0x0 */
+    /* GPIO1                             [18:1]  RW value= 0x0 */
+    /* GPIO2                             [19:1]  RW value= 0x1 */
 #endif
 
 #ifdef __cplusplus

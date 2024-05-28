@@ -45,9 +45,9 @@
 void handle_trigger_request(char * buf, u16_t len);
 
 /*------------------------------------------------------------------------------
- *
+ * Note. Size here needs to track size in mscc_logo.c
  */
-extern const char mscc_png_logo[4727];
+extern const char mscc_png_logo[1740];
 
 /*------------------------------------------------------------------------------
  *
@@ -132,7 +132,9 @@ static const char http_html_ok_hdr[] = "HTTP/1.1 200 OK\r\n\r\n";
 #elif (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0)
 #define DEMO_PLATFORM "MPFS Icicle Board GEM 0<br />FreeRTOS + lwIP"
 #elif (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL)
-#define DEMO_PLATFORM "MPFS Icicle Board GEM 0<br />FreeRTOS + lwIP U54-2"
+#define DEMO_PLATFORM "MPFS Icicle Board GEM 0<br />FreeRTOS + lwIP U54-1"
+#elif (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0)
+#define DEMO_PLATFORM "MPFS BeagleV-Fire Board GEM 0<br />FreeRTOS + lwIP U54-1"
 #else
 #define DEMO_PLATFORM "G5SoC SVG MSS Peripheral Board<br />FreeRTOS + lwIP"
 #endif
@@ -475,7 +477,7 @@ http_server_netconn_serve
             }
             else if(buf[5]=='i')
             {
-                netconn_write(conn, mscc_png_logo, sizeof(mscc_png_logo)-1, NETCONN_NOCOPY);
+                netconn_write(conn, mscc_png_logo, sizeof(mscc_png_logo), NETCONN_NOCOPY);
             }
             else if(buf[5]=='t')
             {

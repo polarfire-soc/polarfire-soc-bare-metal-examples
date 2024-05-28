@@ -1,11 +1,15 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Register bit offsets and masks definitions for PolarFire SoC MSS MAC.
- * 
+ * @file mss_ethernet_mac_regs.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief Register bit offsets and masks definitions for PolarFire SoC
+ * Microprocessor Subsystem (MSS) MAC.
+ *
  */
+
 #ifndef MSS_ETHERNET_MAC_REGS_H_
 #define MSS_ETHERNET_MAC_REGS_H_
 
@@ -13,59 +17,58 @@
 extern "C" {
 #endif
 
-#define BIT_31  ((uint32_t)(0x80000000UL))
-#define BIT_30  ((uint32_t)(0x40000000UL))
-#define BIT_29  ((uint32_t)(0x20000000UL))
-#define BIT_28  ((uint32_t)(0x10000000UL))
-#define BIT_27  ((uint32_t)(0x08000000UL))
-#define BIT_26  ((uint32_t)(0x04000000UL))
-#define BIT_25  ((uint32_t)(0x02000000UL))
-#define BIT_24  ((uint32_t)(0x01000000UL))
-#define BIT_23  ((uint32_t)(0x00800000UL))
-#define BIT_22  ((uint32_t)(0x00400000UL))
-#define BIT_21  ((uint32_t)(0x00200000UL))
-#define BIT_20  ((uint32_t)(0x00100000UL))
-#define BIT_19  ((uint32_t)(0x00080000UL))
-#define BIT_18  ((uint32_t)(0x00040000UL))
-#define BIT_17  ((uint32_t)(0x00020000UL))
-#define BIT_16  ((uint32_t)(0x00010000UL))
-#define BIT_15  ((uint32_t)(0x00008000UL))
-#define BIT_14  ((uint32_t)(0x00004000UL))
-#define BIT_13  ((uint32_t)(0x00002000UL))
-#define BIT_12  ((uint32_t)(0x00001000UL))
-#define BIT_11  ((uint32_t)(0x00000800UL))
-#define BIT_10  ((uint32_t)(0x00000400UL))
-#define BIT_09  ((uint32_t)(0x00000200UL))
-#define BIT_08  ((uint32_t)(0x00000100UL))
-#define BIT_07  ((uint32_t)(0x00000080UL))
-#define BIT_06  ((uint32_t)(0x00000040UL))
-#define BIT_05  ((uint32_t)(0x00000020UL))
-#define BIT_04  ((uint32_t)(0x00000010UL))
-#define BIT_03  ((uint32_t)(0x00000008UL))
-#define BIT_02  ((uint32_t)(0x00000004UL))
-#define BIT_01  ((uint32_t)(0x00000002UL))
-#define BIT_00  ((uint32_t)(0x00000001UL))
+#define BIT_31                                      ((uint32_t)(0x80000000UL))
+#define BIT_30                                      ((uint32_t)(0x40000000UL))
+#define BIT_29                                      ((uint32_t)(0x20000000UL))
+#define BIT_28                                      ((uint32_t)(0x10000000UL))
+#define BIT_27                                      ((uint32_t)(0x08000000UL))
+#define BIT_26                                      ((uint32_t)(0x04000000UL))
+#define BIT_25                                      ((uint32_t)(0x02000000UL))
+#define BIT_24                                      ((uint32_t)(0x01000000UL))
+#define BIT_23                                      ((uint32_t)(0x00800000UL))
+#define BIT_22                                      ((uint32_t)(0x00400000UL))
+#define BIT_21                                      ((uint32_t)(0x00200000UL))
+#define BIT_20                                      ((uint32_t)(0x00100000UL))
+#define BIT_19                                      ((uint32_t)(0x00080000UL))
+#define BIT_18                                      ((uint32_t)(0x00040000UL))
+#define BIT_17                                      ((uint32_t)(0x00020000UL))
+#define BIT_16                                      ((uint32_t)(0x00010000UL))
+#define BIT_15                                      ((uint32_t)(0x00008000UL))
+#define BIT_14                                      ((uint32_t)(0x00004000UL))
+#define BIT_13                                      ((uint32_t)(0x00002000UL))
+#define BIT_12                                      ((uint32_t)(0x00001000UL))
+#define BIT_11                                      ((uint32_t)(0x00000800UL))
+#define BIT_10                                      ((uint32_t)(0x00000400UL))
+#define BIT_09                                      ((uint32_t)(0x00000200UL))
+#define BIT_08                                      ((uint32_t)(0x00000100UL))
+#define BIT_07                                      ((uint32_t)(0x00000080UL))
+#define BIT_06                                      ((uint32_t)(0x00000040UL))
+#define BIT_05                                      ((uint32_t)(0x00000020UL))
+#define BIT_04                                      ((uint32_t)(0x00000010UL))
+#define BIT_03                                      ((uint32_t)(0x00000008UL))
+#define BIT_02                                      ((uint32_t)(0x00000004UL))
+#define BIT_01                                      ((uint32_t)(0x00000002UL))
+#define BIT_00                                      ((uint32_t)(0x00000001UL))
 
-#define BITS_30 ((uint32_t)(0x3FFFFFFFUL))
-#define BITS_24 ((uint32_t)(0x00FFFFFFUL))
-#define BITS_22 ((uint32_t)(0x003FFFFFUL))
-#define BITS_18 ((uint32_t)(0x0003FFFFUL))
-#define BITS_16 ((uint32_t)(0x0000FFFFUL))
-#define BITS_15 ((uint32_t)(0x00007FFFUL))
-#define BITS_14 ((uint32_t)(0x00003FFFUL))
-#define BITS_13 ((uint32_t)(0x00001FFFUL))
-#define BITS_12 ((uint32_t)(0x00000FFFUL))
-#define BITS_11 ((uint32_t)(0x000007FFUL))
-#define BITS_10 ((uint32_t)(0x000003FFUL))
-#define BITS_09 ((uint32_t)(0x000001FFUL))
-#define BITS_08 ((uint32_t)(0x000000FFUL))
-#define BITS_07 ((uint32_t)(0x0000007FUL))
-#define BITS_06 ((uint32_t)(0x0000003FUL))
-#define BITS_05 ((uint32_t)(0x0000001FUL))
-#define BITS_04 ((uint32_t)(0x0000000FUL))
-#define BITS_03 ((uint32_t)(0x00000007UL))
-#define BITS_02 ((uint32_t)(0x00000003UL))
-
+#define BITS_30                                     ((uint32_t)(0x3FFFFFFFUL))
+#define BITS_24                                     ((uint32_t)(0x00FFFFFFUL))
+#define BITS_22                                     ((uint32_t)(0x003FFFFFUL))
+#define BITS_18                                     ((uint32_t)(0x0003FFFFUL))
+#define BITS_16                                     ((uint32_t)(0x0000FFFFUL))
+#define BITS_15                                     ((uint32_t)(0x00007FFFUL))
+#define BITS_14                                     ((uint32_t)(0x00003FFFUL))
+#define BITS_13                                     ((uint32_t)(0x00001FFFUL))
+#define BITS_12                                     ((uint32_t)(0x00000FFFUL))
+#define BITS_11                                     ((uint32_t)(0x000007FFUL))
+#define BITS_10                                     ((uint32_t)(0x000003FFUL))
+#define BITS_09                                     ((uint32_t)(0x000001FFUL))
+#define BITS_08                                     ((uint32_t)(0x000000FFUL))
+#define BITS_07                                     ((uint32_t)(0x0000007FUL))
+#define BITS_06                                     ((uint32_t)(0x0000003FUL))
+#define BITS_05                                     ((uint32_t)(0x0000001FUL))
+#define BITS_04                                     ((uint32_t)(0x0000000FUL))
+#define BITS_03                                     ((uint32_t)(0x00000007UL))
+#define BITS_02                                     ((uint32_t)(0x00000003UL))
 
 /*******************************************************************************
  Register Bit definitions
@@ -421,8 +424,8 @@ extern "C" {
 #define GEM_VLAN_S_TAG                              (0x88A8U)
 
 /* Valid EtherTypes including VLAN tags must be bigger than this */
-#define    GEM_VLAN_ETHERTYPE_MIN                   (1536U)
-#define    GEM_VLAN_NO_STACK                        (0U)
+#define GEM_VLAN_ETHERTYPE_MIN                      (1536U)
+#define GEM_VLAN_NO_STACK                           (0U)
 
 /* General MAC Transmit PFC Pause register bit definitions */
 /* eMAC Transmit PFC Pause register bit definitions */
@@ -728,7 +731,7 @@ extern "C" {
 /* General MAC Design Configuration Debug 3 register bit definitions */
 /* eMAC Design Configuration Debug 3 register bit definitions */
 
-#define GEM_NUM_SPEC_ADD_FILTERS                   (BITS_06 << 24)
+#define GEM_NUM_SPEC_ADD_FILTERS                    (BITS_06 << 24)
 
 /* General MAC Design Configuration Debug 5 register bit definitions */
 /* eMAC Design Configuration Debug 5 register bit definitions */
@@ -743,7 +746,7 @@ extern "C" {
 #define GEM_DMA_BUS_WIDTH_DEF                       (BIT_10 | BIT_11)
 #define GEM_PHY_IDENT                               BIT_09
 #define GEM_TSU                                     BIT_08
-#define GEM_TX_FIFO_CNT_WIDTH                       (BITS_04  << 4)
+#define GEM_TX_FIFO_CNT_WIDTH                       (BITS_04 << 4)
 #define GEM_RX_FIFO_CNT_WIDTH                       BITS_04
 
 /* General MAC Design Configuration Debug 6 register bit definitions */
@@ -1047,11 +1050,8 @@ extern "C" {
 #define GEM_INT_RCV_V_ERROR                         BIT_01
 #define GEM_INT_RCV_R_ERROR                         BIT_00
 
-#ifdef __cplusplus                       
+#ifdef __cplusplus
 }
 #endif
 
 #endif /* MSS_ETHERNET_MAC_REGS_H_ */
-
-
-

@@ -1,18 +1,21 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * This file contains the type definitions for the GEM Ethernet MAC as
- * implemented for the PolarFire SoC. This also covers the subset implemented for
- * the FU540 on the Aloe board with the provisio that many of the registers will
- * not be present on that device.
+ * @file mss_ethernet_registers.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief This file contains the type definitions for the GEM Ethernet MAC as
+ * implemented for the PolarFire SoC Microprocessor Subsystem (MSS). This also
+ * covers the subset implemented for the FU540 on the Aloe board with the
+ * proviso that many of the registers will not be present on that device.
  *
  * We use separate MAC and eMAC definitions even though the eMAC is a subset
  * of the MAC as it helps to catch errors if we try to program registers not
  * present on the eMAC.
  *
  */
+
 #ifndef MSS_ETHERNET_MAC_REGISTERS_H_
 #define MSS_ETHERNET_MAC_REGISTERS_H_
 
@@ -22,9 +25,17 @@ extern "C" {
 /*----------------------------------------------------------------------------*/
 /*----------------------------------- MAC -----------------------------------*/
 /*----------------------------------------------------------------------------*/
+#if !defined(__I)
 #define __I  const volatile
+#endif
+
+#if !defined(__O)
 #define __O  volatile
+#endif
+
+#if !defined(__IO)
 #define __IO volatile
+#endif
 
 typedef struct
 {

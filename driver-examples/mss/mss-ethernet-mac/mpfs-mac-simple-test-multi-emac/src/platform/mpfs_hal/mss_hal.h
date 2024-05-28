@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -28,6 +28,8 @@ typedef long            ssize_t;
 #endif
 
 #include "common/mss_assert.h"
+#include "common/mss_legacy_defines.h"
+#include "common/mss_beu_def.h"
 #include "common/nwc/mss_ddr_defs.h"
 #include "common/nwc/mss_ddr_sgmii_regs.h"
 #include "common/nwc/mss_io_config.h"
@@ -39,19 +41,20 @@ typedef long            ssize_t;
  * mpfs_hal folder
  */
 #include "mpfs_hal_config/mss_sw_config.h"
-/*
- * The hw_platform.h is included here only. It must be included after
- * mss_sw_config.h. This allows defines in hw_platform.h be overload from
- * mss_sw_config.h if necessary.
- * */
 #include "common/atomic.h"
 #include "common/bits.h"
 #include "common/encoding.h"
+/*
+ * The fpga_design_config.h is included here only. It must be included after
+ * mss_sw_config.h. This allows defines in hw_platform.h be overload from
+ * mss_sw_config.h if necessary.
+ * */
 #include "fpga_design_config/fpga_design_config.h"
 #include "common/nwc/mss_ddr.h"
 #include "common/mss_clint.h"
 #include "common/mss_h2f.h"
 #include "common/mss_hart_ints.h"
+#include "common/mss_beu.h"
 #include "common/mss_mpu.h"
 #include "common/mss_pmp.h"
 #include "common/mss_plic.h"

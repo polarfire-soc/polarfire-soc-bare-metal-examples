@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2024 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -35,19 +35,19 @@ extern  "C" {
 #if !defined (LIBERO_SETTING_ALT_IOMUX0_CR)
 /*Selects whether the peripheral is connected to the Fabric or IOMUX structure.
 */
-#define LIBERO_SETTING_ALT_IOMUX0_CR    0x00000000UL
-    /* SPI0_FABRIC                       [0:1]   RW value= 0x0 */
+#define LIBERO_SETTING_ALT_IOMUX0_CR    0x00000FDDUL
+    /* SPI0_FABRIC                       [0:1]   RW value= 0x1 */
     /* SPI1_FABRIC                       [1:1]   RW value= 0x0 */
-    /* I2C0_FABRIC                       [2:1]   RW value= 0x0 */
-    /* I2C1_FABRIC                       [3:1]   RW value= 0x0 */
-    /* CAN0_FABRIC                       [4:1]   RW value= 0x0 */
+    /* I2C0_FABRIC                       [2:1]   RW value= 0x1 */
+    /* I2C1_FABRIC                       [3:1]   RW value= 0x1 */
+    /* CAN0_FABRIC                       [4:1]   RW value= 0x1 */
     /* CAN1_FABRIC                       [5:1]   RW value= 0x0 */
-    /* QSPI_FABRIC                       [6:1]   RW value= 0x0 */
-    /* MMUART0_FABRIC                    [7:1]   RW value= 0x0 */
-    /* MMUART1_FABRIC                    [8:1]   RW value= 0x0 */
-    /* MMUART2_FABRIC                    [9:1]   RW value= 0x0 */
-    /* MMUART3_FABRIC                    [10:1]  RW value= 0x0 */
-    /* MMUART4_FABRIC                    [11:1]  RW value= 0x0 */
+    /* QSPI_FABRIC                       [6:1]   RW value= 0x1 */
+    /* MMUART0_FABRIC                    [7:1]   RW value= 0x1 */
+    /* MMUART1_FABRIC                    [8:1]   RW value= 0x1 */
+    /* MMUART2_FABRIC                    [9:1]   RW value= 0x1 */
+    /* MMUART3_FABRIC                    [10:1]  RW value= 0x1 */
+    /* MMUART4_FABRIC                    [11:1]  RW value= 0x1 */
     /* MDIO0_FABRIC                      [12:1]  RW value= 0x0 */
     /* MDIO1_FABRIC                      [13:1]  RW value= 0x0 */
 #endif
@@ -57,15 +57,15 @@ EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies
 I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved
 (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies
 Logic 0,0xE implies Logic 1, 0xF implies Tristate */
-#define LIBERO_SETTING_ALT_IOMUX1_CR    0x00000000UL
-    /* PAD0                              [0:4]   RW value= 0x0 */
-    /* PAD1                              [4:4]   RW value= 0x0 */
-    /* PAD2                              [8:4]   RW value= 0x0 */
-    /* PAD3                              [12:4]  RW value= 0x0 */
-    /* PAD4                              [16:4]  RW value= 0x0 */
-    /* PAD5                              [20:4]  RW value= 0x0 */
-    /* PAD6                              [24:4]  RW value= 0x0 */
-    /* PAD7                              [28:4]  RW value= 0x0 */
+#define LIBERO_SETTING_ALT_IOMUX1_CR    0x11111111UL
+    /* PAD0                              [0:4]   RW value= 0x1 */
+    /* PAD1                              [4:4]   RW value= 0x1 */
+    /* PAD2                              [8:4]   RW value= 0x1 */
+    /* PAD3                              [12:4]  RW value= 0x1 */
+    /* PAD4                              [16:4]  RW value= 0x1 */
+    /* PAD5                              [20:4]  RW value= 0x1 */
+    /* PAD6                              [24:4]  RW value= 0x1 */
+    /* PAD7                              [28:4]  RW value= 0x1 */
 #endif
 #if !defined (LIBERO_SETTING_ALT_IOMUX2_CR)
 /*Configures the IO Mux structure for each IO pad. 0 implies SD/SDIO, 1 implies
@@ -73,13 +73,13 @@ EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies
 I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved
 (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies
 Logic 0,0xE implies Logic 1, 0xF implies Tristate */
-#define LIBERO_SETTING_ALT_IOMUX2_CR    0x00000000UL
-    /* PAD8                              [0:4]   RW value= 0x0 */
-    /* PAD9                              [4:4]   RW value= 0x0 */
-    /* PAD10                             [8:4]   RW value= 0x0 */
-    /* PAD11                             [12:4]  RW value= 0x0 */
-    /* PAD12                             [16:4]  RW value= 0x0 */
-    /* PAD13                             [20:4]  RW value= 0x0 */
+#define LIBERO_SETTING_ALT_IOMUX2_CR    0x00FF1111UL
+    /* PAD8                              [0:4]   RW value= 0x1 */
+    /* PAD9                              [4:4]   RW value= 0x1 */
+    /* PAD10                             [8:4]   RW value= 0x1 */
+    /* PAD11                             [12:4]  RW value= 0x1 */
+    /* PAD12                             [16:4]  RW value= 0xF */
+    /* PAD13                             [20:4]  RW value= 0xF */
 #endif
 #if !defined (LIBERO_SETTING_ALT_IOMUX3_CR)
 /*Configures the IO Mux structure for each IO pad. 0 implies SD/SDIO, 1 implies
@@ -87,15 +87,15 @@ EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies
 I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved
 (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies
 Logic 0,0xE implies Logic 1, 0xF implies Tristate */
-#define LIBERO_SETTING_ALT_IOMUX3_CR    0x00000000UL
-    /* PAD14                             [0:4]   RW value= 0x0 */
-    /* PAD15                             [4:4]   RW value= 0x0 */
-    /* PAD16                             [8:4]   RW value= 0x0 */
-    /* PAD17                             [12:4]  RW value= 0x0 */
-    /* PAD18                             [16:4]  RW value= 0x0 */
-    /* PAD19                             [20:4]  RW value= 0x0 */
-    /* PAD20                             [24:4]  RW value= 0x0 */
-    /* PAD21                             [28:4]  RW value= 0x0 */
+#define LIBERO_SETTING_ALT_IOMUX3_CR    0x44444444UL
+    /* PAD14                             [0:4]   RW value= 0x4 */
+    /* PAD15                             [4:4]   RW value= 0x4 */
+    /* PAD16                             [8:4]   RW value= 0x4 */
+    /* PAD17                             [12:4]  RW value= 0x4 */
+    /* PAD18                             [16:4]  RW value= 0x4 */
+    /* PAD19                             [20:4]  RW value= 0x4 */
+    /* PAD20                             [24:4]  RW value= 0x4 */
+    /* PAD21                             [28:4]  RW value= 0x4 */
 #endif
 #if !defined (LIBERO_SETTING_ALT_IOMUX4_CR)
 /*Configures the IO Mux structure for each IO pad. 0 implies SD/SDIO, 1 implies
@@ -103,15 +103,15 @@ EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies
 I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved
 (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies
 Logic 0,0xE implies Logic 1, 0xF implies Tristate */
-#define LIBERO_SETTING_ALT_IOMUX4_CR    0x00000000UL
-    /* PAD22                             [0:4]   RW value= 0x0 */
-    /* PAD23                             [4:4]   RW value= 0x0 */
-    /* PAD24                             [8:4]   RW value= 0x0 */
-    /* PAD25                             [12:4]  RW value= 0x0 */
-    /* PAD26                             [16:4]  RW value= 0x0 */
-    /* PAD27                             [20:4]  RW value= 0x0 */
-    /* PAD28                             [24:4]  RW value= 0x0 */
-    /* PAD29                             [28:4]  RW value= 0x0 */
+#define LIBERO_SETTING_ALT_IOMUX4_CR    0x88CC4444UL
+    /* PAD22                             [0:4]   RW value= 0x4 */
+    /* PAD23                             [4:4]   RW value= 0x4 */
+    /* PAD24                             [8:4]   RW value= 0x4 */
+    /* PAD25                             [12:4]  RW value= 0x4 */
+    /* PAD26                             [16:4]  RW value= 0xC */
+    /* PAD27                             [20:4]  RW value= 0xC */
+    /* PAD28                             [24:4]  RW value= 0x8 */
+    /* PAD29                             [28:4]  RW value= 0x8 */
 #endif
 #if !defined (LIBERO_SETTING_ALT_IOMUX5_CR)
 /*Configures the IO Mux structure for each IO pad. 0 implies SD/SDIO, 1 implies
@@ -119,15 +119,15 @@ EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies
 I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved
 (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies
 Logic 0,0xE implies Logic 1, 0xF implies Tristate */
-#define LIBERO_SETTING_ALT_IOMUX5_CR    0x00000000UL
-    /* PAD30                             [0:4]   RW value= 0x0 */
-    /* PAD31                             [4:4]   RW value= 0x0 */
-    /* PAD32                             [8:4]   RW value= 0x0 */
-    /* PAD33                             [12:4]  RW value= 0x0 */
-    /* PAD34                             [16:4]  RW value= 0x0 */
-    /* PAD35                             [20:4]  RW value= 0x0 */
-    /* PAD36                             [24:4]  RW value= 0x0 */
-    /* PAD37                             [28:4]  RW value= 0x0 */
+#define LIBERO_SETTING_ALT_IOMUX5_CR    0xF7773333UL
+    /* PAD30                             [0:4]   RW value= 0x3 */
+    /* PAD31                             [4:4]   RW value= 0x3 */
+    /* PAD32                             [8:4]   RW value= 0x3 */
+    /* PAD33                             [12:4]  RW value= 0x3 */
+    /* PAD34                             [16:4]  RW value= 0x7 */
+    /* PAD35                             [20:4]  RW value= 0x7 */
+    /* PAD36                             [24:4]  RW value= 0x7 */
+    /* PAD37                             [28:4]  RW value= 0xF */
 #endif
 #if !defined (LIBERO_SETTING_ALT_IOMUX6_CR)
 /*Sets whether the MMC/SD Voltage select lines are inverted on entry to the
@@ -155,39 +155,39 @@ IOMUX structure */
 #endif
 #if !defined (LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_0_1_CR)
 /*IO electrical configuration for MSSIO pad */
-#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_0_1_CR    0x09280928UL
-    /* IO_CFG_0                          [0:16]  RW value= 0x0928 */
-    /* IO_CFG_1                          [16:16] RW value= 0x0928 */
+#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_0_1_CR    0x09300930UL
+    /* IO_CFG_0                          [0:16]  RW value= 0x0930 */
+    /* IO_CFG_1                          [16:16] RW value= 0x0930 */
 #endif
 #if !defined (LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_2_3_CR)
 /*IO electrical configuration for MSSIO pad */
-#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_2_3_CR    0x09280928UL
-    /* IO_CFG_2                          [0:16]  RW value= 0x0928 */
-    /* IO_CFG_3                          [16:16] RW value= 0x0928 */
+#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_2_3_CR    0x09300930UL
+    /* IO_CFG_2                          [0:16]  RW value= 0x0930 */
+    /* IO_CFG_3                          [16:16] RW value= 0x0930 */
 #endif
 #if !defined (LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_4_5_CR)
 /*IO electrical configuration for MSSIO pad */
-#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_4_5_CR    0x09280928UL
-    /* IO_CFG_4                          [0:16]  RW value= 0x0928 */
-    /* IO_CFG_5                          [16:16] RW value= 0x0928 */
+#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_4_5_CR    0x09300930UL
+    /* IO_CFG_4                          [0:16]  RW value= 0x0930 */
+    /* IO_CFG_5                          [16:16] RW value= 0x0930 */
 #endif
 #if !defined (LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_6_7_CR)
 /*IO electrical configuration for MSSIO pad */
-#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_6_7_CR    0x09280928UL
+#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_6_7_CR    0x09300928UL
     /* IO_CFG_6                          [0:16]  RW value= 0x0928 */
-    /* IO_CFG_7                          [16:16] RW value= 0x0928 */
+    /* IO_CFG_7                          [16:16] RW value= 0x0930 */
 #endif
 #if !defined (LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_8_9_CR)
 /*IO electrical configuration for MSSIO pad */
-#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_8_9_CR    0x09280928UL
-    /* IO_CFG_8                          [0:16]  RW value= 0x0928 */
-    /* IO_CFG_9                          [16:16] RW value= 0x0928 */
+#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_8_9_CR    0x09300930UL
+    /* IO_CFG_8                          [0:16]  RW value= 0x0930 */
+    /* IO_CFG_9                          [16:16] RW value= 0x0930 */
 #endif
 #if !defined (LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_10_11_CR)
 /*IO electrical configuration for MSSIO pad */
-#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_10_11_CR    0x09280928UL
-    /* IO_CFG_10                         [0:16]  RW value= 0x0928 */
-    /* IO_CFG_11                         [16:16] RW value= 0x0928 */
+#define LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_10_11_CR    0x09300930UL
+    /* IO_CFG_10                         [0:16]  RW value= 0x0930 */
+    /* IO_CFG_11                         [16:16] RW value= 0x0930 */
 #endif
 #if !defined (LIBERO_SETTING_ALT_MSSIO_BANK4_IO_CFG_12_13_CR)
 /*IO electrical configuration for MSSIO pad */
@@ -316,6 +316,47 @@ IOMUX structure */
     /* DPC_IO_CFG_LP_PERSIST_EN          [13:1]  RW value= 0x0 */
     /* DPC_IO_CFG_LP_BYPASS_EN           [14:1]  RW value= 0x0 */
     /* RESERVED                          [15:17] R */
+#endif
+#if !defined (LIBERO_SETTING_ALT_GPIO_INTERRUPT_FAB_CR)
+/*To limit the number of interrupts fed to the PLINT, the seventy GPIO
+interrupts (GPIO0=14, GPIO1=24, GPIO2=32) are multiplexed down to 41
+interrupts. The muxing is controlled by a 32-bit system register
+(GPIO_INTERRUPT_FAB_CR). For example, if bit 0 of thei register is set to 1,
+gpio2_0 is chosen as a direct interrupt and gpio0_0 will be added to the muxed
+interrupt for gpio0. Please see the GPIO driver for more detail. */
+#define LIBERO_SETTING_ALT_GPIO_INTERRUPT_FAB_CR    0x00000000UL
+    /* GPIO0_0_OR_GPIO2_0                [0:1]   RW value= 0x0 */
+    /* GPIO0_1_OR_GPIO2_1                [1:1]   RW value= 0x0 */
+    /* GPIO0_2_OR_GPIO2_2                [2:1]   RW value= 0x0 */
+    /* GPIO0_3_OR_GPIO2_3                [3:1]   RW value= 0x0 */
+    /* GPIO0_4_OR_GPIO2_4                [4:1]   RW value= 0x0 */
+    /* GPIO0_5_OR_GPIO2_5                [5:1]   RW value= 0x0 */
+    /* GPIO0_6_OR_GPIO2_6                [6:1]   RW value= 0x0 */
+    /* GPIO0_7_OR_GPIO2_7                [7:1]   RW value= 0x0 */
+    /* GPIO0_8_OR_GPIO2_8                [8:1]   RW value= 0x0 */
+    /* GPIO0_9_OR_GPIO2_9                [9:1]   RW value= 0x0 */
+    /* GPIO0_10_OR_GPIO2_10              [10:1]  RW value= 0x0 */
+    /* GPIO0_11_OR_GPIO2_11              [11:1]  RW value= 0x0 */
+    /* GPIO0_12_OR_GPIO2_12              [12:1]  RW value= 0x0 */
+    /* GPIO0_13_OR_GPIO2_13              [13:1]  RW value= 0x0 */
+    /* GPIO1_0_OR_GPIO2_14               [14:1]  RW value= 0x0 */
+    /* GPIO1_1_OR_GPIO2_15               [15:1]  RW value= 0x0 */
+    /* GPIO1_2_OR_GPIO2_16               [16:1]  RW value= 0x0 */
+    /* GPIO1_3_OR_GPIO2_17               [17:1]  RW value= 0x0 */
+    /* GPIO1_4_OR_GPIO2_18               [18:1]  RW value= 0x0 */
+    /* GPIO1_5_OR_GPIO2_19               [19:1]  RW value= 0x0 */
+    /* GPIO1_6_OR_GPIO2_20               [20:1]  RW value= 0x0 */
+    /* GPIO1_7_OR_GPIO2_21               [21:1]  RW value= 0x0 */
+    /* GPIO1_8_OR_GPIO2_22               [22:1]  RW value= 0x0 */
+    /* GPIO1_9_OR_GPIO2_23               [23:1]  RW value= 0x0 */
+    /* GPIO1_10_OR_GPIO2_24              [24:1]  RW value= 0x0 */
+    /* GPIO1_11_OR_GPIO2_25              [25:1]  RW value= 0x0 */
+    /* GPIO1_12_OR_GPIO2_26              [26:1]  RW value= 0x0 */
+    /* GPIO1_13_OR_GPIO2_27              [27:1]  RW value= 0x0 */
+    /* GPIO1_14_OR_GPIO2_28              [28:1]  RW value= 0x0 */
+    /* GPIO1_15_OR_GPIO2_29              [29:1]  RW value= 0x0 */
+    /* GPIO1_16_OR_GPIO2_30              [30:1]  RW value= 0x0 */
+    /* GPIO1_17_OR_GPIO2_31              [31:1]  RW value= 0x0 */
 #endif
 
 #ifdef __cplusplus

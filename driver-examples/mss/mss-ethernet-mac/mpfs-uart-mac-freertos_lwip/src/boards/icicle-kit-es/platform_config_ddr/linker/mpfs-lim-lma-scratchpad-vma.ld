@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -34,13 +34,6 @@ reside. (Note: The first 256B page of envm is used for metadata associated with
 secure boot. When not using secure boot (mode 0,1), this area is still reserved 
 by convention. It allows easier transition from non-secure to secure boot flow
 during the development process.
-When debugging a bare metal program that is run out of reset from envm, a linker 
-script will be used whereby the program will run from LIM instead of envm.
-In this case, the reset vector in the linker script is normally set to the 
-start of LIM, 0x0800_0000.
-This means you are not continually programming the envm each time you load a 
-program and there is no limitation with break points when debugging.
-See the mpfs-lim.ld example linker script when runing from LIM.
 
 ------------------------------------------------------------------------------*/
 
@@ -48,6 +41,8 @@ MEMORY
 {
     envm (rx) : ORIGIN  = 0x20220100, LENGTH = 128k - 0x100
     dtim (rwx) : ORIGIN  = 0x01000000, LENGTH = 7k       
+    /* This 1K of DTIM is used to run code when switching the envm clock */
+    switch_code_dtim (rx) : ORIGIN = 0x01001c00, LENGTH = 1k 
     e51_itim (rwx)     : ORIGIN = 0x01800000, LENGTH = 28k
     u54_1_itim (rwx)   : ORIGIN = 0x01808000, LENGTH = 28k
     u54_2_itim (rwx)   : ORIGIN = 0x01810000, LENGTH = 28k
@@ -55,8 +50,6 @@ MEMORY
     u54_4_itim (rwx)   : ORIGIN = 0x01820000, LENGTH = 28k
     l2lim (rwx)        : ORIGIN = 0x08000000, LENGTH = 256k
     scratchpad(rwx)    : ORIGIN = 0x0A000000, LENGTH = 256k
-    /* This 1k of DTIM is used to run code when switching the envm clock */
-    switch_code (rx) :      ORIGIN = 0x01001c00, LENGTH = 1k     
     /* DDR sections example */
     ddr_cached_32bit (rwx) : ORIGIN  = 0x80000000, LENGTH = 768M
     ddr_non_cached_32bit (rwx) : ORIGIN  = 0xC0000000, LENGTH = 256M
@@ -66,31 +59,34 @@ MEMORY
     ddr_wcb_38bit (rwx) : ORIGIN  = 0x1800000000, LENGTH  = 0k
 }
 
-HEAP_SIZE = 8k;               /* needs to be calculated for your application if using */
-
-/* STACK_SIZE_PER_HART needs to be calculated for your */
-/* application. Must be aligned */
-/* Also Thread local storage (AKA hart local storage) allocated for each hart */
-/* as part of the stack
-/* So memory map will look like once apportion in startup code: */
-/*   */
-/* stack hart0  Actual Stack size = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE) */
-/* TLS hart 0   */
-/* stack hart1  */
-/* TLS hart 1   */
-/* etc */
-/* note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h */
+HEAP_SIZE           = 8k;   /* needs to be calculated for your application */
 
 /*
  * There is common area for shared variables, accessed from a pointer in a harts HLS
  */
 SIZE_OF_COMMON_HART_MEM = 4k;
 
+/* 
+ * The stack size needs to be calculated for your application. It must be aligned.
+ * Also Thread local storage (AKA hart local storage) is allocated for each hart 
+ * as part of the stack. 
+ * So the memory map will look like once apportion in startup code:              
+ * stack hart0    
+ * HLS hart 0                                                                    
+ * stack hart1                                                                   
+ * HLS hart 1                                                                    
+ * etc                                                                           
+ * Actual Stack size per hart = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE)                                                                 
+ * note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h                       
+ */
+ 
 /*
- * Stack size for each hart's application.
- * The startup stack size is used on start-up.
- * The application stack sizes that will be allocated to each hart before starting
- * each hart's application function, e51(), u54_1(), u54_2(), u54_3(), u54_4().
+ * STACK_SIZE_xxx_STARTUP
+ * Stack size for each hart's startup code.
+ * Before copying itself to the scratchpad memory area and executing the code from there, the 
+ * startup code is executing from LIM. The scratchpad area is not configured yet. This per-hart 
+ * startup stack area is located in LIM and used during this phase of the startup code.
+ * 
  */
 STACK_SIZE_E51_STARTUP = 4k;
 STACK_SIZE_U54_1_STARTUP = 4k;
@@ -98,12 +94,19 @@ STACK_SIZE_U54_2_STARTUP = 4k;
 STACK_SIZE_U54_3_STARTUP = 4k;
 STACK_SIZE_U54_4_STARTUP = 4k;
 
+/*
+ * STACK_SIZE_xxx_APPLICATION
+ * After the startup code executing from LIM configures the scratchpad memory, it configures 
+ * the each hart's SP with this stack area for the respective hart's application function, 
+ * (namely e51(), u54_1(), u54_2(), u54_3(), u54_4() ) to use it.
+ * This per-hart application stack area is located in scratchpad and used by application when 
+ * it is executing from scratchpad.
+ */
 STACK_SIZE_E51_APPLICATION = 8k;
 STACK_SIZE_U54_1_APPLICATION = 8k;
 STACK_SIZE_U54_2_APPLICATION = 8k;
 STACK_SIZE_U54_3_APPLICATION = 8k;
 STACK_SIZE_U54_4_APPLICATION = 8k;
-
 
 
 SECTIONS
@@ -352,25 +355,12 @@ SECTIONS
     } > scratchpad
     
     /* 
-     * These are unused it the bootloader program but need to be preset for
-     * compilation, as used in non-bootloader function.
-     */
-    .unused_non_bootloader : ALIGN(0x10)
-    {
-        PROVIDE(__uninit_bottom$ = .);
-        PROVIDE(__uninit_top_h$ = .);
-        PROVIDE(__app_stack_bottom = .);
-        PROVIDE(__app_stack_top = .);
-        PROVIDE(__uninit_top_h$ = .);
-    } > scratchpad
-    
-    /* 
     *   The .ram_code section will contain the code That is run from RAM.
     *   We are using this code to switch the clocks including envm clock.
     *   This can not be done when running from envm
     *   This will need to be copied to ram, before any of this code is run.
     */
-    .ram_code :
+    .ram_code : ALIGN(0x10)
     {
         . = ALIGN (4);
         __sc_load = LOADADDR (.ram_code);
@@ -383,6 +373,6 @@ SECTIONS
         __sc_end = .;
         /* place __start_of_free_lim$ after last allocation of l2lim */
         PROVIDE(__start_of_free_lim$ = .);
-    } >switch_code AT> l2lim     /* On the MPFS for startup code use,  >switch_code AT>envm */
+    } >switch_code_dtim AT> l2lim     /* On the MPFS for startup code use,  >switch_code AT>envm */
   
 }
