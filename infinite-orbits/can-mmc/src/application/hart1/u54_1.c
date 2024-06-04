@@ -17,16 +17,25 @@
 /*------------------------------------------------------------------------------
  * Constant Definitions
  */
+
 #define LIM_BASE_ADDRESS        0x08000000u
 #define LIM_SIZE                0x200000u
 #define ERROR_INTERRUPT         0x8000u
 #define TRANSFER_COMPLETE       0x1u
-#define SECT_NO                 0u
 #define USE_SDMA                0u
 #define USE_ADMA2               1u
-#define BLOCK_SIZE              512u
-#define BUFFER_SIZE             4096u // multiple block data size
-#define DEBUG                   0u
+#define BLOCK_SIZE_BYTES        512
+#define SLOT_SIZE_BYTES         (100 * 1024 * 1024)  // 100 MB in bytes
+
+typedef enum {
+    REGION_SLOT_0 = 0,
+    REGION_SLOT_1 = REGION_SLOT_0 + (SLOT_SIZE_BYTES / BLOCK_SIZE_BYTES),
+    REGION_SLOT_2 = REGION_SLOT_1 + (SLOT_SIZE_BYTES / BLOCK_SIZE_BYTES),
+    REGION_SLOT_3 = REGION_SLOT_2 + (SLOT_SIZE_BYTES / BLOCK_SIZE_BYTES),
+    END_OF_SLOT_REGION = REGION_SLOT_3 + (SLOT_SIZE_BYTES / BLOCK_SIZE_BYTES)
+} SlotsRegion;
+
+#define START_ADDRESS           REGION_SLOT_1
 
 /*------------------------------------------------------------------------------
  * Private functions.
@@ -34,8 +43,6 @@
 static int8_t multi_block_write_transfer(uint32_t sector_number);
 static int8_t multi_block_write(uint32_t sector_number, uint8_t dma_type);
 static int8_t mmc_init_emmc(void);
-
-void transfer_complete_handler(uint32_t status);
 
 /*------------------------------------------------------------------------------
  * Static Variables.
@@ -70,8 +77,8 @@ mss_can_rxmsgobject rx_msg;
 /*------------------------------------------------------------------------------
  * MSS eMMC
  */
-uint8_t g_mmc_rx_buff[BUFFER_SIZE] = {0};
-uint8_t g_mmc_tx_buff[BUFFER_SIZE] = {0};
+uint8_t g_mmc_rx_buff[BLOCK_SIZE_BYTES] = {0};
+uint8_t g_mmc_tx_buff[BLOCK_SIZE_BYTES] = {0};
 mss_mmc_cfg_t g_mmc;
 uint8_t g_mmc_initialized = 0u;
 
@@ -91,7 +98,7 @@ void u54_1(void)
     uint32_t g_bytes_received = 0;
     uint32_t g_head = 0;
     uint32_t g_tail = 0;
-    uint32_t  g_block_count = 0u;
+    uint32_t g_block_count = 0u;
 
 #if (IMAGE_LOADED_BY_BOOTLOADER == 0)
     /* Clear pending software interrupt in case there was any.
@@ -197,7 +204,7 @@ void u54_1(void)
     for (sector_number = 0; sector_number < 500; sector_number++)
     {
         ret_status = MSS_MMC_single_block_read(sector_number, (uint32_t *)g_mmc_rx_buff);
-        for (uint16_t loop_count = 0u; loop_count < BUFFER_SIZE; loop_count++)
+        for (uint16_t loop_count = 0u; loop_count < BLOCK_SIZE_BYTES; loop_count++)
         {
             if(g_mmc_rx_buff[loop_count] != 0)
             {
@@ -217,17 +224,17 @@ void u54_1(void)
         if (CAN_VALID_MSG == ret_status)
             {
                 // Copy CAN message data to buffer
-                uint32_t remaining_bytes = BUFFER_SIZE - g_bytes_received;
+                uint32_t remaining_bytes = BLOCK_SIZE_BYTES - g_bytes_received;
                 uint32_t bytes_to_copy = rx_buf.DLC < remaining_bytes ? rx_buf.DLC : remaining_bytes;
 
                 for (uint32_t loop_count = 0u; loop_count < bytes_to_copy; loop_count++)
                 {
                     g_mmc_tx_buff[g_head] = rx_buf.DATA[loop_count];
-                    g_head = (g_head + 1) % BUFFER_SIZE;
+                    g_head = (g_head + 1) % BLOCK_SIZE_BYTES;
                     if (g_head == g_tail)
                     {
                         // Buffer is full, move tail pointer to overwrite oldest data
-                        g_tail = (g_tail + 1) % BUFFER_SIZE;
+                        g_tail = (g_tail + 1) % BLOCK_SIZE_BYTES;
                     }
                 }
 
@@ -235,11 +242,11 @@ void u54_1(void)
                 g_bytes_received += bytes_to_copy;
 
                 // If the buffer is full, post-process and reset the buffer
-                if (g_bytes_received >= BUFFER_SIZE)
+                if (g_bytes_received >= BLOCK_SIZE_BYTES)
                 {
                     sprintf(message, "\rContents of g_mmc_tx_buff before write: %d ", g_block_count);
                     MSS_UART_polled_tx_string(g_uart, message);
-                    multi_block_write_transfer(g_block_count);
+                    multi_block_write_transfer(START_ADDRESS+ g_block_count);
 
                     memset(g_mmc_tx_buff, 0, sizeof(g_mmc_tx_buff));
                     g_block_count++;
@@ -339,9 +346,9 @@ static int8_t multi_block_write(uint32_t sector_number, uint8_t dma_type) {
     uint8_t p_buff[128];
 
     if (USE_ADMA2 == dma_type) {
-        status = MSS_MMC_adma2_write(g_mmc_tx_buff, sector_number, BUFFER_SIZE);
+        status = MSS_MMC_adma2_write(g_mmc_tx_buff, sector_number, BLOCK_SIZE_BYTES);
     } else if (USE_SDMA == dma_type) {
-        status = MSS_MMC_sdma_write(g_mmc_tx_buff, sector_number, BUFFER_SIZE);
+        status = MSS_MMC_sdma_write(g_mmc_tx_buff, sector_number, BLOCK_SIZE_BYTES);
     } else {
         status = -1;
     }
