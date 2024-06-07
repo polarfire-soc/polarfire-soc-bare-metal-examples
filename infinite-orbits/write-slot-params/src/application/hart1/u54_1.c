@@ -70,6 +70,7 @@ void copyBufferToParamData(const uint8_t *buffer, ParamData *params) {
  */
 static int8_t mmc_init_emmc(void);
 static int8_t single_block_wr_rd(uint32_t sector_number);
+static void read_slot_params(void);
 
 /*------------------------------------------------------------------------------
  * Static Variables.
@@ -86,6 +87,8 @@ uint8_t g_mmc_initialized = 0u;
 uint32_t start_slot = 0u;
 uint32_t end_slot = 0u;
 uint8_t g_rx_buff[10u] = {0};
+uint8_t status;
+uint8_t p_buff[100];
 
 /*------------------------------------------------------------------------------
  * MSS UART
@@ -104,8 +107,6 @@ uint8_t g_mmc_tx_buff[BLOCK_SIZE_BYTES] = {1};
  */
 void u54_1(void)
 {
-    uint8_t status;
-    uint8_t p_buff[100];
     bool valid_sector = true;
     bool erase_failed = false;
     uint32_t sector_number = 0;
@@ -168,58 +169,22 @@ void u54_1(void)
 
                     if (emmc_status == MSS_MMC_INIT_SUCCESS)
                     {
-
-                       /* status = MSS_MMC_single_block_read(counter, (uint32_t *)g_mmc_rx_buff);
-                        sprintf(p_buff,"\r sector: %d ", counter);
-                        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                        counter++;
-                        for (int i = 0; i < 512; ++i) {
-                            sprintf(p_buff,"%02x", g_mmc_rx_buff[i]);
-                            MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                        }
-
-                        sprintf(p_buff,"\r\n");
-                        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));*/
-                        ParamData Params_rx;
-                        status = MSS_MMC_single_block_read(END_OF_SLOT_REGION, (uint32_t *)g_mmc_rx_buff);
-                        copyBufferToParamData(g_mmc_rx_buff, &Params_rx);
-                        sprintf(p_buff,"\rLastFailed: %u\n", Params_rx.LastFailed);
-                        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                        sprintf(p_buff,"\rCurrentTry: %u\n", Params_rx.CurrentTry);
-                        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                        sprintf(p_buff,"\rLastSuccessful: %u\n", Params_rx.LastSuccessful);
-                        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                        sprintf(p_buff,"\rBootSequence:\n");
-                        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                        for (int i = 0; i < 4; ++i) {
-                            sprintf(p_buff,"\r %u \n", Params_rx.BootSequence[i]);
-                            MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                        }
-
-
+                        MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\r\n PREVIOUS VLAUES: \r\n");
+                        read_slot_params();
                         sector_number = END_OF_SLOT_REGION;
                         ParamData params = {
                             .LastFailed = 1,
                             .CurrentTry = 1,
                             .LastSuccessful = 1,
-                            .BootSequence = {1, 1, 1, 1}
+                            .BootSequence = {1, 0, 0, 0}
                         };
 
                         // Copy ParamData structure to buffer
                         copyParamDataToBuffer(&params, g_mmc_tx_buff);
-
                         status = single_block_wr_rd(sector_number);
-                        /*sprintf(p_buff,"\r\nsector_number = %d", sector_number);
-                        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                        report_status(status);*/
 
-                       /* if (!status)
-                        {
-                            status = multi_block_transfer(sector_number);
-                            sprintf(p_buff,"\r\neMMC - MULTI block transfer status = %d", status);
-                            MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
-                            report_status(status);
-                        }*/
+                        MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\r\n CURRENT VLAUES: \r\n");
+                        read_slot_params();
                     }
                     else
                     {
@@ -237,6 +202,25 @@ void u54_1(void)
     }
 }
 
+static void read_slot_params(void)
+{
+    ParamData Params_rx;
+    status = MSS_MMC_single_block_read(END_OF_SLOT_REGION, (uint32_t *)g_mmc_rx_buff);
+    copyBufferToParamData(g_mmc_rx_buff, &Params_rx);
+    sprintf(p_buff,"\r LastFailed: %u\n", Params_rx.LastFailed);
+    MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
+    sprintf(p_buff,"\r CurrentTry: %u\n", Params_rx.CurrentTry);
+    MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
+    sprintf(p_buff,"\r LastSuccessful: %u\n", Params_rx.LastSuccessful);
+    MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
+    sprintf(p_buff,"\r BootSequence: ");
+    MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
+    for (int i = 0; i < 4; ++i) {
+        sprintf(p_buff,"%u, ", Params_rx.BootSequence[i]);
+        MSS_UART_polled_tx(g_uart, p_buff, strlen(p_buff));
+    }
+    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n");
+}
 
 static void mmc_reset_block(void)
 {
