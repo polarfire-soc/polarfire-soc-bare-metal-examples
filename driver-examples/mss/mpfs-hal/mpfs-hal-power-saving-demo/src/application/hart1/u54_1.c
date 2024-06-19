@@ -31,8 +31,8 @@ extern uint32_t  ddr_sr_test;
 volatile uint32_t count_sw_ints_h1 = 0U;
 
 #define NO_OF_ITERATIONS    2
-#define DDR_BASE            0x80000000U
-#define DDR_SIZE            0x40000000U
+#define DDR_NON_CACHED_BASE            BASE_ADDRESS_NON_CACHED_32_DDR
+#define DDR_NON_CACHED_SIZE            0x10000000U
 
 #define MIN_OFFSET          1U
 #define MAX_OFFSET          16U
@@ -50,8 +50,8 @@ void u54_1(void)
     uint32_t error;
     volatile PATTERN_TEST_PARAMS pattern_test;
 
-    pattern_test.base = DDR_BASE;
-    pattern_test.size = DDR_SIZE;
+    pattern_test.base = DDR_NON_CACHED_BASE;
+    pattern_test.size = DDR_NON_CACHED_SIZE;
     pattern_test.pattern_type = DDR_TEST_FILL;
     pattern_test.pattern_offset = START_OFFSET;
 
@@ -138,21 +138,21 @@ static void check_self_refresh_status(void)
 
 static void place_pattern_in_memory(void)
 {
-    volatile uint32_t *ddr_mem = DDR_BASE;
+    volatile uint32_t *ddr_mem = DDR_NON_CACHED_BASE;
     *ddr_mem = 0x123456U;
     MSS_UART_polled_tx_string(g_uart, "0x123456 placed in DDR memory\r\n");
 }
 
 static void clear_pattern_in_memory(void)
 {
-    volatile uint32_t *ddr_mem = DDR_BASE;
+    volatile uint32_t *ddr_mem = DDR_NON_CACHED_BASE;
     *ddr_mem = 0x000000U;
     MSS_UART_polled_tx_string(g_uart, "0x000000 placed in DDR memory\r\n");
 }
 
 static uint8_t verify_data_in_mem(void)
 {
-    volatile uint32_t *ddr_mem = DDR_BASE;
+    volatile uint32_t *ddr_mem = DDR_NON_CACHED_BASE;
     if (*ddr_mem == 0x123456U)
     {
         MSS_UART_polled_tx_string(g_uart, "DDR verification: PASSED\r\n");
