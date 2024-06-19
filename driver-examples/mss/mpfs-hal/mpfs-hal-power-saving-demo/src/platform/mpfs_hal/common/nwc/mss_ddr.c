@@ -27,11 +27,13 @@
  * Local Defines
  */
 /* This string is updated if any change to ddr driver */
-#define DDR_DRIVER_VERSION_STRING   "0.4.024"
+#define DDR_DRIVER_VERSION_STRING   "0.4.025"
 const char DDR_DRIVER_VERSION[] = DDR_DRIVER_VERSION_STRING;
 /* Version     |  Comment                                                     */
+/* 0.4.025     |  Corrected cache flush funtion so upper address range        */
+/*             |  (0x10_xxxx_xxxx) is now included in the flush.              */
 /* 0.4.024     |  Self-refresh is disabled from UI, api functions added for   */
-/*             |  turning self-refresh off and on.                                         */
+/*             |  turning self-refresh off and on.                            */
 /* 0.4.023     |  Changed default ADDCMD CLK push order for DDR4 to 0,45,90   */
 /* 0.4.022     |  Tidied comments and simulation reference- no code change    */
 /* 0.4.021     |  Added options to increase post training tests during        */
@@ -4466,6 +4468,19 @@ __attribute__((weak)) void clear_bootup_cache_ways(void)
     /* clear using my d-cache ways */
     fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_32_DDR,
                                (void *)(BASE_ADDRESS_CACHED_32_DDR +
+                                        TWO_MBYTES));
+
+    /* clear using pdma routine, uses the 4 channels */
+    pattern_test.base = LIBERO_SETTING_DDR_64_CACHE;
+    pattern_test.size = TWO_MBYTES*4;
+    pattern_test.pattern_type = DDR_INIT_FILL;
+    pattern_test.pattern_offset = 0U;
+
+    load_ddr_pattern(&pattern_test);
+
+    /* clear using my d-cache ways */
+    fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_64_DDR,
+                               (void *)(BASE_ADDRESS_CACHED_64_DDR +
                                         TWO_MBYTES));
 }
 
