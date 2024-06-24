@@ -1389,6 +1389,10 @@ void mpfs_hal_turn_ddr_selfrefresh_off(void);
  */
 uint32_t mpfs_hal_ddr_selfrefresh_status(void);
 
+void mpfs_hal_ddr_turn_off_ddr_pll(void);
+
+void mpfs_hal_ddr_turn_on_ddr_pll(void);
+
 
 #ifdef __cplusplus
 }

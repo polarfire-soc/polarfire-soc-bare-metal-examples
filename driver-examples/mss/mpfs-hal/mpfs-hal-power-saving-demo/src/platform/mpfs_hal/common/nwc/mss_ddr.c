@@ -27,9 +27,10 @@
  * Local Defines
  */
 /* This string is updated if any change to ddr driver */
-#define DDR_DRIVER_VERSION_STRING   "0.4.025"
+#define DDR_DRIVER_VERSION_STRING   "0.4.026"
 const char DDR_DRIVER_VERSION[] = DDR_DRIVER_VERSION_STRING;
 /* Version     |  Comment                                                     */
+/* 0.4.026x    |  WIP power features                                          */
 /* 0.4.025     |  Corrected cache flush funtion so upper address range        */
 /*             |  (0x10_xxxx_xxxx) is now included in the flush.              */
 /* 0.4.024     |  Self-refresh is disabled from UI, api functions added for   */
@@ -298,6 +299,23 @@ uint32_t mpfs_hal_ddr_selfrefresh_status(void)
         }
     }
     return status;
+}
+
+void mpfs_hal_ddr_turn_off_ddr_pll(void)
+{
+    ddr_pll_config_scb_turn_off();
+}
+
+void mpfs_hal_ddr_turn_on_ddr_pll(void)
+{
+    /*
+     *  Configure the DDR PLL
+     */
+    ddr_pll_config(SCB_UPDATE);
+
+    while (ddr_pll_lock_scb() != 0U)
+    {
+    }
 }
 
 /***************************************************************************//**
