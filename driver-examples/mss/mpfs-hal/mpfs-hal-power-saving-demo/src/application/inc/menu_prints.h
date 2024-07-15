@@ -69,23 +69,25 @@ const uint8_t menu_power_saving[] =
 "4  How to turn off U54 Floating Point Units(FPU) at bootup\r\n"
 "5  How to turn on RAM of Unused Peripherals at bootup\r\n"
 "6  How to turn off RAM of Unused Peripherals at bootup\r\n"
-"7  Display DDR self refresh menu\r\n"
+"7  Display DDR menu\r\n"
 "8  Display clock scaling menu\r\n"
 "\r\n"
 "Type 0 to show the menu again\r\n";
 
-const uint8_t display_menu_self_refresh[] =
+const uint8_t display_menu_ddr[] =
 "\r\n\r\n\r\n"
 "Select the DDR self refresh test:\r\n"
 "\r\n"
 "Make sure that u54_1 hart is turned on before selecting an option:\r\n"
-"1  Clear pattern in memory\r\n"
-"2  Place pattern in memory\r\n"
-"3  Verify if pattern is in memory\r\n"
+"1  Clear pattern in memory block (<1 minute)\r\n"
+"2  Place pattern in memory block (<1 minute)\r\n"
+"3  Verify if pattern is in memory (<2 minutes)\r\n"
 "4  Turn on ddr self refresh\r\n"
 "5  Turn off ddr self refresh\r\n"
 "6  Check ddr self refresh status\r\n"
-"7  Go back to main menu\r\n"
+"7  Turn off ddr pll\r\n"
+"8  Turn on ddr pll\r\n"
+"9  Go back to main menu\r\n"
 "WARNING: DDR is not accessible when in self-refresh mode\r\n"
 "\r\n"
 "Type 0 to show the menu again\r\n";

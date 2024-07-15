@@ -21,8 +21,11 @@
 
 static void place_pattern_in_memory(void);
 static void clear_pattern_in_memory(void);
-static uint8_t verify_data_in_mem(void);
+static void verify_pattern_in_memory(void);
 static void check_self_refresh_status(void);
+static void clear_pattern_in_memory_block(void);
+static void place_pattern_in_memory_block(void);
+static void verify_pattern_in_memory_block(void);
 
 extern uint64_t ddr_test;
 extern mss_uart_instance_t *g_uart;
@@ -37,6 +40,10 @@ volatile uint32_t count_sw_ints_h1 = 0U;
 #define MIN_OFFSET          1U
 #define MAX_OFFSET          16U
 #define START_OFFSET        12U
+
+#define MAX_ADDRESS 0x80010000UL
+
+char info_string[100];
 
 /* Main function for the HART1(U54_1 processor).
  * Application code running on HART1 is placed here
@@ -78,46 +85,62 @@ void u54_1(void)
     while (1U)
     {
         /* 1  Place pattern in memory */
-        if(ddr_sr_test == 1U)
+        if (ddr_sr_test == 1U)
         {
             ddr_sr_test = 0U;
-            clear_pattern_in_memory();
+            clear_pattern_in_memory_block();
         }
         /* 2  Clear pattern in memory */
-        if(ddr_sr_test == 2U)
+        if (ddr_sr_test == 2U)
         {
             ddr_sr_test = 0U;
-            place_pattern_in_memory();
+            place_pattern_in_memory_block();
         }
         /* 3  Verify if pattern is in memory */
-        if(ddr_sr_test == 3U)
+        if (ddr_sr_test == 3U)
         {
             ddr_sr_test = 0U;
-            verify_data_in_mem();
+            verify_pattern_in_memory_block();
         }
         /* 4  Turn on DDR self-refresh */
-        if(ddr_sr_test == 4U)
+        if (ddr_sr_test == 4U)
         {
             ddr_sr_test = 0U;
             asm("fence.i");
             flush_l2_cache((uint32_t)1U);
             mpfs_hal_turn_ddr_selfrefresh_on();
-            MSS_UART_polled_tx_string(g_uart, 
-                "DDR self-refresh turned on, check status by typing '6'\r\n");
+            MSS_UART_polled_tx_string(g_uart,
+            "DDR self-refresh turned on, check status by typing '6'\r\n");
         }
         /* 5  Turn off DDR self-refresh */
-        if(ddr_sr_test == 5U)
+        if (ddr_sr_test == 5U)
         {
             ddr_sr_test = 0U;
             mpfs_hal_turn_ddr_selfrefresh_off();
-            MSS_UART_polled_tx_string(g_uart, 
+            MSS_UART_polled_tx_string(g_uart,
             "DDR self-refresh turned off, check status by typing '6'\r\n");        
         }
         /* 6  Check ddr self refresh status */
-        if(ddr_sr_test == 6U)
+        if (ddr_sr_test == 6U)
         {
             ddr_sr_test = 0U;
             check_self_refresh_status();
+        }
+        /* 7  Turn off ddr pll */
+        if (ddr_sr_test == 7U)
+        {
+            ddr_sr_test = 0U;
+            mpfs_hal_ddr_turn_off_ddr_pll();
+            MSS_UART_polled_tx_string(g_uart, 
+            "DDR PLL turned off\r\n");
+        }
+        /* 8  Turn on ddr pll */
+        if (ddr_sr_test == 8U)
+        {
+            ddr_sr_test = 0U;
+            mpfs_hal_ddr_turn_on_ddr_pll();
+            MSS_UART_polled_tx_string(g_uart, 
+            "DDR PLL turned on\r\n");
         }
     }
 }
@@ -150,7 +173,7 @@ static void clear_pattern_in_memory(void)
     MSS_UART_polled_tx_string(g_uart, "0x000000 placed in DDR memory\r\n");
 }
 
-static uint8_t verify_data_in_mem(void)
+static void verify_pattern_in_memory(void)
 {
     volatile uint32_t *ddr_mem = DDR_NON_CACHED_BASE;
     if (*ddr_mem == 0x123456U)
@@ -163,4 +186,66 @@ static uint8_t verify_data_in_mem(void)
     }
 }
 
-// #endif
+static void clear_pattern_in_memory_block(void)
+{
+    volatile uint32_t *mem_pointer = BASE_ADDRESS_CACHED_32_DDR;
+    
+    while (mem_pointer < MAX_ADDRESS)
+    {
+        *mem_pointer = 0x00000000U;
+        sprintf(info_string, "0x00 added to register 0x%lx \r\n", mem_pointer);
+        MSS_UART_polled_tx_string(g_uart, info_string);
+        mem_pointer++;
+    }
+    MSS_UART_polled_tx_string(g_uart, "\r\nType 0 to show the menu again\r\n");
+}
+
+static void place_pattern_in_memory_block(void)
+{
+    volatile uint32_t *mem_pointer = BASE_ADDRESS_CACHED_32_DDR;
+    
+    while (mem_pointer < MAX_ADDRESS)
+    {
+        *mem_pointer = PATTERN_WALKING_ONE;
+        sprintf(info_string, "0b10 added to register 0x%lx \r\n", mem_pointer);
+        MSS_UART_polled_tx_string(g_uart, info_string);
+        mem_pointer++;
+    }
+    MSS_UART_polled_tx_string(g_uart, "\r\nType 0 to show the menu again\r\n");
+}
+
+static void verify_pattern_in_memory_block(void)
+{
+    volatile uint32_t *mem_pointer = BASE_ADDRESS_CACHED_32_DDR;
+    volatile uint32_t count_fails = 0U;
+
+
+    while (mem_pointer < MAX_ADDRESS)
+    {
+
+        sprintf(info_string, "Checking for 0b10 in register 0x%lx: 0x%lx FOUND --> ", mem_pointer, *mem_pointer);
+        MSS_UART_polled_tx_string(g_uart, info_string);
+
+        if (*mem_pointer == PATTERN_WALKING_ONE)
+        {
+            MSS_UART_polled_tx_string(g_uart, "PASSED\r\n");
+        }
+        else
+        {
+            count_fails++;
+            MSS_UART_polled_tx_string(g_uart, "FAILED\r\n");
+        }
+        mem_pointer++;
+    }
+
+    if (count_fails > 0U)
+    {
+        MSS_UART_polled_tx_string(g_uart, "\r\nREGISTER VERIFICATION: FAILED\r\n\r\n");
+    }
+    else
+    {
+        MSS_UART_polled_tx_string(g_uart, "\r\nREGISTER VERIFICATION: SUCCEEDED\r\n\r\n");
+    }
+
+    MSS_UART_polled_tx_string(g_uart, "Type 0 to show the menu again\r\n");
+}

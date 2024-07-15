@@ -2,7 +2,7 @@ extern mss_uart_instance_t *g_uart;
 uint32_t ddr_sr_test;
 static void display_clocks(void);
 
-static void select_ddr_self_refresh_option(void)
+static void select_ddr_option(void)
 {
     uint8_t rx_buff[1];
     uint8_t get_uart_rx = 0;
@@ -18,10 +18,10 @@ static void select_ddr_self_refresh_option(void)
             switch(rx_buff[0])
             {
                 default:
-                    MSS_UART_polled_tx_string(g_uart, display_menu_self_refresh);
+                    MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
                     break;
                 case '0':
-                    MSS_UART_polled_tx_string(g_uart, display_menu_self_refresh);
+                    MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
                     break;
                 case '1':
                     /* 1  Clear pattern in memory */
@@ -48,7 +48,15 @@ static void select_ddr_self_refresh_option(void)
                     ddr_sr_test = 6;
                     break;
                 case '7':
-                    /* 7  Print main menu for power saving and leave function */
+                    /* 7  Turn off ddr pll */
+                    ddr_sr_test = 7;
+                    break;
+                case '8':
+                    /* 8  Turn on ddr pll */
+                    ddr_sr_test = 8;
+                    break;
+                case '9':
+                    /* 9  Print main menu for power saving and leave function */
                     MSS_UART_polled_tx_string(g_uart, menu_power_saving);
                     leave_function = 1;
                     break;

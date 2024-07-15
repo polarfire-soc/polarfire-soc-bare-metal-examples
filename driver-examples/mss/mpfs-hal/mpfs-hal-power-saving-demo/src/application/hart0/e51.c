@@ -270,9 +270,9 @@ static void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
             mss_turn_off_unused_ram_clks();
             break;
         case '7':
-            /* 7  Display DDR self refresh menu */
-            MSS_UART_polled_tx_string(g_uart, display_menu_self_refresh);
-            select_ddr_self_refresh_option();
+            /* 7  Display DDR menu */
+            MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
+            select_ddr_option();
             break;
         case '8':
             /* 8  Display clock scaling menu */
