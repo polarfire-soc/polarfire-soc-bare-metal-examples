@@ -2,77 +2,174 @@ extern mss_uart_instance_t *g_uart;
 uint32_t ddr_sr_test;
 static void display_clocks(void);
 
-static void select_ddr_option(void)
+#define CUSTOM_CONFIG        0
+#define MAX_POWER_SAVING     1
+#define DEFAULT_CLOCK_SCALE  2
+
+static void select_ddr_option(uint8_t config_option)
 {
     uint8_t rx_buff[1];
     uint8_t get_uart_rx = 0;
     uint8_t leave_function = 0;
 
-    while (1)
+    if (config_option == MAX_POWER_SAVING)
     {
-        get_uart_rx = (uint8_t)MSS_UART_get_rx(g_uart, (uint8_t*)rx_buff,
-                                               (uint32_t)sizeof(rx_buff));
-
-        if (get_uart_rx++)
+        /* Turn self-refresh on and turn DDR PLL off */
+        asm("fence.i");
+        flush_l2_cache((uint32_t)1U);
+        mpfs_hal_turn_ddr_selfrefresh_on();
+        if (mpfs_hal_ddr_selfrefresh_status() == 0)
         {
-            switch(rx_buff[0])
+            MSS_UART_polled_tx_string(g_uart, "\r\nSelf refresh status: ON\r\n");
+        };
+        mpfs_hal_ddr_turn_off_ddr_pll();
+        MSS_UART_polled_tx_string(g_uart, "DDR PLL status: OFF\r\n");
+    }
+    else
+    {
+        while (1)
+        {
+            get_uart_rx = (uint8_t)MSS_UART_get_rx(g_uart, (uint8_t*)rx_buff,
+                                                (uint32_t)sizeof(rx_buff));
+
+            if (get_uart_rx++)
             {
-                default:
-                    MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
-                    break;
-                case '0':
-                    MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
-                    break;
-                case '1':
-                    /* 1  Clear pattern in memory */
-                    ddr_sr_test = 1;
-                    break;
-                case '2':
-                    /* 2  Place pattern in memory */
-                    ddr_sr_test = 2;
-                    break;
-                case '3':
-                    /* 3  Verify data in memory */
-                    ddr_sr_test = 3;
-                    break;
-                case '4':
-                    /* 4  Turn on ddr self refresh */
-                    ddr_sr_test = 4;
-                    break;
-                case '5':
-                    /* 5  Turn off ddr self refresh */
-                    ddr_sr_test = 5;
-                    break;
-                case '6':
-                    /* 6  Check ddr self refresh status */
-                    ddr_sr_test = 6;
-                    break;
-                case '7':
-                    /* 7  Turn off ddr pll */
-                    ddr_sr_test = 7;
-                    break;
-                case '8':
-                    /* 8  Turn on ddr pll */
-                    ddr_sr_test = 8;
-                    break;
-                case '9':
-                    /* 9  Print main menu for power saving and leave function */
-                    MSS_UART_polled_tx_string(g_uart, menu_power_saving);
-                    leave_function = 1;
-                    break;
-            } /* End of switch statement */
-        } /* End of receive buffer check */
+                switch(rx_buff[0])
+                {
+                    default:
+                        MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
+                        break;
+                    case '0':
+                        MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
+                        break;
+                    case '1':
+                        /* 1  Clear pattern in memory */
+                        ddr_sr_test = 1;
+                        break;
+                    case '2':
+                        /* 2  Place pattern in memory */
+                        ddr_sr_test = 2;
+                        break;
+                    case '3':
+                        /* 3  Verify data in memory */
+                        ddr_sr_test = 3;
+                        break;
+                    case '4':
+                        /* 4  Turn on ddr self refresh */
+                        ddr_sr_test = 4;
+                        break;
+                    case '5':
+                        /* 5  Turn off ddr self refresh */
+                        ddr_sr_test = 5;
+                        break;
+                    case '6':
+                        /* 6  Check ddr self refresh status */
+                        ddr_sr_test = 6;
+                        break;
+                    case '7':
+                        /* 7  Turn off ddr pll */
+                        ddr_sr_test = 7;
+                        break;
+                    case '8':
+                        /* 8  Turn on ddr pll */
+                        ddr_sr_test = 8;
+                        break;
+                    case '9':
+                        /* 9  Print main menu for power saving and leave function */
+                        MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+                        leave_function = 1;
+                        break;
+                } /* End of switch statement */
+            } /* End of receive buffer check */
 
-        /* Leave this fuction if flag is raised */
-        if (leave_function == 1)
-        {
-            break; /* Break from while(1) loop */
-        }
+            /* Leave this fuction if flag is raised */
+            if (leave_function == 1)
+            {
+                break; /* Break from while(1) loop */
+            }
 
-    } /* End of while loop */
+         } /* End of while loop */
+    }
 }
 
-static void select_clock_scaling_option(void)
+static void select_clock_scaling_option(uint8_t config_option)
+{
+    uint8_t rx_buff[1];
+    uint8_t get_uart_rx = 0;
+    uint8_t leave_function = 0;
+
+    if (config_option == MAX_POWER_SAVING)
+    {
+        /* Change CPU clock frequency to 300MHz (half) */
+        mss_freq_scaling(MSS_CLK_SCALING_MEDIUM);
+        MSS_UART_polled_tx_string(g_uart, msg_medium_frequency_enabled);
+        display_clocks();
+        MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+    }
+    else if(config_option == DEFAULT_CLOCK_SCALE)
+    {
+        /* Change CPU clock frequency to 600MHz */
+        mss_freq_scaling(MSS_CLK_SCALING_NORMAL);
+        MSS_UART_polled_tx_string(g_uart, msg_normal_frequency_enabled);
+        display_clocks();
+        MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+
+    }
+    else
+    {
+        while (1)
+        {
+            get_uart_rx = (uint8_t)MSS_UART_get_rx(g_uart, (uint8_t*)rx_buff,
+                                                (uint32_t)sizeof(rx_buff));
+
+            if (get_uart_rx++)
+            {
+                switch (rx_buff[0])
+                {
+                    default:
+                        MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
+                        break;
+                    case '0':
+                        MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
+                        break;
+                    case '1':
+                        /* 1  Change CPU clock frequency to 300MHz (half) */
+                        mss_freq_scaling(MSS_CLK_SCALING_MEDIUM);
+                        MSS_UART_polled_tx_string(g_uart, msg_medium_frequency_enabled);
+                        display_clocks();
+                        MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                        break;
+                    case '2':
+                        /* 2  Change CPU clock frequency to 600MHz (default) */
+                        mss_freq_scaling(MSS_CLK_SCALING_NORMAL);
+                        MSS_UART_polled_tx_string(g_uart, msg_normal_frequency_enabled);
+                        display_clocks();
+                        MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                        break;
+                    case '3':
+                        /* 3  Display clock status */
+                        display_clocks();
+                        MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                        break;
+                    case '7':
+                        /* 7  Print main menu for power saving and leave function */
+                        MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+                        leave_function = 1;
+                        break;
+                } /* End of switch statement */
+            } /* End of receive buffer check */
+
+            /* Leave this fuction if flag is raised */
+            if (leave_function == 1)
+            {
+                break; /* Break from while(1) loop */
+            }
+
+        } /* End of while loop */
+    }
+}
+
+static void select_max_option(uint8_t config_option)
 {
     uint8_t rx_buff[1];
     uint8_t get_uart_rx = 0;
@@ -81,31 +178,27 @@ static void select_clock_scaling_option(void)
     while (1)
     {
         get_uart_rx = (uint8_t)MSS_UART_get_rx(g_uart, (uint8_t*)rx_buff,
-                                               (uint32_t)sizeof(rx_buff));
+                                            (uint32_t)sizeof(rx_buff));
 
         if (get_uart_rx++)
         {
             switch (rx_buff[0])
             {
                 default:
-                    MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
+                    MSS_UART_polled_tx_string(g_uart, display_menu_max);
                     break;
                 case '0':
-                    MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
+                    MSS_UART_polled_tx_string(g_uart, display_menu_max);
                     break;
                 case '1':
-                    /* 1  Change CPU clock frequency to 300MHz (half) */
-                    mss_freq_scaling(MSS_CLK_SCALING_MEDIUM);
-                    MSS_UART_polled_tx_string(g_uart, msg_medium_frequency_enabled);
-                    display_clocks();
-                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    /* 1  Toggle maximum power-saving mode without clock scaling */
+                    select_ddr_option(MAX_POWER_SAVING);
+                    select_clock_scaling_option(MAX_POWER_SAVING);
                     break;
                 case '2':
-                    /* 2  Change CPU clock frequency to 600MHz (default) */
-                    mss_freq_scaling(MSS_CLK_SCALING_NORMAL);
-                    MSS_UART_polled_tx_string(g_uart, msg_normal_frequency_enabled);
-                    display_clocks();
-                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    /* 2  Toggle maximum power-saving mode without clock scaling */
+                    select_ddr_option(MAX_POWER_SAVING);
+                    select_clock_scaling_option(DEFAULT_CLOCK_SCALE);
                     break;
                 case '3':
                     /* 3  Display clock status */
@@ -125,7 +218,6 @@ static void select_clock_scaling_option(void)
         {
             break; /* Break from while(1) loop */
         }
-
     } /* End of while loop */
 }
 

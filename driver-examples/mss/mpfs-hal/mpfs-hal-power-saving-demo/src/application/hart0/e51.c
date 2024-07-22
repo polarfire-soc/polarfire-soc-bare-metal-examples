@@ -239,45 +239,31 @@ static void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
             MSS_UART_polled_tx_string(g_uart, menu_power_saving);
             break;
         case '1':
-            /* 1  How to turn on RAM to Parked Hart RAM at bootup */
-            MSS_UART_polled_tx_string(g_uart,
-                                        msg_turn_on_park_hart_ram);
+            /* How to turn on RAM to Parked Hart RAM at bootup */
+            MSS_UART_polled_tx_string(g_uart, msg_toggle_park_hart_ram);
             break;
         case '2':
-            /* 2  How to turn off RAM to Parked Hart RAM at bootup */
-            MSS_UART_polled_tx_string(g_uart,
-                                        msg_turn_off_park_hart_ram);
+            /* How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup */
+            MSS_UART_polled_tx_string(g_uart, msg_toggle_fpu);
             break;
         case '3':
-            /* 3  How to turn on U54 Floating Point Units(FPU) at
-            bootup */
-            MSS_UART_polled_tx_string(g_uart, msg_turn_on_fpu);
+            /* How to toggle ON/OFF RAM of Unused Peripherals at bootup */
+            MSS_UART_polled_tx_string(g_uart, msg_toggle_unused_perif_ram);
             break;
         case '4':
-            /* 4  How to turn off U54 Floating Point Units(FPU) at
-            bootup */
-            MSS_UART_polled_tx_string(g_uart, msg_turn_off_fpu);
+            /* Display DDR menu */
+            MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
+            select_ddr_option(CUSTOM_CONFIG);
             break;
         case '5':
-            /* 5  How to turn on RAM of Unused Peripherals at bootup */
-            MSS_UART_polled_tx_string(g_uart,
-                                        msg_turn_on_unused_perif_ram);
+            /* Display clock scaling menu */
+            MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
+            select_clock_scaling_option(CUSTOM_CONFIG);
             break;
         case '6':
-            /* 6  How to turn off RAM of Unused Peripherals at bootup */
-            MSS_UART_polled_tx_string(g_uart,
-                                        msg_turn_off_unused_perif_ram);
-            mss_turn_off_unused_ram_clks();
-            break;
-        case '7':
-            /* 7  Display DDR menu */
-            MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
-            select_ddr_option();
-            break;
-        case '8':
-            /* 8  Display clock scaling menu */
-            MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
-            select_clock_scaling_option();
+            /* Display maximum power-saving menu */
+            MSS_UART_polled_tx_string(g_uart, display_menu_max);
+            select_max_option(CUSTOM_CONFIG);
             break;
     } /* End of switch statement */
 }
@@ -730,7 +716,7 @@ static void display_mss_regs(void)
  * want to measure power if unused peripherals are left on.
  */
 
-/* #define MEASURED_UNUSED_PERIPHERAL_RAM */
+// #define MEASURED_UNUSED_PERIPHERAL_RAM
 
 #ifdef MEASURED_UNUSED_PERIPHERAL_RAM
 void mss_turn_off_unused_ram_clks(void)

@@ -1,59 +1,53 @@
-const uint8_t msg_turn_on_park_hart_ram[] =
+const uint8_t msg_toggle_park_hart_ram[] =
 "\r\n"
-"1  How to turn on Parked Hart RAM at bootup:\r\n"
-"Go to the application source code: [u51_1, u51_2, u51_3, u51_4] \r\n"
-"and COMMENT OUT the line: #ifdef TURN_OFF_POWER_TO_PARKED_HARTS\r\n"
-"to turn on RAM to Parked Hart at bootup.\r\n"
+"How to toggle ON/OFF Parked Hart RAM(s) at bootup:\r\n"
+"\r\n"
+"Open any or all of the application source code files of this project:\r\n"
+"application/hart1/u51_1.c\r\n"
+"application/hart2/u51_2.c\r\n"
+"application/hart3/u51_3.c\r\n"
+"application/hart4/u51_4.c\r\n"
+"\r\n"
+"To turn ON RAM to Parked Hart at bootup:\r\n"
+"COMMENT the line: #ifdef TURN_OFF_POWER_TO_PARKED_HARTS\r\n"
+"\r\n"
+"To turn OFF RAM to Parked Hart at bootup:\r\n"
+"UNCOMMENT the line: #ifdef TURN_OFF_POWER_TO_PARKED_HARTS\r\n"
+"\r\n"
 "Save changes, build, and run project to measure the power.\r\n"
 "\r\n"
 "Type 0 to show the menu again\r\n";
 
-const uint8_t msg_turn_off_park_hart_ram[] =
+const uint8_t msg_toggle_fpu[] =
 "\r\n"
-"2  How to turn off Parked Hart RAM at bootup:\r\n"
-"Go to the application source code: [u51_1, u51_2, u51_3, u51_4] \r\n"
-"and UNCOMMENT the line: #ifdef TURN_OFF_POWER_TO_PARKED_HARTS\r\n"
-"to turn off RAM to Parked Hart at bootup.\r\n"
+"How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup:\r\n"
+"\r\n"
+"Open boards/{BOARD}/platform_config/mpfs_hal_config/mss_sw_config.h:\r\n"
+"\r\n"
+"To turn ON U54 Floating Point Units (FPU) at bootup:\r\n"
+"UNCOMMENT the line: #define TURN_ALL_FPU_ON\r\n"
+"COMMENT the line: #define TURN_ALL_FPU_OFF\r\n"
+"\r\n"
+"To turn OFF U54 Floating Point Units (FPU) at bootup:\r\n"
+"COMMENT the line: #define TURN_ALL_FPU_ON\r\n"
+"UNCOMMENT the line: #define TURN_ALL_FPU_OFF\r\n"
+"\r\n"
 "Save changes, build, and run project to measure the power.\r\n"
 "\r\n"
 "Type 0 to show the menu again\r\n";
 
-const uint8_t msg_turn_on_fpu[] =
+const uint8_t msg_toggle_unused_perif_ram[] =
 "\r\n"
-"3  How to turn on U54 Floating Point Units(FPU) at bootup:\r\n"
-"Go to the mss_sw_config.h in the boards/ folder of this project\r\n"
-"and COMMENT OUT the line: #define TURN_ALL_FPU_OFF\r\n"
-"to turn on u54 Floating Point Units (FPU).\r\n"
-"Save changes, build, and run project to measure the power.\r\n"
+"How to toggle ON/OFF RAM of Unused Peripherals at bootup:\r\n"
 "\r\n"
-"Type 0 to show the menu again\r\n";
-
-const uint8_t msg_turn_off_fpu[] =
+"Open application/hart0/e51.c and go to the bottom of the file\r\n"
 "\r\n"
-"4  How to turn off U54 Floating Point Units(FPU) at bootup:\r\n"
-"Go to the mss_sw_config.h in the boards/ folder of this project\r\n"
-"and COMMENT OUT the line: #define TURN_ALL_FPU_ON\r\n"
-"to turn off u54 Floating Point Units (FPU).\r\n"
-"Save changes, build, and run project to measure the power.\r\n"
+"To turn ON RAM of Unused Peripherals at bootup:\r\n"
+"UNCOMMENT the line: #define MEASURED_UNUSED_PERIPHERAL_RAM\r\n"
 "\r\n"
-"Type 0 to show the menu again\r\n";
-
-const uint8_t msg_turn_on_unused_perif_ram[] =
+"To turn OFF RAM of Unused Peripherals at bootup:\r\n"
+"COMMENT the line: #define MEASURED_UNUSED_PERIPHERAL_RAM\r\n"
 "\r\n"
-"5  How to turn on RAM of Unused Peripherals at bootup:\r\n"
-"Go to the bottom of the e51 application file of this project\r\n"
-"and UNCOMMENT the line: #define MEASURED_UNUSED_PERIPHERAL_RAM\r\n"
-"to turn on RAM Unused Peripherals RAM at bootup.\r\n"
-"Save changes, build, and run project to measure the power.\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
-
-const uint8_t msg_turn_off_unused_perif_ram[] =
-"\r\n"
-"6  How to turn off RAM of Unused Peripherals at bootup:\r\n"
-"Go to the bottom of the e51 application file of this project\r\n"
-"and COMMENT OUT the line: #define MEASURED_UNUSED_PERIPHERAL_RAM\r\n"
-"to turn off RAM Unused Peripherals RAM at bootup.\r\n"
 "Save changes, build, and run project to measure the power.\r\n"
 "\r\n"
 "Type 0 to show the menu again\r\n";
@@ -63,20 +57,18 @@ const uint8_t menu_power_saving[] =
 "This program is run from E51\r\n"
 "\r\n"
 "MPFS HAL Power Saving Options:\r\n"
-"1  How to turn on Parked Hart RAM at bootup\r\n"
-"2  How to turn off Parked Hart RAM at bootup\r\n"
-"3  How to turn on U54 Floating Point Units(FPU) at bootup\r\n"
-"4  How to turn off U54 Floating Point Units(FPU) at bootup\r\n"
-"5  How to turn on RAM of Unused Peripherals at bootup\r\n"
-"6  How to turn off RAM of Unused Peripherals at bootup\r\n"
-"7  Display DDR menu\r\n"
-"8  Display clock scaling menu\r\n"
+"1  How to toggle ON/OFF Parked Hart RAM at bootup\r\n"
+"2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup\r\n"
+"3  How to toggle ON/OFF RAM of Unused Peripherals at bootup\r\n"
+"4  Display DDR menu\r\n"
+"5  Display clock scaling menu\r\n"
+"6  Display maximum power-saving menu\r\n"
 "\r\n"
 "Type 0 to show the menu again\r\n";
 
 const uint8_t display_menu_ddr[] =
 "\r\n\r\n\r\n"
-"Select the DDR self refresh test:\r\n"
+"Select a DDR option:\r\n"
 "\r\n"
 "Make sure that u54_1 hart is turned on before selecting an option:\r\n"
 "1  Clear pattern in memory block (<1 minute)\r\n"
@@ -88,17 +80,29 @@ const uint8_t display_menu_ddr[] =
 "7  Turn off ddr pll\r\n"
 "8  Turn on ddr pll\r\n"
 "9  Go back to main menu\r\n"
-"WARNING: DDR is not accessible when in self-refresh mode\r\n"
+"WARNING: DDR is not accessible when in self-refresh mode, or PLL is disabled\r\n"
 "\r\n"
 "Type 0 to show the menu again\r\n";
 
 const uint8_t display_menu_clock_scaling[] =
 "\r\n\r\n\r\n"
-"Select a clock frequency option:\r\n"
+"Select a clock scaling option:\r\n"
 "\r\n"
 "Make sure that u54_1 hart is turned on before selecting an option:\r\n"
 "1  Change CPU clock frequency to 300MHz (half)\r\n"
 "2  Change CPU clock frequency to 600MHz (default)\r\n"
+"3  Display clock status\r\n"
+"7  Go back to main menu\r\n"
+"\r\n"
+"Type 0 to show the menu again\r\n";
+
+const uint8_t display_menu_max[] =
+"\r\n\r\n\r\n"
+"Select a max power-saving option:\r\n"
+"\r\n"
+"Make sure that u54_1 hart is turned on before selecting an option:\r\n"
+"1  Toggle maximum power-saving mode with clock scaling\r\n"
+"2  Toggle maximum power-saving mode without clock scaling\r\n"
 "3  Display clock status\r\n"
 "7  Go back to main menu\r\n"
 "\r\n"

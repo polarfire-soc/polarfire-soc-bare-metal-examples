@@ -149,13 +149,11 @@ static void check_self_refresh_status(void)
 {
     if (mpfs_hal_ddr_selfrefresh_status() == 0)
     {
-        MSS_UART_polled_tx_string(g_uart, 
-                                  "Self refresh status: ON\r\n");
+        MSS_UART_polled_tx_string(g_uart, "Self refresh status: ON\r\n");
     }
     else
     {
-        MSS_UART_polled_tx_string(g_uart, 
-                                  "Self refresh status: OFF\r\n");
+        MSS_UART_polled_tx_string(g_uart, "Self refresh status: OFF\r\n");
     }
 }
 
@@ -249,3 +247,6 @@ static void verify_pattern_in_memory_block(void)
 
     MSS_UART_polled_tx_string(g_uart, "Type 0 to show the menu again\r\n");
 }
+
+/* Comment out line below to turn on power to parked hart*/
+// #endif
