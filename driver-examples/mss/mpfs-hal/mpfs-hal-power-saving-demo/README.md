@@ -1,64 +1,86 @@
 # Power Saving Demo on PolarFire SoC
 
-This example project demonstrates the use of the MPFS HAL for power saving.
-The project uses the MSS DDR Controller, and its documentation can be found by
-referring to [PolarFire® FPGA and PolarFire SoC FPGA Memory Controller](https://onlinedocs.microchip.com/pr/GUID-FF8061A7-7A15-470F-A6F5-E733C24D85F0-en-US-1/index.html) 
+This example project demonstrates power saving options available with the MPFS
+SoC. API functions have been added to the MPFS HAL to help utilize these power
+saving features. The project uses the MSS DDR Controller, and its documentation
+can be found by referring to
+[PolarFire® FPGA and PolarFire SoC FPGA Memory Controller](https://ww1.microchip.com/downloads/aemDocuments/documents/FPGA/ProductDocuments/UserGuides/PolarFire_FPGA_PolarFire_SoC_FPGA_Memory_Controller_User_Guide_VB.pdf)
+
+The following power saving features are demonstrated in this project. You can
+also find measured power figures for each of the features further on in this
+document:
+- DDR Self-Refresh
+- DDR Controller and PHY Clock Controller (ON/OFF)
+- MSS System Clock Scaling
+- Turning off Peripheral RAM
+- Turning off RAM of unused HARTS
+
 The application uses a serial terminal for user interaction. It prints
 informative messages on the serial port at the start-up providing details of
 the DDR initialization. Once DDR is trained, the E51 application will present a
 menu to select further test options.
 
-The PolarFire SoC MSS includes an embedded DDR controller to address the memory
-solution requirements for a wide range of applications with varying power
-consumption and efficiency levels. The DDR controller along with other blocks
-external to MSS form the MSS DDR subsystem that can be configured to support
-DDR3, DDR3L, DDR4, LPDDR3, and LPDDR4 memory devices.d
-
 One of the key options in the menu available to the user is enabling DDR
 self-refresh. DDR self-refresh is a power-saving mode used in dynamic
 random-access memory (DRAM) devices. It allows the DRAM to retain data without
-external clocking, thus performing its own auto-refresh cycles and results in
-power saving. There are also features that enable a user to disable peripheral
-clocks, use floating point units (FPU), turn off peripheral RAMs, and scale the
+external clocking, by performing its own auto-refresh cycles. This leads to a
+significant reduction in power consumption by the memory chip. There are also
+features that enable a user to disable peripheral clocks, disable DDR PLL,
+disable peripheral RAMs, and scale the
 CPU frequency to half its default state.
 
-See the following tables to see the power comparisons with these features.
+The following table shows to where the power rails supply.
 
-|| 1P1V power rail (mW) | 1P1V saved power percentage (%)|
-|:-|:-|:-|
-| Self-Refresh disabled | 43.77  |        |
-| Self-Refresh enabled  | 34.42  |  ~27%  |
+| Power rail | Description |
+|:-|:-|
+| VDD             | Device core digital supply          |
+| 1P1V power rail | Supply for MSS DDR (DDR power rail) |
 
-|| VDDI1 power rail (mW) | VDDI1 saved power percentage (%) |
+These tests were conducted on a PolarFire SoC Video Kit using the standard
+reference design and MSS configuration. Results will vary depending on several
+factors, including the FPGA design used and MSS configuration (such as the base
+clock speed and peripherals enabled). For accurate results, this demo should be
+run using an intended target configuration. See the following tables to see the
+power comparisons with these features.
+
+|| 1P1V power rail (mW) | 1P1V saved power percentage (%) |
 |:-|:-|:-|
-| FPU disabled      | 13.71    |        |
-| FPU enabled       | 0.61     |  ~95%  |
+| DDR Self-Refresh disabled | 43.77  |        |
+| DDR Self-Refresh enabled  | 34.42  |  ~27%  |
 
 || VDD power rail (mW) | VDD saved power percentage (%) |
 |:-|:-|:-|
-| Clock scaling default (600MHz)      | 838.22    |        |
-| Clock scaling half (300MHz)         | 659.42    |  ~20%  |
+| MSS DDR Controller PLL enabled      | 832.81    |        |
+| MSS DDR Controller PLL disabled     | 600.28    |  ~28%  |
 
-For peripherals that are enabled in the mss configurator:
 
-|| 3P3V power rail (mW) | 5P0V power rail (mW) | 1P2V power rail (mW) | Total power (mW) | Total saved power percentage (%) |
-|:-|:-|:-|:-|:-|:-|
-| Peripheral clocks enabled  |  4572.48  |  1256.76  |  744.79  |  7872.39  |        |
-| Peripheral clocks disabled |  4567.36  |  1250.51  |  742.83  |  7860.52  | ~0.15% |
+|| VDD power rail (mW) | Total saved power percentage (%) |
+|:-|:-|:-|
+| All MSS Peripheral RAMs enabled  | 691.11 |     |
+| All MSS Peripheral RAMs disabled | 643.96 | ~3% |
 
-|| VDD power rail (mW) | VDD25 power rail (mW) | 3P3V power rail (mW) | 5P0V power rail (mW) | 1P2V power rail (mW) | Total power (mW) | Total saved power percentage (%) |
-|:-|:-|:-|:-|:-|:-|:-|:-|
-| All peripheral RAMs | 691.11 | 38.98 | 4606.02 | 1253.51 | 742.38 | 7954.69 |     |
-| No peripheral RAMs  | 643.96 | 30.52 | 4472.40 | 1225.36 | 731.29 | 7725.84 | ~3% |
+The following table shows the clock scaling numbers.
 
-If all power saving options are implemented:
+| Unscaled Clock Values | Scaled Clock Values |
+|:-|:-|
+| PLL output frequency - 600MHz      | PLL output frequency - 600MHz         |
+| CPU clock divider 1 (x/1) - 600MHz | CPU clock divider 2 (x/2) - 300MHz    |
+| AXI clock divider 2 (x/2) - 300MHz | AXI clock divider 4 (x/4) - 150MHz    |
+| APB clock divider 4 (x/4) - 150MHz | APB clock divider 4 (x/4) - 150MHz    |
 
-|| Self-refresh enabled (mW) | Peripheral clocks disabled (mW) | FPU Enabled (mW) | Peripheral RAMs disabled (mW) | Clock scaling half (mW) | Total power (mW) |
-|:-|:-|:-|:-|:-|:-|:-|
-| Total power average (TPA) |       |       |      |        |        | 7917.80 |
-| Power saved (PS)          | 10.63 | 11.87 | 8.27 | 222.85 | 178.80 | 432.42  |
-| TPA - PS                  |       |       |      |        |        | 7485.38 (~5% power saved in total) |
+|| VDD power rail (mW) | VDD saved power percentage (%) |
+|:-|:-|:-|
+| MSS PLL clock at 600MHz      | 838.22    |        |
+| MSS PLL clock at 300MHz      | 659.42    |  ~20%  |
 
+If all MSS power saving options are implemented:
+
+| Power Saving Feature | VDD Power (mW) |
+|:-|:-|
+| Full power mode                         | 800.00    |
+| MSS PLL clock scaled to 300MHz (mW)     | - 178.80  |
+| MSS DDR Controller PLL disabled (mW)    | - 232.53  |
+| Low power mode                          | 388.67    |
 
 ## Target boards:
 
@@ -66,10 +88,10 @@ This example project is targeted at a number of different boards
  - MPFS Icicle Kit
  - MPFS Video Kit
 
-| Board                     | MSS DDR memory Type| Data width | Speed       |
-| :-------------            | :----------  | :----------  |:----------  |
-|  MPFS Icicle Kit          | LPDDR4       |  x32         |  1600MHz    |
-|  MPFS Video Kit           | LPDDR4       |  x32         |  1600MHz    |
+| Board | MSS DDR memory Type | Data width | Speed |
+|:-|:-|:-|:-|
+| MPFS Icicle Kit | LPDDR4              | x32        | 1600MHz     |
+| MPFS Video Kit  | LPDDR4              | x32        | 1600MHz     |
 
 ## Libero Designs and MSS configuration files:
 
@@ -102,32 +124,32 @@ for each board.
 
   ```
   MPFS HAL Power Saving Options:
-  1  How to turn on Parked Hart RAM at bootup
-  2  How to turn off Parked Hart RAM at bootup
-  3  How to turn on U54 Floating Point Units(FPU) at bootup
-  4  How to turn off U54 Floating Point Units(FPU) at bootup
-  5  How to turn on RAM of Unused Peripherals at bootup
-  6  How to turn off RAM of Unused Peripherals at bootup
-  7  Display DDR self refresh menu
-  8  Display clock scaling menu
+  1  How to toggle ON/OFF Parked Hart RAM at bootup
+  2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup
+  3  How to toggle ON/OFF RAM of Unused Peripherals at bootup
+  4  Display DDR menu
+  5  Display clock scaling menu
+  6  Display maximum power-saving menu
 
   Type 0 to show the menu again
   ```
 
-2. When the DDR self refresh menu is displayed:
+1. When the DDR menu is displayed:
 
   ```
-  Select the DDR self refresh test:
+  Select a DDR option:
 
   Make sure that u54_1 hart is turned on before selecting an option:
-  1  Clear pattern in memory
-  2  Place pattern in memory
-  3  Verify if pattern is in memory
+  1  Clear pattern in memory block (<1 minute)
+  2  Place pattern in memory block (<1 minute)
+  3  Verify if pattern is in memory (<2 minutes)
   4  Turn on ddr self refresh
   5  Turn off ddr self refresh
   6  Check ddr self refresh status
-  7  Go back to main menu
-  WARNING: DDR is not accessible when in self-refresh mode
+  7  Turn off ddr pll
+  8  Turn on ddr pll
+  9  Go back to main menu
+  WARNING: DDR is not accessible when in self-refresh mode, or PLL is disabled
 
   Type 0 to show the menu again
   ```
@@ -135,11 +157,25 @@ for each board.
 3. When the clock scaling menu is displayed:
 
   ```
-  Select a clock frequency option:
+  Select a clock scaling option:
 
   Make sure that u54_1 hart is turned on before selecting an option:
   1  Change CPU clock frequency to 300MHz (half)
   2  Change CPU clock frequency to 600MHz (default)
+  3  Display clock status
+  7  Go back to main menu
+
+  Type 0 to show the menu again;
+  ```
+
+4. When the max power-saving menu is displayed:
+
+  ```
+  Select a max power-saving option:
+
+  Make sure that u54_1 hart is turned on before selecting an option:
+  1  Toggle maximum power-saving mode with clock scaling
+  2  Toggle maximum power-saving mode without clock scaling
   3  Display clock status
   7  Go back to main menu
 
