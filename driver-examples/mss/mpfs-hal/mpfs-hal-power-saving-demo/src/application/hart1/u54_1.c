@@ -19,29 +19,27 @@
 /* Comment out line below to turn on power to parked hart*/
 // #ifdef TURN_OFF_POWER_TO_PARKED_HARTS
 
-static void place_pattern_in_memory(void);
-static void clear_pattern_in_memory(void);
-static void verify_pattern_in_memory(void);
 static void check_self_refresh_status(void);
 static void clear_pattern_in_memory_block(void);
 static void place_pattern_in_memory_block(void);
 static void verify_pattern_in_memory_block(void);
 
-extern uint64_t ddr_test;
 extern mss_uart_instance_t *g_uart;
 extern uint32_t  ddr_sr_test;
 
 volatile uint32_t count_sw_ints_h1 = 0U;
 
-#define NO_OF_ITERATIONS    2
-#define DDR_NON_CACHED_BASE            BASE_ADDRESS_NON_CACHED_32_DDR
-#define DDR_NON_CACHED_SIZE            0x10000000U
+#define NO_OF_ITERATIONS                2
+#define DDR_NON_CACHED_BASE             BASE_ADDRESS_NON_CACHED_32_DDR
+#define DDR_NON_CACHED_SIZE             0x10000000U
 
-#define MIN_OFFSET          1U
-#define MAX_OFFSET          16U
-#define START_OFFSET        12U
+#define MIN_OFFSET                      1U
+#define MAX_OFFSET                      16U
+#define START_OFFSET                    12U
 
-#define MAX_ADDRESS 0x80010000UL
+#define DDR_TOGGLE_OUTPUTS              0x1U
+
+#define MAX_ADDRESS                     0x80010000UL
 
 char info_string[100];
 
@@ -129,16 +127,16 @@ void u54_1(void)
         /* 7  Turn off ddr pll */
         if (ddr_sr_test == 7U)
         {
-            ddr_sr_test = 0U;
-            mpfs_hal_ddr_turn_off_ddr_pll();
+            mpfs_hal_ddr_logic_power_state(DDR_LOW_POWER,
+                                            DDR_TOGGLE_OUTPUTS);
             MSS_UART_polled_tx_string(g_uart, 
             "DDR PLL turned off\r\n");
         }
         /* 8  Turn on ddr pll */
         if (ddr_sr_test == 8U)
         {
-            ddr_sr_test = 0U;
-            mpfs_hal_ddr_turn_on_ddr_pll();
+            mpfs_hal_ddr_logic_power_state(DDR_NORMAL_POWER,
+                                            DDR_TOGGLE_OUTPUTS);
             MSS_UART_polled_tx_string(g_uart, 
             "DDR PLL turned on\r\n");
         }
@@ -157,38 +155,11 @@ static void check_self_refresh_status(void)
     }
 }
 
-static void place_pattern_in_memory(void)
-{
-    volatile uint32_t *ddr_mem = DDR_NON_CACHED_BASE;
-    *ddr_mem = 0x123456U;
-    MSS_UART_polled_tx_string(g_uart, "0x123456 placed in DDR memory\r\n");
-}
-
-static void clear_pattern_in_memory(void)
-{
-    volatile uint32_t *ddr_mem = DDR_NON_CACHED_BASE;
-    *ddr_mem = 0x000000U;
-    MSS_UART_polled_tx_string(g_uart, "0x000000 placed in DDR memory\r\n");
-}
-
-static void verify_pattern_in_memory(void)
-{
-    volatile uint32_t *ddr_mem = DDR_NON_CACHED_BASE;
-    if (*ddr_mem == 0x123456U)
-    {
-        MSS_UART_polled_tx_string(g_uart, "DDR verification: PASSED\r\n");
-    }
-    else
-    {
-        MSS_UART_polled_tx_string(g_uart, "DDR verification: FAILED\r\n");
-    }
-}
-
 static void clear_pattern_in_memory_block(void)
 {
-    volatile uint32_t *mem_pointer = BASE_ADDRESS_CACHED_32_DDR;
+    volatile uint32_t *mem_pointer = (uint32_t*)BASE_ADDRESS_CACHED_32_DDR;
     
-    while (mem_pointer < MAX_ADDRESS)
+    while (mem_pointer < (uint32_t*)MAX_ADDRESS)
     {
         *mem_pointer = 0x00000000U;
         sprintf(info_string, "0x00 added to register 0x%lx \r\n", mem_pointer);
@@ -200,9 +171,9 @@ static void clear_pattern_in_memory_block(void)
 
 static void place_pattern_in_memory_block(void)
 {
-    volatile uint32_t *mem_pointer = BASE_ADDRESS_CACHED_32_DDR;
+    volatile uint32_t *mem_pointer = (uint32_t*)BASE_ADDRESS_CACHED_32_DDR;
     
-    while (mem_pointer < MAX_ADDRESS)
+    while (mem_pointer < (uint32_t*)MAX_ADDRESS)
     {
         *mem_pointer = PATTERN_WALKING_ONE;
         sprintf(info_string, "0b10 added to register 0x%lx \r\n", mem_pointer);
@@ -214,11 +185,10 @@ static void place_pattern_in_memory_block(void)
 
 static void verify_pattern_in_memory_block(void)
 {
-    volatile uint32_t *mem_pointer = BASE_ADDRESS_CACHED_32_DDR;
+    volatile uint32_t *mem_pointer = (uint32_t*)BASE_ADDRESS_CACHED_32_DDR;
     volatile uint32_t count_fails = 0U;
 
-
-    while (mem_pointer < MAX_ADDRESS)
+    while (mem_pointer < (uint32_t*)MAX_ADDRESS)
     {
 
         sprintf(info_string, "Checking for 0b10 in register 0x%lx: 0x%lx FOUND --> ", mem_pointer, *mem_pointer);

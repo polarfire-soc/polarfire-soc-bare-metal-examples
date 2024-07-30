@@ -18,7 +18,6 @@
 #include "mpfs_hal/mss_hal.h"
 #include "mpfs_hal/mpfs_hal_version.h"
 #include "inc/common.h"
-#include "inc/menu_prints.h"
 #include "inc/menu_selector.h"
 
 #include "../../middleware/ymodem/ymodem.h"
@@ -28,19 +27,18 @@
  * terminal emulator when the program starts.
  ******************************************************************************/
 
-
-
-#define twoGb 0x10000000UL  /* ((1024*1024*1024)*2)/sizeof(uint32_t) */
-#define small_ver 0x00010000UL
+/* ((1024*1024*1024)*2)/sizeof(uint32_t) */
+#define twoGb                           0x10000000UL
+#define small_ver                       0x00010000UL
 #define DDR_TEST
 
-#define OFFSET_BETWEEN_LINES    0x1000U
+#define OFFSET_BETWEEN_LINES            0x1000U
 
-#define DDR_BASE            0x80000000U
-#define DDR_SIZE            0x40000000U
-#define CACHE_LINE_SIZE     0x40U
-#define MIN_OFFSET          1u
-#define MAX_OFFSET          16u
+#define DDR_BASE                        0x80000000U
+#define DDR_SIZE                        0x40000000U
+#define CACHE_LINE_SIZE                 0x40U
+#define MIN_OFFSET                      1u
+#define MAX_OFFSET                      16u
 
 #define NB_CACHE_LINES_USED     (DDR_SIZE / OFFSET_BETWEEN_LINES)
 
@@ -50,6 +48,7 @@ static volatile uint32_t count_sw_ints_h0 = 0U;
 volatile uint32_t g_10ms_count;
 uint8_t data_block[256];
 uint64_t hart_jump_ddr = 0U;
+
 #ifndef DDR_BASE_BOARD
 mss_uart_instance_t *g_uart = &g_mss_uart0_lo;
 mss_uart_instance_t *g_debug_uart = &g_mss_uart0_lo;
@@ -63,7 +62,7 @@ uint8_t verif_flag;
 uint8_t *bin_base = (uint8_t *)DDR_BASE;
 uint32_t uart0_mutex;
 
-#define NO_OF_ITERATIONS    2
+#define NO_OF_ITERATIONS                2
 uint32_t pattern_offset = 12U;
 
 /*
@@ -75,8 +74,8 @@ uint32_t pattern_offset = 12U;
  */
 static void ddr_read_write_nc(uint32_t no_access);
 static void display_mss_regs(void);
-static void main_menu_options(uint8_t* rx_buff, uint8_t get_uart_rx);
 static uint8_t bus_error_unit(void);
+void main_menu_options(uint8_t* rx_buff, uint8_t get_uart_rx);
 
 /*
  * Extern functions
@@ -146,6 +145,10 @@ char info_string[100];
  */
 void e51(void)
 {
+//    SYSREG->RAM_SHUTDOWN_CR = 0xFFU;
+//    SYSREG->RAM_SHUTDOWN_CR = 0U;
+//    SYSREG->RAM_SHUTDOWN_CR = 0xCFFU;
+
     uint8_t rx_buff[20];
     uint8_t get_uart_rx = 0;
 
@@ -228,18 +231,20 @@ void Software_h0_IRQHandler(void)
 }
 
 
-static void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
+void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
 {
     switch(rx_buff[0])
     {
         default:
+            /* Show the menu again */
             MSS_UART_polled_tx_string(g_uart, menu_power_saving);
             break;
         case '0':
+            /* Show the menu again */
             MSS_UART_polled_tx_string(g_uart, menu_power_saving);
             break;
         case '1':
-            /* How to turn on RAM to Parked Hart RAM at bootup */
+            /* How to toggle ON/OFF Parked Hart RAM at bootup */
             MSS_UART_polled_tx_string(g_uart, msg_toggle_park_hart_ram);
             break;
         case '2':
@@ -585,8 +590,6 @@ uint8_t PLIC_U54_4_bus_error_unit_IRQHandler(void)
 uint8_t PLIC_l2_metadata_corr_IRQHandler(void)
 {
     while (1);
-    if (DDRCFG->ECC.STAT_INT_ECC_1BIT_THRESH.STAT_INT_ECC_1BIT_THRESH != 0U)
-        ;
     return (0U);
 }
 
@@ -597,8 +600,6 @@ uint8_t PLIC_l2_metadata_corr_IRQHandler(void)
 uint8_t PLIC_l2_metadata_uncorr_IRQHandler(void)
 {
     while (1);
-    if (DDRCFG->ECC.STAT_INT_ECC_1BIT_THRESH.STAT_INT_ECC_1BIT_THRESH != 0U)
-        ;
     return (0U);
 }
 
@@ -619,7 +620,9 @@ uint8_t PLIC_l2_data_corr_IRQHandler(void)
     MSS_UART_polled_tx(g_uart, (const uint8_t*)info_string,
                        (uint32_t)strlen(info_string));
     if (DDRCFG->ECC.STAT_INT_ECC_1BIT_THRESH.STAT_INT_ECC_1BIT_THRESH != 0U)
+    {
         ;
+    }
     return (0U);
 }
 
@@ -630,8 +633,6 @@ uint8_t PLIC_l2_data_corr_IRQHandler(void)
 uint8_t PLIC_l2_data_uncorr_IRQHandler(void)
 {
     while (1);
-    if (DDRCFG->ECC.STAT_INT_ECC_1BIT_THRESH.STAT_INT_ECC_1BIT_THRESH != 0U)
-        ;
     return (0U);
 }
 
@@ -717,11 +718,10 @@ static void display_mss_regs(void)
  */
 
 // #define MEASURED_UNUSED_PERIPHERAL_RAM
-
 #ifdef MEASURED_UNUSED_PERIPHERAL_RAM
 void mss_turn_off_unused_ram_clks(void)
 {
-    (void);
+    ;
     /*
      * Test function, so RAM is unused peripherals remain ON
      * Power difference can be measured

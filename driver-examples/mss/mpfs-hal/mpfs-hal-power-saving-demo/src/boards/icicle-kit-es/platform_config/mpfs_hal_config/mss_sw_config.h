@@ -239,3 +239,52 @@
 // #define PATTERN_TEST_SIZE                        0x40000000U
 
 #endif
+
+/*MSS peripherals configured in this instance of MSS Configurator generated
+output. 1 implies it has been configured, 0 it has not been configured. */
+    /* EMMC                              [0:1]   RW value= 0x1 */
+    /* SD_SDIO                           [1:1]   RW value= 0x1 */
+    /* USB                               [2:1]   RW value= 0x1 */
+    /* MAC0                              [3:1]   RW value= 0x1 */
+    /* MAC1                              [4:1]   RW value= 0x1 */
+    /* QSPI                              [5:1]   RW value= 0x1 */
+    /* SPI0                              [6:1]   RW value= 0x1 */
+    /* SPI1                              [7:1]   RW value= 0x1 */
+    /* MMUART0                           [8:1]   RW value= 0x1 */
+    /* MMUART1                           [9:1]   RW value= 0x1 */
+    /* MMUART2                           [10:1]  RW value= 0x1 */
+    /* MMUART3                           [11:1]  RW value= 0x1 */
+    /* MMUART4                           [12:1]  RW value= 0x1 */
+    /* I2C0                              [13:1]  RW value= 0x1 */
+    /* I2C1                              [14:1]  RW value= 0x1 */
+    /* CAN0                              [15:1]  RW value= 0x1 */
+    /* CAN1                              [16:1]  RW value= 0x1 */
+    /* GPIO0                             [17:1]  RW value= 0x0 */
+    /* GPIO1                             [18:1]  RW value= 0x0 */
+    /* GPIO2                             [19:1]  RW value= 0x1 */
+
+/* The configuration below only enables mmuart peripherals */
+#define LIBERO_SETTING_CONFIGURED_PERIPHERALS   ((0U<<0U) |  /* EMMC */ \
+                                                (0U<<1U) |   /* SD_SDIO */ \
+                                                (0U<<2U) |   /* USB */ \
+                                                (0U<<3U) |   /* MAC0 */ \
+                                                (0U<<4U) |   /* MAC1 */ \
+                                                (0U<<5U) |   /* QSPI */ \
+                                                (0U<<6U) |   /* SPI0 */ \
+                                                (0U<<7U) |   /* SPI1 */ \
+                                                (1U<<8U) |   /* MMMUART0 */ \
+                                                (1U<<9U) |   /* MMUART1 */ \
+                                                (1U<<10U) |  /* MMUART2 */ \
+                                                (1U<<11U) |  /* MMUART3 */ \
+                                                (1U<<12U) |  /* MMUART4 */ \
+                                                (0U<<13U) |  /* I2C0 */ \
+                                                (0U<<14U) |  /* I2C1 */ \
+                                                (0U<<15U) |  /* CAN0 */ \
+                                                (0U<<16U) |  /* CAN1 */ \
+                                                (0U<<17U) |  /* GPIO0 */ \
+                                                (0U<<18U) |  /* GPIO1 */ \
+                                                (0U<<19U))   /* GPIO2 */ \
+
+/* Comment the above define and uncomment this define to disable all peripherals */
+// #define LIBERO_SETTING_CONFIGURED_PERIPHERALS     0x00000000UL
+

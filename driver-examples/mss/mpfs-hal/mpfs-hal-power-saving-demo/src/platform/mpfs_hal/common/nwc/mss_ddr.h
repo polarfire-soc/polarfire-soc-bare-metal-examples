@@ -1165,6 +1165,15 @@ typedef enum SEG_SETUP_{
 /***************************************************************************//**
 
  */
+typedef enum DDR_LP_OPTION_{
+    DDR_LOW_POWER       = 0x00U,
+    DDR_NORMAL_POWER    = 0x01U
+} DDR_LP_OPTION;
+
+
+/***************************************************************************//**
+
+ */
 typedef struct mss_ddr_diags_{
     uint64_t    train_time;
     uint32_t    num_retrains;
@@ -1389,9 +1398,37 @@ void mpfs_hal_turn_ddr_selfrefresh_off(void);
  */
 uint32_t mpfs_hal_ddr_selfrefresh_status(void);
 
-void mpfs_hal_ddr_turn_off_ddr_pll(void);
+/***************************************************************************//**
+  The mpfs_hal_ddr_logic_power_state(uint32_t lp_state, uint32_t lp_options)
 
-void mpfs_hal_ddr_turn_on_ddr_pll(void);
+  @param lp_state 0 => low power, 1 => normal
+
+  @param lp_options bit 0 => pll_outputs
+                    bit 1 => addcmd_pins
+                    bit 2 => clk_pin
+                    bit 3 => dq_pins
+                    bit 4 => dqs_pins
+                    bit 5 => dqs_pins
+                    bit 6 => odt
+
+  @return
+    none
+
+  Example:
+  @code
+      lp_state = 0U;        // low power state
+      lp_options = 0x7FU;   // All options chosen
+      mpfs_hal_sw_ddr_power_state(lp_state, lp_options);
+
+      if(status != 0U)
+      {
+          printf("self refresh is on\n");
+      }
+
+  @endcode
+
+ */
+void mpfs_hal_ddr_logic_power_state(uint32_t lp_state, uint32_t lp_options);
 
 
 #ifdef __cplusplus
