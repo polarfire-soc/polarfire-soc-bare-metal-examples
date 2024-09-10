@@ -21,6 +21,7 @@
 
 #include "inc/common.h"
 #include "inc/menu_selector.h"
+#include "inc/state_machine.h"
 
 #include "../../middleware/ymodem/ymodem.h"
 
@@ -66,6 +67,10 @@ uint32_t uart0_mutex;
 #define NO_OF_ITERATIONS                2
 uint32_t pattern_offset = 12U;
 
+uint32_t user_sm_request_h0 = 0U;
+uint32_t state_machine_status_request_h0 = 0U;
+uint32_t state_machine_status_request_h1 = 0U;
+
 /*
  * External data
  */
@@ -74,7 +79,6 @@ uint32_t pattern_offset = 12U;
  * Local functions
  */
 static void ddr_read_write_nc(uint32_t no_access);
-static void display_mss_regs(void);
 static uint8_t bus_error_unit(void);
 void main_menu_options(uint8_t* rx_buff, uint8_t get_uart_rx);
 
@@ -282,8 +286,14 @@ void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
             select_max_option(CUSTOM_CONFIG);
             break;
         case '7':
-            /* Go into periodic low power loop */
+            /* Toggle periodic low power mode */
             periodic_lp_mode();
+            break;
+        case '8':
+            /* Display state machine menu */
+            MSS_UART_polled_tx_string(g_uart, display_menu_state_machine);
+            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+            select_state_machine_option(CUSTOM_CONFIG);
             break;
         case 'c':
             /* Monitor current with u54_1 flag raise */
@@ -321,7 +331,6 @@ uint32_t setup_ddr_debug_port(mss_uart_instance_t * uart)
     return (0U);
 }
 #endif
-
 
 /**
  * Instantiated here to allow simple modification,

@@ -15,6 +15,8 @@
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #include "inc/common.h"
+#include "inc/menu_selector.h"
+#include "inc/state_machine.h"
 #include "drivers/off-chip/pac1934/pac1934.h"
 
 /* Comment out line below to turn on power to parked hart*/
@@ -33,6 +35,7 @@ uint8_t rx_size = 0;
 uint8_t g_rx_buff[1] = {0};
 
 volatile uint32_t count_sw_ints_h1 = 0U;
+uint32_t user_sm_request_h1 = 0U;
 
 #define NO_OF_ITERATIONS                2
 #define DDR_NON_CACHED_BASE             BASE_ADDRESS_NON_CACHED_32_DDR
@@ -175,6 +178,8 @@ void u54_1(void)
             PAC1934_drawISense();
             monitor_current_flag = 0U;
         }
+
+        state_machine_h1();
     }
 }
 

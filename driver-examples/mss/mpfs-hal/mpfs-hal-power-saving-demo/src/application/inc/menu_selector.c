@@ -5,6 +5,72 @@
 #include "menu_selector.h"
 #include "drivers/off-chip/pac1934/pac1934.h"
 
+/* MENUS */
+const uint8_t menu_power_saving[] =
+"\r\n"
+"This program is run from E51\r\n"
+"\r\n"
+"MPFS HAL Power Saving Options:\r\n"
+"1  How to toggle ON/OFF Parked Hart RAM at bootup\r\n"
+"2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup\r\n"
+"3  How to toggle ON/OFF RAM of Unused Peripherals at bootup\r\n"
+"4  Display DDR menu\r\n"
+"5  Display clock scaling menu\r\n"
+"6  Display maximum power-saving menu\r\n"
+"7  Toggle periodic low power mode\r\n"
+"8  Display state machine menu\r\n"
+"c  Display PAC1934 current monitor values\r\n";
+
+const uint8_t display_menu_ddr[] =
+"\r\n"
+"Select a DDR option:\r\n"
+"\r\n"
+"Make sure that u54_1 hart is turned on before selecting an option:\r\n"
+"1  Clear pattern in memory block (<1 minute)\r\n"
+"2  Place pattern in memory block (<1 minute)\r\n"
+"3  Verify if pattern is in memory (<2 minutes)\r\n"
+"4  Turn on ddr self refresh\r\n"
+"5  Turn off ddr self refresh\r\n"
+"6  Check ddr self refresh status\r\n"
+"7  Turn off ddr pll\r\n"
+"8  Turn on ddr pll\r\n"
+"c  Display PAC1934 current monitor values\r\n"
+"m  Go back to main menu\r\n"
+"WARNING: DDR is not accessible when in self-refresh mode, or PLL is disabled\r\n";
+
+const uint8_t display_menu_clock_scaling[] =
+"\r\n"
+"Select a clock scaling option:\r\n"
+"\r\n"
+"Make sure that u54_1 hart is turned on before selecting an option:\r\n"
+"1  Change CPU clock frequency to 300MHz (half)\r\n"
+"2  Change CPU clock frequency to 600MHz (default)\r\n"
+"3  Display clock status\r\n"
+"c  Display PAC1934 current monitor values\r\n"
+"m  Go back to main menu\r\n";
+
+const uint8_t display_menu_max[] =
+"\r\n"
+"Select a max power-saving option:\r\n"
+"\r\n"
+"Make sure that u54_1 hart is turned on before selecting an option:\r\n"
+"1  Toggle maximum power-saving mode with clock scaling\r\n"
+"2  Toggle maximum power-saving mode without clock scaling\r\n"
+"3  Reset to default settings\r\n"
+"4  Display clock status\r\n"
+"c  Display PAC1934 current monitor values\r\n"
+"m  Go back to main menu\r\n";
+
+const uint8_t display_menu_state_machine[] =
+"\r\n"
+"Select a handshake option:\r\n"
+"\r\n"
+"1  Start app by sending request to u54_1 core\r\n"
+"2  Get state machine status\r\n"
+"c  Display PAC1934 current monitor values\r\n"
+"m  Go back to main menu\r\n";
+
+/* MESSAGES */
 const uint8_t msg_toggle_park_hart_ram[] =
 "\r\n"
 "How to toggle ON/OFF Parked Hart RAM(s) at bootup:\r\n"
@@ -52,61 +118,6 @@ const uint8_t msg_toggle_unused_perif_ram[] =
 "COMMENT the line: #define MEASURED_UNUSED_PERIPHERAL_RAM\r\n"
 "\r\n"
 "Save changes, build, and run project to measure the power.\r\n";
-
-const uint8_t menu_power_saving[] =
-"\r\n"
-"This program is run from E51\r\n"
-"\r\n"
-"MPFS HAL Power Saving Options:\r\n"
-"1  How to toggle ON/OFF Parked Hart RAM at bootup\r\n"
-"2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup\r\n"
-"3  How to toggle ON/OFF RAM of Unused Peripherals at bootup\r\n"
-"4  Display DDR menu\r\n"
-"5  Display clock scaling menu\r\n"
-"6  Display maximum power-saving menu\r\n"
-"7  Toggle periodic low power mode\r\n"
-"c  Display PAC1934 current monitor values\r\n";
-
-const uint8_t display_menu_ddr[] =
-"\r\n"
-"Select a DDR option:\r\n"
-"\r\n"
-"Make sure that u54_1 hart is turned on before selecting an option:\r\n"
-"1  Clear pattern in memory block (<1 minute)\r\n"
-"2  Place pattern in memory block (<1 minute)\r\n"
-"3  Verify if pattern is in memory (<2 minutes)\r\n"
-"4  Turn on ddr self refresh\r\n"
-"5  Turn off ddr self refresh\r\n"
-"6  Check ddr self refresh status\r\n"
-"7  Turn off ddr pll\r\n"
-"8  Turn on ddr pll\r\n"
-"c  Display PAC1934 current monitor values\r\n"
-"m  Go back to main menu\r\n"
-"WARNING: DDR is not accessible when in self-refresh mode, or PLL is disabled\r\n";
-
-const uint8_t display_menu_clock_scaling[] =
-"\r\n"
-"Select a clock scaling option:\r\n"
-"\r\n"
-"Make sure that u54_1 hart is turned on before selecting an option:\r\n"
-"1  Change CPU clock frequency to 300MHz (half)\r\n"
-"2  Change CPU clock frequency to 600MHz (default)\r\n"
-"3  Display clock status\r\n"
-"c  Display PAC1934 current monitor values\r\n"
-"m  Go back to main menu\r\n";
-
-const uint8_t display_menu_max[] =
-"\r\n"
-"Select a max power-saving option:\r\n"
-"\r\n"
-"Make sure that u54_1 hart is turned on before selecting an option:\r\n"
-"1  Toggle maximum power-saving mode with clock scaling\r\n"
-"2  Toggle maximum power-saving mode without clock scaling\r\n"
-"3  Reset to default settings\r\n"
-"4  Display clock status\r\n"
-"c  Display PAC1934 current monitor values\r\n"
-"m  Go back to main menu\r\n";
-
 const uint8_t msg_medium_frequency_enabled[] =
 "\r\nCPU operating in half speed of default frequency:\r\n";
 
@@ -150,7 +161,27 @@ const uint8_t msg_periodic_mode_status_lp[] =
 const uint8_t msg_periodic_mode_status_hp[] =
 "Status: High power mode...\r\n";
 
+const uint8_t msg_state_machine_status[] =
+"\r\n"
+"State machine current status:\r\n"
+"\r\n"
+"current_state: %s\r\n"
+"request_state: %s\r\n"
+"previous_state: %s\r\n";
 
+const uint8_t msg_req_tx_to_u54_1[] =
+"UPDATE: Request sent to u54_1 core.\r\n";
+
+const uint8_t msg_req_rx_from_e51[] =
+"UPDATE: Request received from e51 core.\r\n";
+
+const uint8_t msg_ack_tx_to_e51[] =
+"UPDATE: Acknowledgment sent to e51 core.\r\n";
+
+const uint8_t msg_ack_rx_from_u54_1[] =
+"UPDATE: Acknowledgment received from u54_1 core.\r\n";
+
+/* FUNCTIONS */
 void select_ddr_option(uint8_t config_option)
 {
     uint8_t rx_buff[1];
@@ -427,6 +458,70 @@ void select_max_option(uint8_t config_option)
                     break;
             } /* End of switch statement */
         } /* End of receive buffer check */
+
+        /* Leave this fuction if flag is raised */
+        if (leave_function == 1)
+        {
+            break; /* Break from while(1) loop */
+        }
+    } /* End of while loop */
+}
+
+void select_state_machine_option(uint8_t config_option)
+{
+    uint8_t rx_buff[1];
+    uint8_t get_uart_rx = 0;
+    uint8_t leave_function = 0;
+    FS_DATA_0 fs_h0;
+    char info_string[200];
+
+    while (1)
+    {
+        get_uart_rx = (uint8_t)MSS_UART_get_rx(g_uart, (uint8_t*)rx_buff,
+                                            (uint32_t)sizeof(rx_buff));
+
+        if (get_uart_rx++)
+        {
+            switch (rx_buff[0])
+            {
+                default:
+                    MSS_UART_polled_tx_string(g_uart, msg_page_break);
+                    MSS_UART_polled_tx_string(g_uart, display_menu_state_machine);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
+                    break;
+                case '0':
+                    MSS_UART_polled_tx_string(g_uart, msg_page_break);
+                    MSS_UART_polled_tx_string(g_uart, display_menu_state_machine);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
+                    break;
+                case '1':
+                    /* 1  Start app by telling e51 to send request to u54_1 core */
+                    user_sm_request_h0 = FS_SM_0_START_APP;
+                    break;
+                case '2':
+                    /* 2  Get state machine status */
+                    state_machine_status_request_h0 = 1;
+                    state_machine_status_request_h1 = 1;
+                    break;
+                case 'c':
+                    /* c  Display PAC1934 current monitor values */
+                    monitor_current_flag = 1;
+                    break;
+                case 'm':
+                    /* m  Print main menu for power saving and leave function */
+                    MSS_UART_polled_tx_string(g_uart, msg_page_break);
+                    MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
+                    leave_function = 1;
+                    break;
+            } /* End of switch statement */
+        } /* End of receive buffer check */
+
+        /* Continually call state machine */
+        state_machine_h0();
 
         /* Leave this fuction if flag is raised */
         if (leave_function == 1)

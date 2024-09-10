@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "drivers/mss/mss_timer/mss_timer.h"
+#include "state_machine.h"
 
 #define TIMER_1_READ_VALUE                  ((const volatile uint32_t*)0x20125000)
 #define TIMER_1_LOAD_VALUE                  ((volatile uint32_t*)0x20125004)
@@ -32,26 +33,39 @@
 #define DDR_NO_OPTIONS_CHOSEN           0x0U
 #define DDR_TOGGLE_OUTPUTS              0x1U
 
-extern const uint8_t msg_toggle_park_hart_ram[];
-extern const uint8_t msg_toggle_fpu[];
-extern const uint8_t msg_toggle_unused_perif_ram[];
 extern const uint8_t menu_power_saving[];
 extern const uint8_t display_menu_ddr[];
 extern const uint8_t display_menu_clock_scaling[];
 extern const uint8_t display_menu_max[];
+extern const uint8_t display_menu_state_machine[];
+
+extern const uint8_t msg_toggle_park_hart_ram[];
+extern const uint8_t msg_toggle_fpu[];
+extern const uint8_t msg_toggle_unused_perif_ram[];
 extern const uint8_t msg_medium_frequency_enabled[];
 extern const uint8_t msg_normal_frequency_enabled[];
 extern const uint8_t msg_show_menu_again_prompt[];
+extern const uint8_t msg_state_machine_status[];
+
+extern const uint8_t msg_req_tx_to_u54_1[];
+extern const uint8_t msg_req_rx_from_e51[];
+extern const uint8_t msg_ack_tx_to_e51[];
+extern const uint8_t msg_ack_rx_from_u54_1[];
+extern const uint8_t msg_page_break[];
 
 void select_ddr_option(uint8_t config_option);
 void select_clock_scaling_option(uint8_t config_option);
 void select_max_option(uint8_t config_option);
 void display_clocks(void);
 void periodic_lp_mode(void);
+void select_state_machine_option(uint8_t config_option);
 
 extern mss_uart_instance_t *g_uart;
 volatile uint32_t ddr_sr_test;
 volatile uint32_t monitor_current_flag;
+extern uint32_t user_sm_request_h0;
+extern uint32_t state_machine_status_request_h0;
+extern uint32_t state_machine_status_request_h1;
 
 #endif
 
