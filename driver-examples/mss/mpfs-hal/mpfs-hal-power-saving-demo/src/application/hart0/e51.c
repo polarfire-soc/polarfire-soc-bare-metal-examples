@@ -146,10 +146,6 @@ char info_string[100];
  */
 void e51(void)
 {
-//    SYSREG->RAM_SHUTDOWN_CR = 0xFFU;
-//    SYSREG->RAM_SHUTDOWN_CR = 0U;
-//    SYSREG->RAM_SHUTDOWN_CR = 0xCFFU;
-
     uint8_t rx_buff[20];
     uint8_t get_uart_rx = 0;
 
