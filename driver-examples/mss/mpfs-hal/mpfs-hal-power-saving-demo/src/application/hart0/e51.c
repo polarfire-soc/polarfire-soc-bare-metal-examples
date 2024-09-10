@@ -212,6 +212,7 @@ void e51(void)
                        (uint32_t)strlen(info_string));
 
     MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
 
     /* Wake up hart 1 */
     raise_soft_interrupt(1U);
@@ -242,36 +243,44 @@ void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
         default:
             /* Show the menu again */
             MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             break;
         case '0':
             /* Show the menu again */
             MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             break;
         case '1':
             /* How to toggle ON/OFF Parked Hart RAM at bootup */
             MSS_UART_polled_tx_string(g_uart, msg_toggle_park_hart_ram);
+            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             break;
         case '2':
             /* How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup */
             MSS_UART_polled_tx_string(g_uart, msg_toggle_fpu);
+            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             break;
         case '3':
             /* How to toggle ON/OFF RAM of Unused Peripherals at bootup */
             MSS_UART_polled_tx_string(g_uart, msg_toggle_unused_perif_ram);
+            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             break;
         case '4':
             /* Display DDR menu */
             MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
+            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             select_ddr_option(CUSTOM_CONFIG);
             break;
         case '5':
             /* Display clock scaling menu */
             MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
+            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             select_clock_scaling_option(CUSTOM_CONFIG);
             break;
         case '6':
             /* Display maximum power-saving menu */
             MSS_UART_polled_tx_string(g_uart, display_menu_max);
+            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             select_max_option(CUSTOM_CONFIG);
             break;
         case 'c':
@@ -471,7 +480,6 @@ void ddr_read_full_range(void)
     setup_ddr_segments(LIBERO_SEG_SETUP);
 }
 
-
 /**
  * Instantiate to trap error during testing
  * @return
@@ -481,7 +489,6 @@ uint8_t PLIC_E51_Maintence_IRQHandler(void)
     while (1);
     return (0U);
 }
-
 
 /**
  * Instantiate to trap error during testing
@@ -493,7 +500,6 @@ uint8_t PLIC_ecc_error_IRQHandler(void)
     return (0U);
 }
 
-
 /**
  * Instantiate to trap error during testing
  * @return
@@ -503,7 +509,6 @@ uint8_t PLIC_ecc_correct_IRQHandler(void)
     while (1);
     return (0U);
 }
-
 
 /**
  * Instantiate to trap error during testing
@@ -528,7 +533,6 @@ uint8_t PLIC_E51_bus_error_unit_IRQHandler(void)
     return (0U);
 }
 
-
 /**
  * Instantiate to trap error during testing
  * @return
@@ -551,7 +555,6 @@ uint8_t PLIC_U54_1_bus_error_unit_IRQHandler(void)
     return (0U);
 }
 
-
 /**
  * Instantiate to trap error during testing
  * @return
@@ -561,7 +564,6 @@ uint8_t PLIC_U54_2_bus_error_unit_IRQHandler(void)
     while (1);
     return (0U);
 }
-
 
 /**
  * Instantiate to trap error during testing
@@ -573,7 +575,6 @@ uint8_t PLIC_U54_3_bus_error_unit_IRQHandler(void)
     return (0U);
 }
 
-
 /**
  * Instantiate to trap error during testing
  * @return
@@ -583,7 +584,6 @@ uint8_t PLIC_U54_4_bus_error_unit_IRQHandler(void)
     while (1);
     return (0U);
 }
-
 
 /**
  * Instantiate to trap error during testing
@@ -638,7 +638,6 @@ uint8_t PLIC_l2_data_uncorr_IRQHandler(void)
     return (0U);
 }
 
-
 /**
  * Instantiate to trap error during testing
  * @return
@@ -662,58 +661,6 @@ void handle_local_beu_interrupt(void)
     BEU->regs[hart_id].VALUE       = 0ULL;
 }
 
-/**
- * Display mss registers
- * @return
-
- */
-static void display_mss_regs(void)
-{
-    char info_string_regs[200];
-
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)
-                              "\n\rSCB MSS PLL Info\n\r");
-    sprintf(info_string_regs, "SOFT RESET         = %08X\n\r",
-            MSS_SCB_MSS_PLL->SOFT_RESET);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "PLL CAL            = %08X  ",
-            MSS_SCB_MSS_PLL->PLL_CAL);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "PLL CTRL           = %08X\n\r",
-            MSS_SCB_MSS_PLL->PLL_CTRL);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "PLL CTRL2          = %08X  ",
-            MSS_SCB_MSS_PLL->PLL_CTRL2);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "PLL DIV 0 1        = %08X\n\r",
-            MSS_SCB_MSS_PLL->PLL_DIV_0_1);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "PLL DIV 2 3        = %08X  ",
-            MSS_SCB_MSS_PLL->PLL_DIV_2_3);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "PLL FRACN          = %08X\n\r",
-            MSS_SCB_MSS_PLL->PLL_FRACN);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "PLL PHADJ          = %08X  ",
-            MSS_SCB_MSS_PLL->PLL_PHADJ);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "PLL REF FB         = %08X\n\r",
-            MSS_SCB_MSS_PLL->PLL_REF_FB);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "SSCG REG 0         = %08X  ",
-            MSS_SCB_MSS_PLL->SSCG_REG_0);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "SSCG REG 1         = %08X\n\r",
-            MSS_SCB_MSS_PLL->SSCG_REG_1);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "SSCG REG 2         = %08X  ",
-            MSS_SCB_MSS_PLL->SSCG_REG_2);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-    sprintf(info_string_regs, "SSCG REG 3         = %08X\n\r",
-            MSS_SCB_MSS_PLL->SSCG_REG_3);
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_regs);
-
-}
 /*
  * Enable (uncommment) the define MEASURED_UNUSED_PERIPHERAL_RAM below if you
  * want to measure power if unused peripherals are left on.
