@@ -165,6 +165,8 @@ void e51(void)
                              PERIPHERAL_ON);
     (void)mss_config_clk_rst(MSS_PERIPH_CFM, (uint8_t)MPFS_HAL_FIRST_HART,
                              PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_TIMER, (uint8_t)MPFS_HAL_FIRST_HART,
+                             PERIPHERAL_ON);
 
     HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
 
@@ -282,6 +284,10 @@ void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
             MSS_UART_polled_tx_string(g_uart, display_menu_max);
             MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             select_max_option(CUSTOM_CONFIG);
+            break;
+        case '7':
+            /* Go into periodic low power loop */
+            periodic_lp_mode();
             break;
         case 'c':
             /* Monitor current with u54_1 flag raise */

@@ -64,6 +64,7 @@ const uint8_t menu_power_saving[] =
 "4  Display DDR menu\r\n"
 "5  Display clock scaling menu\r\n"
 "6  Display maximum power-saving menu\r\n"
+"7  Toggle periodic low power mode\r\n"
 "c  Display PAC1934 current monitor values\r\n";
 
 const uint8_t display_menu_ddr[] =
@@ -131,6 +132,23 @@ const uint8_t msg_show_menu_again_prompt[] =
 
 const uint8_t msg_page_break[] =
 "-------------------------------------------------------------------------\r\n";
+
+const uint8_t msg_periodic_lp_mode_intro[] =
+"Welcome to periodic low-power mode!\r\n"
+"\r\n"
+"The device will be in low power mode for a few seconds\r\n"
+"before waking up in high power mode for a short period.\r\n"
+"This cycle will repeat indefintely.\r\n"
+"\r\n"
+"To leave periodic low-power mode, hit any key\r\n"
+"and wait until the next high-power interrupt\r\n"
+"\r\n";
+
+const uint8_t msg_periodic_mode_status_lp[] =
+"Status: Low power mode...\r\n";
+
+const uint8_t msg_periodic_mode_status_hp[] =
+"Status: High power mode...\r\n";
 
 
 void select_ddr_option(uint8_t config_option)
@@ -591,4 +609,53 @@ void display_clocks(void)
         ;
     sprintf(info_string_clks, "FAB MAC1 TSU clk  = %uHz\n\r", count0 * 12500U);
     MSS_UART_polled_tx_string(g_uart, (const uint8_t*)info_string_clks);
+}
+
+void periodic_lp_mode(void)
+{
+    uint8_t rx_buff[1];
+    uint8_t get_uart_rx = 0;
+    uint8_t leave_function = 0;
+    MSS_UART_polled_tx_string(g_uart, msg_periodic_lp_mode_intro);
+
+    while (1)
+    {
+
+        get_uart_rx = (uint8_t)MSS_UART_get_rx(g_uart, (uint8_t*)rx_buff,
+                                            (uint32_t)sizeof(rx_buff));
+        if(get_uart_rx++)
+        {
+            MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+            MSS_UART_polled_tx_string(g_uart,
+                                        msg_show_menu_again_prompt);
+            break;
+        }
+        else
+        {
+            /* low power mode */
+            select_ddr_option(MAX_POWER_SAVING);
+            select_clock_scaling_option(MAX_POWER_SAVING);
+            MSS_TIM1_init(TIMER_LO, MSS_TIMER_ONE_SHOT_MODE);
+            MSS_TIM1_load_immediate(TIMER_LO, LOAD_VALUE_1500M);
+            MSS_TIM1_start(TIMER_LO);
+            MSS_UART_polled_tx_string(g_uart, msg_periodic_mode_status_lp);
+            while (*TIMER_1_READ_VALUE > 0)
+            {
+                ;
+            }
+            MSS_TIM1_stop(TIMER_LO);
+            
+            /* high power mode */
+            select_ddr_option(RESET_TO_DEFAULT);
+            select_clock_scaling_option(DEFAULT_CLOCK_SCALE);
+            MSS_TIM1_load_immediate(TIMER_LO, LOAD_VALUE_20M);
+            MSS_TIM1_start(TIMER_LO);
+            MSS_UART_polled_tx_string(g_uart, msg_periodic_mode_status_hp);
+            while (*TIMER_1_READ_VALUE > 0)
+            {
+                ;
+            }
+            MSS_TIM1_stop(TIMER_LO);
+        }
+    }
 }

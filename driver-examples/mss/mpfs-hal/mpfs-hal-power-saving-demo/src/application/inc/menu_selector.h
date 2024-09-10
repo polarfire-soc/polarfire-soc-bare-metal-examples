@@ -3,6 +3,25 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "drivers/mss/mss_timer/mss_timer.h"
+
+#define TIMER_1_READ_VALUE                  ((const volatile uint32_t*)0x20125000)
+#define TIMER_1_LOAD_VALUE                  ((volatile uint32_t*)0x20125004)
+#define TIMER_1_BG_LOAD_VALUE               ((volatile uint32_t*)0x20125008)
+#define TIMER_1_CONTROL_REG                 ((volatile uint32_t*)0x2012500C)
+#define TIMER_1_RAW_INTERRUPT_STATUS        ((volatile uint32_t*)0x20125010)
+#define TIMER_1_MASKED_INTERRUPT_STATUS     ((const volatile uint32_t*)0x20125014)
+
+#define LOAD_VALUE_1500M                    ((uint32_t)1500000000U)
+#define LOAD_VALUE_20M                      ((uint32_t)20000000U)
+
+#define FINAL_COUNT_VALUE                   ((uint32_t)0U)
+#define TIMER_DIFFERENCE_THRESHOLD          ((uint32_t)1000U)
+#define EXECUTION_AVG_TIME                  ((uint32_t)40U)
+
+#define EXPECTED_CPU_CLOCK                  LIBERO_SETTING_MSS_COREPLEX_CPU_CLK
+#define EXPECTED_RTC_CLOCK                  LIBERO_SETTING_MSS_RTC_TOGGLE_CLK
+#define EXPECTED_APB_CLOCK                  LIBERO_SETTING_MSS_APB_AHB_CLK
 
 #define CUSTOM_CONFIG                   0
 #define MAX_POWER_SAVING                1
@@ -28,6 +47,7 @@ void select_ddr_option(uint8_t config_option);
 void select_clock_scaling_option(uint8_t config_option);
 void select_max_option(uint8_t config_option);
 void display_clocks(void);
+void periodic_lp_mode(void);
 
 extern mss_uart_instance_t *g_uart;
 volatile uint32_t ddr_sr_test;
