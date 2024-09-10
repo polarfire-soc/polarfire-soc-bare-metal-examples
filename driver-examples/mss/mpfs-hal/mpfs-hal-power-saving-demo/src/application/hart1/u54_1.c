@@ -15,6 +15,7 @@
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #include "inc/common.h"
+#include "drivers/off-chip/pac1934/pac1934.h"
 
 /* Comment out line below to turn on power to parked hart*/
 // #ifdef TURN_OFF_POWER_TO_PARKED_HARTS
@@ -25,7 +26,11 @@ static void place_pattern_in_memory_block(void);
 static void verify_pattern_in_memory_block(void);
 
 extern mss_uart_instance_t *g_uart;
-extern uint32_t  ddr_sr_test;
+extern volatile uint32_t ddr_sr_test;
+extern volatile uint32_t monitor_current_flag;
+
+uint8_t rx_size = 0;
+uint8_t g_rx_buff[1] = {0};
 
 volatile uint32_t count_sw_ints_h1 = 0U;
 
@@ -55,6 +60,8 @@ void u54_1(void)
     uint32_t error;
     volatile PATTERN_TEST_PARAMS pattern_test;
 
+    volatile uint32_t icount = 0U;
+
     pattern_test.base = DDR_NON_CACHED_BASE;
     pattern_test.size = DDR_NON_CACHED_SIZE;
     pattern_test.pattern_type = DDR_TEST_FILL;
@@ -77,52 +84,71 @@ void u54_1(void)
     clear_soft_interrupt();
 
     __enable_irq();
+     PLIC_init();
+
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t)1, PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_I2C1, (uint8_t)1, PERIPHERAL_ON);
+
+    MSS_UART_init(&g_mss_uart1_lo,
+                  MSS_UART_115200_BAUD,
+                  MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
+
+    if (0 == PAC1934_sensor_probe())
+    {
+        ;
+    }
+    else
+    {
+        MSS_UART_polled_tx_string (g_uart, "\r\nPAC1934 sensor probe failed");
+    }
 
     error = 0U;
+    ddr_sr_test = 0;
+    monitor_current_flag = 0;
 
     while (1U)
     {
         /* 1  Place pattern in memory */
         if (ddr_sr_test == 1U)
         {
-            ddr_sr_test = 0U;
             clear_pattern_in_memory_block();
+            ddr_sr_test = 0U;
         }
         /* 2  Clear pattern in memory */
         if (ddr_sr_test == 2U)
         {
-            ddr_sr_test = 0U;
             place_pattern_in_memory_block();
+            ddr_sr_test = 0U;
         }
         /* 3  Verify if pattern is in memory */
         if (ddr_sr_test == 3U)
         {
-            ddr_sr_test = 0U;
             verify_pattern_in_memory_block();
+            ddr_sr_test = 0U;
         }
         /* 4  Turn on DDR self-refresh */
         if (ddr_sr_test == 4U)
         {
-            ddr_sr_test = 0U;
             asm("fence.i");
             flush_l2_cache((uint32_t)1U);
             mpfs_hal_turn_ddr_selfrefresh_on();
             MSS_UART_polled_tx_string(g_uart,
             "DDR self-refresh turned on, check status by typing '6'\r\n");
+            ddr_sr_test = 0U;
         }
         /* 5  Turn off DDR self-refresh */
         if (ddr_sr_test == 5U)
         {
-            ddr_sr_test = 0U;
             mpfs_hal_turn_ddr_selfrefresh_off();
             MSS_UART_polled_tx_string(g_uart,
             "DDR self-refresh turned off, check status by typing '6'\r\n");        
+            ddr_sr_test = 0U;
         }
         /* 6  Check ddr self refresh status */
         if (ddr_sr_test == 6U)
         {
-            ddr_sr_test = 0U;
             check_self_refresh_status();
+            ddr_sr_test = 0U;
         }
         /* 7  Turn off ddr pll */
         if (ddr_sr_test == 7U)
@@ -131,6 +157,7 @@ void u54_1(void)
                                             DDR_TOGGLE_OUTPUTS);
             MSS_UART_polled_tx_string(g_uart, 
             "DDR PLL turned off\r\n");
+            ddr_sr_test = 0U;
         }
         /* 8  Turn on ddr pll */
         if (ddr_sr_test == 8U)
@@ -139,6 +166,14 @@ void u54_1(void)
                                             DDR_TOGGLE_OUTPUTS);
             MSS_UART_polled_tx_string(g_uart, 
             "DDR PLL turned on\r\n");
+            ddr_sr_test = 0U;
+        }
+        /* Monitor current */
+        if (monitor_current_flag == 1U)
+        {
+            PAC1934_drawVB();
+            PAC1934_drawISense();
+            monitor_current_flag = 0U;
         }
     }
 }

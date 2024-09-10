@@ -17,6 +17,8 @@
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #include "mpfs_hal/mpfs_hal_version.h"
+#include "drivers/off-chip/pac1934/pac1934.h"
+
 #include "inc/common.h"
 #include "inc/menu_selector.h"
 
@@ -57,7 +59,6 @@ mss_uart_instance_t *g_uart = &g_mss_uart3_lo ;
 mss_uart_instance_t *g_debug_uart = &g_mss_uart3_lo ;
 #endif
 
-uint32_t ddr_sr_test;
 uint8_t verif_flag;
 uint8_t *bin_base = (uint8_t *)DDR_BASE;
 uint32_t uart0_mutex;
@@ -171,6 +172,9 @@ void e51(void)
      * TX/RX on UART0. This mutex is shared across all harts. */
     HART_SHARED_DATA* hart_share = (HART_SHARED_DATA *)hls->shared_mem;
 
+    __enable_irq();
+     PLIC_init();
+
     MSS_UART_init(g_uart, MSS_UART_115200_BAUD, MSS_UART_DATA_8_BITS
                   | MSS_UART_NO_PARITY
                   | MSS_UART_ONE_STOP_BIT);
@@ -270,6 +274,10 @@ void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
             MSS_UART_polled_tx_string(g_uart, display_menu_max);
             select_max_option(CUSTOM_CONFIG);
             break;
+        case 'c':
+            /* Monitor current with u54_1 flag raise */
+            monitor_current_flag = 1;
+            break;
     } /* End of switch statement */
 }
 
@@ -280,12 +288,6 @@ void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
 #define TIMER_INCREMENT 1
 #endif
 
-void SysTick_Handler_h0_IRQHandler(void)
-{
-    g_10ms_count += TIMER_INCREMENT;
-    if (g_10ms_count < TIMER_INCREMENT)
-        g_10ms_count = 0;
-}
 /**
  * Setup serial port if DDR debug required during start-up
  * @param uart Ref to uart you want to use

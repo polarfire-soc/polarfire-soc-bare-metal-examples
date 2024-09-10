@@ -3,6 +3,7 @@
 #include "mpfs_hal/mss_hal.h"
 #include "mpfs_hal/mpfs_hal_version.h"
 #include "menu_selector.h"
+#include "drivers/off-chip/pac1934/pac1934.h"
 
 const uint8_t msg_toggle_park_hart_ram[] =
 "\r\n"
@@ -69,6 +70,7 @@ const uint8_t menu_power_saving[] =
 "4  Display DDR menu\r\n"
 "5  Display clock scaling menu\r\n"
 "6  Display maximum power-saving menu\r\n"
+"c  Display PAC1934 current monitor values\r\n"
 "\r\n"
 "Type 0 to show the menu again\r\n";
 
@@ -85,40 +87,50 @@ const uint8_t display_menu_ddr[] =
 "6  Check ddr self refresh status\r\n"
 "7  Turn off ddr pll\r\n"
 "8  Turn on ddr pll\r\n"
-"9  Go back to main menu\r\n"
-"WARNING: DDR is not accessible when in self-refresh mode, or PLL is disabled\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
+"c  Display PAC1934 current monitor values\r\n"
+"m  Go back to main menu\r\n"
+"WARNING: DDR is not accessible when in self-refresh mode, or PLL is disabled\r\n";
 
 const uint8_t display_menu_clock_scaling[] =
-"\r\n\r\n\r\n"
+"\r\n"
 "Select a clock scaling option:\r\n"
 "\r\n"
 "Make sure that u54_1 hart is turned on before selecting an option:\r\n"
 "1  Change CPU clock frequency to 300MHz (half)\r\n"
 "2  Change CPU clock frequency to 600MHz (default)\r\n"
 "3  Display clock status\r\n"
-"7  Go back to main menu\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
+"c  Display PAC1934 current monitor values\r\n"
+"m  Go back to main menu\r\n";
 
 const uint8_t display_menu_max[] =
-"\r\n\r\n\r\n"
+"\r\n"
 "Select a max power-saving option:\r\n"
 "\r\n"
 "Make sure that u54_1 hart is turned on before selecting an option:\r\n"
 "1  Toggle maximum power-saving mode with clock scaling\r\n"
 "2  Toggle maximum power-saving mode without clock scaling\r\n"
-"3  Display clock status\r\n"
-"7  Go back to main menu\r\n"
-"\r\n"
-"Type 0 to show the menu again\r\n";
+"3  Reset to default settings\r\n"
+"4  Display clock status\r\n"
+"c  Display PAC1934 current monitor values\r\n"
+"m  Go back to main menu\r\n";
 
 const uint8_t msg_medium_frequency_enabled[] =
 "\r\nCPU operating in half speed of default frequency:\r\n";
 
 const uint8_t msg_normal_frequency_enabled[] =
 "\r\nCPU operating in default frequency:\r\n";
+
+const uint8_t msg_self_refresh_status_on[] =
+"\r\nSelf refresh status: ON\r\n";
+
+const uint8_t msg_self_refresh_status_off[] =
+"\r\nSelf refresh status: OFF\r\n";
+
+const uint8_t msg_ddr_pll_status_on[] =
+"DDR PLL status: ON\r\n";
+
+const uint8_t msg_ddr_pll_status_off[] =
+"DDR PLL status: OFF\r\n";
 
 const uint8_t msg_show_menu_again_prompt[] =
 "\r\nType 0 to show the menu again\r\n";
@@ -196,8 +208,12 @@ void select_ddr_option(uint8_t config_option)
                         /* 8  Turn on ddr pll */
                         ddr_sr_test = 8;
                         break;
-                    case '9':
-                        /* 9  Print main menu for power saving and leave function */
+                    case 'c':
+                        /* c  c  Display PAC1934 current monitor values */
+                        monitor_current_flag = 1;
+                        break;
+                    case 'm':
+                        /* m  Print main menu for power saving and leave function */
                         MSS_UART_polled_tx_string(g_uart, menu_power_saving);
                         leave_function = 1;
                         break;
@@ -224,17 +240,11 @@ void select_clock_scaling_option(uint8_t config_option)
     {
         /* Change CPU clock frequency to 300MHz (half) */
         mss_freq_scaling(MSS_CLK_SCALING_MEDIUM);
-        MSS_UART_polled_tx_string(g_uart, msg_medium_frequency_enabled);
-        display_clocks();
-        MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
     }
     else if(config_option == DEFAULT_CLOCK_SCALE)
     {
         /* Change CPU clock frequency to 600MHz */
         mss_freq_scaling(MSS_CLK_SCALING_NORMAL);
-        MSS_UART_polled_tx_string(g_uart, msg_normal_frequency_enabled);
-        display_clocks();
-        MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
 
     }
     else
@@ -273,8 +283,12 @@ void select_clock_scaling_option(uint8_t config_option)
                         display_clocks();
                         MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
                         break;
-                    case '7':
-                        /* 7  Print main menu for power saving and leave function */
+                    case 'c':
+                        /* c  Display PAC1934 current monitor values */
+                        monitor_current_flag = 1;
+                        break;
+                    case 'm':
+                        /* m  Print main menu for power saving and leave function */
                         MSS_UART_polled_tx_string(g_uart, menu_power_saving);
                         leave_function = 1;
                         break;
@@ -313,23 +327,59 @@ void select_max_option(uint8_t config_option)
                     MSS_UART_polled_tx_string(g_uart, display_menu_max);
                     break;
                 case '1':
-                    /* 1  Toggle maximum power-saving mode without clock scaling */
+                    /* 1  Toggle maximum power-saving mode with clock scaling */
                     select_ddr_option(MAX_POWER_SAVING);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_self_refresh_status_on);
+                    MSS_UART_polled_tx_string(g_uart, msg_ddr_pll_status_off);
                     select_clock_scaling_option(MAX_POWER_SAVING);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_medium_frequency_enabled);
+                    display_clocks();
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
                     break;
                 case '2':
                     /* 2  Toggle maximum power-saving mode without clock scaling */
                     select_ddr_option(MAX_POWER_SAVING);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_self_refresh_status_on);
+                    MSS_UART_polled_tx_string(g_uart, msg_ddr_pll_status_off);
                     select_clock_scaling_option(DEFAULT_CLOCK_SCALE);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_normal_frequency_enabled);
+                    display_clocks();
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
                     break;
                 case '3':
-                    /* 3  Display clock status */
+                    /* 3  Reset to default settings */
+                    select_ddr_option(RESET_TO_DEFAULT);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_self_refresh_status_off);
+                    MSS_UART_polled_tx_string(g_uart, msg_ddr_pll_status_on);
+                    select_clock_scaling_option(DEFAULT_CLOCK_SCALE);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_normal_frequency_enabled);
                     display_clocks();
-                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
                     break;
-                case '7':
-                    /* 7  Print main menu for power saving and leave function */
+                case '4':
+                    /* 4  Display clock status */
+                    display_clocks();
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
+                    break;
+                case 'c':
+                    /* c  Display PAC1934 current monitor values */
+                    monitor_current_flag = 1;
+                    break;
+                case 'm':
+                    /* m  Print main menu for power saving and leave function */
                     MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
                     leave_function = 1;
                     break;
             } /* End of switch statement */

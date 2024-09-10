@@ -6,6 +6,7 @@
 
 #define CUSTOM_CONFIG                   0
 #define MAX_POWER_SAVING                1
+#define RESET_TO_DEFAULT                2
 #define DEFAULT_CLOCK_SCALE             2
 
 #define DDR_ALL_OPTIONS_CHOSEN          0x7FU
@@ -29,7 +30,8 @@ void select_max_option(uint8_t config_option);
 void display_clocks(void);
 
 extern mss_uart_instance_t *g_uart;
-uint32_t ddr_sr_test;
+volatile uint32_t ddr_sr_test;
+volatile uint32_t monitor_current_flag;
 
 #endif
 
