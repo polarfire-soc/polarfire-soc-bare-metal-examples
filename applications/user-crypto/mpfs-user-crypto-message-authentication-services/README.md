@@ -1,10 +1,13 @@
-# PolarFire SoC MSS User Crypto - Message Authentication and Hash Service Example
+# PolarFire SoC MSS User Crypto - Message Authentication, Verification and Hash
+Service Example
 
 This example project demonstrates the use of the following PolarFire User Crypto
 Services functions:
 
    - CALSymEncAuth()
    - CALSymEncAuthDMA()
+   - CALSymDecVerify()
+   - CALSymDecVerifyDMA()
    - CALMAC()
    - CALMACDMA()
    - CALHash()
@@ -32,16 +35,20 @@ the particular service, user has to enter the required information as shown over
 the serial port. This example project will also displays the return data from 
 User Crypto processor for message authentication and hash service.
 
-### Data Authenticated Encryption Using AES 256-bit key
+### Data Authenticated Encryption & Decryption Using AES 256-bit key
 
-Select option '1' to perform authenticated encryption using Galois/counter mode
-(GCM) algorithm. This example project reads the 256 bit key, IV, 16 bytes
-plain text, and additional authentication data (AAD) from UART terminal and
-calls the **CALSymEncAuth()** or **CALSymEncAuthDMA()** function. This function
+Select option '1' to perform authenticated encryption & decryption using Galois/
+counter mode (GCM) algorithm. This example project reads the 256 bit key, IV,
+16 bytes plain text, and additional authentication data (AAD) from UART terminal
+and calls the **CALSymEncAuth()** or **CALSymEncAuthDMA()** function. This function
 performs authenticated encryption with associated data for confidentiality and
 integrity. The plain text is both encrypted and used in computation of message 
 authentication code according to the **SATSYMTYPE_AES256** encryption algorithm
 and GCM mode. Both the encrypted data and tag are displayed on UART terminal.
+For authenticated decryption, it calls the **CALSymDecVerify()** or
+**CALSymDecVerifyDMA()** function to perform authenticated decryption with
+associated data for confidentiality and integrity. Both the decrypted data and
+tag are also displayed on UART terminal.
 
 **NOTE**:
    In Case of GCM, in place of IV paramter user has to pass JO value which is calculated 
@@ -121,9 +128,9 @@ A macro script is provided with this example which automatically enters the NIST
 vectors and associated data to verify the functionality.
 
 The following Tera Term macro scripts are present in "script" folder. 
-You can use these script for testing Message Authentication and Hashing 
-services.
-1. MAC-gcm_msg_auth.ttl - Data Authenticated Encryption
+You can use these script for testing Message Authentication, Verfication and
+Hashing services.
+1. MAC-gcm_msg_auth_ver.ttl - Data Authenticated Encryption
 2. MAC-hmac_aes_cmac_256.ttl - Generate MAC Using AES-CMAC-256 Algorithms
 3. MAC-hmac_sha_256.ttl - Generate MAC Using HMAC SHA-256 Algorithms
 4. SHA-256.ttl - Hashing
