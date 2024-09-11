@@ -20,6 +20,7 @@ send '5'
 pause 1
 
 ; -------------------------------------------------------------------------------
+; GCM Message Authentication
 ; INPUT
 ;    Key = 96ac126b5b0ed0890b893657afa4c274ce300cb480cce961c27ddbc61e30783c
 ;    IV = ee9e54a316ced1374a13ca2e00000001
@@ -29,6 +30,7 @@ pause 1
 ;    CT = df5af7ef15164d9faf062ab23356f7c4313bb9b05612de9e051ec31af83d7ff9f34e51143dfd43ab84a38f8950208653f1ff54
 ;    Tag = 9516b2653b1b06562bfca914
 ; -----------------------------------------------------------------------------
+;GCM Message Authentication
 
 ;DMA enabled Test case 1
 send '1'
@@ -58,10 +60,29 @@ pause 1
 send '1'
 pause 5
 
+; -------------------------------------------------------------------------------
+; GCM Message Verification
+; INPUT
+;    Key = 96ac126b5b0ed0890b893657afa4c274ce300cb480cce961c27ddbc61e30783c
+;    IV = ee9e54a316ced1374a13ca2e00000001
+;    Tag = 9516b2653b1b06562bfca914
+;    CT = df5af7ef15164d9faf062ab23356f7c4313bb9b05612de9e051ec31af83d7ff9f34e51143dfd43ab84a38f8950208653f1ff54
+;    AAD = 396d0892aff3212995e8f564083a0972
+;  OUTPUT
+;    PT = b4786d6bda2dd17690f5b0df362f539c54e7e1cd2cd0ac1f0acfaa51d673095729f88db1b6dd54be0b62d349e56557aa4e4980
+; -----------------------------------------------------------------------------
+; GCM Message Verification
+
+;Enable DMA
+send '1'
+pause 5
+
 ;Press any key to continue
 send '6'
 
 ; -----------------------------------------------------------------------------
+;GCM Message Authentication
+
 ;DMA disabled Test case 2
 send '1'
 pause 2
@@ -85,6 +106,14 @@ send '396d0892aff3212995e8f564083a0972'
 pause 1
 send 13
 pause 1
+
+;Authentication
+
+;Disable DMA
+send '0'
+pause 5
+
+;Verification
 
 ;Disable DMA
 send '0'
