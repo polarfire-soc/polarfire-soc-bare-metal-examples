@@ -54,12 +54,12 @@ uint32_t g_user_crypto_base_addr = 0x22000000UL;
 const uint8_t g_greeting_msg[] =
 "\r\n\r\n\
 ******************************************************************************\r\n\
-******* PolarFire SoC User Crypto message authentication Example Project *****\r\n\
+******* PolarFire SoC User Crypto Example Project ****************************\r\n\
 ******************************************************************************\r\n\
  This example project demonstrates the use of the User Crypto Message \r\n\
- authentication services and hash services. The following User Crypto service are\r\n\
- demonstrated:\r\n\
-  1 - Galois/Counter Mode, GCM Message Authentication.\r\n\
+ authentication, verification, and hash services. The following User Crypto \r\n\
+ service are demonstrated:\r\n\
+  1 - Galois/Counter Mode, GCM Message Authentication and Verification.\r\n\
   2 - Message authentication code - HMAC-SHA-256.\r\n\
   3 - Message authentication code - AES-CMAC-256.\r\n\
   4 - SHA-256 service.\r\n";
@@ -67,7 +67,7 @@ const uint8_t g_select_operation_msg[] =
 "\r\n\
 ------------------------------------------------------------------------------\r\n\
  Select the Cryptographic operation to perform:\r\n\
-    Press Key '1' to perform AES-GCM-256 encryption \r\n\
+    Press Key '1' to perform AES-GCM-256 encryption and decryption\r\n\
     Press Key '2' to perform HMAC SHA 256  \r\n\
     Press Key '3' to perform HMAC AES-CMAC-256 \r\n\
     Press Key '4' to perform hash operation \r\n\
@@ -84,6 +84,7 @@ const uint8_t read_dma_enable_ip[] =
  */
 /* AES-128 encryption/decryption. */
  uint8_t g_iv[16];
+ uint8_t g_iv_temp[16];
  uint8_t g_plain_text[128];
 
  uint8_t g_key_256bit[32];
@@ -267,7 +268,7 @@ static void hmac_sha_256(void)
   GCM Message Authentication - AES-GCM-256
  */
 
-static void gcm_msg_auth(void)
+static void gcm_msg_auth_ver(void)
 {
     uint8_t status = 0u;
     uint8_t use_dma = 0;
@@ -276,8 +277,8 @@ static void gcm_msg_auth(void)
     uint32_t g_tag_len = 0;
 
     const uint8_t read_dma_enable_ip[] =
-    "\r\n Enter 1 to perform Symmetric encryption with DMA or \r\n\
-       0 to perform Symmetric encryption without DMA: \r\n";
+    "\r\n Enter 1 to perform Symmetric encryption/decryption with DMA or \r\n\
+       0 to perform Symmetric encryption/decryption without DMA: \r\n";
     const uint8_t read_key_msg[] =
     "\r\n Enter the 256-bit/32-byte key: \r\n";
     const uint8_t read_data_msg[] =
@@ -296,6 +297,8 @@ static void gcm_msg_auth(void)
 
     /* Get the Initialization Vector value. IV size is 128 bit */
     get_input_data(g_iv, sizeof(g_iv), read_iv_msg, sizeof(read_iv_msg));
+
+    memcpy(g_iv_temp, g_iv, sizeof(g_iv));
 
     /* Get the data to be encrypted. Data size is 16 bytes*/
     msg_len = get_input_data(&g_plain_text[0], sizeof(g_plain_text),
@@ -328,7 +331,9 @@ static void gcm_msg_auth(void)
     /* Display the encrypted data in hex format. */
     if(SATR_SUCCESS == status)
     {
-        CALPKTrfRes(SAT_TRUE);
+        status = CALSymTrfRes(SAT_TRUE);
+        if(SATR_SUCCESS == status)
+        {
         MSS_UART_polled_tx(g_uart, g_separator, sizeof(g_separator));
         MSS_UART_polled_tx(g_uart, (const uint8_t *)"\r\n Encrypted data(CT):\r\n",
                   sizeof("\r\n Encrypted data(CT):\r\n"));
@@ -336,13 +341,22 @@ static void gcm_msg_auth(void)
         MSS_UART_polled_tx(g_uart, (const uint8_t *)"\r\n\n Message Authentication Code(Tag):\r\n",
                   sizeof("\r\n\n Message Authentication Code(Tag):\r\n"));
         display_output(tag, sizeof(tag),REVERSE_FALSE);
+        }
+        else
+        {
+            MSS_UART_polled_tx(g_uart, g_separator, sizeof(g_separator));
+            MSS_UART_polled_tx(g_uart, (const uint8_t *)"\r\n Error\r\n", sizeof("\r\n Error\r\n"));
+        }
     }
     else
     {
         MSS_UART_polled_tx(g_uart, g_separator, sizeof(g_separator));
         MSS_UART_polled_tx(g_uart, (const uint8_t *)"\r\n Error\r\n", sizeof("\r\n Error\r\n"));
     }
-    /* GCM verification */
+
+/*==============================================================================
+  GCM Message Verification - AES-GCM-256
+ */
 
     /* clear the plaintext buffer */
     uint16_t bc ;
@@ -351,8 +365,27 @@ static void gcm_msg_auth(void)
         g_plain_text[bc] = 0 ;
     }
 
-    status = CALSymDecVerify(SATSYMTYPE_AES256, (uint32_t*)&g_key_256bit[0], SATSYMMODE_GCM, g_iv
-            , g_encrypted_text, g_plain_text, msg_len, g_auth_data, aad_len, tag, 12);
+    /* Use dma or not */
+    use_dma = enable_dma(read_dma_enable_ip, sizeof(read_dma_enable_ip));
+
+    if(use_dma != 1)
+    {
+        /* Without DMA */
+        status  = CALSymDecVerify(SATSYMTYPE_AES256, (uint32_t*)&g_key_256bit[0],
+                                SATSYMMODE_GCM, g_iv_temp, g_encrypted_text,
+                                g_plain_text, msg_len, g_auth_data, aad_len,
+                                tag, 12);
+    }
+    else
+    {
+        /* With DMA */
+        status  = CALSymDecVerifyDMA(SATSYMTYPE_AES256, (uint32_t*)&g_key_256bit[0],
+                                   SATSYMMODE_GCM, g_iv_temp, g_encrypted_text,
+                                   g_plain_text, msg_len, g_auth_data,
+                                   aad_len, tag, 12, X52CCR_DEFAULT);
+    }
+
+    /* Display the encrypted data in hex format. */
     if(SATR_SUCCESS == status)
     {
         status = CALSymTrfRes(SAT_TRUE);
@@ -360,13 +393,23 @@ static void gcm_msg_auth(void)
         {
 
         MSS_UART_polled_tx(g_uart, g_separator, sizeof(g_separator));
-        MSS_UART_polled_tx(g_uart, (const uint8_t *)"\r\n Decrypted data(CT):\r\n",
-                  sizeof("\r\n Decrypted data(CT):\r\n"));
+        MSS_UART_polled_tx(g_uart, (const uint8_t *)"\r\n Decrypted data(PT):\r\n",
+                  sizeof("\r\n Decrypted data(PT):\r\n"));
         display_output(g_plain_text, sizeof(g_plain_text)/2,REVERSE_FALSE);
         MSS_UART_polled_tx(g_uart, (const uint8_t *)"\r\n\n Message Authentication successful(Tag):\r\n",
                   sizeof("\r\n\n Message Authentication successful(Tag):\r\n"));
         display_output(tag, sizeof(tag),REVERSE_FALSE);
         }
+        else
+        {
+            MSS_UART_polled_tx(g_uart, g_separator, sizeof(g_separator));
+            MSS_UART_polled_tx(g_uart, (const uint8_t *)"\r\n Error\r\n", sizeof("\r\n Error\r\n"));
+        }
+    }
+    else
+    {
+        MSS_UART_polled_tx(g_uart, g_separator, sizeof(g_separator));
+        MSS_UART_polled_tx(g_uart, (const uint8_t *)"\r\n Error\r\n", sizeof("\r\n Error\r\n"));
     }
 
 }
@@ -512,8 +555,8 @@ void u54_1( void )
             switch(rx_buff[0])
             {
                 case '1':
-                  /* Galois/Counter Mode, GCM Message Authentication */
-                  gcm_msg_auth();
+                  /* Galois/Counter Mode, GCM Message Authentication and Verification.*/
+                  gcm_msg_auth_ver();
                   display_option();
                   display_greeting();
                   display_operation_choices();
