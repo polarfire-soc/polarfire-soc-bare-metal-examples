@@ -46,12 +46,15 @@ extern const uint8_t msg_medium_frequency_enabled[];
 extern const uint8_t msg_normal_frequency_enabled[];
 extern const uint8_t msg_show_menu_again_prompt[];
 extern const uint8_t msg_state_machine_status[];
+extern const uint8_t msg_self_refresh_status_on[];
+extern const uint8_t msg_ddr_pll_status_off[];
 
 extern const uint8_t msg_req_tx_to_u54_1[];
 extern const uint8_t msg_req_rx_from_e51[];
 extern const uint8_t msg_ack_tx_to_e51[];
 extern const uint8_t msg_ack_rx_from_u54_1[];
 extern const uint8_t msg_page_break[];
+extern const uint8_t msg_start_u54_1[];
 
 void select_ddr_option(uint8_t config_option);
 void select_clock_scaling_option(uint8_t config_option);

@@ -42,6 +42,7 @@ extern "C" {
 #define FLAG_CMD_HIGH_PWR           0x00000200U
 
 #define ACK_FLAG                    0x00000008U
+#define MAX_DDR_ADDRESS             0x80001000UL
 
 typedef enum FS_SM_0_
 {
@@ -68,7 +69,7 @@ typedef enum FS_SM_1_
 {
     FS_SM_1_INIT = 1,
     FS_SM_1_WAIT_START,
-    FS_SM_1_START_APP,
+    FS_SM_1_RUN_APP,
     FS_SM_1_LOW_FREQ,
     FS_SM_1_NORMAL_FREQ,
     FS_SM_1_REQUEST_FROM_OTHER_HART,

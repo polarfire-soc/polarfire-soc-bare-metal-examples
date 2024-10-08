@@ -181,6 +181,9 @@ const uint8_t msg_ack_tx_to_e51[] =
 const uint8_t msg_ack_rx_from_u54_1[] =
 "UPDATE: Acknowledgment received from u54_1 core.\r\n";
 
+const uint8_t msg_start_u54_1[] =
+"UPDATE: Starting app\r\n";
+
 /* FUNCTIONS */
 void select_ddr_option(uint8_t config_option)
 {

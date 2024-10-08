@@ -29,10 +29,13 @@ extern uint32_t state_machine_status_request_h1;
 
 const char* get_state_name_string_h0(FS_SM_0 state);
 const char* get_state_name_string_h1(FS_SM_1 state);
+void place_pattern_in_memory(void);
+void verify_pattern_in_memory(void);
 
 uint32_t request_from_h0 = 0;
 uint32_t ack_from_h1 = 0;
-uint32_t make_the_change = 0;
+uint32_t start_app_flag = 0;
+uint32_t first_run_flag = 0;
 
 /*
  * Public Functions - API
@@ -78,6 +81,7 @@ uint32_t state_machine_h0(void)
                 fs_h0.sm = FS_SM_0_DEFAULT_STATE;
 
                 // NOW SET FLAG TO START u51 APP
+                start_app_flag = 1;
             }
             break;
     } /* end of case statement */
@@ -120,8 +124,18 @@ uint32_t state_machine_h1(void)
                 MSS_UART_polled_tx_string(&g_mss_uart1_lo, msg_req_rx_from_e51);
                 ack_from_h1 = 1;
                 MSS_UART_polled_tx_string(&g_mss_uart1_lo, msg_ack_tx_to_e51);
-                MSS_UART_polled_tx_string(&g_mss_uart1_lo, msg_show_menu_again_prompt);
                 request_from_h0 = 0;
+            }
+            if (start_app_flag == 1)
+            {
+                start_app_flag = 0;
+                MSS_UART_polled_tx_string(&g_mss_uart1_lo, msg_start_u54_1);
+                MSS_UART_polled_tx_string(&g_mss_uart1_lo, msg_show_menu_again_prompt);
+                fs_h1.current_state = FS_SM_1_WAIT_START;
+                fs_h1.previous_state = FS_SM_1_WAIT_START;
+                fs_h1.request_state = FS_SM_1_RUN_APP;
+                fs_h1.sm = FS_SM_1_RUN_APP;
+
             }
             break;
 
@@ -134,7 +148,22 @@ uint32_t state_machine_h1(void)
             }
             break;
 
-        case FS_SM_1_START_APP:
+        case FS_SM_1_RUN_APP:
+            fs_h1.current_state = FS_SM_1_RUN_APP;
+            fs_h1.request_state = FS_SM_1_RUN_APP;
+            fs_h1.sm = FS_SM_1_RUN_APP;
+            if (first_run_flag == 0)
+            {
+                place_pattern_in_memory();
+                verify_pattern_in_memory();
+                select_ddr_option(MAX_POWER_SAVING);
+                MSS_UART_polled_tx_string(&g_mss_uart1_lo,
+                                            msg_self_refresh_status_on);
+                MSS_UART_polled_tx_string(&g_mss_uart1_lo,
+                                            msg_ddr_pll_status_off);
+                select_clock_scaling_option(MAX_POWER_SAVING);
+                first_run_flag = 1;
+            }
             break;
     } /* end of case statement */
 
@@ -179,8 +208,8 @@ const char* get_state_name_string_h1(FS_SM_1 state)
             return "FS_SM_1_INIT";
         case FS_SM_1_WAIT_START:
             return "FS_SM_1_WAIT_START";
-        case FS_SM_1_START_APP:
-            return "FS_SM_1_START_APP";
+        case FS_SM_1_RUN_APP:
+            return "FS_SM_1_RUN_APP";
         case FS_SM_1_LOW_FREQ:
             return "FS_SM_1_LOW_FREQ";
         case FS_SM_1_NORMAL_FREQ:
@@ -188,4 +217,57 @@ const char* get_state_name_string_h1(FS_SM_1 state)
         default:
             return "UNKNOWN";
     }
+}
+
+void place_pattern_in_memory(void)
+{
+    volatile uint32_t *mem_pointer = (uint32_t*)BASE_ADDRESS_CACHED_32_DDR;
+    char info_string[200];
+
+    while (mem_pointer < (uint32_t*)MAX_DDR_ADDRESS)
+    {
+        *mem_pointer = PATTERN_WALKING_ONE;
+        sprintf(info_string, "0b10 added to register 0x%lx \r\n", mem_pointer);
+        MSS_UART_polled_tx_string(&g_mss_uart1_lo, info_string);
+        mem_pointer++;
+    }
+    MSS_UART_polled_tx_string(&g_mss_uart1_lo, "\r\nType 0 to show the menu again\r\n");
+}
+
+
+void verify_pattern_in_memory(void)
+{
+    volatile uint32_t *mem_pointer = (uint32_t*)BASE_ADDRESS_CACHED_32_DDR;
+    volatile uint32_t count_fails = 0U;
+    char info_string[200];
+
+    while (mem_pointer < (uint32_t*)MAX_DDR_ADDRESS)
+    {
+
+        sprintf(info_string, "Checking for 0b10 in register 0x%lx: 0x%lx FOUND --> ", mem_pointer, *mem_pointer);
+        MSS_UART_polled_tx_string(&g_mss_uart1_lo, info_string);
+
+        if (*mem_pointer == PATTERN_WALKING_ONE)
+        {
+            MSS_UART_polled_tx_string(&g_mss_uart1_lo, "PASSED\r\n");
+        }
+        else
+        {
+            count_fails++;
+            MSS_UART_polled_tx_string(&g_mss_uart1_lo, "FAILED\r\n");
+        }
+        mem_pointer++;
+    }
+
+    if (count_fails > 0U)
+    {
+        MSS_UART_polled_tx_string(&g_mss_uart1_lo, "\r\nREGISTER VERIFICATION: FAILED\r\n\r\n");
+        place_pattern_in_memory();
+    }
+    else
+    {
+        MSS_UART_polled_tx_string(&g_mss_uart1_lo, "\r\nREGISTER VERIFICATION: SUCCEEDED\r\n\r\n");
+    }
+
+    MSS_UART_polled_tx_string(&g_mss_uart1_lo, "Type 0 to show the menu again\r\n");
 }
