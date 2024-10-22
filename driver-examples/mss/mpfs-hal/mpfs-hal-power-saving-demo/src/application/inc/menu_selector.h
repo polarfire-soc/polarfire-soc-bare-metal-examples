@@ -47,7 +47,7 @@ extern const uint8_t msg_normal_frequency_enabled[];
 extern const uint8_t msg_show_menu_again_prompt[];
 extern const uint8_t msg_state_machine_status[];
 extern const uint8_t msg_self_refresh_status_on[];
-extern const uint8_t msg_ddr_pll_status_off[];
+extern const uint8_t msg_ddr_pll_output_status_off[];
 
 extern const uint8_t msg_req_tx_to_u54_1[];
 extern const uint8_t msg_req_rx_from_e51[];

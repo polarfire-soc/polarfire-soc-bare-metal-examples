@@ -153,22 +153,22 @@ void u54_1(void)
             check_self_refresh_status();
             ddr_sr_test = 0U;
         }
-        /* 7  Turn off ddr pll */
+        /* 7  Turn off ddr pll outputs */
         if (ddr_sr_test == 7U)
         {
             mpfs_hal_ddr_logic_power_state(DDR_LOW_POWER,
                                             DDR_TOGGLE_OUTPUTS);
             MSS_UART_polled_tx_string(g_uart, 
-            "DDR PLL turned off\r\n");
+            "DDR PLL output status: DISABLED\r\n");
             ddr_sr_test = 0U;
         }
-        /* 8  Turn on ddr pll */
+        /* 8  Turn on ddr pll outputs */
         if (ddr_sr_test == 8U)
         {
             mpfs_hal_ddr_logic_power_state(DDR_NORMAL_POWER,
                                             DDR_TOGGLE_OUTPUTS);
             MSS_UART_polled_tx_string(g_uart, 
-            "DDR PLL turned on\r\n");
+            "DDR PLL output status: ENABLED\r\n");
             ddr_sr_test = 0U;
         }
         /* Monitor current */
@@ -202,7 +202,7 @@ static void clear_pattern_in_memory_block(void)
     while (mem_pointer < (uint32_t*)MAX_ADDRESS)
     {
         *mem_pointer = 0x00000000U;
-        sprintf(info_string, "0x00 added to register 0x%lx \r\n", mem_pointer);
+        sprintf(info_string, "0x00 added to memory 0x%lx \r\n", mem_pointer);
         MSS_UART_polled_tx_string(g_uart, info_string);
         mem_pointer++;
     }
@@ -216,7 +216,7 @@ static void place_pattern_in_memory_block(void)
     while (mem_pointer < (uint32_t*)MAX_ADDRESS)
     {
         *mem_pointer = PATTERN_WALKING_ONE;
-        sprintf(info_string, "0b10 added to register 0x%lx \r\n", mem_pointer);
+        sprintf(info_string, "0b10 added to memory 0x%lx \r\n", mem_pointer);
         MSS_UART_polled_tx_string(g_uart, info_string);
         mem_pointer++;
     }
@@ -231,7 +231,7 @@ static void verify_pattern_in_memory_block(void)
     while (mem_pointer < (uint32_t*)MAX_ADDRESS)
     {
 
-        sprintf(info_string, "Checking for 0b10 in register 0x%lx: 0x%lx FOUND --> ", mem_pointer, *mem_pointer);
+        sprintf(info_string, "Checking for 0b10 in memory 0x%lx: 0x%lx FOUND --> ", mem_pointer, *mem_pointer);
         MSS_UART_polled_tx_string(g_uart, info_string);
 
         if (*mem_pointer == PATTERN_WALKING_ONE)

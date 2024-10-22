@@ -745,7 +745,7 @@ void ddr_pll_config_scb_turn_off_pll_outputs(void)
  ******************************************************************************/
 void ddr_pll_config_scb_turn_on_pll_outputs(void)
 {
-    MSS_SCB_SGMII_PLL->PLL_CTRL      = (LIBERO_SETTING_SGMII_PLL_CTRL) |
+    MSS_SCB_DDR_PLL->PLL_CTRL      = (LIBERO_SETTING_SGMII_PLL_CTRL) |
                                        0x01U;  /* bit 0 == REG_POWERDOWN_B */
 }
 

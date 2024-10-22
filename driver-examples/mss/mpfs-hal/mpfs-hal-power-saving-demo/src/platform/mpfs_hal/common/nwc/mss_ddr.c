@@ -30,7 +30,7 @@
 #define DDR_DRIVER_VERSION_STRING   "0.4.026"
 const char DDR_DRIVER_VERSION[] = DDR_DRIVER_VERSION_STRING;
 /* Version     |  Comment                                                     */
-/* 0.4.026x    |  WIP power features                                          */
+/* 0.4.026     |  Added power features                                        */
 /* 0.4.025     |  Corrected cache flush funtion so upper address range        */
 /*             |  (0x10_xxxx_xxxx) is now included in the flush.              */
 /* 0.4.024     |  Self-refresh is disabled from UI, api functions added for   */
@@ -260,6 +260,11 @@ uint32_t noise_ena = 0x0;
  * Public Functions - API
  ******************************************************************************/
 
+/**
+ * mpfs_hal_turn_ddr_selfrefresh_on(void)
+ *
+ * DDR self refresh is turned on by thwe controller
+ */
 void mpfs_hal_turn_ddr_selfrefresh_on(void)
 {
     uint32_t chip_selects;
@@ -283,14 +288,21 @@ void mpfs_hal_turn_ddr_selfrefresh_on(void)
 	DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH = chip_selects;
 }
 
+/**
+ * mpfs_hal_turn_ddr_selfrefresh_off()
+ *
+ * Turn off self refresh.
+ */
 void mpfs_hal_turn_ddr_selfrefresh_off(void)
 {
-	/*
-	 * Turn on user setting for self refresh
-	 */
 	DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH = 0U;
 }
 
+/**
+ * mpfs_hal_ddr_selfrefresh_status()
+ *
+ * @return Selff refresh status
+ */
 uint32_t mpfs_hal_ddr_selfrefresh_status(void)
 {
     uint32_t status = 1U; /* self refresh on */

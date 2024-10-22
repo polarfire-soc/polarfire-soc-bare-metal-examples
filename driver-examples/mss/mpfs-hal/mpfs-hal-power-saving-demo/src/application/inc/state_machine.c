@@ -160,7 +160,7 @@ uint32_t state_machine_h1(void)
                 MSS_UART_polled_tx_string(&g_mss_uart1_lo,
                                             msg_self_refresh_status_on);
                 MSS_UART_polled_tx_string(&g_mss_uart1_lo,
-                                            msg_ddr_pll_status_off);
+                                            msg_ddr_pll_output_status_off);
                 select_clock_scaling_option(MAX_POWER_SAVING);
                 first_run_flag = 1;
             }
@@ -227,7 +227,7 @@ void place_pattern_in_memory(void)
     while (mem_pointer < (uint32_t*)MAX_DDR_ADDRESS)
     {
         *mem_pointer = PATTERN_WALKING_ONE;
-        sprintf(info_string, "0b10 added to register 0x%lx \r\n", mem_pointer);
+        sprintf(info_string, "0b10 added to memory 0x%lx \r\n", mem_pointer);
         MSS_UART_polled_tx_string(&g_mss_uart1_lo, info_string);
         mem_pointer++;
     }
@@ -244,7 +244,7 @@ void verify_pattern_in_memory(void)
     while (mem_pointer < (uint32_t*)MAX_DDR_ADDRESS)
     {
 
-        sprintf(info_string, "Checking for 0b10 in register 0x%lx: 0x%lx FOUND --> ", mem_pointer, *mem_pointer);
+        sprintf(info_string, "Checking for 0b10 in memory 0x%lx: 0x%lx FOUND --> ", mem_pointer, *mem_pointer);
         MSS_UART_polled_tx_string(&g_mss_uart1_lo, info_string);
 
         if (*mem_pointer == PATTERN_WALKING_ONE)

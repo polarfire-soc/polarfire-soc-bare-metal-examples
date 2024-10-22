@@ -32,8 +32,8 @@ const uint8_t display_menu_ddr[] =
 "4  Turn on ddr self refresh\r\n"
 "5  Turn off ddr self refresh\r\n"
 "6  Check ddr self refresh status\r\n"
-"7  Turn off ddr pll\r\n"
-"8  Turn on ddr pll\r\n"
+"7  Turn off ddr pll outputs\r\n"
+"8  Turn on ddr pll outputs\r\n"
 "c  Display PAC1934 current monitor values\r\n"
 "m  Go back to main menu\r\n"
 "WARNING: DDR is not accessible when in self-refresh mode, or PLL is disabled\r\n";
@@ -130,11 +130,11 @@ const uint8_t msg_self_refresh_status_on[] =
 const uint8_t msg_self_refresh_status_off[] =
 "\r\nSelf refresh status: OFF\r\n";
 
-const uint8_t msg_ddr_pll_status_on[] =
-"DDR PLL status: ON\r\n";
+const uint8_t msg_ddr_pll_output_status_on[] =
+"DDR PLL output status: ENABLED\r\n";
 
-const uint8_t msg_ddr_pll_status_off[] =
-"DDR PLL status: OFF\r\n";
+const uint8_t msg_ddr_pll_output_status_off[] =
+"DDR PLL output status: DISABLED\r\n";
 
 const uint8_t msg_show_menu_again_prompt[] =
 "\r\n"
@@ -193,7 +193,7 @@ void select_ddr_option(uint8_t config_option)
 
     if (config_option == MAX_POWER_SAVING)
     {
-        /* Turn self-refresh on and turn DDR PLL off */
+        /* Turn self-refresh on and turn DDR PLL outputs off */
         asm("fence.i");
         flush_l2_cache((uint32_t)1U);
         mpfs_hal_turn_ddr_selfrefresh_on();
@@ -202,7 +202,7 @@ void select_ddr_option(uint8_t config_option)
     }
     else if (config_option == RESET_TO_DEFAULT)
     {
-        /* Turn self-refresh off and turn DDR PLL on */
+        /* Turn self-refresh off and turn DDR PLL outputs on */
         asm("fence.i");
         flush_l2_cache((uint32_t)1U);
         mpfs_hal_turn_ddr_selfrefresh_off();
@@ -256,11 +256,11 @@ void select_ddr_option(uint8_t config_option)
                         ddr_sr_test = 6;
                         break;
                     case '7':
-                        /* 7  Turn off ddr pll */
+                        /* 7  Turn off ddr pll outputs */
                         ddr_sr_test = 7;
                         break;
                     case '8':
-                        /* 8  Turn on ddr pll */
+                        /* 8  Turn on ddr pll outputs */
                         ddr_sr_test = 8;
                         break;
                     case 'c':
@@ -407,7 +407,7 @@ void select_max_option(uint8_t config_option)
                     select_ddr_option(MAX_POWER_SAVING);
                     MSS_UART_polled_tx_string(g_uart,
                                                 msg_self_refresh_status_on);
-                    MSS_UART_polled_tx_string(g_uart, msg_ddr_pll_status_off);
+                    MSS_UART_polled_tx_string(g_uart, msg_ddr_pll_output_status_off);
                     select_clock_scaling_option(MAX_POWER_SAVING);
                     MSS_UART_polled_tx_string(g_uart,
                                                 msg_medium_frequency_enabled);
@@ -420,7 +420,7 @@ void select_max_option(uint8_t config_option)
                     select_ddr_option(MAX_POWER_SAVING);
                     MSS_UART_polled_tx_string(g_uart,
                                                 msg_self_refresh_status_on);
-                    MSS_UART_polled_tx_string(g_uart, msg_ddr_pll_status_off);
+                    MSS_UART_polled_tx_string(g_uart, msg_ddr_pll_output_status_off);
                     select_clock_scaling_option(DEFAULT_CLOCK_SCALE);
                     MSS_UART_polled_tx_string(g_uart,
                                                 msg_normal_frequency_enabled);
@@ -433,7 +433,7 @@ void select_max_option(uint8_t config_option)
                     select_ddr_option(RESET_TO_DEFAULT);
                     MSS_UART_polled_tx_string(g_uart,
                                                 msg_self_refresh_status_off);
-                    MSS_UART_polled_tx_string(g_uart, msg_ddr_pll_status_on);
+                    MSS_UART_polled_tx_string(g_uart, msg_ddr_pll_output_status_on);
                     select_clock_scaling_option(DEFAULT_CLOCK_SCALE);
                     MSS_UART_polled_tx_string(g_uart,
                                                 msg_normal_frequency_enabled);
