@@ -14,6 +14,8 @@ document:
 - MSS System Clock Scaling
 - Turning off Peripheral RAM
 - Turning off RAM of unused HARTS
+- Periodic low power mode
+- Enabling low power mode via state machine handshake
 
 The application uses a serial terminal for user interaction. It prints
 informative messages on the serial port at the start-up providing details of
@@ -26,8 +28,8 @@ random-access memory (DRAM) devices. It allows the DRAM to retain data without
 external clocking, by performing its own auto-refresh cycles. This leads to a
 significant reduction in power consumption by the memory chip. There are also
 features that enable a user to disable peripheral clocks, disable DDR PLL,
-disable peripheral RAMs, and scale the
-CPU frequency to half its default state.
+disable peripheral RAMs, and scale the CPU frequency to half its default state.
+The user is also able to check the current monitor status within the menus.
 
 The following table shows to where the power rails supply.
 
@@ -50,9 +52,8 @@ power comparisons with these features.
 
 || VDD power rail (mW) | VDD saved power percentage (%) |
 |:-|:-|:-|
-| MSS DDR Controller PLL enabled      | 832.81    |        |
-| MSS DDR Controller PLL disabled     | 600.28    |  ~28%  |
-
+| MSS DDR Controller PLL outputs enabled      | 950.18    |        |
+| MSS DDR Controller PLL outputs disabled     | 690.20    |  ~27%  |
 
 || VDD power rail (mW) | Total saved power percentage (%) |
 |:-|:-|:-|
@@ -70,17 +71,17 @@ The following table shows the clock scaling numbers.
 
 || VDD power rail (mW) | VDD saved power percentage (%) |
 |:-|:-|:-|
-| MSS PLL clock at 600MHz      | 838.22    |        |
-| MSS PLL clock at 300MHz      | 659.42    |  ~20%  |
+| MSS PLL clock at 600MHz      | 952.32    |        |
+| MSS PLL clock at 300MHz      | 777.60    |  ~22%  |
 
 If all MSS power saving options are implemented:
 
-| Power Saving Feature | VDD Power (mW) |
-|:-|:-|
-| Full power mode                         | 800.00    |
-| MSS PLL clock scaled to 300MHz (mW)     | - 178.80  |
-| MSS DDR Controller PLL disabled (mW)    | - 232.53  |
-| Low power mode                          | 388.67    |
+| Power Saving Feature | VDD Power (mW) | VDD saved power percentage (%) |
+|:-|:-|:-|
+| Full power mode                         | 951.40    |        |
+| MSS PLL clock scaled to 300MHz (mW)     | - 174.72  |        |
+| MSS DDR Controller PLL disabled (mW)    | - 261.24  |        |
+| Lowest power mode                       | 515.44    |  ~46%  |
 
 ## Target boards:
 
@@ -123,6 +124,8 @@ for each board.
 1. The following menu should appear if the DDR has trained successfully
 
   ```
+  This program is run from E51
+
   MPFS HAL Power Saving Options:
   1  How to toggle ON/OFF Parked Hart RAM at bootup
   2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup
@@ -130,11 +133,14 @@ for each board.
   4  Display DDR menu
   5  Display clock scaling menu
   6  Display maximum power-saving menu
+  7  Toggle periodic low power mode
+  8  Display state machine menu
+  c  Display PAC1934 current monitor values
 
   Type 0 to show the menu again
   ```
 
-1. When the DDR menu is displayed:
+2. When the DDR menu is displayed:
 
   ```
   Select a DDR option:
@@ -146,9 +152,10 @@ for each board.
   4  Turn on ddr self refresh
   5  Turn off ddr self refresh
   6  Check ddr self refresh status
-  7  Turn off ddr pll
-  8  Turn on ddr pll
-  9  Go back to main menu
+  7  Turn off ddr pll outputs
+  8  Turn on ddr pll outputs
+  c  Display PAC1934 current monitor values
+  m  Go back to main menu
   WARNING: DDR is not accessible when in self-refresh mode, or PLL is disabled
 
   Type 0 to show the menu again
@@ -163,9 +170,10 @@ for each board.
   1  Change CPU clock frequency to 300MHz (half)
   2  Change CPU clock frequency to 600MHz (default)
   3  Display clock status
-  7  Go back to main menu
+  c  Display PAC1934 current monitor values
+  m  Go back to main menu
 
-  Type 0 to show the menu again;
+  Type 0 to show the menu again
   ```
 
 4. When the max power-saving menu is displayed:
@@ -176,10 +184,25 @@ for each board.
   Make sure that u54_1 hart is turned on before selecting an option:
   1  Toggle maximum power-saving mode with clock scaling
   2  Toggle maximum power-saving mode without clock scaling
-  3  Display clock status
-  7  Go back to main menu
+  3  Reset to default settings
+  4  Display clock status
+  c  Display PAC1934 current monitor values
+  m  Go back to main menu
 
-  Type 0 to show the menu again;
+  Type 0 to show the menu again
+  ```
+
+5. When the state machine menu is displayed:
+
+  ```
+  Select a handshake option:
+
+  1  Start app by sending request to u54_1 core
+  2  Get state machine status
+  c  Display PAC1934 current monitor values
+  m  Go back to main menu
+
+  Type 0 to show the menu again
   ```
 
 ## UART configuration
