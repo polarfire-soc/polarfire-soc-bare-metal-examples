@@ -80,7 +80,7 @@ uint32_t state_machine_h0(void)
                 fs_h0.request_state = FS_SM_0_DEFAULT_STATE;
                 fs_h0.sm = FS_SM_0_DEFAULT_STATE;
 
-                // NOW SET FLAG TO START u51 APP
+                /* Start app with flag */
                 start_app_flag = 1;
             }
             break;
@@ -135,16 +135,6 @@ uint32_t state_machine_h1(void)
                 fs_h1.previous_state = FS_SM_1_WAIT_START;
                 fs_h1.request_state = FS_SM_1_RUN_APP;
                 fs_h1.sm = FS_SM_1_RUN_APP;
-
-            }
-            break;
-
-        case FS_SM_1_LOW_FREQ:
-            fs_h1.current_state = FS_SM_1_LOW_FREQ;
-            if (user_sm_request_h1 != previous_user_request)
-            {
-                previous_user_request = user_sm_request_h1;
-                fs_h1.previous_state = FS_SM_1_LOW_FREQ;
             }
             break;
 
