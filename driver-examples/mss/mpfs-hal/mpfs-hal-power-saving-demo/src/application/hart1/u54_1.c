@@ -47,7 +47,7 @@ uint32_t user_sm_request_h1 = 0U;
 
 #define DDR_TOGGLE_OUTPUTS              0x1U
 
-#define MAX_ADDRESS                     0x80010000UL
+#define MAX_ADDRESS                     0x80001000UL
 
 char info_string[100];
 
