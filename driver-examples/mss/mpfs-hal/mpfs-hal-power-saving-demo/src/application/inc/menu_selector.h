@@ -38,6 +38,7 @@ extern const uint8_t display_menu_ddr[];
 extern const uint8_t display_menu_clock_scaling[];
 extern const uint8_t display_menu_max[];
 extern const uint8_t display_menu_state_machine[];
+extern const uint8_t display_menu_bootup_options[];
 
 extern const uint8_t msg_toggle_park_hart_ram[];
 extern const uint8_t msg_toggle_fpu[];
@@ -56,12 +57,13 @@ extern const uint8_t msg_ack_rx_from_u54_1[];
 extern const uint8_t msg_page_break[];
 extern const uint8_t msg_start_u54_1[];
 
+void select_bootup_option(uint8_t config_option);
 void select_ddr_option(uint8_t config_option);
 void select_clock_scaling_option(uint8_t config_option);
 void select_max_option(uint8_t config_option);
-void display_clocks(void);
-void periodic_lp_mode(void);
 void select_state_machine_option(uint8_t config_option);
+void periodic_lp_mode(void);
+void display_clocks(void);
 
 extern mss_uart_instance_t *g_uart;
 volatile uint32_t ddr_sr_test;

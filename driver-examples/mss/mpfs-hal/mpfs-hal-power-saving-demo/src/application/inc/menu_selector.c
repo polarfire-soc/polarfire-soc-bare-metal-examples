@@ -11,15 +11,24 @@ const uint8_t menu_power_saving[] =
 "This program is run from E51\r\n"
 "\r\n"
 "MPFS HAL Power Saving Options:\r\n"
+"1  Display bootup option menu\r\n"
+"2  Display DDR menu\r\n"
+"3  Display clock scaling menu\r\n"
+"4  Display maximum power-saving menu\r\n"
+"5  Display state machine menu\r\n"
+"6  Toggle periodic low power mode\r\n"
+"c  Display PAC1934 current monitor values\r\n";
+
+const uint8_t display_menu_bootup_options[] = 
+"\r\n"
+"Select a bootup option:\r\n"
+"\r\n"
+"MPFS HAL Power Saving Options:\r\n"
 "1  How to toggle ON/OFF Parked Hart RAM at bootup\r\n"
 "2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup\r\n"
 "3  How to toggle ON/OFF RAM of Unused Peripherals at bootup\r\n"
-"4  Display DDR menu\r\n"
-"5  Display clock scaling menu\r\n"
-"6  Display maximum power-saving menu\r\n"
-"7  Toggle periodic low power mode\r\n"
-"8  Display state machine menu\r\n"
-"c  Display PAC1934 current monitor values\r\n";
+"c  Display PAC1934 current monitor values\r\n"
+"m  Go back to main menu\r\n";
 
 const uint8_t display_menu_ddr[] =
 "\r\n"
@@ -70,7 +79,7 @@ const uint8_t display_menu_state_machine[] =
 "c  Display PAC1934 current monitor values\r\n"
 "m  Go back to main menu\r\n";
 
-/* MESSAGES */
+/* BOOTUP MESSAGES */
 const uint8_t msg_toggle_park_hart_ram[] =
 "\r\n"
 "How to toggle ON/OFF Parked Hart RAM(s) at bootup:\r\n"
@@ -118,6 +127,8 @@ const uint8_t msg_toggle_unused_perif_ram[] =
 "COMMENT the line: #define MEASURED_UNUSED_PERIPHERAL_RAM\r\n"
 "\r\n"
 "Save changes, build, and run project to measure the power.\r\n";
+
+/* OTHER MESSAGES */
 const uint8_t msg_medium_frequency_enabled[] =
 "\r\nCPU operating in half speed of default frequency:\r\n";
 
@@ -185,6 +196,71 @@ const uint8_t msg_start_u54_1[] =
 "UPDATE: Starting app\r\n";
 
 /* FUNCTIONS */
+void select_bootup_option(uint8_t config_option)
+{
+    uint8_t rx_buff[1];
+    uint8_t get_uart_rx = 0;
+    uint8_t leave_function = 0;
+
+    while (1)
+    {
+        get_uart_rx = (uint8_t)MSS_UART_get_rx(g_uart, (uint8_t*)rx_buff,
+                                            (uint32_t)sizeof(rx_buff));
+
+        if (get_uart_rx++)
+        {
+            switch(rx_buff[0])
+            {
+                default:
+                    ;
+                    break;
+                case '0':
+                    MSS_UART_polled_tx_string(g_uart, msg_page_break);
+                    MSS_UART_polled_tx_string(g_uart, display_menu_bootup_options);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
+                    break;
+                case '1':
+                    /* 1   */
+                    MSS_UART_polled_tx_string(g_uart, msg_toggle_park_hart_ram);
+                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    break;
+
+                case '2':
+                    /* 2   */
+                    MSS_UART_polled_tx_string(g_uart, msg_toggle_fpu);
+                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    break;
+                case '3':
+                    /* 3   */
+                    MSS_UART_polled_tx_string(g_uart, msg_toggle_unused_perif_ram);
+                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    break;
+                case 'c':
+                    /* c  c  Display PAC1934 current monitor values */
+                    monitor_current_flag = 1;
+                    break;
+                case 'm':
+                    /* m  Print main menu for power saving and leave function */
+                    MSS_UART_polled_tx_string(g_uart, msg_page_break);
+                    MSS_UART_polled_tx_string(g_uart, menu_power_saving);
+                    MSS_UART_polled_tx_string(g_uart,
+                                                msg_show_menu_again_prompt);
+                    leave_function = 1;
+                    break;
+            } /* End of switch statement */
+        } /* End of receive buffer check */
+
+        /* Leave this fuction if flag is raised */
+        if (leave_function == 1)
+        {
+            break; /* Break from while(1) loop */
+        }
+
+    } /* End of while loop */
+
+}
+
 void select_ddr_option(uint8_t config_option)
 {
     uint8_t rx_buff[1];
@@ -220,10 +296,7 @@ void select_ddr_option(uint8_t config_option)
                 switch(rx_buff[0])
                 {
                     default:
-                        MSS_UART_polled_tx_string(g_uart, msg_page_break);
-                        MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
-                        MSS_UART_polled_tx_string(g_uart,
-                                                    msg_show_menu_again_prompt);
+                        ;
                         break;
                     case '0':
                         MSS_UART_polled_tx_string(g_uart, msg_page_break);
@@ -317,10 +390,7 @@ void select_clock_scaling_option(uint8_t config_option)
                 switch (rx_buff[0])
                 {
                     default:
-                        MSS_UART_polled_tx_string(g_uart, msg_page_break);
-                        MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
-                        MSS_UART_polled_tx_string(g_uart,
-                                                    msg_show_menu_again_prompt);
+                        ;
                         break;
                     case '0':
                         MSS_UART_polled_tx_string(g_uart, msg_page_break);
@@ -370,7 +440,6 @@ void select_clock_scaling_option(uint8_t config_option)
             {
                 break; /* Break from while(1) loop */
             }
-
         } /* End of while loop */
     }
 }
@@ -391,10 +460,7 @@ void select_max_option(uint8_t config_option)
             switch (rx_buff[0])
             {
                 default:
-                    MSS_UART_polled_tx_string(g_uart, msg_page_break);
-                    MSS_UART_polled_tx_string(g_uart, display_menu_max);
-                    MSS_UART_polled_tx_string(g_uart,
-                                                msg_show_menu_again_prompt);
+                    ;
                     break;
                 case '0':
                     MSS_UART_polled_tx_string(g_uart, msg_page_break);
@@ -488,10 +554,7 @@ void select_state_machine_option(uint8_t config_option)
             switch (rx_buff[0])
             {
                 default:
-                    MSS_UART_polled_tx_string(g_uart, msg_page_break);
-                    MSS_UART_polled_tx_string(g_uart, display_menu_state_machine);
-                    MSS_UART_polled_tx_string(g_uart,
-                                                msg_show_menu_again_prompt);
+                    ;
                     break;
                 case '0':
                     MSS_UART_polled_tx_string(g_uart, msg_page_break);

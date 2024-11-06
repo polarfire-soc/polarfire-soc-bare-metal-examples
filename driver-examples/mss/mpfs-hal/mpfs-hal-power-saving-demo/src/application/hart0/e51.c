@@ -237,15 +237,12 @@ void Software_h0_IRQHandler(void)
     count_sw_ints_h0++;
 }
 
-
 void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
 {
     switch(rx_buff[0])
     {
         default:
-            /* Show the menu again */
-            MSS_UART_polled_tx_string(g_uart, menu_power_saving);
-            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+            ;
             break;
         case '0':
             /* Show the menu again */
@@ -253,47 +250,38 @@ void main_menu_options(uint8_t rx_buff[], uint8_t get_uart_rx)
             MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             break;
         case '1':
-            /* How to toggle ON/OFF Parked Hart RAM at bootup */
-            MSS_UART_polled_tx_string(g_uart, msg_toggle_park_hart_ram);
+            /* 1  Display bootup option menu */
+            MSS_UART_polled_tx_string(g_uart, display_menu_bootup_options);
             MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+            select_bootup_option(CUSTOM_CONFIG);
             break;
         case '2':
-            /* How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup */
-            MSS_UART_polled_tx_string(g_uart, msg_toggle_fpu);
-            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
-            break;
-        case '3':
-            /* How to toggle ON/OFF RAM of Unused Peripherals at bootup */
-            MSS_UART_polled_tx_string(g_uart, msg_toggle_unused_perif_ram);
-            MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
-            break;
-        case '4':
-            /* Display DDR menu */
+            /* 2  Display DDR menu */
             MSS_UART_polled_tx_string(g_uart, display_menu_ddr);
             MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             select_ddr_option(CUSTOM_CONFIG);
             break;
-        case '5':
-            /* Display clock scaling menu */
+        case '3':
+            /* 3  Display clock scaling menu */
             MSS_UART_polled_tx_string(g_uart, display_menu_clock_scaling);
             MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             select_clock_scaling_option(CUSTOM_CONFIG);
             break;
-        case '6':
-            /* Display maximum power-saving menu */
+        case '4':
+            /* 4  Display maximum power-saving menu */
             MSS_UART_polled_tx_string(g_uart, display_menu_max);
             MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             select_max_option(CUSTOM_CONFIG);
             break;
-        case '7':
-            /* Toggle periodic low power mode */
-            periodic_lp_mode();
-            break;
-        case '8':
-            /* Display state machine menu */
+        case '5':
+            /* 5  Display state machine menu */
             MSS_UART_polled_tx_string(g_uart, display_menu_state_machine);
             MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
             select_state_machine_option(CUSTOM_CONFIG);
+            break;
+        case '6':
+            /* 6  Toggle periodic low power mode */
+            periodic_lp_mode();
             break;
         case 'c':
             /* Monitor current with u54_1 flag raise */
