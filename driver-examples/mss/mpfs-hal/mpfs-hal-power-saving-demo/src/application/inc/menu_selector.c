@@ -8,6 +8,8 @@
 /* MENUS */
 const uint8_t menu_power_saving[] =
 "\r\n"
+"CURRENT LOCATION: main-menu\r\n"
+"\r\n"
 "This program is run from E51\r\n"
 "\r\n"
 "MPFS HAL Power Saving Options:\r\n"
@@ -21,6 +23,8 @@ const uint8_t menu_power_saving[] =
 
 const uint8_t display_menu_bootup_options[] = 
 "\r\n"
+"CURRENT LOCATION: main-menu/bootup-menu\r\n"
+"\r\n"
 "Select a bootup option:\r\n"
 "\r\n"
 "MPFS HAL Power Saving Options:\r\n"
@@ -31,6 +35,8 @@ const uint8_t display_menu_bootup_options[] =
 "m  Go back to main menu\r\n";
 
 const uint8_t display_menu_ddr[] =
+"\r\n"
+"CURRENT LOCATION: main-menu/ddr-menu\r\n"
 "\r\n"
 "Select a DDR option:\r\n"
 "\r\n"
@@ -49,6 +55,8 @@ const uint8_t display_menu_ddr[] =
 
 const uint8_t display_menu_clock_scaling[] =
 "\r\n"
+"CURRENT LOCATION: main-menu/clock-scaling-menu\r\n"
+"\r\n"
 "Select a clock scaling option:\r\n"
 "\r\n"
 "Make sure that u54_1 hart is turned on before selecting an option:\r\n"
@@ -59,6 +67,8 @@ const uint8_t display_menu_clock_scaling[] =
 "m  Go back to main menu\r\n";
 
 const uint8_t display_menu_max[] =
+"\r\n"
+"CURRENT LOCATION: main-menu/max-power-saving-menu\r\n"
 "\r\n"
 "Select a max power-saving option:\r\n"
 "\r\n"
@@ -71,6 +81,8 @@ const uint8_t display_menu_max[] =
 "m  Go back to main menu\r\n";
 
 const uint8_t display_menu_state_machine[] =
+"\r\n"
+"CURRENT LOCATION: main-menu/state-machine-menu\r\n"
 "\r\n"
 "Select a handshake option:\r\n"
 "\r\n"
