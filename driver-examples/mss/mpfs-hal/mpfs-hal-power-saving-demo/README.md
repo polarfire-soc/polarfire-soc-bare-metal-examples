@@ -127,20 +127,33 @@ for each board.
   This program is run from E51
 
   MPFS HAL Power Saving Options:
-  1  How to toggle ON/OFF Parked Hart RAM at bootup
-  2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup
-  3  How to toggle ON/OFF RAM of Unused Peripherals at bootup
-  4  Display DDR menu
-  5  Display clock scaling menu
-  6  Display maximum power-saving menu
-  7  Toggle periodic low power mode
-  8  Display state machine menu
+  1  Display bootup option menu
+  2  Display DDR menu
+  3  Display clock scaling menu
+  4  Display maximum power-saving menu
+  5  Display state machine menu
+  6  Toggle periodic low power mode
   c  Display PAC1934 current monitor values
 
   Type 0 to show the menu again
   ```
 
-2. When the DDR menu is displayed:
+2. When the bootup menu is displayed:
+
+  ```
+  Select a bootup option:
+
+  MPFS HAL Power Saving Options:
+  1  How to toggle ON/OFF Parked Hart RAM at bootup
+  2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup
+  3  How to toggle ON/OFF RAM of Unused Peripherals at bootup
+  c  Display PAC1934 current monitor values
+  m  Go back to main menu
+
+  Type 0 to show the menu again
+  ```
+
+3. When the DDR menu is displayed:
 
   ```
   Select a DDR option:
@@ -161,7 +174,7 @@ for each board.
   Type 0 to show the menu again
   ```
 
-3. When the clock scaling menu is displayed:
+4. When the clock scaling menu is displayed:
 
   ```
   Select a clock scaling option:
@@ -176,7 +189,7 @@ for each board.
   Type 0 to show the menu again
   ```
 
-4. When the max power-saving menu is displayed:
+5. When the max power-saving menu is displayed:
 
   ```
   Select a max power-saving option:
@@ -192,7 +205,7 @@ for each board.
   Type 0 to show the menu again
   ```
 
-5. When the state machine menu is displayed:
+6. When the state machine menu is displayed:
 
   ```
   Select a handshake option:
