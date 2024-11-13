@@ -29,8 +29,7 @@ const uint8_t display_menu_bootup_options[] =
 "\r\n"
 "MPFS HAL Power Saving Options:\r\n"
 "1  How to toggle ON/OFF Parked Hart RAM at bootup\r\n"
-"2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup\r\n"
-"3  How to toggle ON/OFF RAM of Unused Peripherals at bootup\r\n"
+"2  How to toggle ON/OFF RAM of Unused Peripherals at bootup\r\n"
 "c  Display PAC1934 current monitor values\r\n"
 "m  Go back to main menu\r\n";
 
@@ -107,22 +106,6 @@ const uint8_t msg_toggle_park_hart_ram[] =
 "\r\n"
 "To turn OFF RAM to Parked Hart at bootup:\r\n"
 "UNCOMMENT the line: #ifdef TURN_OFF_POWER_TO_PARKED_HARTS\r\n"
-"\r\n"
-"Save changes, build, and run project to measure the power.\r\n";
-
-const uint8_t msg_toggle_fpu[] =
-"\r\n"
-"How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup:\r\n"
-"\r\n"
-"Open boards/{BOARD}/platform_config/mpfs_hal_config/mss_sw_config.h:\r\n"
-"\r\n"
-"To turn ON U54 Floating Point Units (FPU) at bootup:\r\n"
-"UNCOMMENT the line: #define TURN_ALL_FPU_ON\r\n"
-"COMMENT the line: #define TURN_ALL_FPU_OFF\r\n"
-"\r\n"
-"To turn OFF U54 Floating Point Units (FPU) at bootup:\r\n"
-"COMMENT the line: #define TURN_ALL_FPU_ON\r\n"
-"UNCOMMENT the line: #define TURN_ALL_FPU_OFF\r\n"
 "\r\n"
 "Save changes, build, and run project to measure the power.\r\n";
 
@@ -237,13 +220,7 @@ void select_bootup_option(uint8_t config_option)
                     MSS_UART_polled_tx_string(g_uart, msg_toggle_park_hart_ram);
                     MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
                     break;
-
                 case '2':
-                    /* 2   */
-                    MSS_UART_polled_tx_string(g_uart, msg_toggle_fpu);
-                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
-                    break;
-                case '3':
                     /* 3   */
                     MSS_UART_polled_tx_string(g_uart, msg_toggle_unused_perif_ram);
                     MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);

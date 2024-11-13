@@ -41,7 +41,6 @@ extern const uint8_t display_menu_state_machine[];
 extern const uint8_t display_menu_bootup_options[];
 
 extern const uint8_t msg_toggle_park_hart_ram[];
-extern const uint8_t msg_toggle_fpu[];
 extern const uint8_t msg_toggle_unused_perif_ram[];
 extern const uint8_t msg_medium_frequency_enabled[];
 extern const uint8_t msg_normal_frequency_enabled[];

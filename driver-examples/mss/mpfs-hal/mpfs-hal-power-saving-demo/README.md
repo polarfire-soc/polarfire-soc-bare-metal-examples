@@ -145,8 +145,7 @@ for each board.
 
   MPFS HAL Power Saving Options:
   1  How to toggle ON/OFF Parked Hart RAM at bootup
-  2  How to toggle ON/OFF U54 Floating Point Units(FPU) at bootup
-  3  How to toggle ON/OFF RAM of Unused Peripherals at bootup
+  2  How to toggle ON/OFF RAM of Unused Peripherals at bootup
   c  Display PAC1934 current monitor values
   m  Go back to main menu
 
