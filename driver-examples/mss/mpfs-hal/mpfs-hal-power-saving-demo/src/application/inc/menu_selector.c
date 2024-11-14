@@ -30,6 +30,7 @@ const uint8_t display_menu_bootup_options[] =
 "MPFS HAL Power Saving Options:\r\n"
 "1  How to toggle ON/OFF Parked Hart RAM at bootup\r\n"
 "2  How to toggle ON/OFF RAM of Unused Peripherals at bootup\r\n"
+"3  Display enabled and disabled bootup peripherals\r\n"
 "c  Display PAC1934 current monitor values\r\n"
 "m  Go back to main menu\r\n";
 
@@ -190,6 +191,29 @@ const uint8_t msg_ack_rx_from_u54_1[] =
 const uint8_t msg_start_u54_1[] =
 "UPDATE: Starting app\r\n";
 
+const char *peripheral_dict[] = {
+    "EMMC",     /* EMMC         [0:1]   RW value= 0x1 */
+    "SD_SDIO",  /* SD_SDIO      [1:1]   RW value= 0x1 */
+    "USB",      /* USB          [2:1]   RW value= 0x1 */
+    "MAC0",     /* MAC0         [3:1]   RW value= 0x1 */
+    "MAC1",     /* MAC1         [4:1]   RW value= 0x1 */
+    "QSPI",     /* QSPI         [5:1]   RW value= 0x1 */
+    "SPI0",     /* SPI0         [6:1]   RW value= 0x1 */
+    "SPI1",     /* SPI1         [7:1]   RW value= 0x1 */
+    "MMUART0",  /* MMUART0      [8:1]   RW value= 0x1 */
+    "MMUART1",  /* MMUART1      [9:1]   RW value= 0x1 */
+    "MMUART2",  /* MMUART2      [10:1]  RW value= 0x1 */
+    "MMUART3",  /* MMUART3      [11:1]  RW value= 0x1 */
+    "MMUART4",  /* MMUART4      [12:1]  RW value= 0x1 */
+    "I2C0",     /* I2C0         [13:1]  RW value= 0x1 */
+    "I2C1",     /* I2C1         [14:1]  RW value= 0x1 */
+    "CAN0",     /* CAN0         [15:1]  RW value= 0x1 */
+    "CAN1",     /* CAN1         [16:1]  RW value= 0x1 */
+    "GPIO0",    /* GPIO0        [17:1]  RW value= 0x0 */
+    "GPIO1",    /* GPIO1        [18:1]  RW value= 0x0 */
+    "GPIO2"     /* GPIO2        [19:1]  RW value= 0x1 */
+};
+
 /* FUNCTIONS */
 void select_bootup_option(uint8_t config_option)
 {
@@ -216,13 +240,16 @@ void select_bootup_option(uint8_t config_option)
                                                 msg_show_menu_again_prompt);
                     break;
                 case '1':
-                    /* 1   */
                     MSS_UART_polled_tx_string(g_uart, msg_toggle_park_hart_ram);
                     MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
                     break;
                 case '2':
-                    /* 3   */
                     MSS_UART_polled_tx_string(g_uart, msg_toggle_unused_perif_ram);
+                    MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
+                    break;
+                case '3':
+                    print_disabled_registers(SYSREG->RAM_SHUTDOWN_CR);
+                    print_enabled_registers((uint32_t)LIBERO_SETTING_CONFIGURED_PERIPHERALS);
                     MSS_UART_polled_tx_string(g_uart, msg_show_menu_again_prompt);
                     break;
                 case 'c':
@@ -808,4 +835,56 @@ void periodic_lp_mode(void)
             MSS_TIM1_stop(TIMER_LO);
         }
     }
+}
+
+void print_disabled_registers(uint32_t sys_reg)
+{
+    char buffer[256];
+    int offset = 0;
+
+    offset += sprintf(buffer + offset, "\r\nSYSREG->RAM_SHUTDOWN_CR: 0x%08lx\r\n", sys_reg);
+    offset += sprintf(buffer + offset, "----------------------------------------------------\r\n", sys_reg);
+
+
+    if (sys_reg & (1 << 0)) {
+        offset += sprintf(buffer + offset, "CAN0_RAM disabled\r\n");
+    }
+    if (sys_reg & (1 << 1)) {
+        offset += sprintf(buffer + offset, "CAN1_RAM disabled\r\n");
+    }
+    if (sys_reg & (1 << 2)) {
+        offset += sprintf(buffer + offset, "USB_RAM disabled\r\n");
+    }
+    if (sys_reg & (1 << 3)) {
+        offset += sprintf(buffer + offset, "MAC0_RAM disabled\r\n");
+    }
+    if (sys_reg & (1 << 4)) {
+        offset += sprintf(buffer + offset, "MAC1_RAM disabled\r\n");
+    }
+    if (sys_reg & (1 << 5)) {
+        offset += sprintf(buffer + offset, "MMC_RAM disabled\n");
+    }
+    if (sys_reg & (1 << 6)) {
+        offset += sprintf(buffer + offset, "DDR_RAM disabled\r\n");
+    }
+
+    MSS_UART_polled_tx_string(&g_mss_uart0_lo, buffer);
+}
+
+void print_enabled_registers(uint32_t sys_reg) {
+    char buffer[1000];
+    int offset = 0;
+
+    offset += sprintf(buffer + offset, "\r\nLIBERO_SETTING_CONFIGURED_PERIPHERALS: 0x%08lx\r\n", sys_reg);
+    offset += sprintf(buffer + offset, "----------------------------------------------------\r\n", sys_reg);
+
+    uint32_t num_peripherals = sizeof(peripheral_dict) / sizeof(peripheral_dict[0]);
+
+    for (int x = 0; x < num_peripherals; x++) {
+        if (sys_reg & (1 << x)) {
+            offset += sprintf(buffer + offset, "%s enabled\r\n", peripheral_dict[x]);
+        }
+    }
+
+    MSS_UART_polled_tx_string(&g_mss_uart0_lo, buffer);
 }

@@ -263,7 +263,7 @@ output. 1 implies it has been configured, 0 it has not been configured. */
     /* GPIO1                             [18:1]  RW value= 0x0 */
     /* GPIO2                             [19:1]  RW value= 0x1 */
 
-/* The configuration below only enables mmuart peripherals */
+/* The configuration below only enables mmuart0 and mmuart1 peripherals */
 #define LIBERO_SETTING_CONFIGURED_PERIPHERALS   ((0U<<0U) |  /* EMMC */ \
                                                 (0U<<1U) |   /* SD_SDIO */ \
                                                 (0U<<2U) |   /* USB */ \
@@ -274,9 +274,9 @@ output. 1 implies it has been configured, 0 it has not been configured. */
                                                 (0U<<7U) |   /* SPI1 */ \
                                                 (1U<<8U) |   /* MMMUART0 */ \
                                                 (1U<<9U) |   /* MMUART1 */ \
-                                                (1U<<10U) |  /* MMUART2 */ \
-                                                (1U<<11U) |  /* MMUART3 */ \
-                                                (1U<<12U) |  /* MMUART4 */ \
+                                                (0U<<10U) |  /* MMUART2 */ \
+                                                (0U<<11U) |  /* MMUART3 */ \
+                                                (0U<<12U) |  /* MMUART4 */ \
                                                 (0U<<13U) |  /* I2C0 */ \
                                                 (0U<<14U) |  /* I2C1 */ \
                                                 (0U<<15U) |  /* CAN0 */ \
@@ -286,5 +286,8 @@ output. 1 implies it has been configured, 0 it has not been configured. */
                                                 (0U<<19U))   /* GPIO2 */ \
 
 /* Comment the above define and uncomment this define to disable all peripherals */
-// #define LIBERO_SETTING_CONFIGURED_PERIPHERALS     0x00000000UL
+// #define LIBERO_SETTING_CONFIGURED_PERIPHERALS   0x00000000UL
+
+/* Comment the above define and uncomment this define to enable all peripherals */
+// #define LIBERO_SETTING_CONFIGURED_PERIPHERALS   0x0009FFFFUL
 

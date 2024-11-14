@@ -63,6 +63,8 @@ void select_max_option(uint8_t config_option);
 void select_state_machine_option(uint8_t config_option);
 void periodic_lp_mode(void);
 void display_clocks(void);
+void print_disabled_registers(uint32_t sys_reg);
+void print_enabled_registers(uint32_t sys_reg);
 
 extern mss_uart_instance_t *g_uart;
 volatile uint32_t ddr_sr_test;
