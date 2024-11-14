@@ -41,9 +41,10 @@ The following table shows to where the power rails supply.
 These tests were conducted on a PolarFire SoC Video Kit using the standard
 reference design and MSS configuration. Results will vary depending on several
 factors, including the FPGA design used and MSS configuration (such as the base
-clock speed and peripherals enabled). For accurate results, this demo should be
-run using an intended target configuration. See the following tables to see the
-power comparisons with these features.
+clock speed and peripherals enabled). In this example project, there is a soft
+reset applied to the FPGA fabric upon startup. For accurate results, this demo
+should be run using an intended target configuration. See the following tables
+to see the power comparisons with these features.
 
 || 1P1V power rail (mW) | 1P1V saved power percentage (%) |
 |:-|:-|:-|

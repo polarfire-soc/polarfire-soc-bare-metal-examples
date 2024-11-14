@@ -218,6 +218,7 @@ void e51(void)
 
     /* Wake up hart 1 */
     raise_soft_interrupt(1U);
+    mss_disable_fabric();
 
     /* Start the other harts with appropriate UART input from user */
     while (1)
