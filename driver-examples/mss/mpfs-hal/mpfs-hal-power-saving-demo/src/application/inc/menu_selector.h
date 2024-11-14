@@ -72,6 +72,7 @@ volatile uint32_t monitor_current_flag;
 extern uint32_t user_sm_request_h0;
 extern uint32_t state_machine_status_request_h0;
 extern uint32_t state_machine_status_request_h1;
+char large_buffer[1000];
 
 #endif
 

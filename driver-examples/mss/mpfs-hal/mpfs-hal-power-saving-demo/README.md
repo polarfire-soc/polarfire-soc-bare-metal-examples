@@ -57,8 +57,8 @@ power comparisons with these features.
 
 || VDD power rail (mW) | Total saved power percentage (%) |
 |:-|:-|:-|
-| All MSS Peripheral RAMs enabled  | 691.11 |     |
-| All MSS Peripheral RAMs disabled | 643.96 | ~3% |
+| All MSS Peripheral RAMs enabled  | 950.63 |     |
+| All MSS Peripheral RAMs disabled | 927.74 | ~2% |
 
 The following table shows the clock scaling numbers.
 
@@ -81,7 +81,8 @@ If all MSS power saving options are implemented:
 | Full power mode                         | 951.40    |        |
 | MSS PLL clock scaled to 300MHz (mW)     | - 174.72  |        |
 | MSS DDR Controller PLL disabled (mW)    | - 261.24  |        |
-| Lowest power mode                       | 515.44    |  ~46%  |
+| All MSS Peripheral RAMs disabled        | - 22.89   |        |
+| Lowest power mode                       | 492.55    |  ~52%  |
 
 ## Target boards:
 

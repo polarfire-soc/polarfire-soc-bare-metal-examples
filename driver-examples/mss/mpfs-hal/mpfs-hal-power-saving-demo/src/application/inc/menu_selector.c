@@ -872,19 +872,19 @@ void print_disabled_registers(uint32_t sys_reg)
 }
 
 void print_enabled_registers(uint32_t sys_reg) {
-    char buffer[1000];
+    char large_buffer[1000];
     int offset = 0;
 
-    offset += sprintf(buffer + offset, "\r\nLIBERO_SETTING_CONFIGURED_PERIPHERALS: 0x%08lx\r\n", sys_reg);
-    offset += sprintf(buffer + offset, "----------------------------------------------------\r\n", sys_reg);
+    offset += sprintf(large_buffer + offset, "\r\nLIBERO_SETTING_CONFIGURED_PERIPHERALS: 0x%08lx\r\n", sys_reg);
+    offset += sprintf(large_buffer + offset, "----------------------------------------------------\r\n", sys_reg);
 
     uint32_t num_peripherals = sizeof(peripheral_dict) / sizeof(peripheral_dict[0]);
 
     for (int x = 0; x < num_peripherals; x++) {
         if (sys_reg & (1 << x)) {
-            offset += sprintf(buffer + offset, "%s enabled\r\n", peripheral_dict[x]);
+            offset += sprintf(large_buffer + offset, "%s enabled\r\n", peripheral_dict[x]);
         }
     }
 
-    MSS_UART_polled_tx_string(&g_mss_uart0_lo, buffer);
+    MSS_UART_polled_tx_string(&g_mss_uart0_lo, large_buffer);
 }
