@@ -11,13 +11,15 @@
  * Code running on U54 hart 4
  *
  */
+
+/* Comment out line below to turn on power to parked hart*/
+#ifdef TURN_OFF_POWER_TO_PARKED_HARTS
+
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #include "inc/common.h"
 
-/* Comment out line below to turn on power to parked hart*/
-#ifdef TURN_OFF_POWER_TO_PARKED_HARTS
 
 volatile uint32_t count_sw_ints_h4 = 0U;
 extern uint64_t hart_jump_ddr;

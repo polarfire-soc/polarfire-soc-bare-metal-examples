@@ -11,6 +11,10 @@
  * Code running on U54 first hart
  *
  */
+
+/* Comment out line below to turn on power to parked hart*/
+// #ifdef TURN_OFF_POWER_TO_PARKED_HARTS
+
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
@@ -18,9 +22,6 @@
 #include "inc/menu_selector.h"
 #include "inc/state_machine.h"
 #include "drivers/off-chip/pac1934/pac1934.h"
-
-/* Comment out line below to turn on power to parked hart*/
-// #ifdef TURN_OFF_POWER_TO_PARKED_HARTS
 
 static void check_self_refresh_status(void);
 static void clear_pattern_in_memory_block(void);
