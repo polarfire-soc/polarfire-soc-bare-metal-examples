@@ -577,4 +577,8 @@ MSS_PDMA_clear_transfer_error_status
     mss_pdma_channel_id_t channel_id
 );
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif  /* MSS_PDMA_H */
