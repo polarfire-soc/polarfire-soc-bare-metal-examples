@@ -68,6 +68,7 @@ uint32_t uart0_mutex;
 uint32_t pattern_offset = 12U;
 
 uint32_t user_sm_request_h0 = 0U;
+uint32_t low_power_flag = 0U;
 uint32_t state_machine_status_request_h0 = 0U;
 uint32_t state_machine_status_request_h1 = 0U;
 

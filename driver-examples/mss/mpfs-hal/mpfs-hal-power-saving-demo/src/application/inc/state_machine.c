@@ -22,6 +22,7 @@ extern uint32_t user_sm_request_h0;
 extern uint32_t user_sm_request_h1;
 extern uint32_t state_machine_status_request_h0;
 extern uint32_t state_machine_status_request_h1;
+extern uint32_t low_power_flag;
 
 /*
  * Local function declarations
@@ -35,7 +36,6 @@ void verify_pattern_in_memory(void);
 uint32_t request_from_h0 = 0;
 uint32_t ack_from_h1 = 0;
 uint32_t start_app_flag = 0;
-uint32_t first_run_flag = 0;
 
 /*
  * Public Functions - API
@@ -93,6 +93,10 @@ uint32_t state_machine_h0(void)
                 get_state_name_string_h0(fs_h0.request_state),
                 get_state_name_string_h0(fs_h0.previous_state));
         MSS_UART_polled_tx_string(&g_mss_uart0_lo, info_string);
+        if (low_power_flag == 1)
+            MSS_UART_polled_tx_string(&g_mss_uart0_lo, msg_state_mode_status_lp);
+        else
+            MSS_UART_polled_tx_string(&g_mss_uart0_lo, msg_state_mode_status_hp);
         MSS_UART_polled_tx_string(&g_mss_uart0_lo, msg_show_menu_again_prompt);
         state_machine_status_request_h0 = 0;
     }
@@ -140,9 +144,9 @@ uint32_t state_machine_h1(void)
 
         case FS_SM_1_RUN_APP:
             fs_h1.current_state = FS_SM_1_RUN_APP;
-            fs_h1.request_state = FS_SM_1_RUN_APP;
-            fs_h1.sm = FS_SM_1_RUN_APP;
-            if (first_run_flag == 0)
+            fs_h1.request_state = FS_SM_1_WAIT_START;
+            fs_h1.sm = FS_SM_1_WAIT_START;
+            if (low_power_flag == 1)
             {
                 place_pattern_in_memory();
                 verify_pattern_in_memory();
@@ -152,7 +156,19 @@ uint32_t state_machine_h1(void)
                 MSS_UART_polled_tx_string(&g_mss_uart1_lo,
                                             msg_ddr_pll_output_status_off);
                 select_clock_scaling_option(MAX_POWER_SAVING);
-                first_run_flag = 1;
+                fs_h1.previous_state = FS_SM_1_RUN_APP;
+            }
+            if (low_power_flag == 0)
+            {
+                place_pattern_in_memory();
+                verify_pattern_in_memory();
+                select_ddr_option(RESET_TO_DEFAULT);
+                MSS_UART_polled_tx_string(&g_mss_uart1_lo,
+                                            msg_self_refresh_status_off);
+                MSS_UART_polled_tx_string(&g_mss_uart1_lo,
+                                            msg_ddr_pll_output_status_on);
+                select_clock_scaling_option(RESET_TO_DEFAULT);
+                fs_h1.previous_state = FS_SM_1_RUN_APP;
             }
             break;
     } /* end of case statement */
@@ -164,6 +180,10 @@ uint32_t state_machine_h1(void)
                 get_state_name_string_h1(fs_h1.request_state),
                 get_state_name_string_h1(fs_h1.previous_state));
         MSS_UART_polled_tx_string(&g_mss_uart1_lo, info_string);
+        if (low_power_flag == 1)
+            MSS_UART_polled_tx_string(&g_mss_uart1_lo, msg_state_mode_status_lp);
+        else
+            MSS_UART_polled_tx_string(&g_mss_uart1_lo, msg_state_mode_status_hp);
         MSS_UART_polled_tx_string(&g_mss_uart1_lo, msg_show_menu_again_prompt);
         state_machine_status_request_h1 = 0;
     }

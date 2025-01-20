@@ -84,10 +84,11 @@ const uint8_t display_menu_state_machine[] =
 "\r\n"
 "CURRENT LOCATION: main-menu/state-machine-menu\r\n"
 "\r\n"
-"Select a handshake option:\r\n"
+"Select a state machine option:\r\n"
 "\r\n"
-"1  Start app by sending request to u54_1 core\r\n"
-"2  Get state machine status\r\n"
+"1  Send request to u54_1 core - LOW POWER\r\n"
+"2  Send request to u54_1 core - DEFAULT POWER\r\n"
+"3  Get state machine status\r\n"
 "c  Display PAC1934 current monitor values\r\n"
 "m  Go back to main menu\r\n";
 
@@ -167,6 +168,12 @@ const uint8_t msg_periodic_mode_status_lp[] =
 
 const uint8_t msg_periodic_mode_status_hp[] =
 "Status: High power mode...\r\n";
+
+const uint8_t msg_state_mode_status_lp[] =
+"\r\nPower status: Low power mode\r\n";
+
+const uint8_t msg_state_mode_status_hp[] =
+"\r\nPower status: Default power mode\r\n";
 
 const uint8_t msg_state_machine_status[] =
 "\r\n"
@@ -579,11 +586,17 @@ void select_state_machine_option(uint8_t config_option)
                                                 msg_show_menu_again_prompt);
                     break;
                 case '1':
-                    /* 1  Start app by telling e51 to send request to u54_1 core */
+                    /* 1  Send request to u54_1 core - LOW POWER */
                     user_sm_request_h0 = FS_SM_0_START_APP;
+                    low_power_flag = 1;
                     break;
                 case '2':
-                    /* 2  Get state machine status */
+                    /* 2  Send request to u54_1 core - DEFAULT POWER */
+                    user_sm_request_h0 = FS_SM_0_START_APP;
+                    low_power_flag = 0;
+                    break;
+                case '3':
+                    /* 3  Get state machine status */
                     state_machine_status_request_h0 = 1;
                     state_machine_status_request_h1 = 1;
                     break;
