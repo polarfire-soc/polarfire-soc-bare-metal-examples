@@ -1,0 +1,3 @@
+[submodule "driver-examples/mss/mpfs-hal/mpfs-hal-coremark/src/middleware/coremark"]
+	path = driver-examples/mss/mpfs-hal/mpfs-hal-coremark/src/middleware/coremark
+	url = https://github.com/eembc/coremark.git
