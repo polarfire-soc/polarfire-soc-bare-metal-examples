@@ -12,7 +12,7 @@ Embedded Microprocessor Benchmark Consortium (EEMBC). These are placed in the
 coremark directory.
 This will be done automatically using gitsubmodule, once you clone the repo using
 git and then run the git submodule command
-**git submodule update --init --recursive\n**
+**git submodule update --init --recursive**
 
 
 To use this project you will need a UART terminal configured as below:
@@ -22,26 +22,26 @@ To use this project you will need a UART terminal configured as below:
     - no parity
     - no flow control
 
-The example project will display the coremark results over MSS UART0.
-The project should be programmed to eNVM and run from there.
+The example project will display the coremark results over MSS UART0 and MSS 
+UART1. The project should be programmed to eNVM and run from there.
 
 ## Coremark from the Embedded Microprocessor Benchmark Consortium (EEMBC)
 
-The following files are present in Coremark 2018 from EEMBC.
-Place the filesin the source/application/hart1/coremark folder.
-Some configuration is required.
+The following files in the CoreMark (release v1.01) repository on the EEMBC 
+GitHub page are required to be modified for the PolarFire SoC. However, these 
+modifications have already been made in the example project, located at 
+*src\middleware\config\coremark\port*. Users do not need to make these changes 
+again. Additionally, there are other files in the CoreMark repository that do 
+not require any modifications.
 
-|  Coremark file                              | Detail                                       |
-| :-----------------------------------------: | :------------------------------------------: |
-|  coremark.h                                 | no edit required                             |
-|  core_util.c                                | no edit required                             |
-|  core_state.h                               | no edit required                             |
-|  core_matrix.h                              | no edit required                             |
-|  core_main.h                                | no edit required                             |
-|  core_list_join.h                           | no edit required                             |
-|  port/core_portme.c                         | edits required, see table below              |
-|  port/core_portme.h                         | edits required, see table below              |
-|  port/core_eeprintf.c                       | edits required, see table below              |
+|  Coremark file                              | Detail                         |
+| :-----------------------------------------: | :----------------------------: |
+|  port/core_portme.c                         | file is modified               |
+|  port/core_portme.h                         | file is modified               |
+|  port/core_eeprintf.c                       | file is modified               |
+
+**Note:** The changes listed below are for reference only, as they have already 
+been made in the example project.
 
 ### port/core_portme.h  required edits for the Icicle kit
 
@@ -209,10 +209,27 @@ Build the project using one of the hardware configurations and launch the
 matching debug configuration.
 e.g.
 
-|  project configuration               | Matching Debug configuration                         |
-| :----------------------------------: | :--------------------------------------------------: |
-|  Icicle-kit-run-from-scratchpad-envm | mpfs-hal-coremark hw Run-from-scratchpad-envm.launch |                             
-|  Icicle-kit-debug                    | mpfs-hal-coremark hw Run-from-scratchpad.launch      |
+|  project build configuration                   | Matching Debug configuration                 |
+| :--------------------------------------------: | :------------------------------------------: |
+|  Icicle-kit-coremark-stack-in-lim-debug        | mpfs-hal-coremark hw all-harts debug         |
+|  Icicle-kit-coremark-stack-in-scratchpad-debug | mpfs-hal-coremark hw all-harts debug         |
+|  Icicle-kit-run-from-scratchpad-envm           | PolarFire SoC program non-secure boot mode 1 |
+
+For the following build configurations, please follow the steps below:
+
+- Icicle-kit-payload-u54-1  
+- icicle-kit-payload-u54-2  
+- icicle-kit-payload-u54-3  
+- icicle-kit-payload-u54-4  
+
+### Steps:
+
+1. Program the Icicle kit in boot mode 1 using any of the above-mentioned build images.
+2. Open UART interfaces 0, 1, 2, and 3. Make sure the baud rate and other settings are configured as mentioned above.
+3. Restart the board.
+4. From the menu that appears on UART interface 0, select option 6 ("Load image to DDR using YMODEM") to flash the `.bin` file of the respective build from the example project using YMODEM.
+5. Press the key 'a' to start all U54 cores from DDR. This will initiate the respective U54 core application.
+
 
 ### Programing the eNVM
 
