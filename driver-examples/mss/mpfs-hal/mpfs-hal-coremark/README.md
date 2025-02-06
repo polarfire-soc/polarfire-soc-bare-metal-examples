@@ -7,25 +7,29 @@ This example project runs the Cormark performace test.
 
 ## How to use this example
 
+### 1. Coremark Source Files:
+
+
 To use this example you will need to obtain the coremark source files from the
 Embedded Microprocessor Benchmark Consortium (EEMBC). These are placed in the
-coremark directory.
-This will be done automatically using gitsubmodule, once you clone the repo using
-git and then run the git submodule command
-**git submodule update --init --recursive**
+coremark directory. This will be done automatically using git submodule, once 
+you clone the repo using git and then run the following git submodule command 
+in 'polarfire-soc-bare-metal-examples' directory.  
 
+	git submodule update --init --recursive
 
-To use this project you will need a UART terminal configured as below:
-    - 115200 baud
-    - 8 data bits
-    - 1 stop bit
-    - no parity
-    - no flow control
+### 2. UART Terminal Configuration:  
+Configure a UART terminal with the following settings:  
+- 115200 baud  
+- 8 data bits  
+- 1 stop bit  
+- no parity  
+- no flow control  
 
 The example project will display the coremark results over MSS UART0 and MSS 
 UART1. The project should be programmed to eNVM and run from there.
 
-## Coremark from the Embedded Microprocessor Benchmark Consortium (EEMBC)
+## CoreMark Modifications for PolarFire SoC
 
 The following files in the CoreMark (release v1.01) repository on the EEMBC 
 GitHub page are required to be modified for the PolarFire SoC. However, these 
@@ -36,142 +40,138 @@ not require any modifications.
 
 |  Coremark file                              | Detail                         |
 | :-----------------------------------------: | :----------------------------: |
-|  port/core_portme.c                         | file is modified               |
-|  port/core_portme.h                         | file is modified               |
-|  port/core_eeprintf.c                       | file is modified               |
+|  port/core_portme.c                         | file modified               |
+|  port/core_portme.h                         | file modified               |
+|  port/core_eeprintf.c                       | file modified               |
 
 **Note:** The changes listed below are for reference only, as they have already 
 been made in the example project.
 
-### port/core_portme.h  required edits for the Icicle kit
+### port/core_portme.h 
 
-The following are defines as
+ - Modify the following defines:
 
-	#define HAS_FLOAT 1
-	#define HAS_TIME_H 0
-	#define USE_CLOCK 0
-	#define HAS_STDIO 0
-	#define HAS_PRINTF 0
-	#define COMPILER_FLAGS FLAGS_STR
-	#define MEM_LOCATION "STACK"
+		#define HAS_FLOAT 1
+		#define HAS_TIME_H 0
+		#define USE_CLOCK 0
+		#define HAS_STDIO 0
+		#define HAS_PRINTF 0
+		#define COMPILER_FLAGS FLAGS_STR
+		#define MEM_LOCATION "STACK"
 
-Change the type define ee_u32 to
-	typedef signed int ee_u32;  
+ - Change the type define ee_u32 to  
 
-Edit the define CLOCKS_PER_SEC to match the MSS clock (LIBERO_SETTING_MSS_SYSTEM_CLK)
+		typedef signed int ee_u32;
+
+ - Edit the define CLOCKS_PER_SEC to match the MSS clock (LIBERO_SETTING_MSS_SYSTEM_CLK)
 found in soc_config/clocks/hw_mss_clks.hal-ddr-demo
 
-	#define CLOCKS_PER_SEC  600000000
+		#define CLOCKS_PER_SEC  600000000
 
-### port/core_portme.c  required edits for the Icicle kit
+### port/core_portme.c  
 
-Add the following at the top of the file
+ - Add the following at the top of the file
 
-	#include "mpfs_hal/mss_hal.h"
-	#include "drivers/mss_mmuart/mss_uart.h"
+		#include "mpfs_hal/mss_hal.h"
+		#include "drivers/mss_mmuart/mss_uart.h"
 
-	mss_uart_instance_t *gp_my_uart;
+		mss_uart_instance_t *gp_my_uart;
 
 
-edit the barebones_clock() funtion
+ - Modify barebones_clock() function
 
-	CORETIMETYPE barebones_clock() {
-		CORETIMETYPE mcycles;
-		mcycles = readmcycle();
-		return mcycles;
-	}
+		CORETIMETYPE barebones_clock() {
+			CORETIMETYPE mcycles;
+			mcycles = readmcycle();
+			return mcycles;
+		}
 
-Edit portable_init()
+ - Edit portable_init() function:
 
-	void portable_init(core_portable *p, int *argc, char *argv[])
-	{
-		SYSREG->SOFT_RESET_CR &= ~( (1u << 0u) | (1u << 4u) | (1u << 5u) |
+		void portable_init(core_portable *p, int *argc, char *argv[])
+		{
+			SYSREG->SOFT_RESET_CR &= ~( (1u << 0u) | (1u << 4u) | (1u << 5u) |
                                     (1u << 19u) | (1u << 23u) | (1u << 28u));
 
-		SYSREG->SUBBLK_CLOCK_CR = 0xffffffff;
+			SYSREG->SUBBLK_CLOCK_CR = 0xffffffff;
 
-		gp_my_uart = &g_mss_uart0_lo;
+			gp_my_uart = &g_mss_uart0_lo;
 
-		MSS_UART_init( &g_mss_uart0_lo,
+			MSS_UART_init( &g_mss_uart0_lo,
                    MSS_UART_115200_BAUD,
                    MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
-		if (sizeof(ee_ptr_int) != sizeof(ee_u8 *)) {
-			ee_printf("ERROR! Please define ee_ptr_int to a type that holds a pointer!\n");
+			if (sizeof(ee_ptr_int) != sizeof(ee_u8 *)) {
+				ee_printf("ERROR! Please define ee_ptr_int to a type that holds a pointer!\n");
+			}
+			if (sizeof(ee_u32) != 4) {
+				ee_printf("ERROR! Please define ee_u32 to a 32b unsigned type!\n");
+			}
+			p->portable_id=1;
 		}
-		if (sizeof(ee_u32) != 4) {
-			ee_printf("ERROR! Please define ee_u32 to a 32b unsigned type!\n");
+
+### port/core_eeprintf.c  
+
+ - Add the following declaration:
+
+		extern mss_uart_instance_t *gp_my_uart;
+
+ - Implement uart_send_char:
+
+		void uart_send_char(char c) {
+			/* #error "You must implement the method uart_send_char to use this file!\n"; */
+
+			MSS_UART_polled_tx(gp_my_uart, &c, 1);
+
+			/*	Output of a char to a UART usually follows the following model:
+			Wait until UART is ready
+			Write char to UART
+			Wait until UART is done
+
+			Or in code:
+			while (*UART_CONTROL_ADDRESS != UART_READY);
+			*UART_DATA_ADDRESS = c;
+			while (*UART_CONTROL_ADDRESS != UART_READY);
+
+			Check the UART sample code on your platform or the board documentation.
+			*/
 		}
-		p->portable_id=1;
-}
 
-### port/core_eeprintf.c  required edits for the Icicle kit
+ - Modify ee_printf:
 
-add the following
+		int ee_printf(const char *fmt, ...)
+		{
+			char buf[256],*p;
+			va_list args;
+			int n=0;
 
-	extern mss_uart_instance_t *gp_my_uart;
+			va_start(args, fmt);
+			ee_vsprintf(buf, fmt, args);
+			va_end(args);
+			p=buf;
 
-	void uart_send_char(char c) {
-	//<CJ>#error "You must implement the method uart_send_char to use this file!\n";
-		MSS_UART_polled_tx(gp_my_uart, &c, 1);
-	/*	Output of a char to a UART usually follows the following model:
-		Wait until UART is ready
-		Write char to UART
-		Wait until UART is done
+			while (*p) {
+				uart_send_char(*p);
+				n++;
+				p++;
+			}
+			uart_send_char('\r');
 
-		Or in code:
-		while (*UART_CONTROL_ADDRESS != UART_READY);
-		*UART_DATA_ADDRESS = c;
-		while (*UART_CONTROL_ADDRESS != UART_READY);
-
-		Check the UART sample code on your platform or the board documentation.
-	*/
-	}
-
-and edit ee_printf(const char *fmt, ...)
-	int ee_printf(const char *fmt, ...)
-	{
-	  char buf[256],*p;
-	  va_list args;
-	  int n=0;
-
-	  va_start(args, fmt);
-	  ee_vsprintf(buf, fmt, args);
-	  va_end(args);
-	  p=buf;
-	  while (*p) {
-		uart_send_char(*p);
-		n++;
-		p++;
-	  }
-	  uart_send_char('\r');
-
-	  return n;
-	}
+			return n;
+		}
 
 
-### Target configuration
+## Target configuration
 
-There are two target platforms supplied with this project, the Icicle kit and
-the PolarFire SoC peripheral Base board.
+The project currently supports the Icicle kit platform. The target 
+configurations can be found in:
 
-The settings associated with each taget are found in
+./src/boards/<icicle_kit_es>/..
 
-"./src/boards/<icicle_kit_es>/.."
-
-and
-
-"./src/boards/<mss_validation_board>/.."
-
-If adding support for your own board, add a directory here
-
-"./src/boards/<your_own_board>/.."
-
-
-
+If you need to add support for your own board, create a directory under 
+./src/boards/<your_own_board>/...
 
 #### Hardware Target configuration
-
 
 The configurations are categorized into hardware and software configurations.
 The hardware configurations are located in ./src/boards/<target_board> folder.
@@ -195,99 +195,206 @@ dependency on the hardware configurations in "soc_config" folder. Note that
 changing these software configurations may require a change in your application
 code.
 
+## Project settings
 
-### Executing project on the PolarFire SoC hardware
+### Target Processor Configuration
 
-There are two target platforms supplied with this project, the Icicle kit and
-the PolarFire SoC peripheral Base board.
-This application can be used on PolarFire hardware platform as well e.g. Icicle
-Kit. In this case, the MSS MMUART0 must be connected to a host PC. The host PC
-must connect to the serial port using a terminal emulator such as Tera Term or
-PuTTY or the SoftConsole built-in terminal view.
+| Item                     | setting 				  |
+| :----------------------: | :----------------------: |
+| Architecture             | RV64G                    |
+| compressed               | off                      |
+| Integer ABI              | Default                  |
+| Tuning                   | Default                  |
+| Code model               | medany                   |
+| Small data limit         | 8                        |
+| Align                    | mtune                    |
+
+### Optimization Flags used in the project
+
+Refer to the **Project -> Properties -> C/C++ Build -> Settings ->Tool Settings -> GNU RISCV C Cross Compiler -> Optimization** 
+for detailed settings.
+
+| Flags                    |
+| :----------------------: |
+| -O2                      |
+| -Wno-maybe-uninitialized |
+| -fno-common              |
+| -funroll-loops           |
+| -finline-functions       |
+| -falign-functions=16     |
+| -falign-jumps=4          |
+| -falign-loops=4          |
+| -finline-limit=1000      |
+| -fno-if-conversion2      |
+| -fselective-scheduling   |
+| -fno-tree-dominator-opts |
+
+## Executing project on the PolarFire SoC hardware
+
+There is one target platform supplied with this project: the Icicle kit. This 
+application can be used on the PolarFire hardware platform, such as the Icicle 
+Kit. The host PC must connect to the serial port using a terminal emulator such 
+as Tera Term, PuTTY, or the SoftConsole built-in terminal view.
+
+There are following four different ways to execute this example project. User 
+can use any one of them as per requirement.  
+
+### 1. Using Debug configurations (lim and scratchpad)
 
 Build the project using one of the hardware configurations and launch the
 matching debug configuration.
 e.g.
 
-|  project build configuration                   | Matching Debug configuration                 |
-| :--------------------------------------------: | :------------------------------------------: |
-|  Icicle-kit-coremark-stack-in-lim-debug        | mpfs-hal-coremark hw all-harts debug         |
-|  Icicle-kit-coremark-stack-in-scratchpad-debug | mpfs-hal-coremark hw all-harts debug         |
-|  Icicle-kit-run-from-scratchpad-envm           | PolarFire SoC program non-secure boot mode 1 |
+|  Project Build Configuration                   | Matching Debug configuration         | UART Port/Interface Number for Results |
+| :--------------------------------------------: | :----------------------------------: | :------------------------------------: |
+|  Icicle-kit-coremark-stack-in-lim-debug        | mpfs-hal-coremark hw all-harts debug | interface 0                            |
+|  Icicle-kit-coremark-stack-in-scratchpad-debug | mpfs-hal-coremark hw all-harts debug | interface 0                            |
 
-For the following build configurations, please follow the steps below:
+### 2. Using bootloader (mpfs-hal-ddr-demo)
 
-- Icicle-kit-payload-u54-1  
-- icicle-kit-payload-u54-2  
-- icicle-kit-payload-u54-3  
-- icicle-kit-payload-u54-4  
+To run CoreMark on the selected U54 core, follow the steps below:
 
-### Steps:
+You can choose any one of the following build configurations to execute and run 
+CoreMark on the corresponding U54 core:
 
-1. Program the Icicle kit in boot mode 1 using any of the above-mentioned build images.
-2. Open UART interfaces 0, 1, 2, and 3. Make sure the baud rate and other settings are configured as mentioned above.
-3. Restart the board.
-4. From the menu that appears on UART interface 0, select option 6 ("Load image to DDR using YMODEM") to flash the `.bin` file of the respective build from the example project using YMODEM.
-5. Press the key 'a' to start all U54 cores from DDR. This will initiate the respective U54 core application.
+|  Project Build Configuration | UART Port/Interface Number for Results |
+| :--------------------------: | :------------------------------------: |
+|  Icicle-kit-payload-u54-1    | interface 0                            |
+|  Icicle-kit-payload-u54-2    | interface 0 and interface 1            |
+|  Icicle-kit-payload-u54-3    | interface 0 and interface 2            |
+|  Icicle-kit-payload-u54-4    | interface 0 and interface 3            |
 
+#### Steps:
 
-### Programing the eNVM
+1. **Program the Icicle kit in Boot Mode 1**  
+   Use the mpfs-hal-ddr-demo project image to program the Icicle Kit in Boot Mode 1.
+	- Select the envm-scratchpad (Icicle-Kit-eNVM-Scratchpad-Release) build 
+	configuration from the mpfs-hal-ddr-demo project.  
+	- Use the following link for mpfs-hal-ddr-demo project:-  
+    [mpfs-hal-ddr-demo](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/tree/main/driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo) 
+2. **Open the Corresponding UART Interface**  
+	Open the UART interface corresponding to the selected U54 core. Ensure the 
+	baud rate and other settings are correctly configured as per the details above.
+3. **Build the CoreMark Example Project**  
+	Build the CoreMark example project using the appropriate build image, as 
+	listed in the table.
+4. **Restart the board.**  
+	After building the project, restart the Icicle Kit.
+5. **Load the Image to DDR**  
+	From the menu displayed on UART Interface 0, select option 6: "Load image to 
+	DDR using YMODEM." This will allow you to flash the .bin file of the 
+	selected build from the CoreMark example project to DDR using YMODEM.
+6. **Start the U54 Core Application**  
+	Press the key 'a' to start all U54 cores from DDR. This will initiate the 
+	respective U54 core application.
 
-The eNVM can be programmed using SoftConsole to call an external program.
-In the <run/external tools> menu, call the non-secure boot mode 1 progam.
-Please note the working directory must be pointing to the directory with the
-.elf file you wish to download.
+**NOTE** :- The HSS can also be used. Please find the details here: 
+	[HSS payloads](https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/hss-and-u-boot/hss-payloads.md). 
+	The entry points in the YAML file need to match the entry points used in 
+	each ELF. These are:
 
-### Options affecting expected results
-
-#### Compile options
-
-The compile options chosen have a significant affect on performance
-
-#### Memory location considerations
-
-The coremark program can be compiler to use heap or stack in its tests.
-The example program is configured to use stack.
-The type of memory used for stack(or heap if Coremark using heap) in a program has
-a significant affect on performance.
-Location of other program memory including code location has negligible influence.
-
-
-### Choosing Test options
-
-There are several configurations bundled with the project
-
-
-
- - Choose the active configuration in the SoftConsole project
-    - This selects the linker script
-    - The target Core
-    - The memory option
-
-See project->tool settings->cross c compiler->Preprocessor
-for a list of defines used in the project.
-
-|  project configurations              | Detail                                       |
-| :----------------------------------: | :------------------------------------------: |
-|  Icicle-kit-run-from-scratchpad-envm | Load to eNVM on Icicle                       |                             
-|  Icicle-kit-payload-u54-1*           | generates bin file, load using boot-loader   |
-|  Peripheral-base-board-envm          | Load to eNVM on PF base board                |
-|  Icicle-kit-debug                    | Use when debugging progam, loads to LIM      |
+ - u54_1: '0x80000000'  
+ - u54_2: '0x800A0000'  
+ - u54_3: '0x80140000'  
+ - u54_4: '0x801E0000'  
 
 
-*Note : In example Icicle-kit-payload-u54-1, a binary file is produced and loaded to DDR
-using a second program.You can use the mpfs-hal-ddr-demo program to do this. There is a
-section below describing this process.
+### 3. Programming the eNVM
 
-### Expected Results using single hart, other harts parked
+To program the eNVM, follow these steps:
 
-The memory configuration is the main impact on Coremark performace
+1. **Build the CoreMark Example Project**  
+	Use the **Icicle-kit-run-from-scratchpad-envm** build configuration to build 
+	the CoreMark example project.
 
-The code model used is medany.
-Both code models where tried from LIM and Scratchpad.
-It made no difference to result.
+2. **Program the eNVM in Boot Mode 1**  
+	Once the project is built, program the eNVM by using an external tool in 
+	Boot Mode 1.  
+		- Use SoftConsole to Load the Program  
+			In SoftConsole, open the <Run/External Tools> menu and select the 
+			non-secure boot mode 1 program.
 
-Again, please note, only the program stack memory has an affect on the Coremark score.
+**NOTE** :- Ensure the working directory is selected to the location of the .elf 
+file you wish to download while programming eNVM in boot mode 1.
+
+### 4. Renode Emulation
+Renode is an emulation platform used to model the PolarFire SoC hardware 
+functionality. Renode is integrated with the SoftConsole tool. To execute an 
+example firmware project on Renode, you must first launch the PolarFire SoC 
+model from SoftConsole and then run the executable on it.  
+This can be done in two ways:
+
+1. **Run Renode as external tool**
+	* To launch the PolarFire SoC board emulation model on Renode from 
+	SoftConsole, launch the preconfigured external tool from  
+	**Run -> External Tools -> "PolarFire-SoC-Icicle-Renode-emulation-platform"**.  
+
+	* Create and launch a debug configuration to download the executable and 
+	connect to one of the harts for running and step debugging the code.  
+	**Run -> Debug Configurations -> mpfs-hal-coremark Renode all-harts debug**.
+
+2. **Use launch group**
+	* Create a **Launch Group** configuration. This configuration will combine 
+	the two steps i.e. launching of the Renode tool and launching of the debug 
+	config to download and debug the code into one launch group configuration.  
+	**Run -> Debug Configurations -> Launch group -> mpfs-hal-coremark Renode all-harts Start-platform-and-debug** .
+
+#### DDR Training and Renode
+When DDR training is enabled in the firmware, the application startup in Renode 
+will take significantly longer. However, training doesn't have any practical 
+impact in this environment since the emulated DDR memory is already reliable.  
+
+To control DDR training, simply remove the `#define DDR_SUPPORT` line from the 
+mss_sw_config.h file. This file can be found in 
+`src\boards\[BOARD]\platform_config\mpfs_hal_config\`.
+
+If your project uses the default configuration file in 
+`src\platform\platform_config_reference\` to enable DDR training, it's 
+recommended to copy this file to the boards directory and disable `DDR_SUPPORT` 
+in the copied version.
+
+More information about using Renode is available on 
+[Renode](https://renode.readthedocs.io).  
+
+## Key Factors Affecting Expected Results
+
+1. **Compile options**
+
+	The compile options you choose play a significant role in performance.
+
+2. **Memory location considerations**
+
+	The CoreMark program can be configured to use either heap or stack memory 
+	during its tests. The provided example uses the stack for this purpose. The 
+	type of memory used—whether stack or heap—has a significant impact on 
+	performance. However, the location of other program memory, including code 
+	location, has a negligible influence on performance.
+
+3. **Choosing Test options**
+
+	The project comes with several configurations.
+
+	**Steps to Choose the Active Configuration in the SoftConsole Project:**
+
+	- Select the configuration that best suits your needs.  
+	- This will automatically choose:  
+		- The correct linker script.  
+		- The target Core.  
+		- The appropriate memory option.  
+
+For more information, go to 
+**Project -> Properties -> C/C++ Build -> Settings ->Tool Settings -> GNU RISCV C Cross Compiler -> Preprocessor** 
+to view the list of defines used in the project.
+
+## Expected Results using single hart, other harts parked
+
+Memory configuration is the primary factor influencing CoreMark performance.
+
+The code model used for testing is **medany**. Both LIM and Scratchpad code 
+models were tested, but they showed no noticeable impact on the results.
+
+Important Note: The only memory that affects the CoreMark score is the program's 
+stack memory.
 
 
 | Ref  | Memory Configuration             | Hart tested  | Iter/Sec    | Coremark  |
@@ -308,41 +415,9 @@ Again, please note, only the program stack memory has an affect on the Coremark 
 | R14  | App running from DDR             | U54_1        |  1875       |    3.12   |
 
 
-## Project settings
-
-### Target processor
-
-| Item                     | setting 				  |
-| :----------------------: | :----------------------: |
-| Architecture             | RV64G                    |
-| compressed               | off                      |
-| Integer ABI              | Default                  |
-| Tuning                   | Default                  |
-| Case model               | medany                   |
-| Small data limit         | 8                        |
-| Align                    | mtune                    |
 
 
-### Optimization flags used in the project
-
-See project->GNU RISCV c cross compiler->optimization
-
-| Flags                    |
-| :----------------------: |
-| -O2                      |
-| -Wno-maybe-uninitialized |
-| -fno-common              |
-| -funroll-loops           |
-| -finline-functions       |
-| -falign-functions=16     |
-| -falign-jumps=4          |
-| -falign-loops=4          |
-| -finline-limit=1000      |
-| -fno-if-conversion2      |
-| -fselective-scheduling   |
-| -fno-tree-dominator-opts |
-
-##### Some examples of verbose results shown on the terminal
+### Some examples of verbose results shown on the terminal
 
 Example 1
 
@@ -449,32 +524,3 @@ Example 5
 	Correct operation validated. See README.md for run and reporting rules.
 	CoreMark 1.0 : 1875.316231 / GCC8.3.0 -Wno-maybe-uninitialized -fno-common -funroll-loops -finline-functions -falign-functions=16 -falign-jumps=4 -falign-loops=4 - / STACKlimit=1000 -fno-if-conversion2 -fselective-scheduling -fno-tree-dominator-opts
 
-
-
-## Loading the Payload binary when using DDR
-
-When using the folloing build configurations a boot-loader progam must be used to load the binary or elf:
-    -    Icicle-kit-payload-u54-1
-	-    Icicle-kit-payload-u54-2
-	-    Icicle-kit-payload-u54-3
-	-    Icicle-kit-payload-u54-4
-
-The MPFS HAL DDR DEMO program bundled with this example can be used. Load the MPFS HAL DDR DEMO binary to envm and use the CLI menu to load the binary.
-For payload 2 to 4, the default load address of 0x80000000 will need to be changed to match the required load address 0x800A0000 for U54-2, 0x80140000 for U54-3 or 0x801E0000 for U54-4.
-
-The HSS can also be used. Please find the details here:
-[HSS payloads](https://mi-v-ecosystem.github.io/redirects/software-development_hss-payloads)
-The entry points for the yaml file need to match the entry point used in each elf. These are :
-{u54_1: '0x80000000', u54_2: '0x800A0000', u54_3: '0x80140000', u54_4: '0x801E0000'}
-
-## Renode Emulation
-This example can be run on the Renode emulation platform. Build the application as normal, and then launch it using `mpfs-hal-coremark renode all-harts start-platform-and-debug.launch`
-
-UART console display and logging options can be found under the Startup tab in `Debug Configurations` > `mpfs-hal-coremark renode all-harts debug`. More information about using Renode is available on https://renode.readthedocs.io
-
-### DDR training and Renode
-If the firmware has DDR training enabled, then the application will take significantly longer to start up in Renode. Training has no practical impact in this environment as the emulated DDR memory is already reliable.
-
-Training can be controlled by removing `#define DDR_SUPPORT` in your `mss_sw_config.h` file. This change should be made in `src\boards\[BOARD]\platform_config\mpfs_hal_config\`
-
-If your project uses the default configuration file in `src\platform\platform_config_reference\` to enable DDR training, it is recommended to create a copy under the boards directory and disable `DDR_SUPPORT` there.
