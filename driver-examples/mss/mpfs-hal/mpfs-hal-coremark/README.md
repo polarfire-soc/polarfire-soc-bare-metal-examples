@@ -342,7 +342,10 @@ This can be done in two ways:
 #### DDR Training and Renode
 When DDR training is enabled in the firmware, the application startup in Renode 
 will take significantly longer. However, training doesn't have any practical 
-impact in this environment since the emulated DDR memory is already reliable.  
+impact in this environment since the emulated DDR memory is already reliable.To 
+skip DDR training, the user needs to define the RENODE_SIM_DDR_TRAINING macro. 
+For more details about this macro, please click on 
+[RENODE_SIM_DDR_TRAINING](https://github.com/polarfire-soc/platform/blob/3dde332cbd87d3d6e3c23a378b78ce440e8c21c0/mpfs_hal/common/nwc/mss_ddr.c#L574C9-L574C32).
 
 To control DDR training, simply remove the `#define DDR_SUPPORT` line from the 
 mss_sw_config.h file. This file can be found in 
