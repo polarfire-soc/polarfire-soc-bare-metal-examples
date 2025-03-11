@@ -53,6 +53,7 @@ void u54_1(void) {
     uint32_t hartid = read_csr(mhartid);
 
     write_csr(0x7C0, 0x0);
+    turn_on_fpu(0x1EUL);
 
 #ifndef REQUIRES_COREMARK_FILES
     main();
@@ -84,6 +85,7 @@ void u54_2(void) {
     uint32_t hartid = read_csr(mhartid);
 
     write_csr(0x7C0, 0x0);
+    turn_on_fpu(0x1EUL);
 
     main();
 
@@ -113,6 +115,7 @@ void u54_3(void) {
     uint32_t hartid = read_csr(mhartid);
 
     write_csr(0x7C0, 0x0);
+    turn_on_fpu(0x1EUL);
 
     main();
 
@@ -142,6 +145,7 @@ void u54_4(void) {
     uint32_t hartid = read_csr(mhartid);
   
     write_csr(0x7C0, 0x0);
+    turn_on_fpu(0x1EUL);
 
     main();
 
