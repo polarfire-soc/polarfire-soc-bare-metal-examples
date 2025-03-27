@@ -4653,10 +4653,23 @@ __attribute__((weak)) void clear_bootup_cache_ways(void)
 
     load_ddr_pattern(&pattern_test);
 
-    /* clear using my d-cache ways */
-    fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_32_DDR,
-                               (void *)(BASE_ADDRESS_CACHED_32_DDR +
-                                        TWO_MBYTES));
+	/* clear using my d-cache ways */
+	fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_32_DDR,
+							   (void *)(BASE_ADDRESS_CACHED_32_DDR +
+										TWO_MBYTES));
+
+	/* clear using pdma routine, uses the 4 channels */
+	pattern_test.base = LIBERO_SETTING_DDR_64_CACHE;
+	pattern_test.size = TWO_MBYTES*4;
+	pattern_test.pattern_type = DDR_INIT_FILL;
+	pattern_test.pattern_offset = 0U;
+
+	load_ddr_pattern(&pattern_test);
+
+	/* clear using my d-cache ways */
+	fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_64_DDR,
+							   (void *)(BASE_ADDRESS_CACHED_64_DDR +
+									TWO_MBYTES));
 }
 
 /**
@@ -6407,3 +6420,4 @@ static void address_cmd_training_with_ck_push(DDR_TYPE ddr_type, uint8_t * refcl
 }   /* END MANUAL BCLKSCLK TRAINING */
 
 #endif /* DDR_SUPPORT */
+

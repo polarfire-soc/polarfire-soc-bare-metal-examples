@@ -47,7 +47,7 @@ static uint16_t g_int_service_response_size;
 static uint16_t g_int_service_response_offset;
 static uint16_t g_mb_offset;
 
-volatile static uint8_t g_message_interrupt_counter = 0u;
+static volatile uint8_t g_message_interrupt_counter = 0u;
 
 /*******************************************************************************
  * Callback handler function declaration
@@ -1762,17 +1762,10 @@ MSS_SYS_unlock_debug_passcode
 )
 {
     uint16_t status = MSS_SYS_PARAM_ERR;
-    uint8_t mb_format[32] = {0};
-    uint8_t index = 0u;
 
     if (cmd_data == NULL_BUFFER)
     {
         return status;
-    }
-
-    for (index = 0u; index < 32u; index++)
-    {
-        mb_format[index] = cmd_data[index];
     }
 
     if (MSS_SYS_SERVICE_INTERRUPT_MODE == g_service_mode)
@@ -1975,7 +1968,7 @@ static uint16_t request_system_service
     uint8_t* byte_buf ;
     uint8_t byte_off;
     uint8_t byte_index;
-    uint32_t * mailbox_reg;
+    volatile uint32_t * mailbox_reg;
     uint32_t mailbox_val = 0u;
 
     if (MSS_SCBCTRL->SERVICES_SR & SCBCTRL_SERVICESSR_BUSY_MASK)
@@ -2165,7 +2158,7 @@ g5c_message_plic_IRQHandler
 {
     g_message_interrupt_counter++;
 
-    volatile uint32_t reg = *MSS_SCBMESSAGE; /* read message reg. */
+    volatile uint32_t __attribute__((unused)) reg = *MSS_SCBMESSAGE; /* read message reg. */
     reg = *MSS_SCBMESSAGE_INT;
     *MSS_SCBMESSAGE_INT = 0x0u; /* clear message_int reg */
     reg = *MSS_SCBMESSAGE_INT;
