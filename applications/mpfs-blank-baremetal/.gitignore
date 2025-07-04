@@ -1,0 +1,9 @@
+
+/LIM-Debug*/
+/LIM-Release*/  
+/DDR-Release*/
+/eNVM-Scratchpad-Release*/
+/.settings*/
+/src/boards/icicle-kit-es/fpga_design_config/*
+/src/boards/mpfs-discovery-kit/fpga_design_config/*
+
