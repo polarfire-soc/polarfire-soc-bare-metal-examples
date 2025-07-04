@@ -1,14 +1,18 @@
-# PolarFire SoC MSS GPIO example
+# PolarFire SoC Blank Baremetal Project
 
-This example project demonstrates the use of the PolarFire SoC MSS GPIO block. 
-Both the input and output port configurations are demonstrated along with the 
-interrupt handling for the input ports.
+This project serves as a fresh template for customer development. It includes only
+the essential initialization and startup code for all harts (E51 and U54 cores),
+and demonstrates basic inter-hart software interrupt handling. No application
+logic or peripheral drivers are enabled by default, allowing you to begin your
+own development from a blank state, tailored to your specific requirements.
 
 ## How to use this example
 
-On connecting Icicle kit J11 to the host PC, you should see 4 COM port interfaces
-On connecting Discovery kit J4 to the host PC, you should see 3 COM port interfaces
-connected. To use this project configure the COM port **interface1** as below:
+When connecting the **Icicle Kit** J11 to the host PC, you should see 4 COM port interfaces connected.
+When connecting the **Discovery Kit** J4 to the host PC, you should see 3 COM port interfaces connected.
+When connecting the **PFSoC Video Kit** J12 to the host PC, you should see 4 COM port interfaces connected.
+
+To use this project, configure the COM port **interface 0** as below:
 
  - 115200 baud
  - 8 data bits
@@ -16,18 +20,20 @@ connected. To use this project configure the COM port **interface1** as below:
  - no parity
  - no flow control
 
-The example project will display instructions over the serial port. A greeting
-message and menu instructions are displayed over the UART terminal. Follow the 
-instruction to use different menu options provided by the example project.
+This project will print "Hello World" over UART interface 0. The output can be viewed on a
+serial terminal connected to interface 0.
 
+## Build and Debug Configurations
 
-This project provides build configurations and debug launchers as explained
+This project includes reference build, debug, and external tools configurations for all supported kits, located in the `launch_configs` folder. These files are automatically detected by SoftConsole and can be selected as run or debug options. Use these as a starting point or reference when setting up your own project configurations for different kits.
+
+The provided build configurations and debug launchers are explained
 [here](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples).
 
 ## Renode Emulation
-This example can be run on the Renode emulation platform. Build the application as normal, and then launch it using `mpfs-gpio-interrupt renode all-harts start-platform-and-debug.launch`
+This example can be run on the Renode emulation platform. Build the application as normal, and then launch it using `mpfs-blank-baremetal renode all-harts start-platform-and-debug.launch`
 
-UART console display and logging options can be found under the Startup tab in `Debug Configurations` > `mpfs-gpio-interrupt renode all-harts debug`. More information about using Renode is available on https://renode.readthedocs.io
+UART console display and logging options can be found under the Startup tab in `Debug Configurations` > `mpfs-blank-baremetal renode all-harts debug`. More information about using Renode is available at https://renode.readthedocs.io
 
 ### DDR training and Renode
 If the firmware has DDR training enabled, then the application will take significantly longer to start up in Renode. Training has no practical impact in this environment as the emulated DDR memory is already reliable.
