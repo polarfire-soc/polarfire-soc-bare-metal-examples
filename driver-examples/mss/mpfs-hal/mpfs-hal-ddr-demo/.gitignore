@@ -38,3 +38,4 @@
 /mpfs-tp4100-666Hz/
 /beagle-v-fire-LIM-Debug/
 /beagle-v-fire-eNVM-Scratchpad-Release/
+/src/boards/*/fpga_design_config/**

@@ -3,3 +3,4 @@
 /LIM-Release*/ 
 /DDR-Release*/ 
 /.settings*/
+/src/boards/*/fpga_design_config/**
