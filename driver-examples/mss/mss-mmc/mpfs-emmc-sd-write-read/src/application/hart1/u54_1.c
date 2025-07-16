@@ -233,7 +233,7 @@ static int8_t mmc_init_emmc(void)
         {
             while(1u);
         }
-        switch_external_mux(EMMC_MSSIO_CONFIGURATION);
+        switch_demux_using_fabric_ip(EMMC_MSSIO_CONFIGURATION);
         /* eMMC configuration */
         g_mmc.clk_rate = MSS_MMC_CLOCK_50MHZ;
         g_mmc.card_type = MSS_MMC_CARD_TYPE_MMC;
@@ -268,7 +268,7 @@ static int8_t mmc_init_sdcard(void)
         {
             while(1u);
         }
-        switch_external_mux(SD_MSSIO_CONFIGURATION);
+        switch_demux_using_fabric_ip(SD_MSSIO_CONFIGURATION);
         /* SD Card configuration */
         g_mmc.card_type = MSS_MMC_CARD_TYPE_SD;
         g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
