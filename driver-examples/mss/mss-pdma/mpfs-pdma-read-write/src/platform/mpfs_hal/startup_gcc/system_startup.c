@@ -1,44 +1,32 @@
-/******************************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+/*******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
-/***************************************************************************
  * @file system_startup.c
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief first C code called on startup. Will call user code created outside
  * the HAL.
+ *
  */
+
 #include <stddef.h>
 #include <stdbool.h>
 #include "mpfs_hal/mss_hal.h"
 #ifdef  MPFS_HAL_HW_CONFIG
 #include "../common/nwc/mss_nwc_init.h"
-#include "system_startup_defs.h"
 #endif
+#include "system_startup_defs.h"
 
+
+static uint32_t parked_harts = 0U;
+void* __dso_handle = (void*) &__dso_handle;
+static void init_global_constructors(void);
 
 /*==============================================================================
  * This function is called by the lowest enabled hart (MPFS_HAL_FIRST_HART) in
- * the configuration file (platform/config/software/mpfs_hal/mss_sw_config.h )
+ * the configuration file :
+ * (src/boards/<my-board/platform_config/mpfs_hal_config/mss_sw_config.h )
  *
  * The other harts up to MPFS_HAL_LAST_HART are placed in wfi at this point.
  * This function brings them out of wfi in sequence.
@@ -46,6 +34,7 @@
  * space
  * e.g. /hart0/e51.c
  */
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
 __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
 {
     uint64_t hartid = read_csr(mhartid);
@@ -60,13 +49,9 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
          * #ifdef MPFS_HAL_HW_CONFIG
          * if this program is used as part of the initial board bring-up
          * Please comment/uncomment MPFS_HAL_HW_CONFIG define in
-         * platform/config/software/mpfs_hal/sw_config.h
+         * src/boards/<my-board/platform_config/mpfs_hal_config/sw_config.h
          * as required.
          */
-#ifdef  MPFS_HAL_HW_CONFIG
-        config_l2_cache();
-#endif  /* MPFS_HAL_HW_CONFIG */
-
         init_memory();
 #ifndef MPFS_HAL_HW_CONFIG
         hls->my_hart_id = MPFS_HAL_FIRST_HART;
@@ -77,6 +62,7 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
         (void)init_mem_protection_unit();
         (void)init_pmp((uint8_t)MPFS_HAL_FIRST_HART);
         (void)mss_set_apb_bus_cr((uint32_t)LIBERO_SETTING_APBBUS_CR);
+        (void)mss_set_gpio_interrupt_fab_cr((uint32_t)LIBERO_SETTING_GPIO_INTERRUPT_FAB_CR);
 #endif  /* MPFS_HAL_HW_CONFIG */
         /*
          * Initialise NWC
@@ -87,6 +73,8 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
          */
 #ifdef  MPFS_HAL_HW_CONFIG
         (void)mss_nwc_init();
+        (void)mss_nwc_init_ddr();
+        init_global_constructors();
 
         /* main hart init's the PLIC */
         PLIC_init_on_reset();
@@ -171,7 +159,9 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
         stack_top = (ptrdiff_t)((uint8_t*)&__stack_top_h0$);
         hls = (HLS_DATA*)(stack_top - HLS_DEBUG_AREA_SIZE);
         hls->in_wfi_indicator = HLS_MAIN_HART_FIN_INIT;
-
+        
+        /* Turn off peripheral RAM that is not being used */
+        mss_turn_off_unused_ram_clks();
         /*
          * Turn on fic interfaces by default. Drivers will turn on/off other MSS
          * peripherals as required.
@@ -180,11 +170,14 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
         (void)mss_config_clk_rst(MSS_PERIPH_FIC1, (uint8_t)MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
         (void)mss_config_clk_rst(MSS_PERIPH_FIC2, (uint8_t)MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
         (void)mss_config_clk_rst(MSS_PERIPH_FIC3, (uint8_t)MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+        /* enable the fabric */
+        mss_enable_fabric();
 
 #endif /* MPFS_HAL_HW_CONFIG */
         (void)main_other_hart(hls);
     }
 
+    __builtin_unreachable();
     /* should never get here */
     while(true)
     {
@@ -195,65 +188,111 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
 
     return (0);
 }
+#endif
 
 /*==============================================================================
- * u54_single_hart startup.
- * This is called when a bootloader has loaded a single hart program.
- * A pointer to the hart Local Storage (HLS) is passed here which has been
- * passed by the boot program in the a1 register.
- * The HLS contains the hartID.
- * It also contains a pointer to shared memory
- * Information on the HLS used in the bare metal examples.
- *           The HLS is a small amount of memory dedicated to each hart.
- *           The HLS also contains a pointer to shared memory.
- *           The shared memory is accessible by all harts if used. It is
- *           allocated by the boot-loader if the MPFS_HAL_SHARED_MEM_ENABLED
- *           is defined in the mss_sw_config.h file project configuration file.
- * Please see the project mpfs-hal-run-from-ddr-u54-1 located in the Bare Metal
- * library under examples/mpfs-hal for an example of it use.
+ * This function is called by the lowest enabled hart (MPFS_HAL_FIRST_HART) in
+ * the configuration file :
+ * (src/boards/<my-board/platform_config/mpfs_hal_config/mss_sw_config.h )
  *
- * https://github.com/polarfire-soc/polarfire-soc-bare-metal-library
- *
+ * The other harts up to MPFS_HAL_LAST_HART are placed in wfi at this point.
+ * This function brings them out of wfi in sequence.
  * If you need to modify this function, create your own one in a user directory
  * space
- * e.g. /hart1/x.c
+ * e.g. /hart0/e51.c
  */
-__attribute__((weak)) int u54_single_hart(HLS_DATA* hls)
+#if (IMAGE_LOADED_BY_BOOTLOADER == 1)
+
+__attribute__((weak)) int main_first_hart_app(HLS_DATA* hls)
 {
-    init_memory();
-    hls->my_hart_id = MPFS_HAL_FIRST_HART;
-#ifdef  MPFS_HAL_SHARED_MEM_ENABLED
-    /* if shared memory enabled, pointer from Boot-loader in the HLS should be
-     * non-zero */
-    ASSERT(hls->shared_mem != NULL);
-#endif
-    switch(hls->my_hart_id)
+    uint64_t hartid = read_csr(mhartid);
+
+    if(hartid == MPFS_HAL_FIRST_HART)
     {
-        case 0U:
-            e51();
-            break;
+        uint8_t hart_id;
+        ptrdiff_t stack_top;
 
-        case 1U:
-            u54_1();
-            break;
+        init_memory();
+        init_global_constructors();
 
-        case 2U:
-            u54_2();
-            break;
+        hls->my_hart_id = MPFS_HAL_FIRST_HART;
+        hls->in_wfi_indicator = HLS_MAIN_HART_STARTED;
+        WFI_SM sm_check_thread = INIT_THREAD_PR;
+        hart_id = MPFS_HAL_FIRST_HART + 1U;
+        while( hart_id <= MPFS_HAL_LAST_HART)
+        {
+            uint32_t wait_count = 0U;
 
-        case 3U:
-            u54_3();
-            break;
+            switch(sm_check_thread)
+            {
+                default:
+                case INIT_THREAD_PR:
 
-        case 4U:
-            u54_4();
-            break;
+                    switch (hart_id)
+                    {
+                        case 1:
+                            stack_top = (ptrdiff_t)((uint8_t*)&__stack_top_h1$);
+                            break;
+                        case 2:
+                            stack_top = (ptrdiff_t)((uint8_t*)&__stack_top_h2$);
+                            break;
+                        case 3:
+                            stack_top = (ptrdiff_t)((uint8_t*)&__stack_top_h3$);
+                            break;
+                        case 4:
+                            stack_top = (ptrdiff_t)((uint8_t*)&__stack_top_h4$);
+                            break;
+                    }
+                    hls = (HLS_DATA*)(stack_top - HLS_DEBUG_AREA_SIZE);
+                    sm_check_thread = CHECK_WFI;
+                    wait_count = 0U;
+                    break;
 
-        default:
-            /* no more harts */
-            break;
+                case CHECK_WFI:
+                    if( hls->in_wfi_indicator == HLS_OTHER_HART_IN_WFI )
+                    {
+                        /* Separate state- to add a little delay */
+                        sm_check_thread = SEND_WFI;
+                    }
+                    break;
+
+                case SEND_WFI:
+                    hls->my_hart_id = hart_id; /* record hartid locally */
+                    raise_soft_interrupt(hart_id);
+                    sm_check_thread = CHECK_WAKE;
+                    wait_count = 0UL;
+                    break;
+
+                case CHECK_WAKE:
+                    if( hls->in_wfi_indicator == HLS_OTHER_HART_PASSED_WFI )
+                    {
+                        sm_check_thread = INIT_THREAD_PR;
+                        hart_id++;
+                        wait_count = 0UL;
+                    }
+                    else
+                    {
+                        wait_count++;
+                        if(wait_count > 0x10U)
+                        {
+                            if( hls->in_wfi_indicator == HLS_OTHER_HART_IN_WFI )
+                            {
+                                hls->my_hart_id = hart_id; /* record hartid locally */
+                                raise_soft_interrupt(hart_id);
+                                wait_count = 0UL;
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+        stack_top = (ptrdiff_t)((uint8_t*)&__stack_top_h1$);
+        hls = (HLS_DATA*)(stack_top - HLS_DEBUG_AREA_SIZE);
+        hls->in_wfi_indicator = HLS_MAIN_HART_FIN_INIT;
+        (void)main_other_hart(hls);
     }
 
+    __builtin_unreachable();
     /* should never get here */
     while(true)
     {
@@ -264,6 +303,7 @@ __attribute__((weak)) int u54_single_hart(HLS_DATA* hls)
 
     return (0);
 }
+#endif
 
 /*==============================================================================
  * U54s startup.
@@ -280,7 +320,7 @@ __attribute__((weak)) int u54_single_hart(HLS_DATA* hls)
  */
 __attribute__((weak)) int main_other_hart(HLS_DATA* hls)
 {
-#ifdef  MPFS_HAL_HW_CONFIG
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
     extern char __app_stack_top_h0;
     extern char __app_stack_top_h1;
     extern char __app_stack_top_h2;
@@ -293,7 +333,12 @@ __attribute__((weak)) int main_other_hart(HLS_DATA* hls)
     const uint64_t app_stack_top_h3 = (const uint64_t)&__app_stack_top_h3 - (HLS_DEBUG_AREA_SIZE);
     const uint64_t app_stack_top_h4 = (const uint64_t)&__app_stack_top_h4 - (HLS_DEBUG_AREA_SIZE);
 
+#ifdef TURN_OFF_POWER_TO_PARKED_HARTS
+    turn_off_power_to_parked_harts_ram();
+#endif
+
 #ifdef  MPFS_HAL_HW_CONFIG
+    turn_on_fpu((uint32_t)LIBERO_SETTING_TURN_ON_FPU);
 #ifdef  MPFS_HAL_SHARED_MEM_ENABLED
     /*
      * If we are a boot-loader, and shared memory enabled (MPFS_HAL_SHARED_MEM_ENABLED)
@@ -365,7 +410,40 @@ __attribute__((weak)) int main_other_hart(HLS_DATA* hls)
        /* Added some code as debugger hangs if in loop doing nothing */
        counter = counter + 1U;
     }
+#else /* (IMAGE_LOADED_BY_BOOTLOADER == 0) */
+
+
+    uint64_t hartid = read_csr(mhartid);
+
+    switch(hartid)
+    {
+
+    case 0U:
+        e51();
+        break;
+
+    case 1U:
+        u54_1();
+        break;
+
+    case 2U:
+        u54_2();
+        break;
+
+    case 3U:
+        u54_3();
+        break;
+
+    case 4U:
+        u54_4();
+        break;
+
+    default:
+        /* no more harts */
+        break;
+    }
 #endif
+
   return (0);
 
 }
@@ -397,6 +475,20 @@ void load_virtual_rom(void)
 #endif  /* MPFS_HAL_HW_CONFIG */
 
 /*==============================================================================
+ * Initialize the global constructor before using any C++ feature which depends
+ * on global constructors.
+ */
+static void init_global_constructors(void)
+{
+    void (**fun_ptr)(void) = (void (**)(void))&__init_array_start;
+    while (fun_ptr != (void (**)(void))&__init_array_end)
+    {
+        (*fun_ptr)();
+        fun_ptr++;
+     }
+}
+
+/*==============================================================================
  * Put the hart executing this code into an infinite loop executing from the
  * SCB system register memory space.
  * This allows preventing a hart from accessing memory regardless of memory
@@ -421,6 +513,7 @@ static void park_hart(void)
  */
 __attribute__((weak)) void e51(void)
 {
+    parked_harts |= (1U << 0U);
     /* Put hart in safe infinite WFI loop. */
      park_hart();
 }
@@ -434,6 +527,7 @@ __attribute__((weak)) void e51(void)
   */
 __attribute__((weak)) void u54_1(void)
 {
+    parked_harts |= (1U << 1U);
     /* Put hart in safe infinite WFI loop. */
      park_hart();
 }
@@ -448,6 +542,7 @@ __attribute__((weak)) void u54_1(void)
  */
 __attribute__((weak)) void u54_2(void)
 {
+    parked_harts |= (1U << 2U);
     /* Put hart in safe infinite WFI loop. */
     park_hart();
 }
@@ -461,6 +556,7 @@ __attribute__((weak)) void u54_2(void)
  */
 __attribute__((weak)) void u54_3(void)
 {
+    parked_harts |= (1U << 3U);
     /* Put hart in safe infinite WFI loop. */
      park_hart();
 }
@@ -474,8 +570,9 @@ __attribute__((weak)) void u54_3(void)
  */
 __attribute__((weak)) void u54_4(void)
 {
+    parked_harts |= (1U << 4U);
     /* Put hart in safe infinite WFI loop. */
-     park_hart();
+    park_hart();
 }
 
  /*-----------------------------------------------------------------------------
@@ -515,30 +612,6 @@ __attribute__((weak)) void u54_4(void)
     }
   }
 
- /**
-  * This function is configured by editing parameters in
-  * mss_sw_config.h as required.
-  * @return
-  */
-
-__attribute__((weak)) uint8_t init_bus_error_unit(void)
-{
-#ifndef SIFIVE_HIFIVE_UNLEASHED
-    uint8_t hart_id;
-    /* Init BEU in all harts - enable local interrupt */
-    for(hart_id = MPFS_HAL_FIRST_HART; hart_id <= MPFS_HAL_LAST_HART; hart_id++)
-    {
-        BEU->regs[hart_id].ENABLE      = (uint64_t)BEU_ENABLE;
-        BEU->regs[hart_id].PLIC_INT    = (uint64_t)BEU_PLIC_INT;
-        BEU->regs[hart_id].LOCAL_INT   = (uint64_t)BEU_LOCAL_INT;
-        BEU->regs[hart_id].CAUSE       = 0ULL;
-        BEU->regs[hart_id].ACCRUED     = 0ULL;
-        BEU->regs[hart_id].VALUE       = 0ULL;
-    }
-#endif
-    return (0U);
-}
-
 /**
  * init_mem_protection_unit(void)
  * add this function to you code and configure as required
@@ -546,9 +619,7 @@ __attribute__((weak)) uint8_t init_bus_error_unit(void)
  */
 __attribute__((weak)) uint8_t init_mem_protection_unit(void)
 {
-#ifndef SIFIVE_HIFIVE_UNLEASHED
     mpu_configure();
-#endif
     return (0U);
 }
 
@@ -564,22 +635,33 @@ __attribute__((weak)) uint8_t init_pmp(uint8_t hart_id)
 }
 
 /**
- * set_apb_bus_cr(void)
- * todo: add check to see if value valid re. mss configurator
- * @return
+ * turn_off_power_to_parked_harts(void)
+ *
+ * Turns off power to harts that have been parked.
+ *
  */
-__attribute__((weak)) uint8_t mss_set_apb_bus_cr(uint32_t reg_value)
+__attribute__((weak)) void turn_off_power_to_parked_harts_ram(void)
 {
-    SYSREG->APBBUS_CR = reg_value;
-    return (0U);
+    uint32_t hart_id = MPFS_HAL_FIRST_HART;
+
+    while( hart_id <= MPFS_HAL_LAST_HART)
+    {
+        if ((parked_harts & (1U << hart_id)) !=0)
+        {
+            SYSREG->RAM_SHUTDOWN_CR |=  ((1U << 8U)<< hart_id);
+        }
+        hart_id++;
+    }
 }
 
 /**
- * get_apb_bus_cr(void)
- * @return
+ * turn_on_power_to_hart_ram(void)
+ *
+ * Turns on power to a hart that was previously turned off
+ *
  */
-__attribute__((weak)) uint8_t mss_get_apb_bus_cr(void)
+__attribute__((weak)) void turn_on_power_to_hart_ram(uint32_t hart_id)
 {
-    return (SYSREG->APBBUS_CR);
+    SYSREG->RAM_SHUTDOWN_CR &=  ~((1U << 8U)<< hart_id);
 }
 

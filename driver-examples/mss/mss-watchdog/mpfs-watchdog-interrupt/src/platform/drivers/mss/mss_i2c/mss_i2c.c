@@ -1,13 +1,15 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC Microprocessor Subsystem I2C bare metal software driver
- * implementation.
+ * @file mss_i2c.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) I2C bare metal software
+ * driver implementation.
  *
  */
-#include <string.h>
+
 #include "mpfs_hal/mss_hal.h"
 #include "mss_i2c_regs.h"
 #include "mss_i2c.h"
@@ -122,7 +124,6 @@ void MSS_I2C_init
      * have an actual value of zero.
      */
     primask = disable_interrupts();
-    (void)memset(this_i2c, 0, sizeof(mss_i2c_instance_t));
     
     global_init(this_i2c);
     
@@ -1464,22 +1465,10 @@ static void global_init
     if ((this_i2c == &g_mss_i2c0_lo) || (this_i2c == &g_mss_i2c0_hi))
     {
         this_i2c->irqn = I2C0_MAIN_PLIC;
-
-        /* Reset I2C0. */
-        SYSREG->SOFT_RESET_CR |= (uint32_t)(0x01UL << 12);
-
-        /* Take I2C0 out of reset. */
-        SYSREG->SOFT_RESET_CR &= ~(0x01UL << 12);
-
     }
     else if ((this_i2c == &g_mss_i2c1_lo) || (this_i2c == &g_mss_i2c1_hi))
     {
         this_i2c->irqn = I2C1_MAIN_PLIC;
-
-        /* Reset I2C1. */
-        SYSREG->SOFT_RESET_CR |= (uint32_t)(0x01UL << 13);
-        /* Take I2C1 out of reset. */
-        SYSREG->SOFT_RESET_CR &= ~(0x01UL << 13);
     }
     else
     {

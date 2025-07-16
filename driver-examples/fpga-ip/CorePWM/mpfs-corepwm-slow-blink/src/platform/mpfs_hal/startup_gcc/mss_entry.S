@@ -92,20 +92,7 @@ _start:
     li  x30,0
     li  x31,0
 
-    # enable FPU and accelerator if present, setting ignored on E51
-    li t0, MSTATUS_FS | MSTATUS_XS
-    csrs mstatus, t0
-
-    # Init floating point control register to zero
-    # skip if e51
-    csrr a0, mhartid
-    beqz a0, .no_float
-#ifdef __riscv_flen
-    fscsr x0
-#endif
-.no_float:
-
-     # make sure XLEN agrees with compilation choice, if not will loop here
+    # make sure XLEN agrees with compilation choice, if not will loop here
 .LxlenCheck:
     csrr t0, misa
 #if __riscv_xlen == 64
@@ -292,20 +279,7 @@ _start_non_bootloader_amp_image:
     bne a4, a5, 1b
     /* assume ints in init state */
     /* assume PMP's set as required */
-    # enable FPU and accelerator if present, setting ignored on E51
-    li t0, MSTATUS_FS | MSTATUS_XS
-    csrs mstatus, t0
-
-    # Init floating point control register to zero
-    # skip if e51
-    csrr a0, mhartid
-    beqz a0, .no_float
-#ifdef __riscv_flen
-    fscsr x0
-#endif
-.no_float:
-
-     # make sure XLEN agrees with compilation choice, if not will loop here
+    # make sure XLEN agrees with compilation choice, if not will loop here
 .LxlenCheck:
     csrr t0, misa
 #if __riscv_xlen == 64

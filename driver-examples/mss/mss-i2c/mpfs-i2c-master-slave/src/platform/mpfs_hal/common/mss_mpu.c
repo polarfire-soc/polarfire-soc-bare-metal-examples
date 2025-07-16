@@ -1,26 +1,18 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-/*******************************************************************************
  * @file mss_mpu.c
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief PolarFire SoC MSS MPU driver for configuring access regions for the
  * external masters.
  *
  */
-/*=========================================================================*//**
 
- *//*=========================================================================*/
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
-
-#ifndef SIFIVE_HIFIVE_UNLEASHED
 
 static uint64_t pmp_get_napot_base_and_range(uint64_t reg, uint64_t *range);
 
@@ -324,4 +316,3 @@ static uint64_t pmp_get_napot_base_and_range(uint64_t reg, uint64_t *range)
     return (base << 2U);
 }
 
-#endif

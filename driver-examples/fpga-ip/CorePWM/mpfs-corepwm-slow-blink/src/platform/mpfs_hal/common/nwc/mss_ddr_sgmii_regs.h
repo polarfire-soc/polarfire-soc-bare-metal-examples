@@ -4327,7 +4327,7 @@ typedef struct
 typedef struct
 {
   __IO  DDR_CSR_APB_PHY_RESET_CONTROL_TypeDef PHY_RESET_CONTROL;                                  /*!< Offset: 0x0  */
-  __IO  DDR_CSR_APB_PHY_PC_RANK_TypeDef PHY_PC_RANK;                                        	/*!< Offset: 0x4  */
+  __IO  DDR_CSR_APB_PHY_PC_RANK_TypeDef PHY_PC_RANK;                                          /*!< Offset: 0x4  */
   __IO  DDR_CSR_APB_PHY_RANKS_TO_TRAIN_TypeDef PHY_RANKS_TO_TRAIN;                                 /*!< Offset: 0x8  */
   __IO  DDR_CSR_APB_PHY_WRITE_REQUEST_TypeDef PHY_WRITE_REQUEST;                                  /*!< Offset: 0xc  */
   __I   DDR_CSR_APB_PHY_WRITE_REQUEST_DONE_TypeDef PHY_WRITE_REQUEST_DONE;                             /*!< Offset: 0x10  */

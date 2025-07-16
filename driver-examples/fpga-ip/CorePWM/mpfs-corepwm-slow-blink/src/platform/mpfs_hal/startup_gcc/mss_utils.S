@@ -11,6 +11,8 @@
 
   .section .text.init,"ax", %progbits
   .align 3
+  
+#include "../common/encoding.h"
 
 /***********************************************************************************
  *
@@ -44,7 +46,7 @@ pdma_transfer:
     fence
     ret
 
-/***********************************************************************************
+/*******************************************************************************
  *
  * pdma_transfer_complete
  * Loops until transfer complete
@@ -66,7 +68,7 @@ pdma_transfer_complete:
     ret
 
 
- /***********************************************************************************
+ /******************************************************************************
  *
  * memfill() - fills memory, alternate to lib function when not available
  */
@@ -88,10 +90,10 @@ memfill:
 2:
     ret
 
-/***********************************************************************************
+/*******************************************************************************
  *
- * The following config_copy() symbol overrides the weak symbol in the HAL and does
- * a safe copy of HW config data
+ * The following config_copy() symbol overrides the weak symbol in the HAL and
+ * does a safe copy of HW config data
  */
     // config_copy helper function:
     //  a0 = dest
@@ -112,9 +114,10 @@ config_copy:
 2:
     ret
 
- /***********************************************************************************
+ /******************************************************************************
  *
- * config_16_copy () Copies a word at a time, used when copying to contigous registers
+ * config_16_copy () Copies a word at a time, used when copying to contigous
+ * registers
  */
     // config_16_copy helper function:
     //  a0 = dest
@@ -135,9 +138,10 @@ config_16_copy:
 2:
     ret
 
-/***********************************************************************************
+/*******************************************************************************
  *
- * config_32_copy () Copies a word at a time, used when copying to contigous registers
+ * config_32_copy () Copies a word at a time, used when copying to contiguous
+ * registers
  */
     // config_copy helper function:
     //  a0 = dest
@@ -158,9 +162,10 @@ config_32_copy:
 2:
     ret
 
- /***********************************************************************************
+ /******************************************************************************
  *
- * config_64_copy - copying using 64 bit loads, addresses must be on 64 bit boundary
+ * config_64_copy - copying using 64 bit loads, addresses must be on 64 bit
+ * boundary
  */
     // config_64_copy helper function:
     //  a0 = dest
@@ -181,7 +186,7 @@ config_64_copy:
 2:
     ret
 
- /***********************************************************************************
+ /******************************************************************************
  *
  * fill_cache_new_seg_address and flush
  */
@@ -228,32 +233,46 @@ fill_cache_new_seg_address:
 .early_exit:
     ret
 
-/***********************************************************************************
+ /******************************************************************************
  *
- * clear_64_mem - clear memory using 64 bit writes, addresses must be on 64 bit
- * boundary
+ * turn_on_fpu()
  *
- *  Note: This function is useful for initializing LIM as 64 bit writes are
- *  required to initialize ECC. The MPFS HAL does initialize all LIM on boot from
- *  eNVM, but when debugging bare metal projects from LIM, only the memory associated
- *  with the footprint of the program is initialised. So when debugging, if LIM memory
- *  outside the program itself is accessed, it must be initialized if it has not been
- *  initialized previously by a bootloader.
+ * We only turn on floating point unit if required to save power
  *
- *  clear_64_mem helper function:
- *      a0 = start address
- *      a1 = end address
- *
+ *  a0 = HARTS_TO_ENABLE_PPU, 0 => hart 0, 1 => hart1 etc
  */
-    .globl  clear_64_mem
-    .type   clear_64_mem @function
- clear_64_mem:
-    mv  t1, a0          # start address to clear
-    mv  t2, a1          # end address to clear
+    .globl  turn_on_fpu
+    .type   turn_on_fpu, @function
+turn_on_fpu:
+    mv  t1,a0
+    csrr t2, mhartid
+    li  t4, 1
+    sll t4,t4,t2
+    and t4,t4,t1
+    beqz t4,1f
+    # enable FPU and accelerator if present, setting ignored on E51
+    li t0, MSTATUS_FS | MSTATUS_XS
+    csrs mstatus, t0
+    # Init floating point control register to zero
+    # skip if e51
+    beqz t2, 1f
+#ifdef __riscv_flen
+    fscsr x0
+#endif
 1:
-    sd   x0, 0(t1)
-    add t1, t1, __SIZEOF_POINTER__
-    blt t1, t2, 1b
-.done_clear:
     ret
 
+ /******************************************************************************
+ *
+ * turn_off_fpu()
+ *
+ * We can turn off if not using to save power
+ *
+ */
+    .globl  turn_off_fpu
+    .type   turn_off_fpu, @function
+turn_off_fpu:
+    # enable FPU and accelerator if present, setting ignored on E51
+    li t0, MSTATUS_FS | MSTATUS_XS
+    csrc mstatus, t0
+    ret

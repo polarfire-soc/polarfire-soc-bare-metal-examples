@@ -1,19 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
- *
  * @file mss_clint.c
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief CLINT access data structures and functions.
  *
  */
+
 #include <stdint.h>
 #include "mpfs_hal/mss_hal.h"
 
@@ -126,7 +121,6 @@ void handle_m_timer_interrupt(void)
     set_csr(mie, MIP_MTIP);
 
 }
-
 
 /**
  *

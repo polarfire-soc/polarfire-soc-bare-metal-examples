@@ -1,10 +1,12 @@
-/***************************************************************************//**
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+/*******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC (MPFS) Microprocessor SubSystem QSPI bare metal software driver
- * implementation.
+ * @file mss_qspi.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) QSPI bare metal software
+ * driver implementation.
  *
  */
 
@@ -14,12 +16,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define QSPI_BYTESUPPER_MASK     ((uint32_t)0xFFFF0000u)
-
 static void default_status_hanlder(uint32_t value);
 static volatile uint32_t g_irq_rd_byte_size = 0u;
-static volatile uint8_t g_rx_complete = 0u;
 static void * g_rd_buffer;
 static volatile mss_qspi_status_handler_t g_handler;
 
@@ -70,16 +68,17 @@ void MSS_QSPI_get_config
    reg = QSPI->CONTROL;
 
    config->spi_mode = ((reg & CTRL_CLKIDL_MASK) >> CTRL_CLKIDL);
-   reg = reg & (uint32_t )((uint32_t )CTRL_QMODE12_MASK | (uint32_t )CTRL_QMODE0_MASK);
-   reg = reg >> CTRL_QMODE0;
-
-   config->io_format = (mss_qspi_io_format)reg;
 
    config->clk_div = (mss_qspi_clk_div)((reg & CTRL_CLKRATE_MASK)
                                                                >> CTRL_CLKRATE);
    config->xip = (uint8_t)((reg & CTRL_XIP_MASK) >> CTRL_XIP);
    config->xip_addr = (uint8_t)((reg & CTRL_XIPADDR_MASK) >> CTRL_XIPADDR);
    config->sample = (uint8_t)((reg & CTRL_SAMPLE_MASK) >> CTRL_SAMPLE);
+
+   reg = reg & (uint32_t )((uint32_t )CTRL_QMODE12_MASK | (uint32_t )CTRL_QMODE0_MASK);
+   reg = reg >> CTRL_QMODE0;
+
+   config->io_format = (mss_qspi_io_format)reg;
 }
 
 /***************************************************************************//**
@@ -112,7 +111,7 @@ void MSS_QSPI_polled_transfer_block
 
     /*bit16 to 31 define the number of Upper bytes when count is >65535
     Write to lower 16 bit is ignored*/
-    QSPI->FRAMESUP = total_byte_cnt & QSPI_BYTESUPPER_MASK;
+    QSPI->FRAMESUP = total_byte_cnt & FRMS_UBYTES_MASK;
 
     num_idle_cycles = (num_idle_cycles << 3u);
 
@@ -137,6 +136,17 @@ void MSS_QSPI_polled_transfer_block
 
     QSPI->CONTROL &= ~CTRL_FLAGSX4_MASK;
 
+    /*
+     * This delay is needed only for the EXT_RO and EXT_RW modes
+     * with out this delay the TXDATAX1 FIFO is not getting updated
+     * with proper data.
+     * Ex: if the bytes to send are 267 then the last 3 bytes that
+     * are getting written into the TXDATAX1 FIFO are not properly
+     * written.
+     * Where as this delay is not needed for other modes like NORMAL,
+     * FULL_QUAD/FULL_DUAL.
+     */
+    sleep_ms(10);
     for (idx = (cbytes - (cbytes % 4u)); idx < cbytes; ++idx)
     {
         while (QSPI->STATUS & STTS_TFFULL_MASK){};
@@ -194,74 +204,85 @@ uint8_t MSS_QSPI_irq_transfer_block
     uint32_t total_byte_cnt;
     const uint8_t* buf8 = tx_buffer;
     const uint32_t* buf32 = tx_buffer;
-
+    volatile uint32_t skips = 0;
     uint8_t returnval = 0u;
-
+    uint32_t words = 0u;
+    uint32_t enable = 0u;
 
     g_rd_buffer = (uint32_t*)rd_buffer;
     cbytes = 1u + tx_byte_size + num_addr_bytes;
     total_byte_cnt = 1u + tx_byte_size + num_addr_bytes + rd_byte_size;
+    while ((QSPI->STATUS & STTS_READY_MASK) == 0u){};
 
-    if ((QSPI->STATUS & STTS_READY_MASK) == 0u)
+    enable = INTE_TDONE_MASK;
+    /*bit16 to 31 define the number of Upper bytes when count is >65535
+     Write to lower 16 bit is ignored*/
+    QSPI->FRAMESUP = total_byte_cnt & FRMS_UBYTES_MASK;
+    skips  = (total_byte_cnt & 0x0000FFFFu);
+    skips |= (cbytes << FRMS_CBYTES);
+    skips |= (((QSPI->CONTROL & CTRL_QMODE12_MASK)? 1u:0u) << FRMS_QSPI);
+    skips |= ((uint32_t)num_idle_cycles) << 26u;
+
+    if (rd_buffer)
     {
-        returnval = 1u;
+        skips |= FRMS_FBYTE_MASK;
+        QSPI->FRAMES = skips;
+        QSPI->CONTROL &= ~CTRL_FLAGSX4_MASK;
+        for (idx = 0u; idx < cbytes; ++idx)
+        {
+             while (QSPI->STATUS & STTS_TFFULL_MASK){};
+             QSPI->TXDATAX1 = (uint8_t)buf8[idx];
+        }
+
     }
     else
     {
-        volatile uint32_t skips=0;
-        uint32_t enable = 0u;
-
-        enable = INTE_TDONE_MASK;
-
-        /*bit16 to 31 define the number of Upper bytes when count is >65535
-         Write to lower 16 bit is ignored*/
-        QSPI->FRAMESUP = total_byte_cnt & QSPI_BYTESUPPER_MASK;
-        num_idle_cycles = (num_idle_cycles << 3u);
-
-        skips  = (total_byte_cnt & 0x0000FFFFu);
-        skips |= (cbytes << FRMS_CBYTES);
-        skips |= (((QSPI->CONTROL & CTRL_QMODE12_MASK)? 1u:0u) << FRMS_QSPI);
-        skips |= ((uint32_t)num_idle_cycles) << 23u;
         skips |= FRMS_FWORD_MASK;
-
         QSPI->FRAMES = skips;
-
         QSPI->CONTROL |= CTRL_FLAGSX4_MASK;
-
-        if (rd_byte_size)
-        {
-            g_rx_complete = 0u;
-            g_irq_rd_byte_size = rd_byte_size;
-
-            QSPI->CONTROL |= CTRL_FLAGSX4_MASK;
-
-            enable |= (uint32_t )((uint32_t )INTE_RDONE_MASK | (uint32_t )INTE_RAVLB_MASK);
-        }
-
-        uint32_t words = 0u;
         words = cbytes / (uint32_t)4u;
-
         for (idx = 0u; idx < words; ++idx)
         {
             while (QSPI->STATUS & STTS_TFFULL_MASK){};
-
             QSPI->TXDATAX4 = (uint32_t)buf32[idx];
         }
-
         QSPI->CONTROL &= ~CTRL_FLAGSX4_MASK;
 
+        /*
+         * This delay is needed only for the EXT_RO and EXT_RW modes
+         * with out this delay the TXDATAX1 FIFO is not getting updated
+         * with proper data.
+         * Ex: if the bytes to send are 267 then the last 3 bytes that
+         * are getting written into the TXDATAX1 FIFO are not properly
+         * written.
+         * Where as this delay is not needed for other modes like SPI,
+         * FULL_QUAD/FULL_DUAL.
+         */
+        sleep_ms(10);
         for (idx = (cbytes - (cbytes % 4u)); idx < cbytes; ++idx)
         {
             while (QSPI->STATUS & STTS_TFFULL_MASK){};
-
             QSPI->TXDATAX1 = (uint8_t)buf8[idx];
         }
-
-        QSPI->INTENABLE = enable;
-        returnval = 0u;
     }
 
-    return(returnval);
+    if (rd_byte_size)
+    {
+        g_irq_rd_byte_size = rd_byte_size;
+        enable |= (uint32_t )(INTE_RDONE_MASK | INTE_RAVLB_MASK);
+    }
+
+    QSPI->INTENABLE = enable;
+
+    /*
+     * This delay is needed to get proper data into the RXFIFOs
+     * With out this delay, once the RX_AVAILABLE bit is set
+     * the data available in RXFIFO is incorrect.
+     */
+    if (rd_byte_size != 0)
+       sleep_ms(10);
+
+    return 0;
 }
 
 /***************************************************************************//**
@@ -283,7 +304,8 @@ static void qspi_isr(void)
     uint32_t idx;
     static uint32_t empty = 0u;
     static uint32_t tx_fifo_full = 0u;
-    uint32_t status;
+    uint32_t status = 0;
+    uint32_t skips = 0;
 
     status = QSPI->STATUS;
 
@@ -295,54 +317,37 @@ static void qspi_isr(void)
 
     if (STTS_RAVLB_MASK == (uint32_t)(status & STTS_RAVLB_MASK))
     {
-        if (0u == g_rx_complete)
+        QSPI->STATUS |= STTS_RAVLB_MASK;
+        uint8_t* buf8 = g_rd_buffer;
+        uint32_t* buf32 = g_rd_buffer;
+        uint32_t words = 0u;
+
+        if (g_irq_rd_byte_size >= 4)
         {
-            uint8_t* buf8 = g_rd_buffer;
-            uint32_t* buf32 = g_rd_buffer;
-            uint32_t words = 0u;
+           words = g_irq_rd_byte_size / 4u;
+           QSPI->CONTROL |= CTRL_FLAGSX4_MASK;
 
-            words = g_irq_rd_byte_size / 4u;
+           for (idx = 0u; idx < words; ++idx)
+           {
+               while (QSPI->STATUS & STTS_RFEMPTY_MASK){};
+               buf32[idx] = QSPI->RXDATAX4;
+           }
+        }
 
-            QSPI->CONTROL |= CTRL_FLAGSX4_MASK;
-
-            for (idx = 0u; idx < words; ++idx)
-            {
-                while (status & STTS_RFEMPTY_MASK){};
-
-                buf32[idx] = QSPI->RXDATAX4;
-            }
-
-            QSPI->CONTROL &= ~CTRL_FLAGSX4_MASK;
-
-            for (idx = (g_irq_rd_byte_size - (g_irq_rd_byte_size % 4u));
-                                                idx < g_irq_rd_byte_size; ++idx)
-            {
-                while (status & STTS_RFEMPTY_MASK){};
-
-                buf8[idx] = QSPI->RXDATAX1;
-            }
-
-            uint32_t skips = 0;
-
-            while (0u == (QSPI->STATUS & STTS_RFEMPTY_MASK))
-            {
-                /*Make sure that the Receive FIFO is empty and any 
-                  remaining data is read from it after desired bytes
-                  have been received.*/
-                skips = (uint32_t)((QSPI->STATUS & STTS_FLAGSX4_MASK) ?
-                                            QSPI->RXDATAX4 : QSPI->RXDATAX1);
-            }
+        QSPI->CONTROL &= ~CTRL_FLAGSX4_MASK;
+        for (idx = (g_irq_rd_byte_size - (g_irq_rd_byte_size % 4u));
+                                        idx < g_irq_rd_byte_size; ++idx)
+        {
+           while (QSPI->STATUS & STTS_RFEMPTY_MASK){};
+           buf8[idx] = QSPI->RXDATAX1;
         }
     }
 
     if (STTS_RDONE_MASK == (uint32_t)(status & STTS_RDONE_MASK))
     {
-        g_rx_complete = 1u;
-
         /*This means receive transfer is now complete. invoke the callback
          * function*/
         g_handler(STTS_RDONE_MASK);
-
         /*disable RXDONE, RXEMPTY, RXAVLBL interrupt*/
         QSPI->INTENABLE &= ~(INTE_RDONE_MASK | INTE_RAVLB_MASK);
         QSPI->STATUS |= STTS_RDONE_MASK;

@@ -103,7 +103,7 @@ typedef struct
 typedef struct
 {
     MPU_CFG               PMPCFG[16U];
-    __IO MPU_FailStatus_TypeDef  STATUS;
+    MPU_FailStatus_TypeDef  STATUS;
 } MPU_TypeDef;
 
 

@@ -42,6 +42,10 @@ typedef enum WFI_SM_
 #define SHARED_MEM_DEFAULT_STATUS           0x00000000UL
 #endif
 
+#ifndef LIBERO_SETTING_TURN_ON_FPU
+#define LIBERO_SETTING_TURN_ON_FPU          0x1EUL
+#endif
+
 typedef struct HLS_DATA_
 {
     volatile uint32_t in_wfi_indicator;
@@ -103,6 +107,9 @@ extern unsigned long __u54_3_itim_end;
 extern unsigned long __u54_4_itim_start;
 extern unsigned long __u54_4_itim_end;
 
+extern unsigned long __init_array_start;
+extern unsigned long __init_array_end;
+
 #ifndef MPFS_HAL_HW_CONFIG
 extern unsigned long __uninit_bottom$;
 extern unsigned long __uninit_top$;
@@ -129,7 +136,10 @@ char * config_copy(void *dest, const void * src, size_t len);
 char * config_16_copy(void *dest, const void * src, size_t len);
 char * config_32_copy(void *dest, const void * src, size_t len);
 char * config_64_copy(void *dest, const void * src, size_t len);
-char * clear_64_mem(uint64_t *start_address, uint64_t *end_address);
+void turn_off_fpu(void);
+void turn_off_power_to_parked_harts_ram(void);
+void turn_on_fpu(uint32_t enable_info);
+void turn_on_power_to_hart_ram(uint32_t hart_id);
 
 void copy_section
 (

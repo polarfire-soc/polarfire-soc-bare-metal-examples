@@ -1,16 +1,12 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
-*/
-
-/******************************************************************************
  * @file system_startup.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief Macros and APIs for the system_startup.c
+ *
  */
 
 #ifndef SYSTEM_STARTUP_H
@@ -44,6 +40,10 @@ typedef enum WFI_SM_
 #endif
 #ifndef SHARED_MEM_DEFAULT_STATUS
 #define SHARED_MEM_DEFAULT_STATUS           0x00000000UL
+#endif
+
+#ifndef LIBERO_SETTING_TURN_ON_FPU
+#define LIBERO_SETTING_TURN_ON_FPU          0x1EUL
 #endif
 
 typedef struct HLS_DATA_
@@ -89,6 +89,7 @@ extern unsigned long __text_load;
 extern unsigned long __text_start;
 extern unsigned long __text_end;
 
+extern unsigned long __l2lim_start;
 extern unsigned long __l2lim_end;
 
 extern unsigned long __e51itim_start;
@@ -106,6 +107,9 @@ extern unsigned long __u54_3_itim_end;
 extern unsigned long __u54_4_itim_start;
 extern unsigned long __u54_4_itim_end;
 
+extern unsigned long __init_array_start;
+extern unsigned long __init_array_end;
+
 #ifndef MPFS_HAL_HW_CONFIG
 extern unsigned long __uninit_bottom$;
 extern unsigned long __uninit_top$;
@@ -115,7 +119,9 @@ extern unsigned long __uninit_top$;
  * Function Declarations
  */
 int main_first_hart(HLS_DATA* hls);
+int main_first_hart_app(HLS_DATA* hls);
 int main_other_hart(HLS_DATA* hls);
+int u54_single_hart(HLS_DATA* hls);
 void e51(void);
 void u54_1(void);
 void u54_2(void);
@@ -125,14 +131,15 @@ void init_memory( void);
 void init_ddr( void);
 uint8_t init_mem_protection_unit(void);
 uint8_t init_pmp(uint8_t hart_id);
-uint8_t init_bus_error_unit( void);
-uint8_t mss_set_apb_bus_cr(uint32_t reg_value);
-uint8_t mss_get_apb_bus_cr(void);
 char * memfill(void *dest, const void * src, size_t len);
 char * config_copy(void *dest, const void * src, size_t len);
 char * config_16_copy(void *dest, const void * src, size_t len);
 char * config_32_copy(void *dest, const void * src, size_t len);
 char * config_64_copy(void *dest, const void * src, size_t len);
+void turn_off_fpu(void);
+void turn_off_power_to_parked_harts_ram(void);
+void turn_on_fpu(uint32_t enable_info);
+void turn_on_power_to_hart_ram(uint32_t hart_id);
 
 void copy_section
 (

@@ -432,7 +432,7 @@ typedef union{                                                         /*!< PLL_
 } CFG_DDR_SGMII_PHY_PLL_PHADJ_MAIN_TypeDef;
 
 typedef union{                                                         /*!< SSCG_REG_0_MAIN register definition*/
-  __IO   uint32_t                       SSCG_REG_0_MAIN;				/* todo: verify should be r/w, it is not in source file from Duolog */
+  __IO   uint32_t                       SSCG_REG_0_MAIN;
   struct
   {
     __I   uint32_t                       DIVVAL               :6;

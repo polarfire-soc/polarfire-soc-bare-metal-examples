@@ -1,20 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-/*******************************************************************************
  * @file mss_peripherals.c
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief PolarFire SoC MSS functions related to peripherals.
  *
  */
-/*=========================================================================*//**
 
- *//*=========================================================================*/
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
@@ -56,7 +50,7 @@ const uint32_t PERIPHERAL_SETUP[][4U] = {
         {MSS_PERIPH_GPIO1,CONTEXT_EN_INDEX, CONTEXT_EN_MASK_GPIO1,SUBBLK_CLOCK_CR_GPIO1_MASK},
         {MSS_PERIPH_GPIO2,CONTEXT_EN_INDEX, CONTEXT_EN_MASK_GPIO2,SUBBLK_CLOCK_CR_GPIO2_MASK},
         {MSS_PERIPH_RTC,CONTEXT_EN_INDEX, CONTEXT_EN_MASK_RTC,SUBBLK_CLOCK_CR_RTC_MASK},
-        {MSS_PERIPH_H2FINT,CONTEXT_EN_INDEX, CONTEXT_EN_MASK_H2FINT,  SUBBLK_CLOCK_NA_MASK},
+        {MSS_PERIPH_M2FINT,CONTEXT_EN_INDEX, CONTEXT_EN_MASK_M2FINT,  SUBBLK_CLOCK_NA_MASK},
         {MSS_PERIPH_CRYPTO,CONTEXT_EN_INDEX, CONTEXT_EN_MASK_CRYPTO,SUBBLK_CLOCK_CR_ATHENA_MASK},
         {MSS_PERIPH_USB,CONTEXT_EN_INDEX, CONTEXT_EN_MASK_USB,SUBBLK_CLOCK_CR_USB_MASK},
         {MSS_PERIPH_QSPIXIP,CONTEXT_EN_INDEX, CONTEXT_EN_MASK_QSPIXIP,SUBBLK_CLOCK_CR_QSPI_MASK},
@@ -78,7 +72,7 @@ const uint32_t PERIPHERAL_SETUP[][4U] = {
  * @param hart The hart ID of origin of request.
  * @return
  */
-static inline uint8_t verify_context_enable(uint8_t option, uint32_t periph_context_mask , uint32_t hart)
+static inline uint8_t verify_context_enable(uint8_t option, uint32_t periph_context_mask , uint8_t hart)
 {
     uint8_t result = 1U;
 #if ((LIBERO_SETTING_MEM_CONFIGS_ENABLED & PMP_ENABLED_MASK) == PMP_ENABLED_MASK)
@@ -146,7 +140,7 @@ __attribute__((weak))  uint8_t mss_config_clk_rst(mss_peripherals peripheral, ui
 
     ASSERT(PERIPHERAL_SETUP[peripheral][PERIPHERAL_INDEX_OFFSET] == peripheral);
 
-    result = verify_context_enable(PERIPHERAL_SETUP[peripheral][CONTEXT_EN_INDEX_OFFSET], PERIPHERAL_SETUP[peripheral][CONTEXT_MASK_INDEX_OFFSET] , hart);
+    result = verify_context_enable((uint8_t)PERIPHERAL_SETUP[peripheral][CONTEXT_EN_INDEX_OFFSET], PERIPHERAL_SETUP[peripheral][CONTEXT_MASK_INDEX_OFFSET] , hart);
 
     if (result == 0U)
     {
@@ -155,3 +149,50 @@ __attribute__((weak))  uint8_t mss_config_clk_rst(mss_peripherals peripheral, ui
     return result;
 }
 
+/***************************************************************************//**
+ * See mss_peripherals.h for details of how to use this function.
+ */
+__attribute__((weak)) void mss_enable_fabric(void)
+{
+    /* Remove soft reset */
+    SYSREG->SOFT_RESET_CR &= (uint32_t)~(SOFT_RESET_CR_FPGA_MASK);
+}
+
+/***************************************************************************//**
+ * See mss_peripherals.h for details of how to use this function.
+ */
+__attribute__((weak)) void mss_disable_fabric(void)
+{
+    /* Apply reset */
+    SYSREG->SOFT_RESET_CR |= SOFT_RESET_CR_FPGA_MASK;
+}
+
+/***************************************************************************//**
+ * See mss_peripherals.h for details of how to use this function.
+ */
+__attribute__((weak)) void mss_set_apb_bus_cr(uint32_t reg_value)
+{
+    SYSREG->APBBUS_CR = reg_value;
+}
+
+/***************************************************************************//**
+ * See mss_peripherals.h for details of how to use this function.
+ */
+__attribute__((weak)) uint32_t mss_get_apb_bus_cr(void)
+{
+    return (SYSREG->APBBUS_CR);
+}
+
+/***************************************************************************//**
+ * See mss_peripherals.h for details of how to use this function.
+ */
+__attribute__((weak)) void mss_turn_off_unused_ram_clks(void)
+{
+    CAN0_RAM_OFF_IF_NOT_CONFIGURED();
+    CAN1_RAM_OFF_IF_NOT_CONFIGURED();
+    USB_RAM_OFF_IF_NOT_CONFIGURED();
+    MAC0_RAM_OFF_IF_NOT_CONFIGURED();
+    MAC1_RAM_OFF_IF_NOT_CONFIGURED();
+    MMC_RAM_OFF_IF_NOT_CONFIGURED();
+    DDR_RAM_OFF_IF_NOT_CONFIGURED();
+}

@@ -1,0 +1,77 @@
+menu "MSS Drivers"
+
+config MSS_CAN
+    bool
+    prompt "Enable MSS CAN"
+    default n
+
+config MSS_ETHERNET_MAC
+    bool
+    prompt "Enable MSS ETHERNET MAC"
+    default n
+
+config MSS_GPIO
+    bool
+    prompt "Enable MSS GPIO"
+    default n
+    
+config MSS_I2C
+    bool
+    prompt "Enable MSS I2C"
+    default n
+    
+config MSS_MMC
+    bool
+    prompt "Enable MSS MMC"
+    default n
+    
+config MSS_MMUART
+    bool
+    prompt "Enable MSS MMUART"
+    default n
+
+config MSS_PDMA
+    bool
+    prompt "Enable MSS PDMA"
+    default n
+    
+config MSS_QSPI
+    bool
+    prompt "Enable MSS QSPI"
+    default n
+    
+config MSS_RTC
+    bool
+    prompt "Enable MSS RTC"
+    default n
+
+config MSS_SPI
+    bool
+    prompt "Enable MSS SPI"
+    default n
+
+config MSS_SYS_SERVICES
+    bool
+    prompt "Enable MSS SYS SERVICES"
+    default n
+
+config MSS_TIMER
+    bool
+    prompt "Enable MSS TIMER"
+    default n
+
+config MSS_USB
+    bool
+    prompt "Enable MSS USB"
+    default n
+
+config MSS_WATCHDOG
+    bool
+    prompt "Enable MSS WATCHDOG"
+    default n
+
+config PF_PCIE
+    bool
+    prompt "Enable PF PCIE"
+    default n
+endmenu

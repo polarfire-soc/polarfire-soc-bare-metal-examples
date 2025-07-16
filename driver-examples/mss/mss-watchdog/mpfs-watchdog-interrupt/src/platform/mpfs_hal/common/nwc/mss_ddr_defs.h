@@ -1,21 +1,28 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_ddr_defs.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief mss_ddr_debug related defines
  *
  */
 
 #ifndef SRC_PLATFORM_MPFS_HAL_NWC_MSS_DDR_DEFS_H_
 #define SRC_PLATFORM_MPFS_HAL_NWC_MSS_DDR_DEFS_H_
+
+typedef struct PATTERN_TEST_PARAMS_
+{
+    uint64_t base;
+    uint64_t size;
+    uint32_t pattern_type;
+    uint8_t pattern_offset;
+    uint8_t offset_cnt;
+    uint8_t num_offsets_to_try;
+    uint8_t padding;
+} PATTERN_TEST_PARAMS;
+
 
 #define PATTERN_INCREMENTAL     (0x01U << 0U)
 #define PATTERN_WALKING_ONE     (0x01U << 1U)

@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_ddr_debug.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief mss_ddr_debug related defines
  *
  */
@@ -36,8 +31,8 @@
 #include <stdint.h>
 
 
-#ifndef __MSS_DDr_DEBUG_H_
-#define __MSS_DDr_DEBUG_H_ 1
+#ifndef __MSS_DDR_DEBUG_H_
+#define __MSS_DDR_DEBUG_H_ 1
 
 #ifdef DEBUG_DDR_INIT
 #include "drivers/mss/mss_mmuart/mss_uart.h"
@@ -62,6 +57,12 @@ typedef enum DDR_ACCESS_SIZE_
     DDR_32_BIT,
     DDR_64_BIT
 } DDR_ACCESS_SIZE;
+
+typedef enum DDR_FILL_TYPE_
+{
+    DDR_TEST_FILL,
+    DDR_INIT_FILL
+} DDR_FILL_TYPE;
 
 
 /***************************************************************************//**
@@ -123,6 +124,23 @@ uprint64
 mss_uart_instance_t * uart,
 const char* msg,
 uint64_t d
+);
+
+/***************************************************************************//**
+  The uprint() function is used to print to the designated debug port
+
+  Example:
+  @code
+
+  (void)uprint(g_debug_uart, "\n\r DDR_TRAINING_FAIL: ");
+
+  @endcode
+ */
+void
+uprint
+(
+mss_uart_instance_t * uart,
+const char* msg
 );
 
 /***************************************************************************//**
@@ -204,6 +222,15 @@ mss_uart_instance_t * uart,
 uint32_t *reg_pointer,
 uint32_t no_of_regs
 );
+
+/***************************************************************************//**
+ *
+ */
+void
+display_ddr_driver_info
+(
+mss_uart_instance_t *debug_uart
+);
 #endif
 
 /***************************************************************************//**
@@ -212,9 +239,7 @@ uint32_t no_of_regs
 void
 load_ddr_pattern
 (
-uint64_t base,
-uint32_t size,
-uint8_t pattern_offset
+volatile PATTERN_TEST_PARAMS *pattern_test
 );
 
 /***************************************************************************//**
@@ -224,16 +249,22 @@ uint32_t
 test_ddr
 (
 uint32_t no_of_iterations,
-uint32_t size
+volatile PATTERN_TEST_PARAMS *pattern_test
 );
 
-
-
+/***************************************************************************//**
+ *
+ */
+void
+execute_ddr_pattern
+(
+uint64_t start_addr
+);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __MSS_DDRC_H_ */
+#endif /* __MSS_DDR_DEBUG_H_ */
 
 

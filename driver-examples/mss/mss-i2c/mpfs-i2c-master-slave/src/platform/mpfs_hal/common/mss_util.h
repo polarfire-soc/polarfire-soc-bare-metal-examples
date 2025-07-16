@@ -1,18 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/***************************************************************************
  * @file mss_util.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief MACROs defines and prototypes associated with utility functions
  *
  */
+
 #ifndef MSS_UTIL_H
 #define MSS_UTIL_H
 
@@ -36,6 +32,12 @@ extern "C" {
 
 #define WRITE_REG64(x, y) (*((volatile uint64_t *)(x)) = (y))
 #define READ_REG64(x)     (*((volatile uint64_t *)(x)))
+
+/*
+ * Local defines
+ */
+#define    LOCAL_INT_OFFSET_IN_MIE          16U  /* Offset from start of MIE for local irq enables */
+#define    LOCAL_INT_F2M_OFFSET             16U  /* Offset from 0 for fabric to MSS local interrupts */
 
 /*
  * return mcycle
@@ -64,23 +66,25 @@ void __disable_all_irqs(void);
 void __enable_irq(void);
 void __enable_local_irq(uint8_t local_interrupt);
 void __disable_local_irq(uint8_t local_interrupt);
+void disable_branch_prediction(void);
+void enable_branch_prediction(void);
 
-bool mpfs_sync_bool_compare_and_swap(volatile long *ptr, long oldval, long newval);
-long mpfs_sync_val_compare_and_swap(volatile long *ptr, long oldval, long newval);
-
-static inline void spinunlock(volatile long *lock)
+static inline void spinunlock(volatile long *pLock)
 {
-    *lock = 0;
+    __sync_lock_release(pLock);
 }
 
-static inline void spinlock(volatile long *lock)
+static inline void spinlock(volatile long *pLock)
 {
-    while(!mpfs_sync_bool_compare_and_swap(lock, 0, 1))
+    while(__sync_lock_test_and_set(pLock, 1))
     {
         /* add yield if OS */
+#if defined USING_FREERTOS
+        taskYIELD();
+#endif
     }
-    *lock = 1;
 }
+
 
 #ifdef __cplusplus
 }

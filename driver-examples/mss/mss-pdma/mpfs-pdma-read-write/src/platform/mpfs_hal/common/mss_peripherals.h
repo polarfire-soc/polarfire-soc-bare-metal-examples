@@ -1,20 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-/*******************************************************************************
  * @file mss_peripherals.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief PolarFire SoC MSS fumnctions related to MSS peripherals.
  *
  */
-/*=========================================================================*//**
 
- *//*=========================================================================*/
 #ifndef MSS_PERIPHERALS_H
 #define MSS_PERIPHERALS_H
 
@@ -76,7 +70,7 @@ typedef enum mss_peripherals_ {
     MSS_PERIPH_GPIO1        = 20U,
     MSS_PERIPH_GPIO2        = 21U,
     MSS_PERIPH_RTC          = 22U,
-    MSS_PERIPH_H2FINT       = 23U,
+    MSS_PERIPH_M2FINT       = 23U,
     MSS_PERIPH_CRYPTO       = 24U,
     MSS_PERIPH_USB          = 25U,
     MSS_PERIPH_QSPIXIP      = 26U,
@@ -88,9 +82,33 @@ typedef enum mss_peripherals_ {
     MSS_PERIPH_FIC0         = 32U,
     MSS_PERIPH_FIC1         = 33U,
     MSS_PERIPH_FIC2         = 34U,
-    MSS_PERIPH_FIC3         = 35U
+    MSS_PERIPH_FIC3         = 35U,
+    MSS_PERIPH_INVALID      = 255U
 } mss_peripherals;
 
+#ifndef LIBERO_SETTING_TURN_OFF_RAM_IF_NOT_USED
+#define LIBERO_SETTING_TURN_OFF_RAM_IF_NOT_USED
+#endif
+
+#ifndef LIBERO_SETTING_CONFIGURED_PERIPHERALS
+#define LIBERO_SETTING_CONFIGURED_PERIPHERALS 0xFFFFFFFF
+#endif
+
+#define CAN0_RAM_OFF_IF_NOT_CONFIGURED() if((LIBERO_SETTING_CONFIGURED_PERIPHERALS\
+        & (1U<<15U))==0U) (SYSREG->RAM_SHUTDOWN_CR |= (1U <<0U))
+#define CAN1_RAM_OFF_IF_NOT_CONFIGURED() if((LIBERO_SETTING_CONFIGURED_PERIPHERALS\
+        & (1U<<16U))==0U) (SYSREG->RAM_SHUTDOWN_CR |= (1U <<1U))
+#define USB_RAM_OFF_IF_NOT_CONFIGURED() if((LIBERO_SETTING_CONFIGURED_PERIPHERALS\
+        & (1U<<2U))==0U) (SYSREG->RAM_SHUTDOWN_CR |= (1U <<2U))
+#define MAC0_RAM_OFF_IF_NOT_CONFIGURED() if((LIBERO_SETTING_CONFIGURED_PERIPHERALS\
+        & (1U<<3U))==0U) (SYSREG->RAM_SHUTDOWN_CR |= (1U<<3U))
+#define MAC1_RAM_OFF_IF_NOT_CONFIGURED() if((LIBERO_SETTING_CONFIGURED_PERIPHERALS\
+        & (1U<<4U))==0U) (SYSREG->RAM_SHUTDOWN_CR |= (1U<<4U))
+#define MMC_RAM_OFF_IF_NOT_CONFIGURED() if((LIBERO_SETTING_CONFIGURED_PERIPHERALS\
+        & (3U<<0U))==0U) (SYSREG->RAM_SHUTDOWN_CR |= (1U<<5U))
+#define DDR_RAM_OFF_IF_NOT_CONFIGURED() if((LIBERO_SETTING_DDRPHY_MODE &\
+            DDRPHY_MODE_MASK) == DDR_OFF_MODE)\
+                (SYSREG->RAM_SHUTDOWN_CR |= (1U<<7U))
 
 /***************************************************************************//**
   This function is used to turn on or off a peripheral. If contexts have been
@@ -119,6 +137,65 @@ typedef enum mss_peripherals_ {
   @endcode
  */
 uint8_t mss_config_clk_rst(mss_peripherals peripheral, uint8_t hart, PERIPH_RESET_STATE req_state);
+
+/***************************************************************************//**
+  This function is used to turn on the fabric enable
+
+  Example:
+  @code
+    (void)mss_config_clk_rst(MSS_PERIPH_FIC3, (uint8_t)MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+    mss_enable_fabric();
+  @endcode
+ */
+void mss_enable_fabric(void);
+
+/***************************************************************************//**
+  This function is used to turn on the fabric enable
+
+  Example:
+  @code
+    mss_disable_fabric();
+  @endcode
+ */
+void mss_disable_fabric(void);
+
+/***************************************************************************//**
+  This function is used to set the apb_bus_cr register value
+
+  @param reg_value value of the register you want to set.
+  This value is available from the MSS configurator
+  LIBERO_SETTING_APBBUS_CR
+
+  Example:
+  @code
+    mss_set_apb_bus_cr(LIBERO_SETTING_APBBUS_CR);
+  @endcode
+ */
+void mss_set_apb_bus_cr(uint32_t reg_value);
+
+/***************************************************************************//**
+  This function is used to get the apb_bus_cr register value
+
+  @return Return the apb_bus_cr reg value
+
+  Example:
+  @code
+    uint32_t cr_reg;
+    cr_reg = mss_get_apb_bus_cr();
+  @endcode
+ */
+uint32_t mss_get_apb_bus_cr(void);
+
+/***************************************************************************//**
+  This function is used to turn off RAM associated with peripherals that are
+  marked as unused in the MSS Configurator.
+
+  Example:
+  @code
+    mss_turn_off_unused_ram_clks();
+  @endcode
+ */
+void mss_turn_off_unused_ram_clks(void);
 
 
 #ifdef __cplusplus

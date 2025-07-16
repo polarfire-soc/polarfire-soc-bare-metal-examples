@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_ddr_debug.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief mss_ddr_debug related defines
  *
  */
@@ -36,8 +31,8 @@
 #include <stdint.h>
 
 
-#ifndef __MSS_DDr_DEBUG_H_
-#define __MSS_DDr_DEBUG_H_ 1
+#ifndef __MSS_DDR_DEBUG_H_
+#define __MSS_DDR_DEBUG_H_ 1
 
 #ifdef DEBUG_DDR_INIT
 #include "drivers/mss/mss_mmuart/mss_uart.h"
@@ -227,6 +222,15 @@ mss_uart_instance_t * uart,
 uint32_t *reg_pointer,
 uint32_t no_of_regs
 );
+
+/***************************************************************************//**
+ *
+ */
+void
+display_ddr_driver_info
+(
+mss_uart_instance_t *debug_uart
+);
 #endif
 
 /***************************************************************************//**
@@ -235,10 +239,7 @@ uint32_t no_of_regs
 void
 load_ddr_pattern
 (
-uint64_t base,
-uint64_t size,
-uint32_t pattern_type,
-volatile uint8_t pattern_offset
+volatile PATTERN_TEST_PARAMS *pattern_test
 );
 
 /***************************************************************************//**
@@ -248,7 +249,7 @@ uint32_t
 test_ddr
 (
 uint32_t no_of_iterations,
-uint32_t size
+volatile PATTERN_TEST_PARAMS *pattern_test
 );
 
 /***************************************************************************//**
@@ -260,12 +261,10 @@ execute_ddr_pattern
 uint64_t start_addr
 );
 
-
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __MSS_DDRC_H_ */
+#endif /* __MSS_DDR_DEBUG_H_ */
 
 

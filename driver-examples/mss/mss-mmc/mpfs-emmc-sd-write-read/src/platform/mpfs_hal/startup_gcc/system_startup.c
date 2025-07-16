@@ -1,32 +1,15 @@
-/******************************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+/*******************************************************************************
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
-/***************************************************************************
  * @file system_startup.c
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief first C code called on startup. Will call user code created outside
  * the HAL.
+ *
  */
+
 #include <stddef.h>
 #include <stdbool.h>
 #include "mpfs_hal/mss_hal.h"
@@ -35,6 +18,10 @@
 #endif
 #include "system_startup_defs.h"
 
+
+static uint32_t parked_harts = 0U;
+void* __dso_handle = (void*) &__dso_handle;
+static void init_global_constructors(void);
 
 /*==============================================================================
  * This function is called by the lowest enabled hart (MPFS_HAL_FIRST_HART) in
@@ -65,10 +52,6 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
          * src/boards/<my-board/platform_config/mpfs_hal_config/sw_config.h
          * as required.
          */
-#ifdef  MPFS_HAL_HW_CONFIG
-        config_l2_cache();
-#endif  /* MPFS_HAL_HW_CONFIG */
-
         init_memory();
 #ifndef MPFS_HAL_HW_CONFIG
         hls->my_hart_id = MPFS_HAL_FIRST_HART;
@@ -91,6 +74,7 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
 #ifdef  MPFS_HAL_HW_CONFIG
         (void)mss_nwc_init();
         (void)mss_nwc_init_ddr();
+        init_global_constructors();
 
         /* main hart init's the PLIC */
         PLIC_init_on_reset();
@@ -175,7 +159,9 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
         stack_top = (ptrdiff_t)((uint8_t*)&__stack_top_h0$);
         hls = (HLS_DATA*)(stack_top - HLS_DEBUG_AREA_SIZE);
         hls->in_wfi_indicator = HLS_MAIN_HART_FIN_INIT;
-
+        
+        /* Turn off peripheral RAM that is not being used */
+        mss_turn_off_unused_ram_clks();
         /*
          * Turn on fic interfaces by default. Drivers will turn on/off other MSS
          * peripherals as required.
@@ -227,6 +213,7 @@ __attribute__((weak)) int main_first_hart_app(HLS_DATA* hls)
         ptrdiff_t stack_top;
 
         init_memory();
+        init_global_constructors();
 
         hls->my_hart_id = MPFS_HAL_FIRST_HART;
         hls->in_wfi_indicator = HLS_MAIN_HART_STARTED;
@@ -333,7 +320,7 @@ __attribute__((weak)) int main_first_hart_app(HLS_DATA* hls)
  */
 __attribute__((weak)) int main_other_hart(HLS_DATA* hls)
 {
-#if (IMAGE_LOADED_BY_BOOTLOADER == 0)   // This also means no hardware init is required
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
     extern char __app_stack_top_h0;
     extern char __app_stack_top_h1;
     extern char __app_stack_top_h2;
@@ -346,7 +333,12 @@ __attribute__((weak)) int main_other_hart(HLS_DATA* hls)
     const uint64_t app_stack_top_h3 = (const uint64_t)&__app_stack_top_h3 - (HLS_DEBUG_AREA_SIZE);
     const uint64_t app_stack_top_h4 = (const uint64_t)&__app_stack_top_h4 - (HLS_DEBUG_AREA_SIZE);
 
+#ifdef TURN_OFF_POWER_TO_PARKED_HARTS
+    turn_off_power_to_parked_harts_ram();
+#endif
+
 #ifdef  MPFS_HAL_HW_CONFIG
+    turn_on_fpu((uint32_t)LIBERO_SETTING_TURN_ON_FPU);
 #ifdef  MPFS_HAL_SHARED_MEM_ENABLED
     /*
      * If we are a boot-loader, and shared memory enabled (MPFS_HAL_SHARED_MEM_ENABLED)
@@ -483,6 +475,20 @@ void load_virtual_rom(void)
 #endif  /* MPFS_HAL_HW_CONFIG */
 
 /*==============================================================================
+ * Initialize the global constructor before using any C++ feature which depends
+ * on global constructors.
+ */
+static void init_global_constructors(void)
+{
+    void (**fun_ptr)(void) = (void (**)(void))&__init_array_start;
+    while (fun_ptr != (void (**)(void))&__init_array_end)
+    {
+        (*fun_ptr)();
+        fun_ptr++;
+     }
+}
+
+/*==============================================================================
  * Put the hart executing this code into an infinite loop executing from the
  * SCB system register memory space.
  * This allows preventing a hart from accessing memory regardless of memory
@@ -507,6 +513,7 @@ static void park_hart(void)
  */
 __attribute__((weak)) void e51(void)
 {
+    parked_harts |= (1U << 0U);
     /* Put hart in safe infinite WFI loop. */
      park_hart();
 }
@@ -520,6 +527,7 @@ __attribute__((weak)) void e51(void)
   */
 __attribute__((weak)) void u54_1(void)
 {
+    parked_harts |= (1U << 1U);
     /* Put hart in safe infinite WFI loop. */
      park_hart();
 }
@@ -534,6 +542,7 @@ __attribute__((weak)) void u54_1(void)
  */
 __attribute__((weak)) void u54_2(void)
 {
+    parked_harts |= (1U << 2U);
     /* Put hart in safe infinite WFI loop. */
     park_hart();
 }
@@ -547,6 +556,7 @@ __attribute__((weak)) void u54_2(void)
  */
 __attribute__((weak)) void u54_3(void)
 {
+    parked_harts |= (1U << 3U);
     /* Put hart in safe infinite WFI loop. */
      park_hart();
 }
@@ -560,8 +570,9 @@ __attribute__((weak)) void u54_3(void)
  */
 __attribute__((weak)) void u54_4(void)
 {
+    parked_harts |= (1U << 4U);
     /* Put hart in safe infinite WFI loop. */
-     park_hart();
+    park_hart();
 }
 
  /*-----------------------------------------------------------------------------
@@ -601,28 +612,6 @@ __attribute__((weak)) void u54_4(void)
     }
   }
 
- /**
-  * This function is configured by editing parameters in
-  * mss_sw_config.h as required.
-  * @return
-  */
-
-__attribute__((weak)) uint8_t init_bus_error_unit(void)
-{
-    uint8_t hart_id;
-    /* Init BEU in all harts - enable local interrupt */
-    for(hart_id = MPFS_HAL_FIRST_HART; hart_id <= MPFS_HAL_LAST_HART; hart_id++)
-    {
-        BEU->regs[hart_id].ENABLE      = (uint64_t)BEU_ENABLE;
-        BEU->regs[hart_id].PLIC_INT    = (uint64_t)BEU_PLIC_INT;
-        BEU->regs[hart_id].LOCAL_INT   = (uint64_t)BEU_LOCAL_INT;
-        BEU->regs[hart_id].CAUSE       = 0ULL;
-        BEU->regs[hart_id].ACCRUED     = 0ULL;
-        BEU->regs[hart_id].VALUE       = 0ULL;
-    }
-    return (0U);
-}
-
 /**
  * init_mem_protection_unit(void)
  * add this function to you code and configure as required
@@ -645,4 +634,34 @@ __attribute__((weak)) uint8_t init_pmp(uint8_t hart_id)
     return (0U);
 }
 
+/**
+ * turn_off_power_to_parked_harts(void)
+ *
+ * Turns off power to harts that have been parked.
+ *
+ */
+__attribute__((weak)) void turn_off_power_to_parked_harts_ram(void)
+{
+    uint32_t hart_id = MPFS_HAL_FIRST_HART;
+
+    while( hart_id <= MPFS_HAL_LAST_HART)
+    {
+        if ((parked_harts & (1U << hart_id)) !=0)
+        {
+            SYSREG->RAM_SHUTDOWN_CR |=  ((1U << 8U)<< hart_id);
+        }
+        hart_id++;
+    }
+}
+
+/**
+ * turn_on_power_to_hart_ram(void)
+ *
+ * Turns on power to a hart that was previously turned off
+ *
+ */
+__attribute__((weak)) void turn_on_power_to_hart_ram(uint32_t hart_id)
+{
+    SYSREG->RAM_SHUTDOWN_CR &=  ~((1U << 8U)<< hart_id);
+}
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -108,7 +108,7 @@
  * linker scripts.
  */
 
-#define MPFS_HAL_SHARED_MEM_ENABLED
+//#define MPFS_HAL_SHARED_MEM_ENABLED
 
 
 /* define the required tick rate in Milliseconds */
@@ -161,7 +161,7 @@
  * The reason you may want to use below is to save code space.
  */
 #define SGMII_SUPPORT
-//#define DDR_SUPPORT
+#define DDR_SUPPORT
 #define MSSIO_SUPPORT
 
 /*

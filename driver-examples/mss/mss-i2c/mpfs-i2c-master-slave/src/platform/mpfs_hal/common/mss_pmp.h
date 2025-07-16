@@ -1,20 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-/*******************************************************************************
  * @file mss_pmp.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief PolarFire SoC MSS PMP configuration using MSS configurator values.
  *
  */
-/*=========================================================================*//**
 
- *//*=========================================================================*/
 #ifndef MSS_PMP_H
 #define MSS_PMP_H
 
@@ -59,7 +53,7 @@ extern "C" {
 #define CONTEXT_EN_MASK_GPIO1          (1U<<20)
 #define CONTEXT_EN_MASK_GPIO2          (1U<<21)
 #define CONTEXT_EN_MASK_RTC            (1U<<22)
-#define CONTEXT_EN_MASK_H2FINT         (1U<<23)
+#define CONTEXT_EN_MASK_M2FINT         (1U<<23)
 #define CONTEXT_EN_MASK_CRYPTO         (1U<<24)
 #define CONTEXT_EN_MASK_USB            (1U<<25)
 #define CONTEXT_EN_MASK_QSPIXIP        (1U<<26)

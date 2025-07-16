@@ -570,8 +570,19 @@ void config_l2_cache(void);
  */
 uint8_t check_num_scratch_ways(uint64_t *start, uint64_t *end);
 
+/***************************************************************************//**
+  Returns the number of cache ways
+
+ */
 uint32_t num_cache_ways(void);
-uint32_t my_num_cache_ways(void);
+
+uint32_t my_num_dcache_ways(uint32_t hartid);
+
+/***************************************************************************//**
+  Flushes the L2 cache
+
+ */
+void flush_l2_cache(uint32_t hartid);
 
 #ifdef __cplusplus
 }

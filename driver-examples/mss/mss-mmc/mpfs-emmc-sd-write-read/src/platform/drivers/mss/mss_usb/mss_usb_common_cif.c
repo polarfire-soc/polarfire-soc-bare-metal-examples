@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC MSS USB Driver Stack
- *      USB Core Interface Layer (USB-CIFL)
- *          USB-CIF driver
+ * @file mss_usb_common_cif.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
+ *          USB Core Interface Layer (USB-CIFL)
+ *            USB-CIF driver
  *
  * USB-CIF driver implementation:
  * This source file implements MSS USB Interrupt handler functions. This file
@@ -13,6 +15,7 @@
  * the MSS USB core. These interface functions are independent of the USB mode.
  *
  */
+
 #include "mpfs_hal/mss_hal.h"
 #include "mss_usb_common_cif.h"
 #include "mss_usb_common_reg_io.h"
@@ -130,6 +133,13 @@ uint8_t usb_mc_plic_IRQHandler
         if (usb_irq & RESUME_IRQ_MASK)
         {
             g_mss_usbd_cb.usbd_resume();
+            MSS_USB_CIF_set_index_reg(MSS_USB_CEP);
+            MSS_USB_CIF_enable_usbirq(DISCONNECT_IRQ_MASK | SUSPEND_IRQ_MASK);
+            cep_state = MSS_USB_CTRL_EP_IDLE;
+            MSS_USB_CIF_clr_usb_irq_reg();
+            MSS_USB_CIF_cep_clr_setupend();
+            MSS_USB_CIF_cep_clr_stall_sent();
+            g_mss_usbd_cb.usbd_reset();
         }
         if (usb_irq & SUSPEND_IRQ_MASK)
         {

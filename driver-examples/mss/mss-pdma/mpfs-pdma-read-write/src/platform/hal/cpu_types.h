@@ -1,9 +1,11 @@
 /*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
+ * @file cpu_types.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief 
  *
  */
 

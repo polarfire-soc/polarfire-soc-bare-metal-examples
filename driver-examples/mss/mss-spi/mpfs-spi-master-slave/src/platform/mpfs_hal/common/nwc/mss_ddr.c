@@ -1,18 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
- * @file mss_ddr.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @file mss_ddr.c
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief DDR related code
  *
  */
+
 /* #define PRINT_CA_VREF_WINDOW "1" */
 #define MOVE_CK
 #define MANUAL_ADDCMD_TRAINIG
@@ -31,9 +27,21 @@
  * Local Defines
  */
 /* This string is updated if any change to ddr driver */
-#define DDR_DRIVER_VERSION_STRING   "0.4.023"
+#define DDR_DRIVER_VERSION_STRING   "0.4.031"
 const char DDR_DRIVER_VERSION[] = DDR_DRIVER_VERSION_STRING;
 /* Version     |  Comment                                                     */
+/* 0.4.031     |  Minor change to correct definition of MTC size define       */
+/* 0.4.030     |  Minor cleanup- removed unused code, renamed function        */
+/* 0.4.029     |  Fixed bug relating to DDR x 16 with ECC on. ECC lane 4 is   */
+/*             |  now calibrated                                              */
+/* 0.4.028     |  Added enable to allow unused pins PU and PD to be set for   */
+/*             |  all varients. Currently only set for LPDDR4                 */
+/* 0.4.027     |  Added extra debug version info at the start of DDR debug    */
+/* 0.4.026     |  Added power features                                        */
+/* 0.4.025     |  Corrected cache flush funtion so upper address range        */
+/*             |  (0x10_xxxx_xxxx) is now included in the flush.              */
+/* 0.4.024     |  Self-refresh is disabled from UI, api functions added for   */
+/*             |  turning self-refresh off and on.                            */
 /* 0.4.023     |  Changed default ADDCMD CLK push order for DDR4 to 0,45,90   */
 /* 0.4.022     |  Tidied comments and simulation reference- no code change    */
 /* 0.4.021     |  Added options to increase post training tests during        */
@@ -183,7 +191,7 @@ static uint32_t ddr_error_count;
 static uint32_t zq_cal(void);
 #endif
 static uint32_t mode_register_masked_write(uint32_t address);
-static uint32_t mode_register_masked_write_x5(uint32_t address);
+static uint32_t mode_register_masked_write_multiple(uint32_t address);
 static uint32_t ddr_setup(void);
 static void init_ddrc(void);
 static uint8_t write_calibration_using_mtc(uint8_t num_of_lanes_to_calibrate);
@@ -222,6 +230,17 @@ static void lpddr4_manual_training(DDR_TYPE ddr_type, uint8_t * refclk_sweep_ind
 static void non_lpddr4_address_cmd_training(DDR_TYPE ddr_type, uint8_t * refclk_sweep_index, uint32_t *bclk_phase, uint32_t *bclk90_phase, uint32_t *refclk_phase );
 #endif
 static void address_cmd_training_with_ck_push(DDR_TYPE ddr_type, uint8_t * refclk_sweep_index, uint32_t retry_count, uint32_t *bclk_phase, uint32_t *bclk90_phase, uint32_t *refclk_phase, uint8_t *refclk_offset);
+static uint32_t set_low_power_ddr_addcmd_pins(void);
+static void revert_low_power_ddr_addcmd_pins(uint32_t reg_value);
+static uint32_t set_low_power_ddr_clk_pin(void);
+static void revert_low_power_ddr_clk_pins(uint32_t reg_value);
+static uint32_t set_low_power_ddr_dq_pins(void);
+static void revert_low_power_ddr_dq_pins(uint32_t reg_value);
+static uint32_t set_low_power_ddr_dqs_pins(void);
+static void revert_low_power_ddr_dqs_pins(uint32_t reg_value);
+static void set_low_power_odt(void);
+static void revert_low_power_odt(void);
+static void reset_sync_iog(void);
 
 /*******************************************************************************
  * External function declarations
@@ -248,6 +267,228 @@ uint32_t noise_ena = 0x0;
  * Public Functions - API
  ******************************************************************************/
 
+/**
+ * mpfs_hal_turn_ddr_selfrefresh_on(void)
+ *
+ * DDR self refresh is turned on by thwe controller
+ */
+void mpfs_hal_turn_ddr_selfrefresh_on(void)
+{
+    uint32_t chip_selects;
+    /*
+     * Turn on user setting for self refresh
+     * Self-refresh control. Causes the controller to put the selected SDRAM
+     * rank(chip select) into self-refresh mode at the next refresh event. Each
+     * bit in init self refresh corresponds to the selected rank; asserting init
+     * self refresh[0] puts the devices connected to cs n[0] into self refresh,
+     * init self refresh[1] for cs n[1] and so on.
+     */
+    if ((LIBERO_SETTING_DDRPHY_MODE & DDRPHY_MODE_RANK_MASK) ==
+                                                          DDRPHY_MODE_TWO_RANKS)
+    {
+        chip_selects = 3U;
+    }
+    else
+    {
+        chip_selects = 1U;
+    }
+	DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH = chip_selects;
+}
+
+/**
+ * mpfs_hal_turn_ddr_selfrefresh_off()
+ *
+ * Turn off self refresh.
+ */
+void mpfs_hal_turn_ddr_selfrefresh_off(void)
+{
+	DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH = 0U;
+}
+
+/**
+ * mpfs_hal_ddr_selfrefresh_status()
+ *
+ * @return Selff refresh status
+ */
+uint32_t mpfs_hal_ddr_selfrefresh_status(void)
+{
+    uint32_t status = 1U; /* self refresh on */
+
+    if ((LIBERO_SETTING_DDRPHY_MODE & DDRPHY_MODE_RANK_MASK) == DDRPHY_MODE_TWO_RANKS)
+    {
+        if( (DDRCFG->MC_BASE2.INIT_SELF_REFRESH_STATUS.INIT_SELF_REFRESH_STATUS & 3U) == 3U)
+        {
+            status = 0U;
+        }
+    }
+    else
+    {
+        if((DDRCFG->MC_BASE2.INIT_SELF_REFRESH_STATUS.INIT_SELF_REFRESH_STATUS & 1U) == 1U)
+        {
+            status = 0U;
+        }
+    }
+    return status;
+}
+
+/**
+ *
+ * @param lp_state
+ * @param lp_options
+ */
+void mpfs_hal_ddr_logic_power_state(uint32_t lp_state, uint32_t lp_options)
+{
+    static uint32_t lp_addcmd = 4U;
+    static uint32_t lp_clk_pin = 4U;
+    static uint32_t lp_dq_pins = 4U;
+    static uint32_t lp_dqs_pins = 4U;
+
+    switch(lp_state)
+    {
+        case DDR_LOW_POWER:
+            if((lp_options & (0x01 << 0U)) != 0U)
+            {
+                ddr_pll_config_scb_turn_off_pll_outputs();
+            }
+            if((lp_options & (0x01 << 1U)) != 0U)
+            {
+                lp_addcmd = set_low_power_ddr_addcmd_pins();
+            }
+            if((lp_options & (0x01 << 2U)) != 0U)
+            {
+                lp_clk_pin = set_low_power_ddr_clk_pin();
+            }
+            if((lp_options & (0x01 << 3U)) != 0U)
+            {
+                lp_dq_pins = set_low_power_ddr_dq_pins();
+            }
+            if((lp_options & (0x01 << 4U)) != 0U)
+            {
+                lp_dqs_pins = set_low_power_ddr_dqs_pins();
+            }
+            if((lp_options & (0x01 << 5U)) != 0U)
+            {
+                set_low_power_odt();
+            }
+            break;
+
+        default:
+        case DDR_NORMAL_POWER:
+            if((lp_options & (0x01 << 0U)) != 0U)
+            {
+                ddr_pll_config_scb_turn_on_pll_outputs();
+                delay(DELAY_CYCLES_2MS);
+                reset_sync_iog();
+            }
+            if((lp_options & (0x01 << 1U)) != 0U)
+            {
+                revert_low_power_ddr_addcmd_pins(lp_addcmd);
+            }
+            if((lp_options & (0x01 << 2U)) != 0U)
+            {
+                revert_low_power_ddr_clk_pins(lp_clk_pin);
+            }
+            if((lp_options & (0x01 << 3U)) != 0U)
+            {
+                revert_low_power_ddr_dq_pins(lp_dq_pins);
+            }
+            if((lp_options & (0x01 << 4U)) != 0U)
+            {
+                revert_low_power_ddr_dqs_pins(lp_dqs_pins);
+            }
+            if((lp_options & (0x01 << 5U)) != 0U)
+            {
+                revert_low_power_odt();
+            }
+            break;
+    }
+}
+
+static uint32_t set_low_power_ddr_addcmd_pins(void)
+{
+    uint32_t previous_value = CFG_DDR_SGMII_PHY->rpc95.rpc95;
+    /*
+     * set ibuff mode to 7 in off mode
+     */
+    CFG_DDR_SGMII_PHY->rpc95.rpc95 = 0x07;      /* addcmd I/O*/
+
+    return previous_value;
+
+}
+
+static void revert_low_power_ddr_addcmd_pins(uint32_t reg_value)
+{
+    CFG_DDR_SGMII_PHY->rpc95.rpc95 = reg_value;
+}
+
+static uint32_t set_low_power_ddr_clk_pin(void)
+{
+    uint32_t previous_value = CFG_DDR_SGMII_PHY->rpc96.rpc96;
+    /*
+     * set ibuff mode to 7 in off mode
+     */
+    CFG_DDR_SGMII_PHY->rpc96.rpc96 = 0x07;      /* clk */
+
+    return previous_value;
+}
+
+static void revert_low_power_ddr_clk_pins(uint32_t reg_value)
+{
+    CFG_DDR_SGMII_PHY->rpc96.rpc96 = reg_value;
+}
+static uint32_t set_low_power_ddr_dq_pins(void)
+{
+    uint32_t previous_value = CFG_DDR_SGMII_PHY->rpc97.rpc97;
+    /*
+     * set ibuff mode to 7 in off mode
+     */
+    CFG_DDR_SGMII_PHY->rpc97.rpc97 = 0x07;      /* dq */
+
+    return previous_value;
+}
+static void revert_low_power_ddr_dq_pins(uint32_t reg_value)
+{
+    CFG_DDR_SGMII_PHY->rpc97.rpc97 = reg_value;
+}
+
+static uint32_t set_low_power_ddr_dqs_pins(void)
+{
+    uint32_t previous_value = CFG_DDR_SGMII_PHY->rpc98.rpc98;
+    /*
+     * set ibuff mode to 7 in off mode
+     */
+    CFG_DDR_SGMII_PHY->rpc98.rpc98 = 0x07;      /* dqs */
+    return previous_value;
+}
+
+static void revert_low_power_ddr_dqs_pins(uint32_t reg_value)
+{
+    CFG_DDR_SGMII_PHY->rpc98.rpc98 = reg_value;
+ }
+
+static void set_low_power_odt(void)
+{
+    //CFG_DDR_SGMII_PHY->rpc1_ODT.rpc1_ODT = LIBERO_SETTING_RPC_ODT_ADDCMD;
+    //CFG_DDR_SGMII_PHY->rpc2_ODT.rpc2_ODT = LIBERO_SETTING_RPC_ODT_CLK;
+    CFG_DDR_SGMII_PHY->rpc3_ODT.rpc3_ODT = 0U;
+    CFG_DDR_SGMII_PHY->rpc4_ODT.rpc4_ODT = 0U;
+}
+
+static void revert_low_power_odt(void)
+{
+    //CFG_DDR_SGMII_PHY->rpc1_ODT.rpc1_ODT = LIBERO_SETTING_RPC_ODT_ADDCMD;
+    //CFG_DDR_SGMII_PHY->rpc2_ODT.rpc2_ODT = LIBERO_SETTING_RPC_ODT_CLK;
+    CFG_DDR_SGMII_PHY->rpc3_ODT.rpc3_ODT = LIBERO_SETTING_RPC_ODT_DQ;
+    CFG_DDR_SGMII_PHY->rpc4_ODT.rpc4_ODT = LIBERO_SETTING_RPC_ODT_DQS;
+}
+
+static void reset_sync_iog(void)
+{
+    CFG_DDR_SGMII_PHY->expert_mode_en.expert_mode_en = 0x9U;
+    CFG_DDR_SGMII_PHY->expert_dlycnt_pause.expert_dlycnt_pause = 0x0000003FU;
+    CFG_DDR_SGMII_PHY->expert_dlycnt_pause.expert_dlycnt_pause = 0x00000000U;
+    CFG_DDR_SGMII_PHY->expert_mode_en.expert_mode_en = 0x8U;
+}
 
 /***************************************************************************//**
  * ddr_state_machine(DDR_SS_COMMAND)
@@ -329,9 +570,34 @@ static uint32_t ddr_setup(void)
 
     ddr_type = LIBERO_SETTING_DDRPHY_MODE & DDRPHY_MODE_MASK;
 
+/*
+ * Usually in Renode we want to skip DDR training, as it is slow and does not
+ * do anything useful. If the user wants to explicitly simulate the training,
+ * then RENODE_SIM_DDR_TRAINING should be defined.
+ * The Training skip is achieved by reading from a register that should always
+ * return 0's in Hardware. In this case, the MPFS_DDRMock module will return
+ * a known pattern that will let us know we are in a simulation, and will skip
+ * the training.
+ * The RPC_RESET_MAIN_PLL register can usually only return 0x00 or 0x01, as
+ * the other bits are set to Rreturns0. This signature string "REND" will only
+ * ever be read when connected to the Renode MPFS_DDRMock module.
+ */
+#ifndef RENODE_SIM_DDR_TRAINING
+    if (0x52454E44 == CFG_DDR_SGMII_PHY->RPC_RESET_MAIN_PLL.RPC_RESET_MAIN_PLL)
+    {
+        ret_status |= DDR_SETUP_DONE;
+        ddr_training_state = DDR_TRAINING_FINISHED;
+    }
+#endif
+
     switch (ddr_training_state)
     {
         case DDR_TRAINING_INIT:
+            /******************************************************************/
+#ifdef DEBUG_DDR_INIT
+            display_ddr_driver_info(g_debug_uart);
+#endif
+            /******************************************************************/
             training_start_cycle = rdcycle();
             tip_cfg_params = LIBERO_SETTING_TIP_CFG_PARAMS;
             dpc_bits = LIBERO_SETTING_DPC_BITS ;
@@ -549,7 +815,7 @@ static uint32_t ddr_setup(void)
 
             if (ddr_type == LPDDR4)
             {
-            	/* vrgen, modify during write leveling,  turns off ODT */
+                /* vrgen, modify during write leveling,  turns off ODT */
                 CFG_DDR_SGMII_PHY->DPC_BITS.DPC_BITS =\
                         (dpc_bits & ~DDR_DPC_VRGEN_H_MASK)| (DPC_VRGEN_H_LPDDR4_WR_LVL_VAL << DDR_DPC_VRGEN_H_SHIFT);
                 CFG_DDR_SGMII_PHY->rpc3_ODT.rpc3_ODT = 0x0;
@@ -670,38 +936,13 @@ static uint32_t ddr_setup(void)
              *  reset pin is bit [1]
              * and load skip setting
              */
-            /* leave in reset */
-/* To verify if separate reset required for DDR4 - believe it is not */
-#ifndef SPECIAL_TRAINIG_RESET
             CFG_DDR_SGMII_PHY->training_reset.training_reset    = 0x00000002U;
-#ifndef     SOFT_RESET_PRE_TAG_172
             if (ddr_type == LPDDR4)
             {
-                //ALISTER 7/16/21
                 DDRCFG->MC_BASE2.INIT_AUTOINIT_DISABLE.INIT_AUTOINIT_DISABLE=0x1;
             }
             DDRCFG->MC_BASE2.CTRLR_SOFT_RESET_N.CTRLR_SOFT_RESET_N = 0x00000000U;
             DDRCFG->MC_BASE2.CTRLR_SOFT_RESET_N.CTRLR_SOFT_RESET_N  = 0x00000001U;
-#endif      /* !SOFT_RESET_PRE_TAG_172 */
-#else
-            /* Disable CKE */
-            DDRCFG->MC_BASE2.INIT_DISABLE_CKE.INIT_DISABLE_CKE = 0x1;
-
-            /* Assert FORCE_RESET */
-            DDRCFG->MC_BASE2.INIT_FORCE_RESET.INIT_FORCE_RESET = 0x1;
-            delay(DELAY_CYCLES_5_MICRO);
-            /* release reset to memory here, set INIT_FORCE_RESET to 0 */
-            DDRCFG->MC_BASE2.INIT_FORCE_RESET.INIT_FORCE_RESET = 0x0;
-            delay(DELAY_CYCLES_2MS); /* 2MS */
-
-            /* Enable CKE */
-            DDRCFG->MC_BASE2.INIT_DISABLE_CKE.INIT_DISABLE_CKE = 0x0;
-            delay(DELAY_CYCLES_50_MICRO);
-
-            /* reset pin is bit [1] */
-            CFG_DDR_SGMII_PHY->training_reset.training_reset = 0x00000002U;
-
-#endif
             ddr_training_state = DDR_TRAINING_ROTATE_CLK;
             break;
         case DDR_TRAINING_ROTATE_CLK:
@@ -816,10 +1057,6 @@ static uint32_t ddr_setup(void)
                     /*
                      * Initiate software training
                      */
-#ifdef     SOFT_RESET_PRE_TAG_172
-                    DDRCFG->MC_BASE2.CTRLR_SOFT_RESET_N.CTRLR_SOFT_RESET_N  =\
-                                                                    0x00000001U;
-#endif
                     ddr_training_state = DDR_TRAINING_IP_SM_BCLKSCLK_SW;
                 }
                 else
@@ -901,10 +1138,10 @@ static uint32_t ddr_setup(void)
                         }
                     }
                 }
-                ddr_training_state = DDR_MANUAL_ADDCMD_TRAINING_SW;
+                ddr_training_state = DDR_TRAINING_MANUAL_ADDCMD_TRAINING_SW;
                 break;
 
-          case DDR_MANUAL_ADDCMD_TRAINING_SW:
+          case DDR_TRAINING_MANUAL_ADDCMD_TRAINING_SW:
                 {
                     /*
                      * APPLY OFFSET & LOAD THE PHASE
@@ -1357,6 +1594,7 @@ static uint32_t ddr_setup(void)
                  for (lane_sel=0U; lane_sel< \
                             LIBERO_SETTING_DATA_LANES_USED; lane_sel++)
                  {
+                     lane_sel = PARSE_LANE(lane_sel);
                      delay(10U);
                      CFG_DDR_SGMII_PHY->lane_select.lane_select = lane_sel;
                      delay(10U);
@@ -1585,16 +1823,28 @@ static uint32_t ddr_setup(void)
             CFG_DDR_SGMII_PHY->expert_mode_en.expert_mode_en = 0x0000008U;
             if(error == 0U)
             {
-                if((ddr_type == DDR3)||(ddr_type == DDR3L)) /* Changing WPU and WPD */
+                if (ddr_type != LPDDR4) /* Changing WPU and WPD */
                 {
                     /* only run when ECC is on - sar121393 */
                     if (LIBERO_SETTING_DDRPHY_MODE & DDRPHY_MODE_ECC_MASK)
                     {
-                        CFG_DDR_SGMII_PHY->ovrt16.ovrt16 = 0x00000F80UL;
-                        CFG_DDR_SGMII_PHY->ovrt15.ovrt15 = 0x00000000UL;
-                        CFG_DDR_SGMII_PHY->ovrt14.ovrt14 = 0x00000000UL;
-                        CFG_DDR_SGMII_PHY->ovrt13.ovrt13 = 0x00000000UL;
-                        CFG_DDR_SGMII_PHY->ovrt12.ovrt12 = 0x00000000UL;
+                        if ((LIBERO_SETTING_DDRPHY_MODE & DDRPHY_MODE_BUS_WIDTH_MASK) ==
+                                    DDRPHY_MODE_BUS_WIDTH_4_LANE)
+                        {
+                            CFG_DDR_SGMII_PHY->ovrt16.ovrt16 = 0x00000F80UL;
+                            CFG_DDR_SGMII_PHY->ovrt15.ovrt15 = 0x00000000UL;
+                            CFG_DDR_SGMII_PHY->ovrt14.ovrt14 = 0x00000000UL;
+                            CFG_DDR_SGMII_PHY->ovrt13.ovrt13 = 0x00000000UL;
+                            CFG_DDR_SGMII_PHY->ovrt12.ovrt12 = 0x00000000UL;
+                        }
+                        else
+                        {
+                            CFG_DDR_SGMII_PHY->ovrt16.ovrt16 = 0x00000F80UL;
+                            CFG_DDR_SGMII_PHY->ovrt15.ovrt15 = 0x00000FFFUL;
+                            CFG_DDR_SGMII_PHY->ovrt14.ovrt14 = 0x00000FFFUL;
+                            CFG_DDR_SGMII_PHY->ovrt13.ovrt13 = 0x00000000UL;
+                            CFG_DDR_SGMII_PHY->ovrt12.ovrt12 = 0x00000000UL;
+                        }
                     }
                 }
                 if (ddr_type == LPDDR4)
@@ -1699,7 +1949,7 @@ static uint32_t ddr_setup(void)
             (void)uprint32(g_debug_uart, "\n\r\n\r wr calib result ",\
                     calib_data.write_cal.lane_calib_result);
 #endif
-                ddr_training_state = DDR_SWEEP_CHECK;
+                ddr_training_state = DDR_SANITY_CHECKS;
             }
             else if(error == MTC_TIMEOUT_ERROR)
             {
@@ -1740,10 +1990,6 @@ static uint32_t ddr_setup(void)
             }
             break;
 
-        case DDR_SWEEP_CHECK:
-            ddr_training_state = DDR_SANITY_CHECKS;
-            break;
-
         case DDR_SANITY_CHECKS:
             /*
              *  Now start the write calibration if training successful
@@ -1771,15 +2017,17 @@ static uint32_t ddr_setup(void)
         case DDR_FULL_MTC_CHECK:
             {
                 uint64_t start_address = 0x0000000000000000ULL;
-                uint32_t size = ONE_MB_MTC;  /* Number of reads for each iteration 2**size*/
+                uint32_t size; /* Number of reads for each iteration (2**size) minus power of lane width (1 or 2) */
                 uint8_t mask;
                 if (get_num_lanes() <= 3U)
                 {
                     mask = 0x3U;
+                    size = TWO_MB_MTC - 1U;
                 }
                 else
                 {
                     mask = 0xFU;
+                    size = FOUR_MB_MTC - 2U;
                 }
                 error = MTC_test(mask, start_address, size, MTC_COUNTING_PATTERN, MTC_ADD_SEQUENTIAL, &error);
                 /* Read using different patterns */
@@ -2132,7 +2380,6 @@ static uint32_t ddr_setup(void)
 
     return (ret_status);
 }
-
 
 /**
  * get_num_lanes(void)
@@ -2547,8 +2794,6 @@ static void set_ddr_rpc_regs(DDR_TYPE ddr_type)
         MSSIO from reset- non default values
             Needs non default values to completely go completely OFF
             Drive bits and ibuff mode
-            Ciaran to define what need to be done
-              SAR107676
         DDR - by default put to DDR4 mode so needs active intervention
             Bills sac spec (DDR PHY SAC spec section 6.1)
             Mode register set to 7
@@ -2576,7 +2821,7 @@ static void set_ddr_rpc_regs(DDR_TYPE ddr_type)
  *  IP:
  *  DECODER_DRIVER, ODT, IO all out of reset
  *
- *  DDR PHY off mode that I took from version 1.58 of the DDR SAC spec.
+ *  DDR PHY off mode procedure.
  *  1.  DDR PHY OFF mode (not used at all).
  *  1.  Set the DDR_MODE register to 7
  *  This will disable all the drive and ODT to 0, as well as set all WPU bits.
@@ -2987,6 +3232,8 @@ static void set_write_calib(uint8_t user_lanes)
     for (lane_to_set = 0x00U;\
         lane_to_set<user_lanes /*USER_TOTAL_LANES_USED */; lane_to_set++)
     {
+        shift = PARSE_LANE_SHIFT(lane_to_set,shift);
+        lane_to_set = PARSE_LANE(lane_to_set);
         temp = calib_data.write_cal.lower[lane_to_set];
         calib_data.write_cal.lane_calib_result =   \
                 calib_data.write_cal.lane_calib_result | (temp << (shift));
@@ -3001,8 +3248,8 @@ static void set_write_calib(uint8_t user_lanes)
     CFG_DDR_SGMII_PHY->expert_mode_en.expert_mode_en = 0x00000008U;
 
     /* set the calibrated value */
-    CFG_DDR_SGMII_PHY->expert_wrcalib.expert_wrcalib =\
-            calib_data.write_cal.lane_calib_result;
+    CFG_DDR_SGMII_PHY->expert_wrcalib.expert_wrcalib =
+        calib_data.write_cal.lane_calib_result;
 }
 
 /***************************************************************************//**
@@ -3096,6 +3343,7 @@ static uint8_t \
              * read once to flush MTC. During write calibration the first MTC read
              * must be discarded as it is unreliable after a series of bad writes.
              */
+            laneToTest = PARSE_LANE(laneToTest);
             uint8_t mask = (uint8_t)(1U<<laneToTest);
             result = MTC_test(mask, start_address, size, MTC_COUNTING_PATTERN, MTC_ADD_SEQUENTIAL, &result);
             /* Read using different patterns */
@@ -3131,6 +3379,7 @@ static uint8_t \
                 for (laneToCheck = 0x00U;\
                     laneToCheck<number_of_lanes_to_calibrate; laneToCheck++)
                 {
+                    laneToCheck = PARSE_LANE(laneToCheck);
                     if(((calib_data.write_cal.status_lower) &\
                             (0x01U<<laneToCheck)) == 0U)
                     {
@@ -4060,8 +4309,7 @@ static void init_ddrc(void)
         LIBERO_SETTING_CFG_CAL_READ_PERIOD;
     DDRCFG->MC_BASE2.CFG_NUM_CAL_READS.CFG_NUM_CAL_READS =\
         LIBERO_SETTING_CFG_NUM_CAL_READS;
-    DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH =\
-        LIBERO_SETTING_INIT_SELF_REFRESH;
+    DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH = 0U;
     DDRCFG->MC_BASE2.INIT_POWER_DOWN.INIT_POWER_DOWN =\
         LIBERO_SETTING_INIT_POWER_DOWN;
     DDRCFG->MC_BASE2.INIT_FORCE_WRITE.INIT_FORCE_WRITE =\
@@ -4405,10 +4653,23 @@ __attribute__((weak)) void clear_bootup_cache_ways(void)
 
     load_ddr_pattern(&pattern_test);
 
-    /* clear using my d-cache ways */
-    fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_32_DDR,
-                               (void *)(BASE_ADDRESS_CACHED_32_DDR +
-                                        TWO_MBYTES));
+	/* clear using my d-cache ways */
+	fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_32_DDR,
+							   (void *)(BASE_ADDRESS_CACHED_32_DDR +
+										TWO_MBYTES));
+
+	/* clear using pdma routine, uses the 4 channels */
+	pattern_test.base = LIBERO_SETTING_DDR_64_CACHE;
+	pattern_test.size = TWO_MBYTES*4;
+	pattern_test.pattern_type = DDR_INIT_FILL;
+	pattern_test.pattern_offset = 0U;
+
+	load_ddr_pattern(&pattern_test);
+
+	/* clear using my d-cache ways */
+	fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_64_DDR,
+							   (void *)(BASE_ADDRESS_CACHED_64_DDR +
+									TWO_MBYTES));
 }
 
 /**
@@ -4492,6 +4753,36 @@ static uint8_t bclk_sclk_offset(DDR_TYPE ddr_type)
  */
 static void config_ddr_io_pull_up_downs_rpc_bits(DDR_TYPE ddr_type)
 {
+#ifdef LIBERO_SETTING_EN_RPC_PIN_OFF_PU_PU_DEFAULT_OVERWRITES
+    (void)ddr_type;
+    /* set over-rides (associated bit set to 1 if I/O not being used */
+    CFG_DDR_SGMII_PHY->ovrt9.ovrt9   = LIBERO_SETTING_RPC_EN_ADDCMD0_OVRT9;
+    CFG_DDR_SGMII_PHY->ovrt10.ovrt10 = LIBERO_SETTING_RPC_EN_ADDCMD1_OVRT10;
+    CFG_DDR_SGMII_PHY->ovrt11.ovrt11 = LIBERO_SETTING_RPC_EN_ADDCMD2_OVRT11;
+    CFG_DDR_SGMII_PHY->ovrt12.ovrt12 = LIBERO_SETTING_RPC_EN_DATA0_OVRT12;
+    CFG_DDR_SGMII_PHY->ovrt13.ovrt13 = LIBERO_SETTING_RPC_EN_DATA1_OVRT13;
+    CFG_DDR_SGMII_PHY->ovrt14.ovrt14 = LIBERO_SETTING_RPC_EN_DATA2_OVRT14;
+    CFG_DDR_SGMII_PHY->ovrt15.ovrt15 = LIBERO_SETTING_RPC_EN_DATA3_OVRT15;
+    CFG_DDR_SGMII_PHY->ovrt16.ovrt16 = LIBERO_SETTING_RPC_EN_ECC_OVRT16;
+    /* set the required wpu state- note: associated I/O bit 1=> off, 0=> on */
+    CFG_DDR_SGMII_PHY->rpc235.rpc235 = LIBERO_SETTING_RPC235_WPD_ADD_CMD0;
+    CFG_DDR_SGMII_PHY->rpc236.rpc236 = LIBERO_SETTING_RPC236_WPD_ADD_CMD1;
+    CFG_DDR_SGMII_PHY->rpc237.rpc237 = LIBERO_SETTING_RPC237_WPD_ADD_CMD2;
+    CFG_DDR_SGMII_PHY->rpc238.rpc238 = LIBERO_SETTING_RPC238_WPD_DATA0;
+    CFG_DDR_SGMII_PHY->rpc239.rpc239 = LIBERO_SETTING_RPC239_WPD_DATA1;
+    CFG_DDR_SGMII_PHY->rpc240.rpc240 = LIBERO_SETTING_RPC240_WPD_DATA2;
+    CFG_DDR_SGMII_PHY->rpc241.rpc241 = LIBERO_SETTING_RPC241_WPD_DATA3;
+    CFG_DDR_SGMII_PHY->rpc242.rpc242 = LIBERO_SETTING_RPC242_WPD_ECC;
+    /* set the required wpd state- note: associated I/O bit 1=> off, 0=> on */
+    CFG_DDR_SGMII_PHY->rpc243.rpc243 = LIBERO_SETTING_RPC243_WPU_ADD_CMD0;
+    CFG_DDR_SGMII_PHY->rpc244.rpc244 = LIBERO_SETTING_RPC244_WPU_ADD_CMD1;
+    CFG_DDR_SGMII_PHY->rpc245.rpc245 = LIBERO_SETTING_RPC245_WPU_ADD_CMD2;
+    CFG_DDR_SGMII_PHY->rpc246.rpc246 = LIBERO_SETTING_RPC246_WPU_DATA0;
+    CFG_DDR_SGMII_PHY->rpc247.rpc247 = LIBERO_SETTING_RPC247_WPU_DATA1;
+    CFG_DDR_SGMII_PHY->rpc248.rpc248 = LIBERO_SETTING_RPC248_WPU_DATA2;
+    CFG_DDR_SGMII_PHY->rpc249.rpc249 = LIBERO_SETTING_RPC249_WPU_DATA3;
+    CFG_DDR_SGMII_PHY->rpc250.rpc250 = LIBERO_SETTING_RPC250_WPU_ECC;
+#else
     if(ddr_type == LPDDR4) /* we will add other variants here once verified */
     {
 #ifdef LIBERO_SETTING_RPC_EN_ADDCMD0_OVRT9
@@ -4524,6 +4815,7 @@ static void config_ddr_io_pull_up_downs_rpc_bits(DDR_TYPE ddr_type)
         CFG_DDR_SGMII_PHY->rpc250.rpc250 = LIBERO_SETTING_RPC250_WPU_ECC;
 #endif
     }
+#endif
 }
 
 #ifdef DDR_DIAGNOSTICS /* todo: add support for diagnostics below during board bring-up */
@@ -4877,11 +5169,11 @@ static uint32_t mode_register_masked_write(uint32_t address)
     }
 }
 
-static uint32_t mode_register_masked_write_x5(uint32_t address)
+static uint32_t mode_register_masked_write_multiple(uint32_t address)
 {
     uint32_t i;
     uint32_t error=0;
-    for(i=0; i<10;i++)
+    for(i=0; i<NUM_WRITES_DDR_MODE_REG;i++)
     {
         error |= mode_register_masked_write(address);
     }
@@ -5035,25 +5327,25 @@ static void lpddr4_manual_training(DDR_TYPE ddr_type, uint8_t * refclk_sweep_ind
     delay(DELAY_CYCLES_150_MICRO);
 
 #ifdef DEBUG_DDR_INIT
-    (void)uprint32(g_debug_uart, "\n\r Writing MR1 ", mode_register_masked_write_x5(1));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR2 ", mode_register_masked_write_x5(2));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR3 ", mode_register_masked_write_x5(3));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR4 ", mode_register_masked_write_x5(4));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR11 ", mode_register_masked_write_x5(11));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR16 ", mode_register_masked_write_x5(16));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR17 ", mode_register_masked_write_x5(17));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR22 ", mode_register_masked_write_x5(22));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR13 ", mode_register_masked_write_x5(13));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR1 ", mode_register_masked_write_multiple(1));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR2 ", mode_register_masked_write_multiple(2));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR3 ", mode_register_masked_write_multiple(3));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR4 ", mode_register_masked_write_multiple(4));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR11 ", mode_register_masked_write_multiple(11));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR16 ", mode_register_masked_write_multiple(16));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR17 ", mode_register_masked_write_multiple(17));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR22 ", mode_register_masked_write_multiple(22));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR13 ", mode_register_masked_write_multiple(13));
 #else
-    mode_register_masked_write_x5(1);
-    mode_register_masked_write_x5(2);
-    mode_register_masked_write_x5(3);
-    mode_register_masked_write_x5(4);
-    mode_register_masked_write_x5(11);
-    mode_register_masked_write_x5(16);
-    mode_register_masked_write_x5(17);
-    mode_register_masked_write_x5(22);
-    mode_register_masked_write_x5(13);
+    mode_register_masked_write_multiple(1);
+    mode_register_masked_write_multiple(2);
+    mode_register_masked_write_multiple(3);
+    mode_register_masked_write_multiple(4);
+    mode_register_masked_write_multiple(11);
+    mode_register_masked_write_multiple(16);
+    mode_register_masked_write_multiple(17);
+    mode_register_masked_write_multiple(22);
+    mode_register_masked_write_multiple(13);
 #endif
 
     DDRCFG->MC_BASE2.INIT_DISABLE_CKE.INIT_DISABLE_CKE = 0x1;
@@ -5547,25 +5839,25 @@ static void lpddr4_manual_training(DDR_TYPE ddr_type, uint8_t * refclk_sweep_ind
     delay(DELAY_CYCLES_500_MICRO);
 
 #ifdef DEBUG_DDR_INIT
-    (void)uprint32(g_debug_uart, "\n\r Writing MR1 ", mode_register_masked_write_x5(1));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR2 ", mode_register_masked_write_x5(2));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR3 ", mode_register_masked_write_x5(3));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR4 ", mode_register_masked_write_x5(4));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR11 ", mode_register_masked_write_x5(11));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR16 ", mode_register_masked_write_x5(16));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR17 ", mode_register_masked_write_x5(17));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR22 ", mode_register_masked_write_x5(22));
-    (void)uprint32(g_debug_uart, "\n\r Writing MR13 ", mode_register_masked_write_x5(13));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR1 ", mode_register_masked_write_multiple(1));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR2 ", mode_register_masked_write_multiple(2));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR3 ", mode_register_masked_write_multiple(3));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR4 ", mode_register_masked_write_multiple(4));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR11 ", mode_register_masked_write_multiple(11));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR16 ", mode_register_masked_write_multiple(16));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR17 ", mode_register_masked_write_multiple(17));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR22 ", mode_register_masked_write_multiple(22));
+    (void)uprint32(g_debug_uart, "\n\r Writing MR13 ", mode_register_masked_write_multiple(13));
 #else
-    mode_register_masked_write_x5(1);
-    mode_register_masked_write_x5(2);
-    mode_register_masked_write_x5(3);
-    mode_register_masked_write_x5(4);
-    mode_register_masked_write_x5(11);
-    mode_register_masked_write_x5(16);
-    mode_register_masked_write_x5(17);
-    mode_register_masked_write_x5(22);
-    mode_register_masked_write_x5(13);
+    mode_register_masked_write_multiple(1);
+    mode_register_masked_write_multiple(2);
+    mode_register_masked_write_multiple(3);
+    mode_register_masked_write_multiple(4);
+    mode_register_masked_write_multiple(11);
+    mode_register_masked_write_multiple(16);
+    mode_register_masked_write_multiple(17);
+    mode_register_masked_write_multiple(22);
+    mode_register_masked_write_multiple(13);
 #endif
 
     delay(10U);

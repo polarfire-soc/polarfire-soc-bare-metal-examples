@@ -1,5 +1,7 @@
 /*******************************************************************************
- * (c) Copyright 2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2008 Microchip FPGA Embedded Systems Solutions.
+ *
+ * SPDX-License-Identifier: MIT
  *
  * @file core_pwm.c
  * @author Microchip FPGA Embedded Systems Solutions
@@ -8,7 +10,6 @@
  */
 #include "core_pwm.h"
 #include "corepwm_regs.h"
-#include "hal/hal.h"
 
 #ifdef __cplusplus
 extern "C" {

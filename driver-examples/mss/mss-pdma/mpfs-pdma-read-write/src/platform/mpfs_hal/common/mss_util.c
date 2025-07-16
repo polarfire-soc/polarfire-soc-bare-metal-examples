@@ -1,18 +1,14 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/***************************************************************************
  * @file mss_util.c
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief Utility functions
  *
  */
+
 #include <stddef.h>
 #include <stdbool.h>
 #include "mpfs_hal/mss_hal.h"
@@ -77,31 +73,31 @@ void __enable_local_irq(uint8_t local_interrupt)
     ASSERT(local_interrupt > (int8_t)0);
     ASSERT( (local_interrupt <= LOCAL_INT_MAX));
 
-    uint8_t mhart_id = read_csr(mhartid);
+    uint8_t mhart_id = (uint8_t)read_csr(mhartid);
 
     if((local_interrupt > (int8_t)0) && (local_interrupt <= LOCAL_INT_MAX))
     {
 
         set_csr(mie, (0x1LLU << (int8_t)(local_interrupt + LOCAL_INT_OFFSET_IN_MIE)));  /* mie Register- Machine Interrupt Enable Register */
 
-        /* Enable F2H interrupts as local instead of PLIC interrupts */
-        if (local_interrupt >= LOCAL_INT_F2H_OFFSET)
+        /* Enable F2M interrupts as local instead of PLIC interrupts */
+        if (local_interrupt >= LOCAL_INT_F2M_OFFSET)
         {
             if (mhart_id == 1)
             {
-                SYSREG->FAB_INTEN_U54_1 |= (1u << (local_interrupt - LOCAL_INT_F2H_OFFSET));
+                SYSREG->FAB_INTEN_U54_1 |= (1u << (local_interrupt - LOCAL_INT_F2M_OFFSET));
             }
             else if (mhart_id == 2)
             {
-                SYSREG->FAB_INTEN_U54_2 |= (1u << (local_interrupt - LOCAL_INT_F2H_OFFSET));
+                SYSREG->FAB_INTEN_U54_2 |= (1u << (local_interrupt - LOCAL_INT_F2M_OFFSET));
             }
             else if (mhart_id == 3)
             {
-                SYSREG->FAB_INTEN_U54_3 |= (1u << (local_interrupt - LOCAL_INT_F2H_OFFSET));
+                SYSREG->FAB_INTEN_U54_3 |= (1u << (local_interrupt - LOCAL_INT_F2M_OFFSET));
             }
             else if (mhart_id == 4)
             {
-                SYSREG->FAB_INTEN_U54_4 |= (1u << (local_interrupt - LOCAL_INT_F2H_OFFSET));
+                SYSREG->FAB_INTEN_U54_4 |= (1u << (local_interrupt - LOCAL_INT_F2M_OFFSET));
             }
         }
     }
@@ -204,7 +200,24 @@ void display_address_of_interest(uint64_t * address_of_interest, int nb_location
 }
 #endif
 
+/*------------------------------------------------------------------------------
+ * This function disables dynamic branch prediction on the hart from which it
+ * executes. It is enabled by default.
+ */
+void disable_branch_prediction(void)
+{
+    write_csr(0x7C0, 0x1u);
+}
+
+/*------------------------------------------------------------------------------
+ * This function enables dynamic branch prediction on the hart from which it
+ * executes.
+ */
+void enable_branch_prediction(void)
+{
+    write_csr(0x7C0, 0x0u);
+}
+
 #ifdef __cplusplus
 }
 #endif
-

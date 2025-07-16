@@ -1,21 +1,16 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
- *
  * @file mss_hart_ints.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief MPFS local interrupt definitions
  *
  * Definitions and functions associated with local interrupts for each hart.
  *
  */
+
 #ifndef MSS_HART_INTS_H
 #define MSS_HART_INTS_H
 
@@ -24,30 +19,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct BEU_Type_
-{
-    volatile uint64_t CAUSE;
-    volatile uint64_t VALUE;
-    volatile uint64_t ENABLE;
-    volatile uint64_t PLIC_INT;
-    volatile uint64_t ACCRUED;
-    volatile uint64_t LOCAL_INT;
-    volatile uint64_t reserved2[((0x1000U/8U) - 0x6U)];
-} BEU_Type;
-
-typedef struct BEU_Types_
-{
-    volatile BEU_Type regs[5];
-} BEU_Types;
-
-#define        MSS_BUS_ERROR_UNIT_H0                0x01700000UL
-#define        MSS_BUS_ERROR_UNIT_H1                0x01701000UL
-#define        MSS_BUS_ERROR_UNIT_H2                0x01702000UL
-#define        MSS_BUS_ERROR_UNIT_H3                0x01703000UL
-#define        MSS_BUS_ERROR_UNIT_H4                0x01704000UL
-
-#define BEU    ((BEU_Types *)MSS_BUS_ERROR_UNIT_H0)
 
 /*
  * Local Interrupt offsets for the E51
@@ -381,4 +352,3 @@ void U54_f2m_31_local_IRQHandler(void);
 #endif
 
 #endif  /* MSS_HART_INTS_H */
-

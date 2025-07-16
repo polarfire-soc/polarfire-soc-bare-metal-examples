@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2021 Microchip Corporation.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
- * @file entry.S
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @file mss_entry.S
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief entry functions.
  *
  */
@@ -19,6 +14,8 @@
 #include "../common/mss_mtrap.h"
 #include "system_startup_defs.h"
 #include "mpfs_hal_config/mss_sw_config.h"
+
+#define NUM_CACHEWAYS_AT_RESET 1
 
   .option norvc
   .section .text.init,"ax", %progbits
@@ -95,20 +92,194 @@ _start:
     li  x30,0
     li  x31,0
 
-    # enable FPU and accelerator if present, setting ignored on E51
-    li t0, MSTATUS_FS | MSTATUS_XS
-    csrs mstatus, t0
-
-    # Init floating point control register to zero
-    # skip if e51
-    csrr a0, mhartid
-    beqz a0, .no_float
-#ifdef __riscv_flen
-    fscsr x0
+    # make sure XLEN agrees with compilation choice, if not will loop here
+.LxlenCheck:
+    csrr t0, misa
+#if __riscv_xlen == 64
+    bltz t0, .LxlenPass
+#else
+    bgez t0, .LxlenPass
 #endif
-.no_float:
+    j .LxlenCheck
+.LxlenPass:
 
-     # make sure XLEN agrees with compilation choice, if not will loop here
+    # initialize global pointer, global data
+    # The __global_pointer is allocated in the linker script. It points to a
+    # location 2k after sdata start as the offsets used in the gp are +/- 2k
+    # See https://www.sifive.com/blog/2017/08/28/all-aboard-part-3-linker-relaxation-in-riscv-toolchain/
+    # see: http://www.rowleydownload.co.uk/arm/documentation/gnu/as/RISC_002dV_002dDirectives.html
+    .option push
+    .option norelax
+    la gp, __global_pointer$
+    .option pop
+
+    # get core id
+    csrr a0, mhartid
+    li a1,  0
+    beq a0, a1, .hart0
+    li a1,  1
+    beq a0, a1, .hart1
+    li a1,  2
+    beq a0, a1, .hart2
+    li a1,  3
+    beq a0, a1, .hart3
+    li a1,  4
+    beq a0, a1, .hart4
+
+.hart0:
+    la a4, __stack_bottom_h0$  # keep bottom of stack in a5 so we can init later
+    la sp, __stack_top_h0$
+    j .continue
+.hart1:
+    la a4, __stack_bottom_h1$  # keep bottom of stack in a5 so we can init later
+    la sp, __stack_top_h1$
+    j .continue
+.hart2:
+    la a4, __stack_bottom_h2$  # keep bottom of stack in a5 so we can init later
+    la sp, __stack_top_h2$
+    j .continue
+.hart3:
+    la a4, __stack_bottom_h3$  # keep bottom of stack in a5 so we can init later
+    la sp, __stack_top_h3$
+    j .continue
+.hart4:
+    la a4, __stack_bottom_h4$  # keep bottom of stack in a5 so we can init later
+    la sp, __stack_top_h4$
+
+.continue:
+    # clear HLS and stack
+    mv  a5, sp
+.init_stack:
+    #csrw mepc, zero
+    STORE x0, 0(a4)
+    add a4, a4, __SIZEOF_POINTER__
+    blt a4, a5, .init_stack
+    # Allocate some space at top of stack for the HLS
+    addi sp, sp, -HLS_DEBUG_AREA_SIZE
+    # HLS grows up from new top of stack
+    mv tp, sp
+    # get core id
+    csrr a0, mhartid
+    li a1, MPFS_HAL_FIRST_HART
+    bne a0, a1, .LOtherHartstoWFI
+    #
+    # clear DTIM - this is required to stop memory errors on initial access by
+    # cache
+    # Also, stops x propagation in simulation, when cache/stack reads unused
+    # area
+    #
+    li a2, MPFS_HAL_CLEAR_MEMORY
+    beq x0, a2, .skip_mem_clear
+    call    .clear_dtim
+    call    .clear_l2lim
+.skip_mem_clear:
+    li  a0, NUM_CACHEWAYS_AT_RESET    # flush default way in case it has already
+                                      # been used by system controller loader
+                                      # (bootmode2 or 3)
+    call    .flush_early_caching
+    call    config_l2_cache
+    call    end_l2_scratchpad_address  # end address returned in a0
+    call    .clear_scratchpad
+    # place pattern in the common heap
+    la  a4, __heap_start
+    la  a5, __heap_end
+.init_heap:
+    STORE x0, 0(a4)
+    add a4, a4, __SIZEOF_POINTER__
+    blt a4, a5, .init_heap
+    /*
+     * Clear bus error unit accrued register on start-up
+     * This is cleared by the first hart only
+     */
+    la a4,0x01700020UL
+    sb   x0, 0(a4)
+    la a4,0x01701020UL
+    sb   x0, 0(a4)
+    la a4,0x01702020UL
+    sb   x0, 0(a4)
+    la a4,0x01703020UL
+    sb   x0, 0(a4)
+    la a4,0x01704020UL
+    sb   x0, 0(a4)
+    # now core MPFS_HAL_FIRST_HART jumps to main_first_hart
+.main_hart:
+    # pass HLS address
+    mv  a0, tp
+    j main_first_hart
+.LoopForeverMain:
+    #in case of return, loop forever. nop's added so can be seen in debugger
+    nop
+    nop
+    j .LoopForeverMain
+
+.LOtherHartstoWFI:
+    li a2,  MSTATUS_MIE
+    csrc mstatus, a2       # clear interrupt enable bit
+    csrw mie, zero
+    csrw mip, zero
+    li a2, MIP_MSIP
+    csrw mie, a2           # Set MSIE bit to receive IPI. This needs to be
+                           # enabled- otherwise stays in wfi.
+                           # Other interrupts appera to bring out of wfi,even if
+                           # not enabled.
+    #
+    # Wait here until main hart is up and running
+    #
+    li a3, HLS_MAIN_HART_STARTED
+    la a1, (__stack_top_h0$ - HLS_DEBUG_AREA_SIZE)
+.wait_main_hart:
+    LWU a2, 0(a1)
+    bne a3, a2, .wait_main_hart
+    # Flag we are here to the main hart
+    li a1, HLS_OTHER_HART_IN_WFI
+    sw a1, 0(tp)
+    /* flush the instruction cache */
+    fence.i
+.LwaitOtherHart:
+    # We assume wfi instruction will be run before main hart attampts to take
+    # out of wfi
+    wfi
+    # Only start if MIP_MSIP is set - the wfi will ensure this, but adding
+    # breakpoints in the debugger (halt)
+    # will wakeup wfi, so the following code will make sure we remain here until
+    # we get a software interrupt
+    csrr a2, mip
+    andi a2, a2, MIP_MSIP
+    beqz a2, .LwaitOtherHart
+    /* Disable and clear all interrupts- should be only a sw interrupt */
+    li a2,  MSTATUS_MIE
+    csrc mstatus, a2        # clear interrupt enable bit
+    csrw mie, zero
+    csrw mip, zero
+    # set marker as to where we are
+    li a1, HLS_OTHER_HART_PASSED_WFI
+    sw a1, 0(tp)
+    # pass HLS address
+    mv  a0, tp
+    j main_other_hart
+.LoopForeverOther:
+    #in case of return, loop forever. nop's added so can be seen in debugger
+    nop
+    nop
+    j .LoopForeverOther
+
+#else   /* IMAGE_LOADED_BY_BOOTLOADER == 1 */
+/*******************************************************************************
+ *The program has been loaded by a bootloader
+ * a0 - contains the hart ID
+ * a1 - contains pointer to bootloader -Hart Local Storage, for this hart.
+ */
+_start_non_bootloader_amp_image:
+    /* Setup trap handler */
+    la a4, trap_vector
+    csrw mtvec, a4          # initalise machine trap vector address
+    /* Make sure that mtvec is updated before continuing */
+    1:
+    csrr    a5, mtvec
+    bne a4, a5, 1b
+    /* assume ints in init state */
+    /* assume PMP's set as required */
+    # make sure XLEN agrees with compilation choice, if not will loop here
 .LxlenCheck:
     csrr t0, misa
 #if __riscv_xlen == 64
@@ -186,36 +357,11 @@ _start:
     STORE x0, 0(a4)
     add a4, a4, __SIZEOF_POINTER__
     blt a4, a5, .init_heap
-    #
-    # clear DTIM - this is required to stop memory errors on initial access by
-    # cache
-    # Also, stops x propagation in simulation, when cache/stack reads unused
-    # area
-    #
-    li a2, MPFS_HAL_CLEAR_MEMORY
-    beq x0, a2, .skip_mem_clear
-    call    .clear_dtim
-    call    .clear_l2lim
-.skip_mem_clear:
-    /*
-     * Clear bus error unit accrued register on start-up
-     * This is cleared by the first hart only
-     */
-    la a4,0x01700020UL
-    sb   x0, 0(a4)
-    la a4,0x01701020UL
-    sb   x0, 0(a4)
-    la a4,0x01702020UL
-    sb   x0, 0(a4)
-    la a4,0x01703020UL
-    sb   x0, 0(a4)
-    la a4,0x01704020UL
-    sb   x0, 0(a4)
     # now core MPFS_HAL_FIRST_HART jumps to main_first_hart
 .main_hart:
     # pass HLS address
     mv  a0, tp
-    j main_first_hart
+    j main_first_hart_app
 .LoopForeverMain:
     #in case of return, loop forever. nop's added so can be seen in debugger
     nop
@@ -235,10 +381,37 @@ _start:
     #
     # Wait here until main hart is up and running
     #
+    # get core id
+    la a2, MPFS_HAL_FIRST_HART
+    li a3,  0
+    beq a3, a2, .main_hart0
+    li a3,  1
+    beq a3, a2, .main_hart1
+    li a3,  2
+    beq a3, a2, .main_hart2
+    li a3,  3
+    beq a3, a2, .main_hart3
+    li a3,  4
+    beq a3, a2, .main_hart4
+
+.main_hart0:
+    la a4, (__stack_top_h0$ - HLS_DEBUG_AREA_SIZE)
+    j  1f
+.main_hart1:
+    la a4, (__stack_top_h1$ - HLS_DEBUG_AREA_SIZE)
+    j  1f
+.main_hart2:
+    la a4, (__stack_top_h2$ - HLS_DEBUG_AREA_SIZE)
+    j  1f
+.main_hart3:
+    la a4, (__stack_top_h3$ - HLS_DEBUG_AREA_SIZE)
+    j  1f
+.main_hart4:
+    la a4, (__stack_top_h4$ - HLS_DEBUG_AREA_SIZE)
+1:
     li a3, HLS_MAIN_HART_STARTED
-    la a1, (__stack_top_h0$ - HLS_DEBUG_AREA_SIZE)
 .wait_main_hart:
-    LWU a2, 0(a1)
+    LWU a2, 0(a4)
     bne a3, a2, .wait_main_hart
     # Flag we are here to the main hart
     li a1, HLS_OTHER_HART_IN_WFI
@@ -273,115 +446,32 @@ _start:
     nop
     j .LoopForeverOther
 
-#else /* IMAGE_LOADED_BY_BOOTLOADER == 1 */
-
-/***********************************************************************************
- *The program has been loaded by a bootloader
- * a0 - contains the hart ID
- * a1 - contains pointer to bootloader -Hart Local Storage, for this hart.
- */
-_start_non_bootloader_image:
-    /* ebreak called at the start of the program if required when debuging.   */
-    /* DEBUG_EBREAK_AT_START is set to one in the debug build, 0 in the       */
-    /* release build                                                          */
-    /* uncomment the 3 lines below if you want to use this method to for      */
-    /* debugging                                                              */
-    /* li a2, DEBUG_EBREAK_AT_START
-    beq x0, a2, 1f
-    ebreak */
-1:
-    /* store the value here received from boot-loader */
-    /* a0 will always contain the hart ID */
-    /* If a1 is null, boot-loader is not passing pointer to the HLS */
-    /* If this is the case, point HLS to out own and fill with hart ID */
-    /* Setup trap handler */
-    /* we are currently only supporting mmode */
-    /* m-mode/s-mode set-up option will be added here */
-    la a4, trap_vector
-    csrw mtvec, a4          # initalise machine trap vector address
-    /* Make sure that mtvec is updated before continuing */
-2:
-    csrr    a5, mtvec
-    bne a4, a5, 2b
-    /* Disable and clear all interrupts */
-    /* assumption is this has been done by the Boot-loader */
-    # Init delegation registers, mideleg, medeleg, if a U54
-    # These are not initialised by the hardware and come up in a random state
-    # mhartid is in a0
-    beqz a0, 3f
-    csrw mideleg, 0
-    csrw medeleg, 0
-3:
-    # mscratch must be init to zero- we are not using scratch memory
-    csrw mscratch, zero
-    csrw mcause, zero
-    csrw mepc, zero
-
-    # Init floating point control register to zero
-    # skip if e51
-    # mhartid is in a0
-    beqz a0, 1f
-#ifdef __riscv_flen
-    fscsr x0
-#endif
-1:  # no float
-    # make sure XLEN agrees with compilation choice, if not will loop here
-    csrr t0, misa
-#if __riscv_xlen == 64
-    bltz t0, 2f
-#else
-    bgez t0, 2f
-#endif
-    j 1b
-2:
-    # initialize global pointer, global data
-    # The __global_pointer is allocated in the linker script. It points to a
-    # location 2k after sdata start as the offsets used in the gp are +/- 2k
-    # See https://www.sifive.com/blog/2017/08/28/all-aboard-part-3-linker-relaxation-in-riscv-toolchain/
-    # see: http://www.rowleydownload.co.uk/arm/documentation/gnu/as/RISC_002dV_002dDirectives.html
-    .option push
-    .option norelax
-    la gp, __global_pointer$
-    .option pop
-
-    la a4, __app_stack_bottom  # keep bottom of stack in a5 so we can init later
-    la a5, __app_stack_top
-    la sp, __app_stack_top
-1:
-    STORE x0, 0(a4)
-    add a4, a4, __SIZEOF_POINTER__
-    blt a4, a5, 1b
-    # clear the common heap
-    la  a4, __heap_start
-    la  a5, __heap_end
-2:
-    STORE x0, 0(a4)
-    add a4, a4, __SIZEOF_POINTER__
-    blt a4, a5, 2b
-    # check if HLS passed by BL, if not allocate one here
-    bnez a1, 1f
-    # Allocate some space at top of stack for the HLS, as HLS mem not passed
-    addi sp, sp, -HLS_DEBUG_AREA_SIZE
-    # HLS grows up from new top of stack
-    mv tp, sp
-    mv a0, tp
-    j u54_single_hart
-1:
-    # pass HLS address from the boot-loader
-    mv a0, a1
-    j u54_single_hart
-2:
-    # in case of return, loop forever. nop's added so can be seen in debugger
-    nop
-    nop
-    j 2b
-#endif /* IMAGE_LOADED_BY_BOOTLOADER */
+#endif /* IMAGE_LOADED_BY_BOOTLOADER == 0 */
 
 /******************************************************************************/
 /******************************interrupt handeling below here******************/
 /******************************************************************************/
 
 trap_vector:
+#if defined USING_FREERTOS
+    addi    sp, sp, -REGBYTES /* Save t0 for now */
+    STORE   t0, 0x0(sp)
+    csrr  t0, mcause
+    bge   t0,x0,.Le51_other  /* Not an interrupt... */
+    slli  t0,t0,1
+    srli  t0,t0,1
+    addi  t0,t0,-7
+    bne   t0,x0,.Le51_other /* Not Timer interrupt... */
+    /* Interrupt is timer interrupt so let FreeRTOS handle it */
+    LOAD    t0, 0x0(sp)     # Restore t0 for proper context save by FreeRTOS
+    addi    sp, sp, REGBYTES
+    j       TIMER_CMP_INT
+    mret
+
+.Le51_other:                # Re-enter mainline here if not timer interrupt
+    LOAD    t0, 0x0(sp)       # Restore t0 for proper context save by HAL
+    addi    sp, sp, REGBYTES
+#endif
     # The mscratch register is an XLEN-bit read/write register dedicated for use by machine mode.
     # Typically, it is used to hold a pointer to a machine-mode hart-local context space and swapped
     # with a user register upon entry to an M-mode trap handler.
@@ -539,7 +629,7 @@ copy_section:
     ret
 
 
-/***********************************************************************************
+/*******************************************************************************
  *
  * The following copy_switch_code() symbol overrides the weak symbol in the HAL and does
  * a safe copy of HW config data
@@ -569,8 +659,19 @@ copy_switch_code:
 #define END__OF_LIM   0x08200000
 #define START__OF_DTM 0x01000000
 #define END__OF_DTM   0x01002000
+#define START_OF_SCRATCH   0x0A000000
 
-
+.clear_scratchpad:
+    // Clear the scratchpad
+    //
+    // a0 = end of scratchpad addr passed from caller
+    //
+    // Note: This must be called post calling config_l2_cache()
+    //
+    la  a4, START_OF_SCRATCH    # start of l2 scratchpad
+    mv  a5, a0                  # end of l2 scratchpad
+    // common loop used to clear memory
+    j   1f
 .clear_l2lim:
     // Clear the LIM
     //
@@ -599,6 +700,54 @@ copy_switch_code:
     add a4, a4, __SIZEOF_POINTER__
     blt a4, a5, 1b
 .done_clear:
+    ret
+
+/*******************************************************************************
+ *
+ */
+    .equ    L2_ZERO_DEVICE_ADDR, 0x0A000000
+    .equ    L2_CCACHE_ADDR, 0x02010000
+    .equ    FLUSH64_OFFSET, 0x200
+
+    //
+    // We want to flush anything that may be inadvertently cached
+    // by the actions of G5C at startup...
+    //
+    // The cache block is 64-bytes wide, and there are 4 banks * 512 sets * 16
+    // ways.
+    // From power on, only a single way is enabled as cache (the remaining
+    // 15 are LIM), but this function is parameterisable (number of ways is
+    // passed via a0)...
+    //
+    // First, load the cache with "known" addresses by walking up L2 scratch
+    // with a 64-byte stride. We need to read (4 banks * 512 sets) to fill
+    // a single way.
+    //
+.flush_early_caching:
+                        // a0 = num_ways
+    slli    a0, a0, 17  // a0' = a0 * (4 * 512 * 64)
+    li  a5, L2_ZERO_DEVICE_ADDR
+    add a0, a0, a5      // a0''  = a0' + (4 * 512 * 64 * a0)
+                        //  = 0x0A000000 + (4 * 512 * 64 * num_ways)
+    beq a0, a5, .early_exit
+
+.preload_cache_with_known_addrs:
+    ld  a3, 0(a5)
+    addi    a5, a5, 64
+    bne a5, a0, .preload_cache_with_known_addrs
+
+    //
+    // Now that the cache is filled with known addresses, we can simply flush each
+    // known address to end up with an empty cache...
+    //
+    li  a5, L2_ZERO_DEVICE_ADDR
+    li  a3, L2_CCACHE_ADDR
+.flush_known_addrs_from_cache:
+    sd  a5, FLUSH64_OFFSET(a3)      // write address to 0x02010200 (FLUSH64)
+    addi    a5, a5, 64
+    bne a5, a0, .flush_known_addrs_from_cache
+
+.early_exit:
     ret
 
 /*

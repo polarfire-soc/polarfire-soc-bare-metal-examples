@@ -168,7 +168,7 @@ int32_t MSS_AXISW_write_burstiness(mss_axisw_mport_t master_port_num,
 
     if(burstiness_val == 0)
     {
-    	return -1;
+        return -1;
     }
     else
     {

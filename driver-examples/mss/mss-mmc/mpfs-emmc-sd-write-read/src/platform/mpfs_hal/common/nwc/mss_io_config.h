@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_io_config.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief MSS IO related code
  *
  */
@@ -22,14 +17,28 @@
 extern "C" {
 #endif
 
+#define CMD_SD_EMMC_DEMUX_EMMC_ON   0U
+#define CMD_SD_EMMC_DEMUX_SD_ON     1U
+
 /*
  * fields of LIBERO_SETTING_MSSIO_CONFIGURATION_OPTIONS
  * */
-#define EMMC_CONFIGURED_MASK                            (0x01U<<0U) /*!< set => eMMC is configured */
-#define SD_CONFIGURED_MASK                              (0x01U<<1U) /*!< set => SD is configured */
-#define DEFAULT_ON_START_MASK                           (0x01U<<2U) /*!< set => default is SD config, not set default is eMMC config */
-
-#define ICICLE_KIT_REF_DESIGN_FPGS_SWITCH_ADDRESS       0x4f000000
+#define EMMC_CONFIGURED_MASK    (0x01U<<0U) /*!< set => eMMC is configured */
+#define SD_CONFIGURED_MASK      (0x01U<<1U) /*!< set => SD is configured */
+#define DEFAULT_ON_START_MASK   (0x01U<<2U) /*!< set => default is SD config,
+                                               not set default is eMMC config */
+/*
+ * Please note in Icicle kit reference design pre 2022.09, the address below
+ * was 0x4F000000UL
+ */
+#ifndef FABRIC_SD_EMMC_DEMUX_SELECT_ADDRESS
+#define FABRIC_SD_EMMC_DEMUX_SELECT_ADDRESS 0x4FFFFF00UL /*!< This is design
+                                                            dependent */
+#endif
+#ifndef FABRIC_SD_EMMC_DEMUX_SELECT_PRESENT
+#define FABRIC_SD_EMMC_DEMUX_SELECT_PRESENT true /*!< true/false This is design
+                                                      dependent */
+#endif
 
 #if !defined (LIBERO_SETTING_GPIO_INTERRUPT_FAB_CR)
 /*To limit the number of interrupts fed to the PLINT, the seventy GPIO
@@ -315,9 +324,9 @@ set_bank2_and_bank4_volts
 
   if ( switch_mssio_config(EMMC_MSSIO_CONFIGURATION) == false )
   {
-      while(1u);
+      // print warning message
+      return;
   }
-  switch_external_mux(EMMC_MSSIO_CONFIGURATION);
   g_mmc.clk_rate = MSS_MMC_CLOCK_200MHZ;
   g_mmc.card_type = MSS_MMC_CARD_TYPE_MMC;
   g_mmc.bus_speed_mode = MSS_MMC_MODE_HS200;
@@ -358,9 +367,22 @@ uint8_t  mss_does_xml_ver_support_switch(void);
 
   @code
 
+  // e.g. first try SD, and fail, then try alt config
+
   if ( mss_is_alternate_io_configured() == true )
   {
-      ...
+      if ( switch_mssio_config(EMMC_MSSIO_CONFIGURATION) == false )
+      {
+          // print warning message
+          return
+      }
+      g_mmc.clk_rate = MSS_MMC_CLOCK_200MHZ;
+      g_mmc.card_type = MSS_MMC_CARD_TYPE_MMC;
+      g_mmc.bus_speed_mode = MSS_MMC_MODE_HS200;
+      g_mmc.data_bus_width = MSS_MMC_DATA_WIDTH_4BIT;
+      g_mmc.bus_voltage = MSS_MMC_1_8V_BUS_VOLTAGE;
+
+      // ...
   }
 
   @endcode
@@ -407,10 +429,11 @@ uint8_t  mss_is_alternate_io_setting_emmc(void);
 uint8_t  mss_is_alternate_io_setting_sd(void);
 
 /***************************************************************************//**
-  switch_external_mux()
+  switch_demux_using_fabric_ip()
   This is a function used to switch external mux.
-  Requires fpga switch hdl. This comes with reference icicle kit design.
-  Will need to create your own or copy when creating your own fpga design
+  It requires fpga switch IP in the fabric. This comes with reference icicle 
+  kit design.
+  You will need to create your own or copy when creating your own fpga design
   along with an external mux in your board design if you wish to use SD/eMMC
   muxing in your hardware design.
 
@@ -418,12 +441,35 @@ uint8_t  mss_is_alternate_io_setting_sd(void);
 
   @code
 
-  switch_external_mux(SD_MSSIO_CONFIGURATION);
+  case SD_MSSIO_CONFIGURATION:
+      if (mss_is_alternate_io_setting_sd() == true)
+      {
+          io_mux_and_bank_config_alt();
+      }
+      else
+      {
+          io_mux_and_bank_config();
+      }
+      switch_demux_using_fabric_ip(SD_MSSIO_CONFIGURATION);
+      break;
+  
+  case EMMC_MSSIO_CONFIGURATION:
+      if (mss_is_alternate_io_setting_emmc() == true)
+      {
+          io_mux_and_bank_config_alt();
+      }
+      else
+      {
+          io_mux_and_bank_config();
+      }
+      switch_demux_using_fabric_ip(EMMC_MSSIO_CONFIGURATION);
+      break;
+
 
   @endcode
 
  */
-uint8_t switch_external_mux(MSS_IO_OPTIONS option);
+uint8_t switch_demux_using_fabric_ip(MSS_IO_OPTIONS option);
 
 /***************************************************************************//**
   mss_io_default_setting()
@@ -443,6 +489,51 @@ uint8_t switch_external_mux(MSS_IO_OPTIONS option);
 
  */
 uint8_t  mss_io_default_setting(void);
+
+/***************************************************************************//**
+  fabric_sd_emmc_demux_present()
+
+  Is there sd_emmc_demux IP present in the fabric.
+
+  @return true/false
+
+  Example:
+
+  @code
+
+  if ( fabric_sd_emmc_demux_present() == true )
+  {
+      // ...
+  }
+
+  @endcode
+
+ */
+uint8_t fabric_sd_emmc_demux_present(void);
+
+/***************************************************************************//**
+  fabric_sd_emmc_demux_address()
+
+  This function is used by the routine switch_demux_using_fabric_ip()
+  The address returned is a default address, used by the Icicle kit design
+  post v2022.09.
+  If another address is used in your Libero design, instantiate this function
+  in your application, and return the address that matches your Libero design.
+
+  @return returns the address of the sd_emmc_demux in fabric
+
+  Example:
+
+  @code
+
+  volatile uint32_t *reg_pt = fabric_sd_emmc_demux_address();
+
+  *reg_pt = CMD_SD_EMMC_DEMUX_SD_ON;
+
+  @endcode
+
+ */
+uint32_t * fabric_sd_emmc_demux_address(void);
 
 /***************************************************************************//**
   This function is used to set the apb_bus_cr register value
