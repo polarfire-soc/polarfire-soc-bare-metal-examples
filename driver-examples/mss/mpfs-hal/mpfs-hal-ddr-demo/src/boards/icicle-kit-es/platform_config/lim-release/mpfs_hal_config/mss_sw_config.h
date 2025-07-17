@@ -108,7 +108,7 @@
  * linker scripts.
  */
 
-//#define MPFS_HAL_SHARED_MEM_ENABLED
+#define MPFS_HAL_SHARED_MEM_ENABLED
 
 
 /* define the required tick rate in Milliseconds */
@@ -154,6 +154,13 @@
 #endif
 
 /*
+ * We sometimes want to know which board we are compiling
+ * enable define for particular board you are using if you are using this switch
+ * in your application code
+ */
+//#define DDR_BASE_BOARD
+
+/*
  * Comment out the lines to disable the corresponding hardware support not required
  * in your application.
  * This is not necessary from an operational point of view as operation dictated
@@ -172,25 +179,6 @@
 //#define MICROCHIP_STDIO_BAUD_RATE       MSS_UART_115200_BAUD
 
 /*
- * DDR software options
- */
-
-/*
- * Debug DDR startup through a UART
- * Comment out in normal operation. May be useful for debug purposes in bring-up
- * of a new board design.
- * See the weakly linked function setup_ddr_debug_port(mss_uart_instance_t * uart)
- * If you need to edit this function, make another copy of the function in your
- * application without the weak linking attribute. This copy will then get linked.
- * */
-//#define DEBUG_DDR_INIT
-//#define DEBUG_DDR_RD_RW_FAIL
-//#define DEBUG_DDR_RD_RW_PASS
-//#define DEBUG_DDR_CFG_DDR_SGMII_PHY
-//#define DEBUG_DDR_DDRCFG
-
-
-/*
  * The hardware configuration settings imported from Libero project get generated
  * into <project_name>/src/boards/<your-board>/<fpga-design-config> folder.
  * If you need to overwrite them for testing purposes, you can do so here.
@@ -200,5 +188,29 @@
  *
  */
 
-#endif /* USER_CONFIG_MSS_USER_CONFIG_H_ */
+/*
+ * DDR software options
+ */
 
+/*
+ * Debug DDR startup through a UART
+ * Comment out in normal operation. Useful for debug purposes in bring-up of DDR
+ * in a new board design.
+ * See the weak function setup_ddr_debug_port(mss_uart_instance_t * uart)
+ * If you need to edit this function, make a copy of the function without the
+ * weak declaration in your application code.
+ * */
+#define DEBUG_DDR_INIT
+#define DEBUG_DDR_RD_RW_FAIL
+//#define DEBUG_DDR_RD_RW_PASS
+//#define DEBUG_DDR_CFG_DDR_SGMII_PHY
+//#define DEBUG_DDR_DDRCFG
+
+// The following can be enabled to do a long sanity check on startup of DDR.
+// This can be used during DDR bring-up, once initial bring-up of DDR is
+// complete, to make sure DDR settings are robust.
+// #define PATTERN_TEST_NUM_PATTERN_IN_CACHE_READS  2U
+// #define PATTERN_TEST_NUM_OFFSET_INCS             16U
+// #define PATTERN_TEST_SIZE                        0x40000000U
+
+#endif
