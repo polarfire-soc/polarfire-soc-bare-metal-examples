@@ -12,6 +12,7 @@
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_timer/mss_timer.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
+#include "inc/uart_mapping.h"
 
 /* Sequence of delays */
 #define SEQUENCE_LENGTH     5U
@@ -19,6 +20,8 @@
 
 uint8_t g_rx_buff[RX_BUFF_SIZE] = {0};
 volatile uint8_t g_rx_size = 0 ;
+extern struct mss_uart_instance* p_uartmap_u54_1;
+extern struct mss_uart_instance* p_uartmap_u54_2;
 
 /******************************************************************************
  * Instruction message. This message will be transmitted to the UART terminal
@@ -28,15 +31,18 @@ uint8_t g_message[] =
 "\r\n****************************************************** \
 \r\n\r\n      PolarFire SoC MSS TIMER example     \r\n\r\n\
 ******************************************************\r\n\r\n\
-\r\nThis example project demonstrates the use of the PolarFire SoC MSS timer \r\n ";
+\r\nThis example project demonstrates "
+"the use of the PolarFire SoC MSS timer \r\n ";
 
 uint8_t g_menu[] =
-"Choose one of the following options to observe its corresponding Timer mode. \r\n\n\
+"Choose one of the following options to "
+"observe its corresponding Timer mode. \r\n\n\
 Type 0: Show this menu\r\n\
 Type 1: Configure Timer1 as 32 bit timer in periodic mode (default) \r\n\
 Type 2: Configure Timer1 as 32 bit timer in one-shot mode \r\n\
 Type 3: Configure Timer as 64 bit timer in periodic mode \r\n\
-Type 4: Configure Timer1 to generate interrupts at non uniform interval using background load API \r\n\r\n ";
+Type 4: Configure Timer1 to generate interrupts at "
+"non uniform interval using background load API \r\n\r\n ";
 
 uint8_t g_message2[] =
      "\r\r\nObserve the messages on UART2 terminal .\
@@ -94,31 +100,45 @@ void u54_1(void)
 
     /* Reset the peripherals turn on the clocks */
 
-    mss_config_clk_rst(MSS_PERIPH_MMUART0, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    mss_config_clk_rst(MSS_PERIPH_MMUART2, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    mss_config_clk_rst(MSS_PERIPH_TIMER, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+    mss_config_clk_rst(
+            MSS_PERIPH_MMUART_E51,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    mss_config_clk_rst(
+            MSS_PERIPH_MMUART_U54_1,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    mss_config_clk_rst(
+            MSS_PERIPH_MMUART_U54_2,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    mss_config_clk_rst(MSS_PERIPH_TIMER,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
 
-    MSS_UART_init( &g_mss_uart1_lo,
+    MSS_UART_init( p_uartmap_u54_1,
             MSS_UART_115200_BAUD,
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
     /* register rx handler for uart1*/
-    MSS_UART_set_rx_handler(&g_mss_uart1_lo, uart1_rx_handler,MSS_UART_FIFO_SINGLE_BYTE);
+    MSS_UART_set_rx_handler(
+            p_uartmap_u54_1,
+            uart1_rx_handler,
+            MSS_UART_FIFO_SINGLE_BYTE);
 
-    MSS_UART_init( &g_mss_uart2_lo,
+    MSS_UART_init( p_uartmap_u54_2,
             MSS_UART_115200_BAUD,
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
     
     /* set priorities */
-    PLIC_SetPriority(MMUART1_PLIC, 1);
+    PLIC_SetPriority(PLIC_IRQ_MMUART_U54_1, 1);
     PLIC_SetPriority(TIMER1_PLIC, 2);
     PLIC_SetPriority(TIMER2_PLIC, 2);
 
     /* display greeting and menu messages */
-    MSS_UART_polled_tx(&g_mss_uart1_lo, g_message,strlen(g_message));
-    MSS_UART_polled_tx(&g_mss_uart1_lo, g_menu,strlen(g_menu));
-    MSS_UART_polled_tx(&g_mss_uart1_lo, g_message2,strlen(g_message2));
+    MSS_UART_polled_tx(p_uartmap_u54_1, g_message,strlen(g_message));
+    MSS_UART_polled_tx(p_uartmap_u54_1, g_menu,strlen(g_menu));
+    MSS_UART_polled_tx(p_uartmap_u54_1, g_message2,strlen(g_message2));
 
 /* UART1 Interrupt based menu which will change the Timer configurations.*/
     while (1u)
@@ -130,7 +150,7 @@ void u54_1(void)
 
                 case '0':
                     /* display the menu */
-                    MSS_UART_polled_tx(&g_mss_uart1_lo, g_menu,strlen(g_menu));
+                    MSS_UART_polled_tx(p_uartmap_u54_1, g_menu,strlen(g_menu));
                     break;
 
                 case '1':
@@ -144,10 +164,12 @@ void u54_1(void)
 
                     g_current_option = PERIODIC;
                     sprintf(p_buff,"Timer is configured in PERIODIC_MODE \
-                            \r\nPlease observe the Uart2 terminal for interrupt messages\r\n\r\n ");
-                    MSS_UART_polled_tx(&g_mss_uart1_lo,p_buff,strlen(p_buff));
-                    MSS_UART_polled_tx_string(&g_mss_uart2_lo,
-                    "\r\n**************************************************\r\n");
+                            \r\nPlease observe the Uart2 terminal for "
+                            "interrupt messages\r\n\r\n ");
+                    MSS_UART_polled_tx(p_uartmap_u54_1,p_buff,strlen(p_buff));
+                    MSS_UART_polled_tx_string(p_uartmap_u54_2,
+                    "\r\n**************************************************\r\n"
+                            );
                     break ;
 
 
@@ -162,10 +184,12 @@ void u54_1(void)
                     g_current_option = ONE_SHOT;
 
                     sprintf(p_buff,"Timer is configured in ONE_SHOT_MODE \
-                            \r\nPlease observe the Uart2 terminal for interrupt messages\r\n\r\n");
-                    MSS_UART_polled_tx(&g_mss_uart1_lo, p_buff,strlen(p_buff));
-                    MSS_UART_polled_tx_string(&g_mss_uart2_lo,
-                    "\r\n**************************************************\r\n");
+                            \r\nPlease observe the Uart2 terminal for "
+                            "interrupt messages\r\n\r\n");
+                    MSS_UART_polled_tx(p_uartmap_u54_1, p_buff,strlen(p_buff));
+                    MSS_UART_polled_tx_string(p_uartmap_u54_2,
+                    "\r\n**************************************************\r\n"
+                            );
                     break ;
 
                 case '3':
@@ -179,10 +203,12 @@ void u54_1(void)
                     g_current_option = TIMER64_PERIODIC;
 
                     sprintf(p_buff,"Timer is configured in TIMER64_PERIODIC \
-                            \r\nPlease observe the Uart2 terminal for interrupt messages\r\n\r\n");
-                    MSS_UART_polled_tx(&g_mss_uart1_lo, p_buff,strlen(p_buff));
-                    MSS_UART_polled_tx_string(&g_mss_uart2_lo,
-                    "\r\n**************************************************\r\n");
+                            \r\nPlease observe the Uart2 terminal for "
+                            "interrupt messages\r\n\r\n");
+                    MSS_UART_polled_tx(p_uartmap_u54_1, p_buff,strlen(p_buff));
+                    MSS_UART_polled_tx_string(p_uartmap_u54_2,
+                    "\r\n**************************************************\r\n"
+                            );
                     break ;
 
                 case '4':
@@ -195,10 +221,12 @@ void u54_1(void)
                     g_current_option = BACKGROUND_LOAD;
 
                     sprintf(p_buff,"Timer is configured in BACKGROUND_LOAD \
-                            \r\nPlease observe the Uart2 terminal for interrupt messages\r\n\r\n");
-                    MSS_UART_polled_tx(&g_mss_uart1_lo, p_buff,strlen(p_buff));
-                    MSS_UART_polled_tx_string(&g_mss_uart2_lo,
-                    "\r\n**************************************************\r\n");
+                            \r\nPlease observe the Uart2 terminal for "
+                            "interrupt messages\r\n\r\n");
+                    MSS_UART_polled_tx(p_uartmap_u54_1, p_buff,strlen(p_buff));
+                    MSS_UART_polled_tx_string(p_uartmap_u54_2,
+                    "\r\n**************************************************\r\n"
+                            );
                     break;
 
                 default:
@@ -234,20 +262,20 @@ static void timer_interrupt_handler(timer_menu_options_t menu_opt){
 
         case PERIODIC:
 
-            MSS_UART_polled_tx_string(&g_mss_uart2_lo,
+            MSS_UART_polled_tx_string(p_uartmap_u54_2,
                               "Timer Periodic interrupt tick\r\n");
 
             break ;
 
         case ONE_SHOT:
 
-            MSS_UART_polled_tx_string(&g_mss_uart2_lo,
+            MSS_UART_polled_tx_string(p_uartmap_u54_2,
                               "Timer_2 One shot interrupt tick\r\n");
             break ;
 
         case TIMER64_PERIODIC:
 
-            MSS_UART_polled_tx_string(&g_mss_uart2_lo,
+            MSS_UART_polled_tx_string(p_uartmap_u54_2,
                               "Timer_64 interrupt tick\r\n");
 
             /* clear TIM64 interrupt */
@@ -264,7 +292,7 @@ static void timer_interrupt_handler(timer_menu_options_t menu_opt){
 
             MSS_TIM1_load_background(TIMER_LO, g_sequence_delays[delay_idx]);
 
-            MSS_UART_polled_tx_string(&g_mss_uart2_lo,
+            MSS_UART_polled_tx_string(p_uartmap_u54_2,
                                       "Timer Background load tick\r\n");
             break;
     }
