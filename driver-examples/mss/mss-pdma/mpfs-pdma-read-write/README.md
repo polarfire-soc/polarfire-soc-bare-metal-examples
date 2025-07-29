@@ -9,6 +9,7 @@ interrupts.
 
 # How to use this example
 On connecting Icicle kit J11 to the host PC, you should see 4 COM port interfaces.
+On connecting Discovery kit J4 to the host PC, you should see 3 COM port interfaces.
 To use this project, configure the COM port **interface1** as below:
  - 115200 baud
  - 8 data bits
