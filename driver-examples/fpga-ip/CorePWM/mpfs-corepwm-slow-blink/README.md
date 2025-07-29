@@ -7,7 +7,10 @@ duty cycle decreases.
 
 # How to use this example
 On connecting Icicle kit J11 to the host PC, you should see 4 COM port interfaces
-connected. To use this project configure the COM port **interface1** as below:
+connected.
+On connecting Discovery kit J4 to the host PC, you should see 3 COM port interfaces
+ connected.
+ To use this project configure the COM port **interface1** as below:
  - 115200 baud
  - 8 data bits
  - 1 stop bit
@@ -32,6 +35,6 @@ can notice the LED's brightness changing.
 
 This project provides build configurations and debug launchers as explained [here](https://mi-v-ecosystem.github.io/redirects/polarfire-soc-documentation-master_README)
 
-This example is tested on the PolarFire SoC Icicle kit with the v2023.06
-reference design.It is available in the following repository:
+This example is tested on the PolarFire SoC Icicle kit with the v2023.06 and Discovery kit with the v2025.07 reference designs.It is available in the following repository:
 [PolarFire® SoC Icicle Kit Reference Design](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design).
+[PolarFire® SoC Discovery Kit Reference Design](https://mi-v-ecosystem.github.io/redirects/repo-discovery-kit-reference-design).
