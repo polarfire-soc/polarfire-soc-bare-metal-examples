@@ -13,7 +13,9 @@
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 #include "drivers/fpga_ip/CorePWM/core_pwm.h"
+#include "inc/uart_mapping.h"
 
+extern struct mss_uart_instance* p_uartmap_u54_1;
 /******************************************************************************
  *  Greeting messages displayed over the UART.
  */
@@ -24,7 +26,7 @@ const uint8_t g_greeting_msg[] =
 /******************************************************************************
  * Delay count used to time the delay between duty cycle updates.
  *****************************************************************************/
-#define DELAY_COUNT     10000
+#define DELAY_COUNT     500000
 
 /*-------------------------------------------------------------------------*//**
  * PWM prescale and period configuration values.
@@ -80,22 +82,27 @@ void u54_1(void)
 
     /* Reset the peripherals turn on the clocks */
 
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) MPFS_HAL_FIRST_HART,
-                                                           PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_FIC3, (uint8_t) MPFS_HAL_FIRST_HART,
-                                                        PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART_U54_1,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_FIC3,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
 
     mss_enable_fabric();
 
-    MSS_UART_init( &g_mss_uart1_lo,
+    MSS_UART_init(p_uartmap_u54_1,
             MSS_UART_115200_BAUD,
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
-    MSS_UART_polled_tx_string(&g_mss_uart1_lo, g_greeting_msg );
+    MSS_UART_polled_tx_string(p_uartmap_u54_1, g_greeting_msg );
 
     /***************************************************************************
-     * Initialize the CorePWM instance by setting the prescale and period values.
-     * System clock = 150000000 (Hz)
+     * Initialize the CorePWM instance by setting the
+     * prescale and period values.
+     * In Icicle-kit and Discovery-kit Reference design, the pclk is connected to
+     *  50MHz clock.
+     * System clock = 50000000 (Hz)
      *************************************************************************/
     PWM_init( &the_pwm, COREPWM_BASE_ADDR, PWM_PRESCALE, PWM_PERIOD ) ;
 
