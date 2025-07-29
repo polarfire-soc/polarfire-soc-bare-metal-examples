@@ -50,10 +50,16 @@ void u54_3(void)
 
     __enable_irq();
 
-    sprintf(info_string, "\r\nHart %u, HLS mem address 0x%lx, Shared mem 0x%lx\r\n",\
-                                                          hls->my_hart_id, (uint64_t)hls, (uint64_t)hls->shared_mem);
+    sprintf(info_string,
+            "\r\nHart %u, HLS mem address 0x%lx, Shared mem 0x%lx\r\n",
+            hls->my_hart_id,
+            (uint64_t)hls,
+            (uint64_t)hls->shared_mem);
     spinlock(&hart_share->mutex_uart0);
-    MSS_UART_polled_tx(g_uart, (const uint8_t*)info_string,(uint32_t)strlen(info_string));
+    MSS_UART_polled_tx(
+            g_uart,
+            (const uint8_t*)info_string,
+            (uint32_t)strlen(info_string));
     spinunlock(&hart_share->mutex_uart0);
 
     while (1U)
@@ -65,7 +71,10 @@ void u54_3(void)
             icount = 0U;
             sprintf(info_string,"Hart %d\r\n", hartid);
             spinlock(&hart_share->mutex_uart0);
-            MSS_UART_polled_tx(&g_mss_uart0_lo, info_string, strlen(info_string));
+            MSS_UART_polled_tx(
+                    &g_mss_uart0_lo,
+                    info_string,
+                    strlen(info_string));
             spinunlock(&hart_share->mutex_uart0);
         }
     }

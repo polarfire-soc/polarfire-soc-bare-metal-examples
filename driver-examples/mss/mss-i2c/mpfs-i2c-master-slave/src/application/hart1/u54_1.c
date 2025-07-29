@@ -15,10 +15,13 @@
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_i2c/mss_i2c.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
+#include "inc/uart_mapping.h"
 
 volatile uint32_t count_sw_ints_h1 = 0U;
 uint32_t menu_command;
 uint64_t uart_lock;
+extern struct mss_uart_instance* p_uartmap_u54_1;
+mss_uart_instance_t *g_uart;
 
 /*------------------------------------------------------------------------------
  * MSS I2C instance
@@ -55,23 +58,30 @@ uint8_t g_rx_buff[RX_BUFF_SIZE] = {0};
 /*-----------------------------------------------------------------------------
  * Local functions.
  */
-mss_i2c_slave_handler_ret_t slave_write_handler(mss_i2c_instance_t *, uint8_t *, uint16_t);
+mss_i2c_slave_handler_ret_t slave_write_handler(
+        mss_i2c_instance_t *,
+        uint8_t *,
+        uint16_t);
 mss_i2c_status_t do_write_transaction(uint8_t, uint8_t * , uint8_t);
 mss_i2c_status_t do_read_transaction(uint8_t, uint8_t * , uint8_t);
-mss_i2c_status_t do_write_read_transaction(uint8_t , uint8_t * , uint8_t , uint8_t * , uint8_t);
+mss_i2c_status_t do_write_read_transaction(
+        uint8_t , uint8_t * , uint8_t , uint8_t * , uint8_t);
 static void display_greeting(void);
 static void select_mode_i2c(void);
 uint8_t get_data(void);
 void press_any_key_to_continue(void);
-void i2c0_completion_handler(mss_i2c_instance_t * instance, mss_i2c_status_t status);
-void i2c1_completion_handler(mss_i2c_instance_t * instance, mss_i2c_status_t status);
+void i2c0_completion_handler(
+        mss_i2c_instance_t * instance, mss_i2c_status_t status);
+void i2c1_completion_handler(
+        mss_i2c_instance_t * instance, mss_i2c_status_t status);
 
 /*------------------------------------------------------------------------------
  * I2C buffers. These are the buffers where data written transferred via I2C
  * will be stored. RX
  */
 static uint8_t g_slave_rx_buffer[BUFFER_SIZE];
-static uint8_t g_slave_tx_buffer[BUFFER_SIZE] = "<<-------Slave Tx data ------->>";
+static uint8_t g_slave_tx_buffer[BUFFER_SIZE] =
+        "<<-------Slave Tx data ------->>";
 static uint8_t g_master_rx_buf[BUFFER_SIZE];
 static uint8_t g_master_tx_buf[BUFFER_SIZE];
 
@@ -83,8 +93,6 @@ static uint8_t g_tx_length = 0x00;
 /******************************************************************************
  * Global variable
  */
-mss_uart_instance_t *g_uart= &g_mss_uart1_lo;
-
 /* Main function for the hart1(U54_1 processor).
  * Application code running on hart1 is placed here
  *
@@ -114,11 +122,18 @@ void u54_1(void)
     } while (0 == (read_csr(mip) & MIP_MSIP));
 #endif
 
+    /* Initialize the UART instance pointer with the external UART mapping */
+    g_uart = p_uartmap_u54_1;
+
     /* The hart is out of WFI, clear the SW interrupt. Here onwards Application
      * can enable and use any interrupts as required */
     clear_soft_interrupt();
 
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) 1, PERIPHERAL_ON);
+
+    (void)mss_config_clk_rst(
+            MSS_PERIPH_MMUART_U54_1,
+            (uint8_t) 1,
+            PERIPHERAL_ON);
     (void)mss_config_clk_rst(MSS_PERIPH_I2C0, (uint8_t) 1, PERIPHERAL_ON);
     (void)mss_config_clk_rst(MSS_PERIPH_I2C1, (uint8_t) 1, PERIPHERAL_ON);
 
@@ -192,84 +207,140 @@ void u54_1(void)
             switch (rx_buff[0])
             {
                 case '1':
-                    /*-------------------------------------------------------------------------
+                    /*----------------------------------------------------------
                      * Send The data from Master
                      */
-                    MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"\n\rMT-SR Mode is Selected\n\r");
+                    MSS_UART_polled_tx_string(
+                            g_uart,
+                            (const uint8_t *)"\n\rMT-SR Mode is Selected\n\r");
                     g_tx_length = get_data();
                     /* Perform Master Transmit - Slave Receive */
-                    instance = do_write_transaction(SLAVE_SER_ADDR, g_master_tx_buf, g_tx_length);
+                    instance = do_write_transaction(
+                            SLAVE_SER_ADDR,
+                            g_master_tx_buf,
+                            g_tx_length);
 
                     if (MSS_I2C_SUCCESS == instance)
                     {
                     if (0 == g_tx_length)
                     {
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"0 Byte Data Write Successful\n\r");
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)
+                                    "0 Byte Data Write Successful\n\r");
                     }
                     else
                     {
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Write Successful and Data is: ");
-                            MSS_UART_polled_tx(g_uart, g_slave_rx_buffer, g_tx_length);
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"\n\r");
+                            MSS_UART_polled_tx_string(g_uart,
+                                    (const uint8_t *)
+                                    "Data Write Successful and Data is: ");
+                            MSS_UART_polled_tx(
+                                    g_uart,
+                                    g_slave_rx_buffer,
+                                    g_tx_length);
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)"\n\r");
                     }
-                        MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"------------------------------------------------------------------------------\n\r");
+                        MSS_UART_polled_tx_string(
+                                g_uart,
+                                (const uint8_t*)"-----------------------------"
+                                        "-------------------------------------"
+                                        "------------\n\r");
                     }
                     else
                     {
                         /*
-                         * Distinguish between an identified failure, a time out and just to be paranoid
+                         * Distinguish between an identified failure, a time out
+                         *  and just to be paranoid
                          * none of the above.
                          */
                         if (MSS_I2C_FAILED == instance)
                         {
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Write Failed!\n\r");
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)"Data Write Failed!\n\r");
                         }
                         else if (MSS_I2C_TIMED_OUT == instance)
                         {
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Write Timed Out!\n\r");
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)
+                                    "Data Write Timed Out!\n\r");
                         }
                         else
                         {
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Write Unknown Response!\n\r");
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)
+                                    "Data Write Unknown Response!\n\r");
                         }
 
-                        MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n\r------------------------------------------------------------------------------\n\r");
+                        MSS_UART_polled_tx_string(g_uart,
+                                (const uint8_t*)
+                                "\n\r-----------------------------------------"
+                                "-------------------------------------\n\r");
                     }
                     /* Display I2C Modes */
                     press_any_key_to_continue();
                 break;
 
                 case '2':
-                    MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"\n\rMR-ST Mode is Selected\n\r");
+                    MSS_UART_polled_tx_string(
+                            g_uart,
+                            (const uint8_t *)"\n\rMR-ST Mode is Selected\n\r");
                     /* Perform Master Receive - Slave Transmit */
-                    instance = do_read_transaction(SLAVE_SER_ADDR, g_master_rx_buf, sizeof(g_master_rx_buf));
+                    instance = do_read_transaction(
+                            SLAVE_SER_ADDR,
+                            g_master_rx_buf, sizeof(g_master_rx_buf));
 
                     if (MSS_I2C_SUCCESS == instance)
                     {
-                        MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Read Successful and Data is: ");
-                        MSS_UART_polled_tx(g_uart, g_master_rx_buf, sizeof(g_master_rx_buf));
-                        MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n\r------------------------------------------------------------------------------\n\r");
+                        MSS_UART_polled_tx_string(
+                                g_uart,
+                                (const uint8_t *)
+                                "Data Read Successful and Data is: ");
+                        MSS_UART_polled_tx(g_uart,
+                                g_master_rx_buf,
+                                sizeof(g_master_rx_buf));
+                        MSS_UART_polled_tx_string(g_uart,
+                                (const uint8_t*)
+                                "\n\r-----------------------------------------"
+                                "-------------------------------------\n\r");
                     }
                     else
                     {
                         /*
-                         * Distinguish between an identified failure, a time out and just to be paranoid
+                         * Distinguish between an identified failure,
+                         * a time out and just to be paranoid
                          * none of the above.
                          */
                         if (MSS_I2C_FAILED == instance)
                         {
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Read Failed!\n\r");
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)
+                                    "Data Read Failed!\n\r");
                         }
                         else if (MSS_I2C_TIMED_OUT == instance)
                         {
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Read Timed Out!\n\r");
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)
+                                    "Data Read Timed Out!\n\r");
                         }
                         else
                         {
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Read Unknown Response!\n\r");
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)
+                                    "Data Read Unknown Response!\n\r");
                         }
 
-                        MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n\r------------------------------------------------------------------------------\n\r");
+                        MSS_UART_polled_tx_string(g_uart,
+                                (const uint8_t*)
+                                "\n\r-----------------------------------------"
+                                "-------------------------------------\n\r");
                     }
                     /* Display I2C Modes */
                     press_any_key_to_continue();
@@ -277,50 +348,98 @@ void u54_1(void)
                 break;
 
                 case '3':
-                    /*-------------------------------------------------------------------------
+                    /*----------------------------------------------------------
                      * Write the Data to Slave and Read The data from Slave
                      */
-                    MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"\n\rMT-MR Mode is Selected\n\r");
+                    MSS_UART_polled_tx_string(
+                            g_uart,
+                            (const uint8_t *)
+                            "\n\rMT-MR Mode is Selected\n\r");
                     /* Perform Master Transmit - Master Receive */
                     g_tx_length = get_data();
                     if (0 == g_tx_length)
                     {
-                        MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Error: 0 byte transfers not allowed for Write-Read!\n\r");
+                        MSS_UART_polled_tx_string(
+                                g_uart,
+                                (const uint8_t *)
+                                "Error: 0 byte transfers not allowed"
+                                " for Write-Read!\n\r");
                     }
                     else
                     {
                         /* Perform write-Read operation */
-                        instance = do_write_read_transaction(SLAVE_SER_ADDR, g_master_tx_buf, g_tx_length, g_master_rx_buf, g_tx_length);
+                        instance = do_write_read_transaction(
+                                SLAVE_SER_ADDR,
+                                g_master_tx_buf,
+                                g_tx_length,
+                                g_master_rx_buf,
+                                g_tx_length);
 
                         if (MSS_I2C_SUCCESS == instance)
                         {
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Write-Read Successful\n\r");
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Received in Slave Receive Buffer is: ");
-                            MSS_UART_polled_tx(g_uart, g_slave_rx_buffer, g_tx_length);
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"\n\rData Received to Master Receive Buffer is: ");
-                            MSS_UART_polled_tx(g_uart, g_master_rx_buf, g_tx_length);
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n\r------------------------------------------------------------------------------\n\r");
+                            MSS_UART_polled_tx_string(g_uart,
+                                    (const uint8_t *)
+                                    "Data Write-Read Successful\n\r");
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)
+                                    "Data Received in "
+                                    "Slave Receive Buffer is: ");
+                            MSS_UART_polled_tx(
+                                    g_uart,
+                                    g_slave_rx_buffer,
+                                    g_tx_length);
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t *)
+                                    "\n\rData Received to "
+                                    "Master Receive Buffer is: ");
+                            MSS_UART_polled_tx(
+                                    g_uart,
+                                    g_master_rx_buf,
+                                    g_tx_length);
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t*)"\n\r---------------------"
+                                            "---------------------------------"
+                                            "------------------------\n\r");
                         }
                         else
                         {
                             /*
-                             * Distinguish between an identified failure, a time out and just to be paranoid
+                             * Distinguish between an identified failure,
+                             * a time out and just to be paranoid
                              * none of the above.
                              */
                             if (MSS_I2C_FAILED == instance)
                             {
-                                MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Write-Read Failed!\n\r");
+                                MSS_UART_polled_tx_string(
+                                        g_uart,
+                                        (const uint8_t *)
+                                        "Data Write-Read Failed!\n\r");
                             }
                             else if (MSS_I2C_TIMED_OUT == instance)
                             {
-                                MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Write-Read Timed Out!\n\r");
+                                MSS_UART_polled_tx_string(
+                                        g_uart,
+                                        (const uint8_t *)
+                                        "Data Write-Read Timed Out!\n\r");
                             }
                             else
                             {
-                                MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"Data Write-Read Unknown Response!\n\r");
+                                MSS_UART_polled_tx_string(
+                                        g_uart,
+                                        (const uint8_t *)
+                                        "Data Write-Read "
+                                        "Unknown Response!\n\r");
                             }
 
-                            MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n\r------------------------------------------------------------------------------\n\r");
+                            MSS_UART_polled_tx_string(
+                                    g_uart,
+                                    (const uint8_t*)
+                                    "\n\r---------------------------------"
+                                    "-------------------------------------"
+                                    "--------\n\r");
                         }
                     }
                     /* Display I2C Modes */
@@ -330,12 +449,18 @@ void u54_1(void)
 
                 case '4':
                     /* To Exit from the application */
-                    MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"\n\rReturn from the Main function \n\r\n\r");
+                    MSS_UART_polled_tx_string(
+                            g_uart,
+                            (const uint8_t *)
+                            "\n\rReturn from the Main function \n\r\n\r");
                 break;
 
                 default:
                     /* To Invalid Entry */
-                    MSS_UART_polled_tx_string(g_uart, (const uint8_t *)"\n\rEnter A Valid Key: 1, 2, 3 or 4\n\r");
+                    MSS_UART_polled_tx_string(
+                            g_uart,
+                            (const uint8_t *)
+                            "\n\rEnter A Valid Key: 1, 2, 3 or 4\n\r");
                     select_mode_i2c();
                 break;
             }
@@ -448,54 +573,145 @@ mss_i2c_slave_handler_ret_t slave_write_handler
 /*------------------------------------------------------------------------------
  * I2C-0 completion handler
  */
-void i2c0_completion_handler(mss_i2c_instance_t * instance, mss_i2c_status_t status)
+void i2c0_completion_handler(
+        mss_i2c_instance_t * instance,
+        mss_i2c_status_t status)
 {
     if (status == MSS_I2C_SUCCESS)
     {
-        MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\rI2C0 Transfer completed.\n\r");
+        MSS_UART_polled_tx_string(
+                g_uart,
+                (const uint8_t*)
+                "\rI2C0 Transfer completed.\n\r");
     }
 }
 
 /*------------------------------------------------------------------------------
  * I2C-1 completion handler
  */
-void i2c1_completion_handler(mss_i2c_instance_t * instance, mss_i2c_status_t status)
+void i2c1_completion_handler(
+        mss_i2c_instance_t * instance,
+        mss_i2c_status_t status)
 {
     if (status == MSS_I2C_SUCCESS)
     {
-        MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\rI2C1 Transfer completed.\n\r");
+        MSS_UART_polled_tx_string(
+                g_uart,
+                (const uint8_t*)
+                "\rI2C1 Transfer completed.\n\r");
     }
 }
 
 /*------------------------------------------------------------------------------
  * Display greeting message when application is started.
  */
-static void display_greeting (void)
+static void display_greeting(void)
 {
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n\r******************************************************************************\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"************************ PolarFire SoC MSS I2C Example ***********************\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"******************************************************************************\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"This example project demonstrates the use of I2C in Different Modes\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"MSS I2C0 is configured in Master Mode and MSS I2C1 is configured in Slave Mode\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n\r------------------------------------------------------------------------------\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"************* I2C Modes supported by this example project are ****************\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"1. MT-SR :- Master Transmit - Slave Receiver Mode (Write To Slave)\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"2. MR-ST :- Master Receive  - Slave transmit Mode (Read 32 bytes From Slave)\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"3. MT-MR :- Master Transmit - Master Receive Mode (Write To + Read From Slave) \n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"------------------------------------------------------------------------------\n\r");
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "\n\r"
+            "************************************"
+            "************************************"
+            "\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "************************ PolarFire SoC MSS I2C Example **********"
+            "*************\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "************************************"
+            "************************************"
+            "\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "This example project demonstrates the use of"
+            " I2C in Different Modes\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "MSS I2C0 is configured in Master Mode and "
+            "MSS I2C1 is configured in Slave Mode\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "\n\r"
+            "------------------------------------"
+            "------------------------------------"
+            "\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "************* I2C Modes supported by this example project are "
+            "****************\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "1. MT-SR :- Master Transmit - "
+            "Slave Receiver Mode (Write To Slave)\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "2. MR-ST :- Master Receive  - "
+            "Slave transmit Mode (Read 32 bytes "
+            "From Slave)\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "3. MT-MR :- Master Transmit - Master Receive Mode "
+            "(Write To + Read From Slave)\n\r"
+    );
+    MSS_UART_polled_tx_string(
+        g_uart,
+        (const uint8_t*)
+            "------------------------------------"
+            "------------------------------------"
+            "\n\r"
+    );
 }
+
 
 /*------------------------------------------------------------------------------
  * Select the I2C Mode.
  */
 static void select_mode_i2c (void)
 {
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n\r*********************** Select the I2C Mode to perform ***********************\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"Press Key '1' to perform MT-SR (Master Transmit - Slave Receive)\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"Press Key '2' to perform MR-ST (Master Receive  - Slave transmit)\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"Press Key '3' to perform MT-MR (Master Transmit - Master Receive)\n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"Press Key '4' to EXIT from the Application \n\r");
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"------------------------------------------------------------------------------\n\r");
+    MSS_UART_polled_tx_string(
+            g_uart,
+            (const uint8_t*)
+            "\n\r*********************** Select the I2C "
+            "Mode to perform ***********************\n\r");
+    MSS_UART_polled_tx_string(
+            g_uart,
+            (const uint8_t*)"Press Key '1' to perform MT-SR "
+                    "(Master Transmit - Slave Receive)\n\r");
+    MSS_UART_polled_tx_string(
+            g_uart,
+            (const uint8_t*)"Press Key '2' to perform MR-ST "
+                    "(Master Receive  - Slave transmit)\n\r");
+    MSS_UART_polled_tx_string(
+            g_uart,
+            (const uint8_t*)"Press Key '3' to perform MT-MR"
+                    " (Master Transmit - Master Receive)\n\r");
+    MSS_UART_polled_tx_string(
+            g_uart,
+            (const uint8_t*)"Press Key '4' to EXIT from the Application \n\r");
+    MSS_UART_polled_tx_string(
+            g_uart,
+            (const uint8_t*)"-------------------------------------------------"
+                    "-----------------------------\n\r");
 }
 
 /*------------------------------------------------------------------------------
@@ -512,7 +728,10 @@ uint8_t get_data ()
      * Read the key strokes entered by user and store them for transmission to
      * the slave.
      */
-    MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\n\rEnter up to 32 characters to write to I2C1: ");
+    MSS_UART_polled_tx_string(
+            g_uart,
+            (const uint8_t*)
+            "\n\rEnter up to 32 characters to write to I2C1: ");
     count = 0;
     while (!complete)
     {
