@@ -15,6 +15,9 @@
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_pdma/mss_pdma.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
+#include "inc/uart_mapping.h"
+
+extern struct mss_uart_instance* p_uartmap_u54_1;
 
 /* Enable this constant to use the PDMA in interrupt mode.
  *
@@ -57,7 +60,6 @@ uint8_t g_done_int_processed = 0u;
 uint8_t g_err_int_processed = 0u;
 
 uint64_t uart_lock;
-mss_uart_instance_t *g_uart= &g_mss_uart1_lo;
 
 /* Void NULL pointer for polling mode
  * The interrupts are disabled in polling mode.
@@ -72,7 +74,8 @@ void *g_null_ptr = (( uint8_t* ) 0);
 const uint8_t g_greeting_msg[] =
 "\r\n\r\n\t  ******* PolarFire SoC PDMA Driver Example *******\n\n\n\r\
 Select options below to select the DMA channel for transactions. After\r\n\
-selecting the channel, the following messages on terminal will notify about \r\n\
+selecting the channel, the following messages "
+"on terminal will notify about \r\n\
 success / failure about the DMA transactions \r\n\
 \n\n\r 0--> Initiate PDMA transaction on channel 0 \n\r\
 \n\n\r 1--> Initiate PDMA transaction on channel 1 \n\r\
@@ -108,16 +111,33 @@ void u54_1(void)
     clear_soft_interrupt();
 #endif
 
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART0, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART2, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART3, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART4, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_CFM, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+    (void)mss_config_clk_rst(
+            MSS_PERIPH_MMUART_E51,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    (void)mss_config_clk_rst(
+            MSS_PERIPH_MMUART_U54_1,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    (void)mss_config_clk_rst(
+            MSS_PERIPH_MMUART_U54_2,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    (void)mss_config_clk_rst(
+            MSS_PERIPH_MMUART_U54_3,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    (void)mss_config_clk_rst(
+            MSS_PERIPH_MMUART_U54_4,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    (void)mss_config_clk_rst(
+            MSS_PERIPH_CFM,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
 
     PLIC_init();
     __enable_irq();
-
     PLIC_SetPriority(DMA_CH0_DONE_IRQn, 1u);
     PLIC_SetPriority(DMA_CH0_ERR_IRQn, 1u);
     PLIC_SetPriority(DMA_CH1_DONE_IRQn, 1u);
@@ -137,10 +157,10 @@ void u54_1(void)
     PLIC_EnableIRQ(DMA_CH3_DONE_IRQn);
     PLIC_EnableIRQ(DMA_CH3_ERR_IRQn);
 
-    MSS_UART_init( g_uart, MSS_UART_115200_BAUD,
+    MSS_UART_init(p_uartmap_u54_1, MSS_UART_115200_BAUD,
              MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
-    MSS_UART_polled_tx_string (g_uart, g_greeting_msg);
+    MSS_UART_polled_tx_string (p_uartmap_u54_1, g_greeting_msg);
 
     g_done_int_processed = 0u;
     g_err_int_processed = 0u;
@@ -165,10 +185,10 @@ void u54_1(void)
 
     while(1)
     {
-        rx_size = MSS_UART_get_rx(g_uart, rx_buff, sizeof(rx_buff));
+        rx_size = MSS_UART_get_rx(p_uartmap_u54_1, rx_buff, sizeof(rx_buff));
         if (rx_size > 0u)
         {
-            MSS_UART_polled_tx_string (g_uart, "\n\r");
+            MSS_UART_polled_tx_string (p_uartmap_u54_1, "\n\r");
             memset(g_dst_arr, 0x00, sizeof(g_dst_arr));
 
             /* Every Loop set correct Source and Destination */
@@ -197,7 +217,7 @@ void u54_1(void)
                     check_pdma_error(g_pdma_error_code);
                 }
 
-                MSS_UART_polled_tx_string (g_uart, "DMA CH '0' ");
+                MSS_UART_polled_tx_string (p_uartmap_u54_1, "DMA CH '0' ");
             }
             else if (rx_buff[0] == '1')
             {
@@ -212,7 +232,7 @@ void u54_1(void)
 #endif
                 MSS_PDMA_start_transfer(MSS_PDMA_CHANNEL_1);
 
-                MSS_UART_polled_tx_string (g_uart, "DMA CH '1' ");
+                MSS_UART_polled_tx_string (p_uartmap_u54_1, "DMA CH '1' ");
             }
             else if (rx_buff[0] == '2')
             {
@@ -228,7 +248,7 @@ void u54_1(void)
 
                 MSS_PDMA_start_transfer(MSS_PDMA_CHANNEL_2);
 
-                MSS_UART_polled_tx_string (g_uart, "DMA CH '2' ");
+                MSS_UART_polled_tx_string (p_uartmap_u54_1, "DMA CH '2' ");
             }
             else if (rx_buff[0] == '3')
             {
@@ -243,11 +263,12 @@ void u54_1(void)
 #endif
                 MSS_PDMA_start_transfer(MSS_PDMA_CHANNEL_3);
 
-                MSS_UART_polled_tx_string (g_uart, "DMA CH '3' ");
+                MSS_UART_polled_tx_string (p_uartmap_u54_1, "DMA CH '3' ");
             }
             else
             {
-                MSS_UART_polled_tx_string (g_uart, "Please Select Correct Channel  \n\r");
+                MSS_UART_polled_tx_string (p_uartmap_u54_1, "Please Select "
+                        "Correct Channel  \n\r");
             }
         }
 
@@ -259,25 +280,25 @@ void u54_1(void)
                                                       sizeof(g_dst_arr));
             if(errors == 0)
             {
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "\n\rMemory to Memory DMA Transaction successful \n\r");
             }
             else
-            {   MSS_UART_polled_tx_string (g_uart,
+            {   MSS_UART_polled_tx_string (p_uartmap_u54_1,
                     "\n\rMemory to Memory DMA Transaction failed \n\r");
             }
 
             if (g_pdma_interrupt == 0x0u)
             {
                 g_pdma_interrupt = 0xFFu;
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH0 Done Int\n\r");
             }
 
             else if (g_pdma_interrupt == 0x1u)
             {
                 g_pdma_interrupt = 0xFFu;
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH1 Done Int\n\r");
             }
 
@@ -285,37 +306,37 @@ void u54_1(void)
             {
 
                 g_pdma_interrupt = 0xFFu;
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH2 Done Int\n\r");
             }
             else if (g_pdma_interrupt == 0x3u)
             {
                 g_pdma_interrupt = 0xFFu;
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH3 Done Int\n\r");
             }
             else if (g_pdma_interrupt == 0x10u)
             {
                 g_pdma_interrupt = 0xFFu;
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH0 Err Int\n\r");
             }
             else if (g_pdma_interrupt == 0x11u)
             {
                 g_pdma_interrupt = 0xFFu;
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH1 Err Int\n\r");
             }
             else if (g_pdma_interrupt == 0x12u)
             {
                 g_pdma_interrupt = 0xFFu;
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH2 Err Int\n\r");
             }
             else if (g_pdma_interrupt == 0x13u)
             {
                 g_pdma_interrupt = 0xFFu;
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH3 Err Int\n\r");
             }
         }
@@ -345,10 +366,10 @@ void u54_1(void)
                               sizeof(g_dst_arr));
 
              if (errors == 0u)
-                 MSS_UART_polled_tx_string (g_uart,
+                 MSS_UART_polled_tx_string (p_uartmap_u54_1,
                          "\n\rMemory to Memory DMA Transaction successful \n\r");
             else
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "\n\rMemory to Memory DMA Transaction failed \n\r");
 
              if (g_done_int_processed & (0x01 << MSS_PDMA_CHANNEL_0))
@@ -356,7 +377,7 @@ void u54_1(void)
                  g_done_int_processed &= (~(g_done_int_processed &
                          (0x01 << MSS_PDMA_CHANNEL_0)));
 
-                 MSS_UART_polled_tx_string (g_uart,
+                 MSS_UART_polled_tx_string (p_uartmap_u54_1,
                          "PDMA CH0 Done Int\n\r");
              }
              else if (g_done_int_processed & (0x01 << MSS_PDMA_CHANNEL_1))
@@ -364,7 +385,7 @@ void u54_1(void)
                  g_done_int_processed &= (~(g_done_int_processed &
                          (0x01 << MSS_PDMA_CHANNEL_1)));
 
-                 MSS_UART_polled_tx_string (g_uart,
+                 MSS_UART_polled_tx_string (p_uartmap_u54_1,
                          "PDMA CH1 Done Int\n\r");
              }
              else if (g_done_int_processed & (0x01 << MSS_PDMA_CHANNEL_2))
@@ -372,7 +393,7 @@ void u54_1(void)
                 g_done_int_processed &= (~(g_done_int_processed &
                         (0x01 << MSS_PDMA_CHANNEL_2)));
 
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH2 Done Int\n\r");
              }
              else if (g_done_int_processed & (0x01 << MSS_PDMA_CHANNEL_3))
@@ -380,7 +401,7 @@ void u54_1(void)
                 g_done_int_processed &= (~(g_done_int_processed &
                         (0x01 << MSS_PDMA_CHANNEL_3)));
 
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH3 Done Int\n\r");
              }
          }
@@ -412,7 +433,7 @@ void u54_1(void)
                  g_err_int_processed &= (~(g_err_int_processed &
                          (0x01 << MSS_PDMA_CHANNEL_0)));
 
-                 MSS_UART_polled_tx_string (g_uart,
+                 MSS_UART_polled_tx_string (p_uartmap_u54_1,
                          "PDMA CH0 Err Int\n\r");
              }
              else if (g_err_int_processed & (0x01 << MSS_PDMA_CHANNEL_1))
@@ -420,7 +441,7 @@ void u54_1(void)
                  g_err_int_processed &= (~(g_err_int_processed &
                          (0x01 << MSS_PDMA_CHANNEL_1)));
 
-                 MSS_UART_polled_tx_string (g_uart,
+                 MSS_UART_polled_tx_string (p_uartmap_u54_1,
                          "PDMA CH1 Err Int\n\r");
              }
              else if (g_err_int_processed & (0x01 << MSS_PDMA_CHANNEL_2))
@@ -428,7 +449,7 @@ void u54_1(void)
                  g_err_int_processed &= (~(g_err_int_processed &
                          (0x01 << MSS_PDMA_CHANNEL_2)));
 
-                 MSS_UART_polled_tx_string (g_uart,
+                 MSS_UART_polled_tx_string (p_uartmap_u54_1,
                          "PDMA CH2 Err Int\n\r");
              }
              else if (g_err_int_processed & (0x01 << MSS_PDMA_CHANNEL_3))
@@ -436,7 +457,7 @@ void u54_1(void)
                  g_err_int_processed &= (~(g_err_int_processed &
                          (0x01 << MSS_PDMA_CHANNEL_3)));
 
-                MSS_UART_polled_tx_string (g_uart,
+                MSS_UART_polled_tx_string (p_uartmap_u54_1,
                         "PDMA CH3 Err Int\n\r");
              }
          }
@@ -478,31 +499,37 @@ check_pdma_error
 {
     if (g_pdma_error_code == 1u)
     {
-        MSS_UART_polled_tx_string (g_uart, "Invalid source address\n\r");
+        MSS_UART_polled_tx_string (
+                p_uartmap_u54_1,
+                "Invalid source address\n\r");
     }
     else if (g_pdma_error_code == 2u)
     {
-        MSS_UART_polled_tx_string (g_uart, "Invalid destination address\n\r");
+        MSS_UART_polled_tx_string (
+                p_uartmap_u54_1,
+                "Invalid destination address\n\r");
     }
     else if (g_pdma_error_code == 3u)
     {
-        MSS_UART_polled_tx_string (g_uart, "Transaction in progress\n\r");
+        MSS_UART_polled_tx_string (
+                p_uartmap_u54_1,
+                "Transaction in progress\n\r");
     }
     else if (g_pdma_error_code == 4u)
     {
-        MSS_UART_polled_tx_string (g_uart, "Invalid Channel ID\n\r");
+        MSS_UART_polled_tx_string (p_uartmap_u54_1, "Invalid Channel ID\n\r");
     }
     else if (g_pdma_error_code == 5u)
     {
-        MSS_UART_polled_tx_string (g_uart, "Invalid write size\n\r");
+        MSS_UART_polled_tx_string (p_uartmap_u54_1, "Invalid write size\n\r");
     }
     else if (g_pdma_error_code == 6u)
     {
-        MSS_UART_polled_tx_string (g_uart, "Invalid Read size\n\r");
+        MSS_UART_polled_tx_string (p_uartmap_u54_1, "Invalid Read size\n\r");
     }
     else if (g_pdma_error_code == 7u)
     {
-        MSS_UART_polled_tx_string (g_uart, "Last ID\n\r");
+        MSS_UART_polled_tx_string (p_uartmap_u54_1, "Last ID\n\r");
     }
 }
 
@@ -514,13 +541,15 @@ pdma_isr( uint8_t interrupt_type)
     g_pdma_interrupt = interrupt_type;
 
     /* Clear DONE interrupt flag */
-    if ((interrupt_type >= PDMA_CH0_DONE_INT) && (interrupt_type <= PDMA_CH3_DONE_INT))
+    if ((interrupt_type >= PDMA_CH0_DONE_INT) &&
+            (interrupt_type <= PDMA_CH3_DONE_INT))
     {
         MSS_PDMA_clear_transfer_complete_status(interrupt_type);
     }
 
     /* Clear ERROR interrupt flag */
-    else if((interrupt_type >= PDMA_CH0_ERROR_INT) && (interrupt_type <= PDMA_CH3_ERROR_INT))
+    else if((interrupt_type >= PDMA_CH0_ERROR_INT) &&
+            (interrupt_type <= PDMA_CH3_ERROR_INT))
     {
         interrupt_type &= (interrupt_type << 4u);
 
