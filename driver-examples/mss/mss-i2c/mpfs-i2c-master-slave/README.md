@@ -7,11 +7,21 @@ The operation of the MSS I2Cs is controlled via a serial console.
 ## How to use this example
 
 Connect the IO pins for the SDA and SCL of the two MSS I2Cs together.
-       I2C-0                  I2C-1
-I2C 0 SCL: J26 Pin 29 -> I2C 1 SCL: J26 Pin 31
-I2C 0 SDA: J26 Pin 35 -> I2C 1 SDA: J26 Pin 37
+
+For Icicle-kit:
+
+I2C 0 SCL: ( J26 Pin 29 ) -> I2C 1 SCL: ( J26 Pin 31 )
+
+I2C 0 SDA: ( J26 Pin 35 ) -> I2C 1 SDA: ( J26 Pin 37 )
+
+For Discovery-kit:
+
+I2C 0 SCL: ( J10 Pin 29 ) -> I2C 1 SCL: ( J10 Pin 31 )
+
+I2C 0 SDA: ( J10 Pin 35 ) -> I2C 1 SDA: ( J10 Pin 37 )
 
 On connecting Icicle kit J11 to the host PC, you should see 4 COM port interfaces. 
+On connecting Discovery kit J4 to the host PC, you should see 3 COM port interfaces connected. 
 To use this project, configure the COM port interface1 as below:
  - 115200 baud
  - 8 data bits
@@ -47,7 +57,9 @@ these steps:
    the slave via menu option 1 and observe the "Data Write Timed Out!" message 
    after 3 seconds.
 3. The I2C_LOOPBACK design variant should be used for testing MSS I2C master slave example 
-   project. Please refer [here](https://github.com/polarfire-soc/icicle-kit-reference-design) for more details.
+   project.
+   For more details please refer [here](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design) for Icicle Kit
+   and [here](https://mi-v-ecosystem.github.io/redirects/repo-discovery-kit-reference-design) for Discovery Kit.
 
 This project provides build configurations and debug launchers as exaplained 
 [here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)
