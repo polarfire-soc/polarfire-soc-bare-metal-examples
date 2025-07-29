@@ -14,12 +14,23 @@
 #include "inc/common.h"
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_watchdog/mss_watchdog.h"
+#include "inc/uart_mapping.h"
 
+extern struct mss_uart_instance* p_uartmap_e51;
 static uint8_t g_display_buffer[100];
 mss_watchdog_config_t wd0lo_config;
-volatile uint8_t h0_plic_mvrp = 0u, h0_plic_triggered = 0u, h0_triggered = 0u, h0_mvrp =0u;
-volatile uint8_t h1_plic_mvrp = 0u, h1_plic_triggered = 0u, h1_triggered = 0u, h1_mvrp = 0u;
-volatile uint8_t h2_plic_mvrp = 0u, h2_plic_triggered = 0u, h2_triggered = 0u, h2_mvrp = 0u;
+volatile uint8_t h0_plic_mvrp = 0u,
+                 h0_plic_triggered = 0u,
+                 h0_triggered = 0u,
+                 h0_mvrp =0u;
+volatile uint8_t h1_plic_mvrp = 0u,
+                 h1_plic_triggered = 0u,
+                 h1_triggered = 0u,
+                 h1_mvrp = 0u;
+volatile uint8_t h2_plic_mvrp = 0u,
+                 h2_plic_triggered = 0u,
+                 h2_triggered = 0u,
+                 h2_mvrp = 0u;
 
 #define RX_BUFF_SIZE    64
 
@@ -103,7 +114,7 @@ void uart_tx_with_mutex(mss_uart_instance_t *this_uart,
                         const uint8_t *pbuff)
 {
     MSS_UART_polled_tx_string(this_uart, pbuff);
-    while(!(MSS_UART_TEMT & MSS_UART_get_tx_status(&g_mss_uart0_lo)))
+    while(!(MSS_UART_TEMT & MSS_UART_get_tx_status(p_uartmap_e51)))
     {
         ;
     }
@@ -127,21 +138,42 @@ void e51(void)
     if (hartid == 0)
     {
         /* Turn on peripheral clocks and bring them out of reset*/
-        (void) mss_config_clk_rst(MSS_PERIPH_MMUART0, (uint8_t) 1, PERIPHERAL_ON);
-        (void) mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) 1, PERIPHERAL_ON);
-        (void) mss_config_clk_rst(MSS_PERIPH_MMUART2, (uint8_t) 1, PERIPHERAL_ON);
-        (void) mss_config_clk_rst(MSS_PERIPH_MMUART3, (uint8_t) 1, PERIPHERAL_ON);
-        (void) mss_config_clk_rst(MSS_PERIPH_MMUART4, (uint8_t) 1, PERIPHERAL_ON);
+        (void) mss_config_clk_rst(
+                MSS_PERIPH_MMUART_E51,
+                (uint8_t) 1,
+                PERIPHERAL_ON);
+        (void) mss_config_clk_rst(
+                MSS_PERIPH_MMUART_U54_1,
+                (uint8_t) 1,
+                PERIPHERAL_ON);
+        (void) mss_config_clk_rst(
+                MSS_PERIPH_MMUART_U54_2,
+                (uint8_t) 1,
+                PERIPHERAL_ON);
+        (void) mss_config_clk_rst(
+                MSS_PERIPH_MMUART_U54_3,
+                (uint8_t) 1,
+                PERIPHERAL_ON);
+        (void) mss_config_clk_rst(
+                MSS_PERIPH_MMUART_U54_4,
+                (uint8_t) 1,
+                PERIPHERAL_ON);
 
-        MSS_UART_init(&g_mss_uart0_lo,
+        MSS_UART_init(p_uartmap_e51,
              MSS_UART_115200_BAUD,
              MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
-        uart_tx_with_mutex (&g_mss_uart0_lo, (uint64_t*)&hart_share->mutex_uart0,
-             "\n\n\r    ****     PolarFire SoC MSS Watchdog Example      ****\r\n");
-        uart_tx_with_mutex(&g_mss_uart0_lo, (uint64_t*)&hart_share->mutex_uart0, g_message2);
+        uart_tx_with_mutex (
+                p_uartmap_e51,
+                (uint64_t*)&hart_share->mutex_uart0,
+             "\n\n\r****     PolarFire SoC MSS Watchdog Example      ****\r\n"
+                );
+        uart_tx_with_mutex(
+                p_uartmap_e51,
+                (uint64_t*)&hart_share->mutex_uart0,
+                g_message2);
 
-        MSS_UART_polled_tx_string(&g_mss_uart0_lo, "Watchdog");
+        MSS_UART_polled_tx_string(p_uartmap_e51, "Watchdog");
 
         PLIC_init();
 
@@ -192,7 +224,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "WD0 value = %x\r\n", *(uint32_t*)0x20001000);
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
 
@@ -201,7 +233,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "WD1 value = %x\r\n", *(uint32_t*)0x20101000);
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
 
@@ -210,7 +242,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "WD2 value = %x\r\n", *(uint32_t*)0x20103000);
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -222,7 +254,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H0 MVRP Local\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -234,7 +266,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H0 timeout Local\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -246,7 +278,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H1 MVRP Local\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -258,7 +290,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H1 timeout Local\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -270,7 +302,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H0 MVRP PLIC\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -282,7 +314,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                           "H0 timeout PLIC\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -294,7 +326,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H1 MVRP PLIC\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -306,7 +338,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H1 timeout PLIC\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -318,7 +350,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H2 MVRP PLIC\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -330,7 +362,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H2 timeout PLIC\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -342,7 +374,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                           "H2 MVRP Local\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
@@ -354,7 +386,7 @@ void e51(void)
                          sizeof(g_display_buffer),
                          "H2 timeout Local\r\n");
 
-                uart_tx_with_mutex (&g_mss_uart0_lo,
+                uart_tx_with_mutex (p_uartmap_e51,
                                     (uint64_t*)&hart_share->mutex_uart0,
                                     g_display_buffer);
             }
