@@ -29,7 +29,8 @@ void u54_2(void)
     volatile uint32_t icount = 0U;
 
     /* Clear pending software interrupt in case there was any.
-     * Enable only the software interrupt so that the E51 core can bring this core
+     * Enable only the software interrupt so that the
+     *  E51 core can bring this core
      * out of WFI by raising a software interrupt. */
     clear_soft_interrupt();
     set_csr(mie, MIP_MSIP);

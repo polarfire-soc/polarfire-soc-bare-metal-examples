@@ -19,6 +19,9 @@
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_spi/mss_spi.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
+#include "inc/uart_mapping.h"
+
+extern struct mss_uart_instance* p_uartmap_u54_1;
 
 /**************************************************************************//**
  * Macro definitions
@@ -61,12 +64,15 @@ static void display_option(void)
     uint8_t rx_size;
     uint8_t rx_buff[1];
 
-    MSS_UART_polled_tx(&g_mss_uart1_lo, g_separator, sizeof(g_separator));
-    MSS_UART_polled_tx(&g_mss_uart1_lo, (const uint8_t*)"\r\n Press any key to continue.\r\n",
-              sizeof("\r\n Press any key to continue.\r\n"));
+    MSS_UART_polled_tx(p_uartmap_u54_1, g_separator, sizeof(g_separator));
+    MSS_UART_polled_tx(
+            p_uartmap_u54_1,
+            (const uint8_t*)
+            "\r\n Press any key to continue.\r\n",
+            sizeof("\r\n Press any key to continue.\r\n"));
     do
     {
-        rx_size = MSS_UART_get_rx(&g_mss_uart1_lo, rx_buff, sizeof(rx_buff));
+        rx_size = MSS_UART_get_rx(p_uartmap_u54_1, rx_buff, sizeof(rx_buff));
     } while(0u == rx_size);
 }
 
@@ -97,13 +103,21 @@ void u54_1 (void)
 #endif
 
     /*Reset SPI0 and SPI1*/
-    (void)mss_config_clk_rst(MSS_PERIPH_SPI0, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_SPI1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_SPI0,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_SPI1,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART_U54_1,
+            (uint8_t) MPFS_HAL_FIRST_HART,
+            PERIPHERAL_ON);
 
-    MSS_UART_init(&g_mss_uart1_lo,
-   				  MSS_UART_115200_BAUD,
-				  MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
+    MSS_UART_init(p_uartmap_u54_1,
+                  MSS_UART_115200_BAUD,
+                  MSS_UART_DATA_8_BITS |
+                  MSS_UART_NO_PARITY |
+                  MSS_UART_ONE_STOP_BIT);
 
     PLIC_init();
     __enable_irq();
@@ -158,12 +172,18 @@ void u54_1 (void)
         /* De-assert slave select. */
         MSS_SPI_clear_slave_select(&g_mss_spi1_lo, MSS_SPI_SLAVE_0);
 
-        MSS_UART_polled_tx_string(&g_mss_uart1_lo, (const uint8_t*)"\r\nCommand sent to spi slave: ");
+        MSS_UART_polled_tx_string(p_uartmap_u54_1,
+                (const uint8_t*)
+                "\r\nCommand sent to spi slave: ");
         sprintf(g_ui_buf,"    %x    \r\n", cmd_idx);
-        MSS_UART_polled_tx_string(&g_mss_uart1_lo, (const uint8_t*)&g_ui_buf);
+        MSS_UART_polled_tx_string(p_uartmap_u54_1,
+                (const uint8_t*)&g_ui_buf);
 
-        MSS_UART_polled_tx_string(&g_mss_uart1_lo, (const uint8_t*)"\r\nData received from spi slave: ");
-        sprintf(g_ui_buf,"    %x     %x     %x     %x    %x     %x     %x     %x    \r\n",
+        MSS_UART_polled_tx_string(p_uartmap_u54_1,
+                (const uint8_t*)"\r\nData received from spi slave: ");
+        sprintf(g_ui_buf,
+                "    %x     %x     %x     %x"
+                "    %x     %x     %x     %x    \r\n",
                 g_master_rx_buffer[0],
                 g_master_rx_buffer[1],
                 g_master_rx_buffer[2],
@@ -172,7 +192,7 @@ void u54_1 (void)
                 g_master_rx_buffer[5],
                 g_master_rx_buffer[6],
                 g_master_rx_buffer[7]);
-        MSS_UART_polled_tx_string(&g_mss_uart1_lo, (const uint8_t*)&g_ui_buf);
+        MSS_UART_polled_tx_string(p_uartmap_u54_1, (const uint8_t*)&g_ui_buf);
 
         /* Issue a different command each time to the slave.*/
         if (3u == cmd_idx)
@@ -240,17 +260,25 @@ static void mss_spi_overflow_handler
     if (mss_spi_core)
     {
         /* reset SPI1 */
-		(void)mss_config_clk_rst(MSS_PERIPH_SPI1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_OFF);
-		
-		/* Take SPI1 out of reset. */
-        (void)mss_config_clk_rst(MSS_PERIPH_SPI1, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+        (void)mss_config_clk_rst(MSS_PERIPH_SPI1,
+                (uint8_t) MPFS_HAL_FIRST_HART,
+                PERIPHERAL_OFF);
+
+        /* Take SPI1 out of reset. */
+        (void)mss_config_clk_rst(MSS_PERIPH_SPI1,
+                (uint8_t) MPFS_HAL_FIRST_HART,
+                PERIPHERAL_ON);
     }
     else
     {
         /* reset SPI0 */
-        (void)mss_config_clk_rst(MSS_PERIPH_SPI0, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_OFF);
-		
+        (void)mss_config_clk_rst(MSS_PERIPH_SPI0,
+                (uint8_t) MPFS_HAL_FIRST_HART,
+                PERIPHERAL_OFF);
+
          /* Take SPI0 out of reset. */
-        (void)mss_config_clk_rst(MSS_PERIPH_SPI0, (uint8_t) MPFS_HAL_FIRST_HART, PERIPHERAL_ON);
+        (void)mss_config_clk_rst(MSS_PERIPH_SPI0,
+                (uint8_t) MPFS_HAL_FIRST_HART,
+                PERIPHERAL_ON);
     }
 }
