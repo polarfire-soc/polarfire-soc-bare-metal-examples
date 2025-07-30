@@ -92,12 +92,16 @@ static volatile uint32_t count_sw_ints_h0 = 0U;
 volatile uint32_t g_10ms_count;
 uint8_t data_block[256];
 uint64_t hart_jump_ddr  = 0U;
-#ifndef DDR_BASE_BOARD
+
+#if defined(MPFS_DISCOVERY_KIT)
+mss_uart_instance_t *g_uart= &g_mss_uart1_lo;
+mss_uart_instance_t *g_debug_uart = &g_mss_uart4_lo;
+#elif defined(DDR_BASE_BOARD)
+mss_uart_instance_t *g_uart = &g_mss_uart3_lo;
+mss_uart_instance_t *g_debug_uart = &g_mss_uart3_lo;
+#else
 mss_uart_instance_t *g_uart= &g_mss_uart0_lo ;
 mss_uart_instance_t *g_debug_uart= &g_mss_uart0_lo ;
-#else
-mss_uart_instance_t *g_uart= &g_mss_uart3_lo ;
-mss_uart_instance_t *g_debug_uart= &g_mss_uart3_lo ;
 #endif
 
 uint8_t *bin_base = (uint8_t *)DDR_BASE;
@@ -429,20 +433,26 @@ void SysTick_Handler_h0_IRQHandler(void)
 __attribute__((section(".text_init")))\
 uint32_t setup_ddr_debug_port(mss_uart_instance_t * uart)
 {
-#ifndef   DDR_BASE_BOARD
-    (void)mss_config_clk_rst(MSS_PERIPH_MMUART0,
-                            (uint8_t) MPFS_HAL_FIRST_HART,
-                            PERIPHERAL_ON);
-#else
+#ifdef DDR_BASE_BOARD
     (void)mss_config_clk_rst(MSS_PERIPH_MMUART3,
                             (uint8_t) MPFS_HAL_FIRST_HART,
                             PERIPHERAL_ON);
+#elif defined(MPFS_DISCOVERY_KIT)
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART4,
+                            (uint8_t) MPFS_HAL_FIRST_HART,
+                            PERIPHERAL_ON);
+#else
+    (void)mss_config_clk_rst(MSS_PERIPH_MMUART0,
+                            (uint8_t) MPFS_HAL_FIRST_HART,
+                            PERIPHERAL_ON);
 #endif
-    MSS_UART_init( uart,
+
+    MSS_UART_init(uart,
         MSS_UART_115200_BAUD,
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
     return(0U);
+
 }
 #endif
 
@@ -1020,5 +1030,4 @@ static void display_mss_regs(void)
     MSS_UART_polled_tx_string(g_uart,(const uint8_t*)info_string_regs);
 
 }
-
 
