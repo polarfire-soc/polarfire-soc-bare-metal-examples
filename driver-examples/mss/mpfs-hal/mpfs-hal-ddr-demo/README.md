@@ -11,18 +11,20 @@ menu to select further test options is presented.
 This example project is targeted at a number of different boards
  - Icicle kit
  - MPFS Video Kit
+ - MPFS Discovery Kit
  - DDR base board with DDR3 installed
  - DDR base board with DDR4 installed
  - IOF Max verification board (LPDDR3)
  - Peripheral Base board
 
-The boards other than the **Icicle kit** and the **MPFS Video Kit** are internal Microchip boards. The DDR settings for these boards are a guide on how to configure your board if based on one of those DDR technologies.
+The boards other than the **Icicle kit** , **MPFS Video Kit** and the **MPFS Discovery Kit** are internal Microchip boards. The DDR settings for these boards are a guide on how to configure your board if based on one of those DDR technologies.
 
 | Board                     | DDR memory Type| Data width | Speed       |
 | :-------------            | :----------  | :----------  |:----------  |
 |  Icicle                   | LPDDR4       |  x32         |  1600MHz    |
 |  Icicle 666MHz            | LPDDR4       |  x32         |  1333MHz    |
 |  MPFS Video Kit           | LPDDR4       |  x32         |  1600MHz    |
+|  MPFS Discovery Kit       | DDR4         |  x16         |  1600MHz    |
 |  Peripheral Base board    | LPDDR4       |  x16         |  1600MHz    |
 |  Peripheral Base board    | LPDDR4       |  x32         |  1600MHz    |
 |  DDR Base Board           | DDR4         |  x32         |  1600MHz    |
@@ -40,6 +42,10 @@ and the software configuration output file **MPFS_ICICLE_MSS_baremetal.xml**
 
 The latest reference Libero design for **MPFS Video kit** is available at [Video Kit Reference Design](https://mi-v-ecosystem.github.io/redirects/repo-sev-kit-reference-design).
 For the jumper settings and other board details for the **MPFS Video Kit**, refer to the [Video Kit user's guide](https://mi-v-ecosystem.github.io/redirects/boards-mpfs-sev-kit-sev-kit-user-guide).
+
+The MPFS Discovery kit Libero design used with this project can be found [here](https://mi-v-ecosystem.github.io/redirects/repo-discovery-kit-reference-design).
+The reference design includes the MSS Configurator source file **MPFS_DISCOVERY_KIT_MSS.cfg**
+and the software configuration output file **MPFS_DISCOVERY_KIT_MSS_mss_cfg.xml**
 
 For all the boards supported with this project (including Icicle kit), the MSS
 Configurator generated .cfg file and the .xml output generated from it are also
@@ -92,7 +98,7 @@ following :
 2. Make sure that the "DDR memory type" is chosen appropriately matching your DDR memory. e.g. LPDDR4.
 3. Click on "MSS_\<DDR-type>_default_configuration" preset and click "Apply". (e.g. "MSS_LPDDR4_default_configuration").
 4. Make sure that there are no overwrites relating to DDR in your project's
-   *boards/your_board/platform_config/mpfs_hal_config/mss_sw_config.h* file.
+   *boards/your_board/platform_config/[BUILD-CONFIGURATION]/mpfs_hal_config/mss_sw_config.h* file.
    i.e. The DDR section should appear as shown below
 
    ```
@@ -130,8 +136,8 @@ training debug information is printed on a UART terminal.
    #define DEBUG_DDR_RD_RW_FAIL
    ```
 
-2. By default, debug info is printed to MMUART0. To change the UART,
-add a definition in your application code (see e51.c in this project, modify if required):
+2. By default, for the Icicle Kit, debug info is printed on MMUART0, and for the Discovery Kit, it is printed on MMUART4.
+To change the UART, add a definition in your application code (see e51.c in this project, modify if required):
 
    ```c
    mss_uart_instance_t *g_debug_uart= &g_mss_uart3_lo ;
@@ -220,12 +226,13 @@ emulator such as HyperTerminal or Putty configured as follows:
 This example project is targeted at a number of different boards
  - Icicle kit
  - MPFS Video kit
+ - MPFS Discovery Kit
  - DDR base board with DDR3 installed
  - DDR base board with DDR4 installed
  - IOF Max verification board (LPDDR3)
  - Peripheral Base board (LPDDR4)
 
-Boards other than the **Icicle kit** and the **MPFS Video kit** are internal Microchip boards. The settings related to these DDR variants are a guide on how to configure your board if based on one
+Boards other than the **Icicle kit**, **MPFS Video kit** and the **MPFS Discovery Kit** are internal Microchip boards. The settings related to these DDR variants are a guide on how to configure your board if based on one
 of those DDR technologies.
 
 ## Porting DDR configuration to Hart Software Service
