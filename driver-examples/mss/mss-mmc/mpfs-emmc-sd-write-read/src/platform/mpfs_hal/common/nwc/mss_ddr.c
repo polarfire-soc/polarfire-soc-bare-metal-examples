@@ -27,9 +27,11 @@
  * Local Defines
  */
 /* This string is updated if any change to ddr driver */
-#define DDR_DRIVER_VERSION_STRING   "0.4.031"
+#define DDR_DRIVER_VERSION_STRING   "0.4.033"
 const char DDR_DRIVER_VERSION[] = DDR_DRIVER_VERSION_STRING;
 /* Version     |  Comment                                                     */
+/* 0.4.033     |  Fix bug that causes crash when post-stimulus test fails     */
+/* 0.4.032     |  Increase size of cache flush to fully clear                 */
 /* 0.4.031     |  Minor change to correct definition of MTC size define       */
 /* 0.4.030     |  Minor cleanup- removed unused code, renamed function        */
 /* 0.4.029     |  Fixed bug relating to DDR x 16 with ECC on. ECC lane 4 is   */
@@ -292,7 +294,7 @@ void mpfs_hal_turn_ddr_selfrefresh_on(void)
     {
         chip_selects = 1U;
     }
-	DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH = chip_selects;
+    DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH = chip_selects;
 }
 
 /**
@@ -302,7 +304,7 @@ void mpfs_hal_turn_ddr_selfrefresh_on(void)
  */
 void mpfs_hal_turn_ddr_selfrefresh_off(void)
 {
-	DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH = 0U;
+    DDRCFG->MC_BASE2.INIT_SELF_REFRESH.INIT_SELF_REFRESH = 0U;
 }
 
 /**
@@ -701,16 +703,14 @@ static uint32_t ddr_setup(void)
 #ifdef DEBUG_DDR_INIT
             (void)uprint32(g_debug_uart, "\n\r DDR_SANITY_CHECKS FAIL: ",\
                                                                 addr_cmd_value);
-            ddr_training_state = DDR_TRAINING_FAIL;
 #endif
+            ddr_training_state = DDR_TRAINING_FAIL;
             break;
-
         case DDR_TRAINING_FAIL:
 #ifdef DEBUG_DDR_INIT
             {
                 tip_register_status (g_debug_uart);
                 (void)uprint32(g_debug_uart, "\n\r ****************************************************", 0U);
-
             }
 #endif
             DDRCFG->MC_BASE2.INIT_CS.INIT_CS = 0x1;
@@ -4646,30 +4646,28 @@ __attribute__((weak)) void clear_bootup_cache_ways(void)
     volatile PATTERN_TEST_PARAMS pattern_test;
 
     /* clear using pdma routine, uses the 4 channels */
-    pattern_test.base = LIBERO_SETTING_DDR_32_CACHE;
-    pattern_test.size = TWO_MBYTES*4;
+    pattern_test.size = TWO_MBYTES * 4;
     pattern_test.pattern_type = DDR_INIT_FILL;
     pattern_test.pattern_offset = 0U;
+    pattern_test.base = LIBERO_SETTING_DDR_32_CACHE;
 
     load_ddr_pattern(&pattern_test);
 
-	/* clear using my d-cache ways */
-	fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_32_DDR,
-							   (void *)(BASE_ADDRESS_CACHED_32_DDR +
-										TWO_MBYTES));
+    /* clear using my d-cache ways */
+    fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_32_DDR,
+                               (void *)(BASE_ADDRESS_CACHED_32_DDR +
+                                        pattern_test.size));
 
-	/* clear using pdma routine, uses the 4 channels */
-	pattern_test.base = LIBERO_SETTING_DDR_64_CACHE;
-	pattern_test.size = TWO_MBYTES*4;
-	pattern_test.pattern_type = DDR_INIT_FILL;
-	pattern_test.pattern_offset = 0U;
+    /* clear using pdma routine, uses the 4 channels */
+    pattern_test.base = LIBERO_SETTING_DDR_64_CACHE;
 
-	load_ddr_pattern(&pattern_test);
 
-	/* clear using my d-cache ways */
-	fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_64_DDR,
-							   (void *)(BASE_ADDRESS_CACHED_64_DDR +
-									TWO_MBYTES));
+    load_ddr_pattern(&pattern_test);
+
+    /* clear using my d-cache ways */
+    fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_64_DDR,
+                               (void *)(BASE_ADDRESS_CACHED_64_DDR +
+                                        pattern_test.size));
 }
 
 /**
@@ -6420,4 +6418,3 @@ static void address_cmd_training_with_ck_push(DDR_TYPE ddr_type, uint8_t * refcl
 }   /* END MANUAL BCLKSCLK TRAINING */
 
 #endif /* DDR_SUPPORT */
-

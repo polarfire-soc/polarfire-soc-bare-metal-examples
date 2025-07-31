@@ -64,7 +64,6 @@ extern "C" {
 #define HRS0_SOFTWARE_RESET             0x00000001u
 #define MMC_SOFTWARE_RESET_SHIFT        0x3u
 #define DEBOUNCING_TIME                 0x300000u
-#define MMC_RESET_DATA_CMD_LINE         0x06000000u
 #define CMD_TYPE_ABORT                  0xC0u
 /* SDMA boundary is 512k */
 #define SIZE_32MB                       0x02000000u
@@ -163,6 +162,8 @@ extern "C" {
 #define SDIO_FBR_BASE_ADDR              0x100u
 
 #define NULL_POINTER                    ((void *)0u)
+
+#define MAX_SIZE                        20u
 /*******************************************************************************
  * Global variable file scope
  */
@@ -187,6 +188,7 @@ static uint32_t g_trans_dest_addr = MMC_CLEAR;
 #endif /* MSS_MMC_INTERNAL_APIS */
 
 static uint8_t g_cq_task_id = MMC_CLEAR;
+static uint8_t new_phy_delay;
 /******************************************************************************/
 struct mmc_trans
 {
@@ -210,8 +212,8 @@ static uint8_t set_host_sdclk(uint32_t frequencyKHz);
 static mss_mmc_status_t set_data_timeout(uint32_t timeout_val_us);
 static mss_mmc_status_t  set_sdhost_power(uint32_t voltage);
 static void get_phy_addr(MSS_MMC_phydelay phydelaytype, uint8_t *phySetAddr);
-static mss_mmc_status_t phy_training_mmc(uint8_t delay_type, uint32_t clk_rate);
-static void phy_write_set(uint8_t delay_type, uint8_t delay_value);
+static mss_mmc_status_t phy_training_mmc(uint8_t phy_mode, uint32_t clk_rate);
+static void phy_write_set(uint8_t phy_mode, uint8_t delay_value);
 static mss_mmc_status_t device_set_hs_timing
 (
     uint32_t hs_mode,
@@ -761,7 +763,7 @@ MSS_MMC_single_block_read
         if (TRANSFER_IF_SUCCESS == response_status)
         {
             /* Reset Data and cmd line */
-            MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
             mmc_delay(MASK_8BIT);
             /* Block length and count*/
             MMC->SRS01 = (BLK_SIZE | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
@@ -929,7 +931,7 @@ MSS_MMC_sdma_read
                 if (TRANSFER_IF_SUCCESS == response_status)
                 {
                     /* Reset Data and cmd line */
-                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+                    MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
                     mmc_delay(MASK_8BIT);
                     /* Calculate block count */
                     blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
@@ -1060,7 +1062,7 @@ MSS_MMC_adma2_read
                 if (TRANSFER_IF_SUCCESS == response_status)
                 {
                     /* Reset Data and cmd line */
-                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+                    MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
                     mmc_delay(MASK_8BIT);
                     /* Calculate block count */
                     blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
@@ -1162,7 +1164,7 @@ MSS_MMC_sdio_single_block_read
             sdio_host_access_fbr(SDIOHOST_CCCR_WRITE, &src_addr, BYTES_3, 
                                 MSS_MMC_FBR_ADDR_CSA, MMC_SET, MMC_CLEAR);
             /* Reset Data and cmd line */
-            MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
             mmc_delay(MASK_8BIT);
             /* Block length and count*/
             MMC->SRS01 = (data_size | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
@@ -1269,7 +1271,7 @@ MSS_MMC_single_block_write
         if (TRANSFER_IF_SUCCESS == response_status)
         {
             /* Reset Data and cmd line */
-            MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
             mmc_delay(MASK_8BIT);
             /* Block length and count*/
             MMC->SRS01 = (BLK_SIZE | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
@@ -1410,7 +1412,7 @@ MSS_MMC_sdma_write
                 if (TRANSFER_IF_SUCCESS == response_status)
                 {
                     /* Reset Data and cmd line */
-                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+                    MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
                     mmc_delay(MASK_8BIT);
                     /* Calculate block count */
                     blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
@@ -1537,7 +1539,7 @@ MSS_MMC_adma2_write
                 if (TRANSFER_IF_SUCCESS == response_status)
                 {
                     /* Reset Data and cmd line */
-                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+                    MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
                     mmc_delay(MASK_8BIT);
                     /* Calculate block count */
                     blockcount = ((size - MMC_SET) / blocklen) + MMC_SET;
@@ -1634,7 +1636,7 @@ mss_mmc_status_t MSS_MMC_sdio_single_block_write
             sdio_host_access_fbr(SDIOHOST_CCCR_WRITE, &dst_addr, BYTES_3, 
                                         MSS_MMC_FBR_ADDR_CSA, MMC_SET, MMC_CLEAR);
             /* Reset Data and cmd line */
-            MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
             mmc_delay(MASK_8BIT);
             /* Block length and count*/
             MMC->SRS01 = (data_size | (MMC_SET << BLOCK_COUNT_ENABLE_SHIFT));
@@ -1788,8 +1790,8 @@ mss_mmc_status_t MSS_MMC_error_recovery(void)
     MMC->SRS12 = MMC_STATUS_CLEAR;
 
     /* Reset cmd and data line */
-    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-    while ((MMC->SRS11 & MMC_RESET_DATA_CMD_LINE) != MMC_CLEAR);
+    MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
+    while ((MMC->SRS11 & SRS11_RESET_DATA_CMD_LINE_MASK) != MMC_CLEAR);
 
     /* Execute CMD12 command to abort command */
     send_mmc_cmd(sdcard_RCA << SHIFT_16BIT, MMC_CMD_12_STOP_TRANSMISSION | CMD_TYPE_ABORT,
@@ -1806,8 +1808,8 @@ mss_mmc_status_t MSS_MMC_error_recovery(void)
     else
     {
         /* Reset cmd and data line */
-        MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-        while ((MMC->SRS11 & MMC_RESET_DATA_CMD_LINE) != MMC_CLEAR);
+        MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
+        while ((MMC->SRS11 & SRS11_RESET_DATA_CMD_LINE_MASK) != MMC_CLEAR);
     }
 
     MMC->SRS12 = trans_status_isr;
@@ -1853,6 +1855,13 @@ mss_mmc_status_t MSS_MMC_error_recovery(void)
     }
 
     return ret_status;
+}
+/*-------------------------------------------------------------------------*//**
+ * See "mss_mmc.h" for details of how to use this function.
+ */
+uint8_t MSS_MMC_read_phy_delay(void)
+{
+    return new_phy_delay;
 }
 /*-------------------------------------------------------------------------*//**
  * See "mss_mmc.h" for details of how to use this function.
@@ -3035,20 +3044,75 @@ MSS_MMC_cq_single_task_read
 /*******************************************************************************
 ****************************** Private Functions *******************************
 *******************************************************************************/
-static mss_mmc_status_t phy_training_mmc(uint8_t delay_type, uint32_t clk_rate)
+
+/**
+ * @brief Calculates the middle position of the longest contiguous sequence of 1s
+ *        in a binary array.
+ *
+ * This function scans a binary array (containing only 0s and 1s) of length `n`
+ * to find the longest contiguous sequence of 1s, considering the array as circular.
+ * It returns the index of the middle element of this longest sequence. If the longest
+ * sequence covers the entire array (i.e., 2 * n in length due to wraparound), the
+ * middle index is defined as n / 2.
+ *
+ * @param arr The input binary array of size `n` (containing only 0s and 1s).
+ * @param n   The number of elements in the array.
+ *
+ * @return The index of the middle element of the longest sequence of 1s.
+ */
+static uint8_t get_tap_value(uint8_t arr[], uint8_t n)
+{
+    int8_t maxLen = 0;
+    int8_t maxStart = -1;
+    int8_t maxEnd = -1;
+    int8_t currentLen = 0;
+    int8_t currentStart = -1;
+    uint8_t i;
+
+    /* Traverse the array to find sequences of 1s */
+    for (i = 0; i < 2 * n; i++)
+    {
+        uint8_t index = i % n;
+        if (arr[index] == 1)
+        {
+            if (currentLen == 0)
+            {
+                currentStart = index;
+            }
+            currentLen++;
+        }
+        else
+        {
+            if (currentLen > maxLen)
+            {
+                maxLen = currentLen;
+                maxStart = currentStart;
+                maxEnd = (index - 1 + n) % n;
+            }
+            currentLen = 0;
+        }
+    }
+
+    /* Check the last sequence if it was the longest */
+    if (currentLen > maxLen)
+    {
+        maxLen = currentLen;
+        maxStart = currentStart;
+        maxEnd = (i - 1) % n;
+    }
+
+    /* Calculate the middle position of the largest sequence */
+    uint8_t middlePos = (maxLen==2*n)? (n/2) :((maxStart + maxLen / 2) % n);
+    return middlePos;
+}
+
+static mss_mmc_status_t phy_training_mmc(uint8_t phy_mode, uint32_t clk_rate)
 {
     uint8_t delay;
     uint32_t max_delay;
-    uint8_t new_delay;
-    uint8_t pos = MMC_CLEAR;
-    uint8_t length = MMC_CLEAR;
-    uint8_t curr_length = MMC_CLEAR;
     uint8_t rx_buff[BLK_SIZE];
     uint32_t read_srs11;
-    uint32_t cmd_response;
-
     mss_mmc_status_t ret_status = MSS_MMC_NO_ERROR;
-    cif_response_t response_status = TRANSFER_IF_FAIL;
 
     if (clk_rate <= MSS_MMC_CLOCK_12_5MHZ)
     {
@@ -3059,68 +3123,71 @@ static mss_mmc_status_t phy_training_mmc(uint8_t delay_type, uint32_t clk_rate)
         max_delay = (MSS_MMC_CLOCK_200MHZ / clk_rate) * BYTES_2;
     }
 
+    max_delay = (max_delay >= BYTES_20) ? BYTES_20 : max_delay;
+
+    uint8_t training_vector[MAX_SIZE];
+
     /* Reset Data and cmd line */
-    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+    MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
     for (delay = MMC_CLEAR; delay < max_delay; delay++)
     {
-        phy_write_set(delay_type, delay);
+        phy_write_set(phy_mode, delay);
 
         ret_status = read_tune_block((uint32_t *)rx_buff, BLK_SIZE, MMC_CMD_17_READ_SINGLE_BLOCK);
         if (MSS_MMC_TRANSFER_SUCCESS == ret_status)
         {
-            curr_length++;
-            if (curr_length > length)
-            {
-                pos = delay - length;
-                length++;
-                /* Reset Data and cmd line */
-                 MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
-            }
+            training_vector[delay] = 1;
         }
         else
         {
-            do
-            {
-                if (TRANSFER_IF_FAIL == response_status)
-                {
-                    /* Reset Data and cmd line */
-                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            training_vector[delay] = 0;
             
-                    do
-                    {
-                        read_srs11 = MMC->SRS11;
-                    }while ((read_srs11 & MMC_RESET_DATA_CMD_LINE) != MMC_CLEAR);
-                }
+            ret_status = MSS_MMC_error_recovery();
 
-                response_status = cif_send_cmd(sdcard_RCA << RCA_SHIFT_BIT,
-                                            MMC_CMD_13_SEND_STATUS,
-                                            MSS_MMC_RESPONSE_R1);
-                cmd_response = MMC->SRS04;
-            }while ((TRANSFER_IF_SUCCESS != response_status) ||
-                    ((cmd_response & DEVICE_STATE_MASK) != DEVICE_STATE_TRANS));
-
-            curr_length = MMC_CLEAR;
-            response_status = TRANSFER_IF_FAIL;
         }
     }
 
-    new_delay = pos + (length / BYTES_2);
-    phy_write_set(delay_type, new_delay);
+    new_phy_delay = get_tap_value(training_vector,max_delay);
+    phy_write_set(phy_mode, new_phy_delay);
 
     ret_status = read_tune_block((uint32_t *)rx_buff, BLK_SIZE, MMC_CMD_17_READ_SINGLE_BLOCK);
+
     /* Reset Data and cmd line */
-    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+    MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
     return ret_status;
 }
 /******************************************************************************/
-static void phy_write_set(uint8_t delay_type, uint8_t delay_value)
+/**
+ * @brief Writes a delay value to the PHY register for SD/eMMC interface
+ * training.
+ *
+ * This function sets the specified delay value to a PHY register address based
+ * on the `mode`. It is used during the PHY training process to
+ * align signal timing for reliable high-speed data communication with SD or
+ * eMMC cards.
+ *
+ * The function performs the following steps:
+ *  - Obtains the appropriate PHY register address based on `mode`.
+ *  - Waits until the PHY is ready to accept a new write.
+ *  - Writes the address and delay value to the control register.
+ *  - Initiates a PHY write request.
+ *  - Waits for acknowledgment from the PHY.
+ *  - Clears the write request to complete the operation.
+ *
+ * @param phy_mode
+ *  Type of delay to configure (e.g., data line delay, command line delay).
+ *                  This value is used to determine which PHY address to target.
+ * @param delay_value
+ *  The delay value to set, usually determined by the PHY training process.
+ */
+static void phy_write_set(uint8_t phy_mode, uint8_t delay_value)
 {
     uint8_t phyaddr = MMC_CLEAR;
     uint32_t reg = MMC_CLEAR;
     uint32_t phycfg = MMC_CLEAR;
 
     /* Phy delay set for eMMC modes */
-    get_phy_addr(delay_type, &phyaddr);
+    get_phy_addr(phy_mode, &phyaddr);
 
     do
     {
@@ -3150,8 +3217,8 @@ static void get_phy_addr(MSS_MMC_phydelay phydelaytype, uint8_t *phySetAddr)
     uint8_t i;
 
     static const struct phydelayaddresses phydelayaddr[] = {
-        { UIS_ADDR_DEFAULT_SPEED, MSS_MMC_PHY_DELAY_INPUT_DEFAULT_SPEED},
         { UIS_ADDR_HIGH_SPEED, MSS_MMC_PHY_DELAY_INPUT_HIGH_SPEED},
+        { UIS_ADDR_DEFAULT_SPEED, MSS_MMC_PHY_DELAY_INPUT_DEFAULT_SPEED},
         { UIS_ADDR_UHSI_SDR12, MSS_MMC_PHY_DELAY_INPUT_SDR12},
         { UIS_ADDR_UHSI_SDR25, MSS_MMC_PHY_DELAY_INPUT_SDR25},
         { UIS_ADDR_UHSI_SDR50, MSS_MMC_PHY_DELAY_INPUT_SDR50},
@@ -3159,9 +3226,20 @@ static void get_phy_addr(MSS_MMC_phydelay phydelaytype, uint8_t *phySetAddr)
         { UIS_ADDR_MMC_LEGACY, MSS_MMC_PHY_DELAY_INPUT_MMC_LEGACY},
         { UIS_ADDR_MMC_SDR, MSS_MMC_PHY_DELAY_INPUT_MMC_SDR},
         { UIS_ADDR_MMC_DDR, MSS_MMC_PHY_DELAY_INPUT_MMC_DDR},
+        { UIS_ADDR_DLL_LOC_VAL, MSS_MMC_PHY_DLL_LOCK_VAL},
+        { UIS_ADDR_PDIHS, MSS_MMC_PHY_DELAY_PDIHS},
         { UIS_ADDR_SDCLK, MSS_MMC_PHY_DELAY_DLL_SDCLK},
         { UIS_ADDR_HS_SDCLK, MSS_MMC_PHY_DELAY_DLL_HS_SDCLK},
         { UIS_ADDR_DAT_STROBE, MSS_MMC_PHY_DELAY_DLL_DAT_STROBE},
+        { UIS_ADDR_IFM_MODE, MSS_MMC_PHY_IFM_MODE},
+        { UIS_ADDR_DLL_RST, MSS_MMC_PHY_DLL_RESET},
+        { UIS_ADDR_DLL_MST_CTRL_PHASE_DET_SEL, MSS_MMC_PHY_DLL_MST_CTRL_PHASE_DET_SEL},
+        { UIS_ADDR_DLL_MST_CTRL_DLL_LOCK, MSS_MMC_PHY_DLL_MST_CTRL_DLL_LOCK},
+        { UIS_ADDR_DLL_MST_CTRL_DLL_START, MSS_MMC_PHY_DLL_MST_CTRL_DLL_START_POINT},
+        { UIS_ADDR_UNUSED_OR_READ_ONLY, MSS_MMC_PHY_UNUSED_OR_READ_ONLY},
+        { UIS_ADDR_DLL_OBS_DEC_SDM_CLK, MSS_MMC_PHY_DLL_OBS_DEC_SDM_CLK},
+        { UIS_ADDR_DLL_OBS_DEC_SD_CLK, MSS_MMC_PHY_DLL_OBS_DEC_SD_CLK},
+        { UIS_ADDR_DLL_OBS_DEC_DAT_STRB, MSS_MMC_PHY_DLL_OBS_DEC_DAT_STRB}
     };
 
     for (i = MMC_CLEAR; i < (sizeof(phydelayaddr) / sizeof(phydelayaddr[MMC_CLEAR])); i++)
@@ -5362,7 +5440,7 @@ static mss_mmc_status_t  set_sdhost_power(uint32_t voltage)
 /******************************************************************************/
 static void mmc_delay(uint32_t value)
 {
-    uint32_t tempValue = value;
+    volatile uint32_t tempValue = value;
 
     while (tempValue-- != 0u) asm volatile("");
 }
@@ -5465,7 +5543,7 @@ static mss_mmc_status_t execute_tunning_mmc(uint8_t data_width)
                 {
                     PatternOk[j] = 0u;
                     /* Reset Data and cmd line */
-                    MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+                    MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
                     /* Read pattern is not correct - exit loop */
                     break;
                 }
@@ -5474,7 +5552,7 @@ static mss_mmc_status_t execute_tunning_mmc(uint8_t data_width)
         else
         {
             /* Reset Data and cmd line */
-            MMC->SRS11 |= MMC_RESET_DATA_CMD_LINE;
+            MMC->SRS11 |= SRS11_RESET_DATA_CMD_LINE_MASK;
             PatternOk[j] = 0u;
         }
     }

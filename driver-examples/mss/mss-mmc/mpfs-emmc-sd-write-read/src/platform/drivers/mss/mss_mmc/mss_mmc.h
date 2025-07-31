@@ -179,6 +179,7 @@ extern "C"
   |-----------------------|---------------------------|
   | MSS_MMC_CLOCK_400KHZ  | Clock rate of 400 KHz     |
   | MSS_MMC_CLOCK_12_5MHZ | Clock rate of 12.5 MHz    |
+  | MSS_MMC_CLOCK_18MHZ   | Clock rate of 18 MHz      |
   | MSS_MMC_CLOCK_25MHZ   | Clock rate of 25 MHz      |
   | MSS_MMC_CLOCK_26MHZ   | Clock rate of 26 MHz      |
   | MSS_MMC_CLOCK_50MHZ   | Clock rate of 50 MHz      |
@@ -187,6 +188,7 @@ extern "C"
  */
 #define MSS_MMC_CLOCK_400KHZ            400u
 #define MSS_MMC_CLOCK_12_5MHZ           12500u
+#define MSS_MMC_CLOCK_18MHZ             18000u
 #define MSS_MMC_CLOCK_25MHZ             25000u
 #define MSS_MMC_CLOCK_26MHZ             26000u
 #define MSS_MMC_CLOCK_50MHZ             50000u
@@ -1485,6 +1487,22 @@ MSS_MMC_erase
   @endcode
  */
 mss_mmc_status_t MSS_MMC_error_recovery(void);
+
+/*-------------------------------------------------------------------------*//**
+  The MSS_MMC_read_phy_delay() function returns the PHY delay value used by the
+  phy_write_set() function.
+
+  @param
+    None.
+
+  @return
+    An 8-bit value indicating the current PHY delay.
+ */
+uint8_t
+MSS_MMC_read_phy_delay
+(
+    void
+);
 
 #ifdef __cplusplus
 }

@@ -123,35 +123,93 @@ typedef enum
 typedef enum
 {
     /* delay in the input path for High Speed work mode */
-    MSS_MMC_PHY_DELAY_INPUT_HIGH_SPEED = 0u,
+    MSS_MMC_PHY_DELAY_INPUT_HIGH_SPEED       = 0u,
     /* delay in the input path for Default Speed work mode */
-    MSS_MMC_PHY_DELAY_INPUT_DEFAULT_SPEED = 1u,
+    MSS_MMC_PHY_DELAY_INPUT_DEFAULT_SPEED    = 1u,
     /* delay in the input path for SDR12 work mode */
-    MSS_MMC_PHY_DELAY_INPUT_SDR12 = 2u,
+    MSS_MMC_PHY_DELAY_INPUT_SDR12            = 2u,
     /* delay in the input path for SDR25 work mode */
-    MSS_MMC_PHY_DELAY_INPUT_SDR25 = 3u,
+    MSS_MMC_PHY_DELAY_INPUT_SDR25            = 3u,
     /* delay in the input path for SDR50 work mode */
-    MSS_MMC_PHY_DELAY_INPUT_SDR50 = 4u,
+    MSS_MMC_PHY_DELAY_INPUT_SDR50            = 4u,
     /* delay in the input path for DDR50 work mode */
-    MSS_MMC_PHY_DELAY_INPUT_DDR50 = 5u,
+    MSS_MMC_PHY_DELAY_INPUT_DDR50            = 5u,
     /* delay in the input path for eMMC legacy work mode */
-    MSS_MMC_PHY_DELAY_INPUT_MMC_LEGACY = 6u,
+    MSS_MMC_PHY_DELAY_INPUT_MMC_LEGACY       = 6u,
     /* delay in the input path for eMMC SDR work mode */
-    MSS_MMC_PHY_DELAY_INPUT_MMC_SDR = 7u,
+    MSS_MMC_PHY_DELAY_INPUT_MMC_SDR          = 7u,
     /* delay in the input path for eMMC DDR work mode */
-    MSS_MMC_PHY_DELAY_INPUT_MMC_DDR = 8u,
+    MSS_MMC_PHY_DELAY_INPUT_MMC_DDR          = 8u,
+
+    MSS_MMC_PHY_DLL_LOCK_VAL                 = 9u,
+
+    /* Default PHY register address (0x00)
+    * Behavior is similar to MSS_MMC_PHY_DELAY_INPUT_HIGH_SPEED
+    * PDIHS (PHY_DELAY_INPUT_HIGH_SPEED)
+    */
+    MSS_MMC_PHY_DELAY_PDIHS                  = 10u,
+
     /* Value of the delay introduced on the sdclk output for all modes except
      *  HS200, HS400 and HS400_ES
      */
-    MSS_MMC_PHY_DELAY_DLL_SDCLK = 11u,
+    MSS_MMC_PHY_DELAY_DLL_SDCLK              = 11u,
+
     /* Value of the delay introduced on the sdclk output for HS200, HS400 and
      *  HS400_ES speed mode
      */
-    MSS_MMC_PHY_DELAY_DLL_HS_SDCLK = 12u,
+    MSS_MMC_PHY_DELAY_DLL_HS_SDCLK           = 12u,
+
     /* Value of the delay introduced on the dat_strobe input used in
      * HS400 / HS400_ES speed mode.
      */
-    MSS_MMC_PHY_DELAY_DLL_DAT_STROBE = 13u,
+    MSS_MMC_PHY_DELAY_DLL_DAT_STROBE         = 13u,
+
+    MSS_MMC_PHY_IFM_MODE                     = 14u,
+    MSS_MMC_PHY_DLL_RESET                    = 15u,
+
+    /* PHY Register address: 0x3C
+    * Bit shift: 20
+    * Bit mask:  0x0F
+    */
+    MSS_MMC_PHY_DLL_MST_CTRL_PHASE_DET_SEL   = 16u,
+
+    /* PHY Register address: 0x3C
+    * Bit shift: 16
+    * Bit mask:  0x0F
+    */
+    MSS_MMC_PHY_DLL_MST_CTRL_DLL_LOCK        = 17u,
+
+    /* PHY Register address: 0x3C
+    * Bit shift: 00
+    * Bit mask:  0xFF
+    */
+    MSS_MMC_PHY_DLL_MST_CTRL_DLL_START_POINT = 18u,
+
+    /* Default PHY register address (0x00)
+    * Read data is a result of OR operation on all four bytes
+    * (i.e. data[31:24] | data[23:16]| data[15:8] | data[7:0]); Those registers
+    * are not implemented so write operation is ignored.
+    */
+    MSS_MMC_PHY_UNUSED_OR_READ_ONLY          = 19u,
+
+    /* PHY Register address: 0x40
+    * Bit shift: 16
+    * Bit mask:  0xFF
+    */
+    MSS_MMC_PHY_DLL_OBS_DEC_SDM_CLK          = 20u,
+
+    /* PHY Register address: 0x40
+    * Bit shift: 8
+    * Bit mask:  0xFF
+    */
+    MSS_MMC_PHY_DLL_OBS_DEC_SD_CLK           = 21u,
+
+    /* PHY Register address: 0x40
+    * Bit shift: 0
+    * Bit mask:  0xFF
+    */
+    MSS_MMC_PHY_DLL_OBS_DEC_DAT_STRB         = 22u
+
 } MSS_MMC_phydelay;
 
 /**********************************************************************

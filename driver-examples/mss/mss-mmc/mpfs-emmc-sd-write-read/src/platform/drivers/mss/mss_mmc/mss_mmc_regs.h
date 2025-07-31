@@ -303,6 +303,10 @@ typedef struct {
 #define SRS11_INT_CLOCK_STABLE              0x00000002u
 /* internal clock enable */
 #define SRS11_INT_CLOCK_ENABLE              0x00000001u
+/* Software Reset for DAT and CMD Line */
+#define SRS11_RESET_DATA_CMD_LINE_MASK      0x06000000u
+/* Software Reset for DAT and CMD line value clear */
+#define SRS11_RESET_DATA_CMD_LINE_CLEAR     0x0u
 
 /*-----------------------------------------------------------------------------
     @name Interrupt status register (SRS12) - masks
@@ -663,18 +667,33 @@ static inline uint32_t SRS17_GET_RETUNING_TIMER_COUNT(const uint32_t val)
  ------------------------------------------------------------------------------
 */
 /* PHY register addresses using */
-#define UIS_ADDR_HIGH_SPEED                 0x00u
-#define UIS_ADDR_DEFAULT_SPEED              0x01u
-#define UIS_ADDR_UHSI_SDR12                 0x02u
-#define UIS_ADDR_UHSI_SDR25                 0x03u
-#define UIS_ADDR_UHSI_SDR50                 0x04u
-#define UIS_ADDR_UHSI_DDR50                 0x05u
-#define UIS_ADDR_MMC_LEGACY                 0x06u
-#define UIS_ADDR_MMC_SDR                    0x07u
-#define UIS_ADDR_MMC_DDR                    0x08u
-#define UIS_ADDR_SDCLK                      0x0Bu
-#define UIS_ADDR_HS_SDCLK                   0x0Cu
-#define UIS_ADDR_DAT_STROBE                 0x0Du
+#define UIS_ADDR_HIGH_SPEED                 0x00u /* PHY reg address : 0x00 */
+#define UIS_ADDR_DEFAULT_SPEED              0x01u /* PHY reg address : 0x04 */
+#define UIS_ADDR_UHSI_SDR12                 0x02u /* PHY reg address : 0x08 */
+#define UIS_ADDR_UHSI_SDR25                 0x03u /* PHY reg address : 0x0C */
+#define UIS_ADDR_UHSI_SDR50                 0x04u /* PHY reg address : 0x10 */
+#define UIS_ADDR_UHSI_DDR50                 0x05u /* PHY reg address : 0x14 */
+#define UIS_ADDR_MMC_LEGACY                 0x06u /* PHY reg address : 0x18 */
+#define UIS_ADDR_MMC_SDR                    0x07u /* PHY reg address : 0x1C */
+#define UIS_ADDR_MMC_DDR                    0x08u /* PHY reg address : 0x20 */
+#define UIS_ADDR_DLL_LOC_VAL                0x09u /* PHY reg address : 0x24 */
+
+/* PDIHS (PHY_DELAY_INPUT_HIGH_SPEED) */
+#define UIS_ADDR_PDIHS                      0x0Au /* PHY reg address : 0x00 */
+#define UIS_ADDR_SDCLK                      0x0Bu /* PHY reg address : 0x28 */
+#define UIS_ADDR_HS_SDCLK                   0x0Cu /* PHY reg address : 0x2C */
+#define UIS_ADDR_DAT_STROBE                 0x0Du /* PHY reg address : 0x30 */
+
+#define UIS_ADDR_IFM_MODE                   0x0Eu /* PHY reg address : 0x34 */
+#define UIS_ADDR_DLL_RST                    0x0Fu /* PHY reg address : 0x38 */
+#define UIS_ADDR_DLL_MST_CTRL_PHASE_DET_SEL 0x10u /* PHY reg address : 0x3C */
+#define UIS_ADDR_DLL_MST_CTRL_DLL_LOCK      0x11u /* PHY reg address : 0x3C */
+#define UIS_ADDR_DLL_MST_CTRL_DLL_START     0x12u /* PHY reg address : 0x3C */
+
+#define UIS_ADDR_UNUSED_OR_READ_ONLY        0x13u /* PHY reg address : 0x00 */
+#define UIS_ADDR_DLL_OBS_DEC_SDM_CLK        0x14u /* PHY reg address : 0x40 */
+#define UIS_ADDR_DLL_OBS_DEC_SD_CLK         0x15u /* PHY reg address : 0x40 */
+#define UIS_ADDR_DLL_OBS_DEC_DAT_STRB       0x16u /* PHY reg address : 0x40 */
 
 /*---------------------------------------------------------------------------
     @name OCR register bits definitions of SD memory cards
