@@ -71,16 +71,22 @@ These are detailed in the following sections of this document.
 
 The table below contains a list of the projects in this repository and the boards they support:
 
-| Board              | Supported projects                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| icicle-kit         | Supports all examples unless stated otherwise                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| icicle-kit-es      | Supports all examples unless stated otherwise                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| mpfs-discovery-kit | **Applications:** <br> - mpfs-blank-baremetal: [mpfs-blank-baremetal](./applications/mpfs-blank-baremetal) <br><br> **Driver Examples:** <br> - core-pwm: [mpfs-corepwm-slow-blink](./driver-examples/fpga-ip/CorePWM/mpfs-corepwm-slow-blink) <br> - mpfs-hal: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo) <br> - mss-pdma: [mpfs-pdma-read-write](./driver-examples/mss/mss-pdma/mpfs-pdma-read-write) <br> - mss-timer: [mpfs-timer-example](./driver-examples/mss/mss-timer/mpfs-timer-example) <br> - mss-spi: [mpfs-spi-master-slave](./driver-examples/mss/mss-spi/mpfs-spi-master-slave) <br> - mss-watchdog: [mpfs-watchdog-interrupt](./driver-examples/mss/mss-watchdog/mpfs-watchdog-interrupt) <br> - mss-i2c: [mpfs-i2c-master-slave](./driver-examples/mss/mss-i2c/mpfs-i2c-master-slave) <br> - mss-mmc: [mpfs-emmc-sd-write-read](./driver-examples/mss/mss-mmc/mpfs-emmc-sd-write-read)                                                                                                                                                                                                                                                                                                                                                                                           |
-| mpfs-video-kit     | **Applications:** <br> - user-crypto: [mpfs-user-crypto-aes-cryptography](./applications/user-crypto/mpfs-user-crypto-aes-cryptography), [mpfs-user-crypto-ccm-services](./applications/user-crypto/mpfs-user-crypto-ccm-services), [mpfs-user-crypto-dsa-services](./applications/user-crypto/mpfs-user-crypto-dsa-services), <br>[mpfs-user-crypto-ecdsa-services](./applications/user-crypto/mpfs-user-crypto-ecdsa-services), [mpfs-user-crypto-key-agreement-services](./applications/user-crypto/mpfs-user-crypto-key-agreement-services), [mpfs-user-crypto-key-tree-services](./applications/user-crypto/mpfs-user-crypto-key-tree-services), <br>[mpfs-user-crypto-message-authentication-services](./applications/user-crypto/mpfs-user-crypto-message-authentication-services), [mpfs-user-crypto-ndrbg-services](./applications/user-crypto/mpfs-user-crypto-ndrbg-services), [mpfs-user-crypto-rsa-cryptography-services](./applications/user-crypto/mpfs-user-crypto-rsa-cryptography-services), <br>[mpfs-user-crypto-rsa-services](./applications/user-crypto/mpfs-user-crypto-rsa-services)<br><br> **Driver Examples:** <br> - mpfs-hal: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo), [mpfs-hal-power-saving-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-power-saving-demo)<br> |
+| Development Board              | Supported examples                                                                   |
+| ------------------ | ----------------------------------------------------------------------------- |
+| Icicle Kit          | Supports all examples unless stated otherwise                                 |
+| Icicle Kit ES      | Supports all examples. Only the IAP/Autoupdat service from mpfs-sys-serv-example is not supported on the Icicle kits with engineering sample (ES) devices|
+| PFSoC Discovery Kit | **Applications:** <br> - mpfs-blank-baremetal: [mpfs-blank-baremetal](./applications/mpfs-blank-baremetal) <br><br> **Driver Examples:** <br> - core-pwm: [mpfs-corepwm-slow-blink](./driver-examples/fpga-ip/CorePWM/mpfs-corepwm-slow-blink) <br> - mpfs-hal: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo) <br> - mss-pdma: [mpfs-pdma-read-write](./driver-examples/mss/mss-pdma/mpfs-pdma-read-write) <br> - mss-timer: [mpfs-timer-example](./driver-examples/mss/mss-timer/mpfs-timer-example) <br> - mss-spi: [mpfs-spi-master-slave](./driver-examples/mss/mss-spi/mpfs-spi-master-slave) <br> - mss-watchdog: [mpfs-watchdog-interrupt](./driver-examples/mss/mss-watchdog/mpfs-watchdog-interrupt) <br> - mss-i2c: [mpfs-i2c-master-slave](./driver-examples/mss/mss-i2c/mpfs-i2c-master-slave) <br> - mss-mmc: [mpfs-emmc-sd-write-read](./driver-examples/mss/mss-mmc/mpfs-emmc-sd-write-read)                                                                                                                                                                                                                                                                                                                                                                                           |
+| PFSoC Video Kit     | **Applications:** <br> - user-crypto: [mpfs-user-crypto-aes-cryptography](./applications/user-crypto/mpfs-user-crypto-aes-cryptography), [mpfs-user-crypto-ccm-services](./applications/user-crypto/mpfs-user-crypto-ccm-services), [mpfs-user-crypto-dsa-services](./applications/user-crypto/mpfs-user-crypto-dsa-services), <br>[mpfs-user-crypto-ecdsa-services](./applications/user-crypto/mpfs-user-crypto-ecdsa-services), [mpfs-user-crypto-key-agreement-services](./applications/user-crypto/mpfs-user-crypto-key-agreement-services), [mpfs-user-crypto-key-tree-services](./applications/user-crypto/mpfs-user-crypto-key-tree-services), <br>[mpfs-user-crypto-message-authentication-services](./applications/user-crypto/mpfs-user-crypto-message-authentication-services), [mpfs-user-crypto-ndrbg-services](./applications/user-crypto/mpfs-user-crypto-ndrbg-services), [mpfs-user-crypto-rsa-cryptography-services](./applications/user-crypto/mpfs-user-crypto-rsa-cryptography-services), <br>[mpfs-user-crypto-rsa-services](./applications/user-crypto/mpfs-user-crypto-rsa-services)<br><br> **Driver Examples:** <br> - mpfs-hal: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo), [mpfs-hal-power-saving-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-power-saving-demo)<br> |
 
 All of the projects are tested on the PolarFire SoC Icicle kit. All the projects are tested with the
 latest available [Icicle kit Reference Libero design](https://github.com/polarfire-soc/icicle-kit-reference-design) or one of it's variants, unless noted otherwise.
 Please refer to the README markdown file in each project for details.
+
+**NOTE:** From v2025.07 onwards, the Icicle kit reference design provides two different assets
+- MPFS_ICICLE_KIT_2025_07.zip - For newer Icicle kits with production version PFSoC FPGA device (MPFS250T)
+- MPFS_ICICLE_KIT_ES_2025_07.zip - For Icicle kits with Engineering Sample (ES) version of FPGA device (MPFS250T_ES)
+
+Except for the die name, the .cfg and .xml files generated by the MSS Configurator are identical for both devices. Additionally, the die name parameter is not used by Bare Metal projects for configuration purposes; therefore, all Bare Metal example projects will continue to use the boards/icicle-kit-es folder for both kit versions. In contrast, the HSS uses two separate folders for the respective kits to manage the Linux boot sequence.
 
 ## 3. Configuring and Building Project
 
@@ -90,22 +96,32 @@ optimization level (e.g. -Os, -O0 etc.). You may use these pre-made configuratio
 own configuration using the SoftConsole project settings. Below is the list of all the main build
 configurations provided by default with each project:
 
-| Configuration           | Description                                                                                                                                 | Example use case                                                                                                                                                                                                                                                                                                                                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  |
-| LIM-Debug               | Download to and debug from LIM memory. Not-optimized (-O0). (Could be used with boot mode 0)                                                | This build configuration can be used to step-debug bare metal software typically in the initial development phase. The device should be configured to boot mode 0 and the embedded software loaded using the debugger.                                                                                                                                                                                |
-| LIM-Release             | Download to and debug from LIM memory. Optimized (-Os). (Could be used with boot mode 2)                                                    | This build configuration is similar to LIM-Debug build configuration but uses higher optimization level (-Os). It initially runs from LIM, configures scratchpad, copies itself to it and executes from there. This build configuration is closer to a typical release code and still allows step-debugging.                                                                                          |
-| DDR-Release             | Execute from cached DDR memory – typically via a bootloader. Optimized (-Os).                                                               | This build configuration is used when this embedded software is going to be run from DDR memory. It is assumed at this point that the embedded software has been tested by either pre-configuring DDR (for example by using the HSS) and loading the embedded software into DDR using the debugger or by running the embedded software from the LIM. This can be used in an SMP or AMP configuration. |
-| eNVM-Scratchpad-Release | Booting from eNVM, program relocates itself to scratchpad memory and continues execution. Optimized (-Os). (Could be used with boot mode 1) | This build configuration is used when the embedded software is programmed to the eNVM and executes straight after the reset. It is assumed that this embedded software has already been tested using the LIM-Debug or LIM-Release configuration.                                                                                                                                                      |
+| Configuration           | Description | Example use    |
+| ----------------------- | ------------| -------------  |
+| LIM-Debug*               | Download to and debug from LIM memory. Not-optimized (-O0). (Could be used with boot mode 0) | This build configuration can be used to step-debug bare metal software typically in the initial development phase. The device should be configured to boot mode 0 and the embedded software loaded using the debugger. |
+| LIM-Release*             | Download to and debug from LIM memory. Optimized (-Os). (Could be used with boot mode 2) | This build configuration is similar to LIM-Debug build configuration but uses higher optimization level (-Os). It initially runs from LIM, configures scratchpad, copies itself to it and executes from there. This build configuration is closer to a typical release code and still allows step-debugging.  |
+| DDR-Release*             | Execute from cached DDR memory – typically via a bootloader. Optimized (-Os). | This build configuration is used when this embedded software is going to be run from DDR memory. It is assumed at this point that the embedded software has been tested by either pre-configuring DDR (for example by using the HSS) and loading the embedded software into DDR using the debugger or by running the embedded software from the LIM. This can be used in an SMP or AMP configuration. |
+| eNVM-Scratchpad-Release* | Booting from eNVM, program relocates itself to scratchpad memory and continues execution. Optimized (-Os). (Could be used with boot mode 1) | This build configuration is used when the embedded software is programmed to the eNVM and executes straight after the reset. It is assumed that this embedded software has already been tested using the LIM-Debug or LIM-Release configuration.                                                                                                                                                      |
+
+Note that the build configuration names used in the above table are representative. In practice they will be typically extended with the hardware kit name for which are they are implemented.
+
+For example:
+
+    - DDR-Release-DiscoveryKit
+    - DDR-Release-IcicleKit
+    - LIM-Debug-DiscoveryKit
+    - LIM-Debug-IcicleKit
 
 ### 3.1. Debug Build Configurations
 
-The build configurations post-fixed with \*-Debug are intended for the debugging stages of your
+The build configurations postfixed with \*-Debug are intended for the debugging stages of your
+The build configurations postfixed with \*-Debug are intended for the debugging stages of your
 project. By convention, the \*-Debug configurations use optimization level -O0 and generate maximum
 debug symbol information for the user.
 
 ### 3.2. Release Build Configurations
 
-The build configurations post-fixed with \*-Release are intended for the final release versions of
+The build configurations postfixed with \*-Release are intended for the final release versions of
 your projects, where an executable is stored in non-volatile memory and runs after power-on-reset,
 or the executable is launched by a previous stage bootloader. By convention, the \*-Release
 configurations use optimization level -Os and do not generate debug symbol information. They also
@@ -200,7 +216,7 @@ When you want to update your SoftConsole example project to the latest release o
 repository, please download the [platform repository](https://mi-v-ecosystem.github.io/redirects/repo-platform) and replace the */src/**platform (Fig. 2(f))*** directory in the
 example project with it. When you update the */src/**platform (Fig. 2(f))*** folder in your project, you must make
 sure that the reference design and the .xml file are compatible with it. Also ensure that any
-customized mss_sw_config.h or linker scripts under *\<project-root>/src/boards/\<icicle-kit-es>
+customized mss_sw_config.h or linker scripts under *\<project-root>/src/boards/\<icicle-kit>
 /**platform_config (Fig. 2(e))*** folder are also updated accordingly.
 
 ### 3.6. Hardware Configurations
@@ -305,7 +321,7 @@ is used. For example, when an application stored in eNVM starts running after re
 
 Set IMAGE_LOADED_BY_BOOTLOADER = 1 when the application's executable image is loaded by a previous
 stage bootloader. The DDR-Release is one such configuration which uses this setting. The
-modified mss_sw_config.h can be found under the *\<project-root>/src/boards/\<icicle-kit-es>
+modified mss_sw_config.h can be found under the *\<project-root>/src/boards/\<icicle-kit>
 /**platform_config folder (Fig. 1(e))***.
 
 ![confgi2.png](./images/confgi2.png)
@@ -358,11 +374,11 @@ The following table shows the correspondence between program launchers and build
 
 #### 4.1.1. Configuring External Tools for Particular Boards (only for eNVM Release)
 
-The board you are using, as well as it's associated die and package, matters when using the External
+The board you are using, as well as the die and package of the FPGA device on it matters when using the External
 Tools to program your device. These must be correctly specified as arguments in the External Tools
 Configurations window in SoftConsole.
 
-Depending on the die and package you are using, you will need to set the External Tools Arguments 
+Depending on the die and package of the FPGA device on your board, you will need to set the External Tools Arguments
 according to the following table.
 
 |             | Icicle Kit ES (Engineering Sample) | Icicle Kit (Production Silicon) | Video Kit | Discovery Kit |
@@ -376,7 +392,11 @@ device.
 
 ![external-tools-config.png](./images/external-tools-config.png)
 
-### 4.2. Programming to DDR
+Alternatively, the `/applications/mpfs-blank-baremetal` project provides the external tool launchers for the various Microchip PFSoC kits. Importing the `/applications/mpfs-blank-baremetal` project in your SoftConsole workspace and keeping it open will make these tool launchers available in the SoftConsole IDE as demonstrated below
+
+![Importing mpfs-blank-baremetal to access the external launcher tools](./images/external-tools.gif)
+
+## 4.2. Programming to DDR
 
 To program the PolarFire SoC Bare Metal Examples to the DDR of your desired board. You will first
 have to execute a DDR-Release build for your project. You will then have to use the .elf file(s)

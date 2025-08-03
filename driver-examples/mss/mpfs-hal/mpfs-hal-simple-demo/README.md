@@ -48,7 +48,7 @@ MPFS_HAL_LAST_HART
 ~~~
 located in the software board configuration file
 ~~~
-<src/boards/icicle-kit-es/platform_config/mpfs_hal_config/mss_sw_config.h>
+<src/boards/icicle-kit/platform_config/mpfs_hal_config/mss_sw_config.h>
 ~~~
 
 ## Description of Application code in this example :

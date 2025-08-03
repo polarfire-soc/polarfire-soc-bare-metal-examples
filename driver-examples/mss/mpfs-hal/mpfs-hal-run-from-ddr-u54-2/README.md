@@ -2,14 +2,14 @@
 # Bare metal single hart(U54_2) payload example
 
 This example project creates an executable which can be loaded by a boot-loader.
-The program runs in m-mode. 
+The program runs in m-mode.
 
 The program runs on U54_2 only and prints messages on UART2.
 
 See the file mss_sw_config.h for configuration details located in the following directory.
 
 ~~~
-src\boards\icicle-kit-es\platform_config\mpfs_hal_config
+src\boards\icicle-kit\platform_config\mpfs_hal_config
 ~~~
 
 The program can be loaded and [run using the Hart Software Systems (HSS)](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/driver-examples/mss/mpfs-hal/README.md).

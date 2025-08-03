@@ -64,7 +64,7 @@ and **MPFS_ICICLE_MSS_baremetal.xml** from this new design are available.
 ### Add new board under the boards directory
 
 Create a new directory /\<my_board> under the src/boards directory. Use one of
-the existing board directories (e.g icicle-kit-es) as a template, copying and renaming as appropriate.
+the existing board directories (e.g icicle-kit) as a template, copying and renaming as appropriate.
   * src/boards/**\<my-board>**
 
 The following table describes the folder heirarchy and the files that should be
