@@ -5,3 +5,4 @@
 /eNVM-Scratchpad-Release*/
 /eNVM-Release*/
 /.settings*/
+/src/boards/*/fpga_design_config/**

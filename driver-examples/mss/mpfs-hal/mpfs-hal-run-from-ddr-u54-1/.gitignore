@@ -4,3 +4,4 @@
 /DDR-Release*/
 /eNVM-Scratchpad-Release*/
 /.settings*/
+/src/boards/*/fpga_design_config/**
