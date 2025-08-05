@@ -20,7 +20,7 @@ mss_uart_instance_t *p_uartmap_u54_2 = &g_mss_uart0_lo;
 mss_uart_instance_t *p_uartmap_u54_3 = &g_mss_uart3_lo;
 mss_uart_instance_t *p_uartmap_u54_4 = &g_mss_uart2_lo;
 
-#elif defined(ICICLE_KIT_ES)
+#elif defined(ICICLE_KIT)
 
 mss_uart_instance_t *p_uartmap_e51   = &g_mss_uart0_lo;
 mss_uart_instance_t *p_uartmap_u54_1 = &g_mss_uart1_lo;
