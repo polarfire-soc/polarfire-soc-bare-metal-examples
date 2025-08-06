@@ -39,3 +39,7 @@
 /beagle-v-fire-LIM-Debug/
 /beagle-v-fire-eNVM-Scratchpad-Release/
 /src/boards/*/fpga_design_config/**
+/DiscoveryKit-eNVM-Scratchpad-Release/
+/DiscoveryKit-LIM-Debug/
+/mpfs-video-Kit-eNVM-Scratchpad-Release/
+/mpfs-video-Kit-LIM-Debug/

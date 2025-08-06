@@ -5,3 +5,4 @@
 /Icicle-kit-payload-u54-3/
 /Icicle-kit-payload-u54-4/
 /Icicle-kit-run-from-scratchpad-envm/
+/src/boards/*/fpga_design_config/**
