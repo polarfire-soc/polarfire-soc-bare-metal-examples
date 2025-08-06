@@ -32,3 +32,8 @@ If the firmware has DDR training enabled, then the application will take signifi
 
 Training can be controlled by removing `#define DDR_SUPPORT` in your `mss_sw_config.h` file. This change should be made in `src\boards\[BOARD]\platform_config\[BUILD_CONFIGURATION]\mpfs_hal_config\`
 
+The ICICLE Kit Libero design used in this project can be found [here](https://github.com/polarfire-soc/icicle-kit-reference-design).
+
+The Discovery Kit Libero design used in this project can be found [here](https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design)
+
+This project provides build configurations and debug launchers, as explained [here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)

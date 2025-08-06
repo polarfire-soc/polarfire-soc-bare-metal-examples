@@ -40,9 +40,9 @@ not require any modifications.
 
 |  Coremark file                              | Detail                         |
 | :-----------------------------------------: | :----------------------------: |
-|  port/core_portme.c                         | file modified               |
-|  port/core_portme.h                         | file modified               |
-|  port/core_eeprintf.c                       | file modified               |
+|  port/core_portme.c                         | file modified                  |
+|  port/core_portme.h                         | file modified                  |
+|  port/core_eeprintf.c                       | file modified                  |
 
 **Note:** The changes listed below are for reference only, as they have already 
 been made in the example project.
@@ -51,11 +51,11 @@ been made in the example project.
 
  - Modify the following defines:
 
-		#define HAS_FLOAT 1
-		#define HAS_TIME_H 0
-		#define USE_CLOCK 0
-		#define HAS_STDIO 0
-		#define HAS_PRINTF 0
+		#define HAS_FLOAT   1
+		#define HAS_TIME_H  0
+		#define USE_CLOCK   0
+		#define HAS_STDIO   0
+		#define HAS_PRINTF  0
 		#define COMPILER_FLAGS FLAGS_STR
 		#define MEM_LOCATION "STACK"
 
@@ -73,7 +73,7 @@ found in soc_config/clocks/hw_mss_clks.hal-ddr-demo
  - Add the following at the top of the file
 
 		#include "mpfs_hal/mss_hal.h"
-		#include "drivers/mss_mmuart/mss_uart.h"
+		#include "drivers/mss/mss_mmuart/mss_uart.h"
 
 		mss_uart_instance_t *gp_my_uart;
 
@@ -166,7 +166,7 @@ found in soc_config/clocks/hw_mss_clks.hal-ddr-demo
 The project currently supports the Icicle kit platform. The target 
 configurations can be found in:
 
-./src/boards/<icicle_kit_es>/..
+./src/boards/icicle-kit/..
 
 If you need to add support for your own board, create a directory under 
 ./src/boards/<your_own_board>/...
@@ -176,24 +176,24 @@ If you need to add support for your own board, create a directory under
 The configurations are categorized into hardware and software configurations.
 The hardware configurations are located in ./src/boards/<target_board> folder.
 The default software configurations are stored under
-.src/platform/platform_config_reference folder.
+./src/platform/platform_config_reference folder.
 
-The include files in the "./src/boards/<target_board>/soc_config" folder define
-the hardware configurations such as clocks. You must make sure that the
-configurations in this example project match the actual configurations of your
-target Libero design that you are using to test this example project.
+The include files in the "./src/boards/<target_board>/fpga_design_config" folder 
+define the hardware configurations such as clocks. You must make sure that the 
+configurations in this example project match the actual configurations of your 
+target Libero design that you are using to test this example project. 
 
-If you need to change the software configurations, you are advised to create a
-new folder to replicate this folder under the ./src/boards directory and do the
-modifications there. It would look like
+If you need to change the software configurations, you are advised to create a 
+new folder to replicate this folder under the ./src/boards directory and do the 
+modifications there. It would look like 
 ./src/boards/<target_board>/platform_config
 
 The include files in the "platform_config" folder define the software
 configurations such as how many harts are being used in the software, what is
 the tick rate of the internal timer of each hart. These configurations have no
-dependency on the hardware configurations in "soc_config" folder. Note that
-changing these software configurations may require a change in your application
-code.
+dependency on the hardware configurations in "fpga_design_config" folder. 
+Note that changing these software configurations may require a change in your 
+application code. 
 
 ## Project settings
 
@@ -211,7 +211,8 @@ code.
 
 ### Optimization Flags used in the project
 
-Refer to the **Project -> Properties -> C/C++ Build -> Settings ->Tool Settings -> GNU RISCV C Cross Compiler -> Optimization** 
+Refer to the **Project -> Properties -> C/C++ Build -> Settings ->Tool Settings 
+-> GNU RISCV C Cross Compiler -> Optimization** 
 for detailed settings.
 
 | Flags                    |
@@ -342,14 +343,14 @@ This can be done in two ways:
 #### DDR Training and Renode
 When DDR training is enabled in the firmware, the application startup in Renode 
 will take significantly longer. However, training doesn't have any practical 
-impact in this environment since the emulated DDR memory is already reliable.To 
+impact in this environment since the emulated DDR memory is already reliable. To 
 skip DDR training, the user needs to define the RENODE_SIM_DDR_TRAINING macro. 
 For more details about this macro, please click on 
 [RENODE_SIM_DDR_TRAINING](https://github.com/polarfire-soc/platform/blob/3dde332cbd87d3d6e3c23a378b78ce440e8c21c0/mpfs_hal/common/nwc/mss_ddr.c#L574C9-L574C32).
 
 To control DDR training, simply remove the `#define DDR_SUPPORT` line from the 
 mss_sw_config.h file. This file can be found in 
-`src\boards\[BOARD]\platform_config\mpfs_hal_config\`.
+`src\boards\[BOARD]\platform_config\[BUILD_CONFIGURATION]\mpfs_hal_config\`.
 
 If your project uses the default configuration file in 
 `src\platform\platform_config_reference\` to enable DDR training, it's 
@@ -404,14 +405,14 @@ stack memory.
 | :--: | :------------------------------: | :----------: | :---------: | :-------: |
 | R1   | LIM as stack                     | U54_1        |  573        |    0.95   |
 | R2   | LIM as stack                     | U54_2        |  573        |    0.95   |
-| R3   | LIM as stack                     | U54_3        |  573        |    0.95   |  
-| R4   | LIM as stack                     | U54_4        |  573        |    0.95   |  
+| R3   | LIM as stack                     | U54_3        |  573        |    0.95   |
+| R4   | LIM as stack                     | U54_4        |  573        |    0.95   |
 | R5   | DTIM as stack                    | U54_1        |  676        |    1.13   |
 | R6   | DTIM as stack                    | U54_2        |  676        |    1.13   |
 | R7   | DTIM as stack                    | U54_3        |  676        |    1.13   |
 | R8   | DTIM as stack                    | U54_4        |  676        |    1.13   |
-| R9   | scratch as stack                 | U54_1        |  1874       |    3.12   |  
-| R10  | scratch as stack                 | U54_2        |  1874       |    3.12   |   
+| R9   | scratch as stack                 | U54_1        |  1874       |    3.12   |
+| R10  | scratch as stack                 | U54_2        |  1874       |    3.12   |
 | R11  | scratch as stack                 | U54_3        |  1874       |    3.12   |
 | R12  | scratch as stack                 | U54_4        |  1874       |    3.12   |
 | R13  | ITIM as stack                    | U54_4        |  609        |    1.01   |
@@ -527,3 +528,6 @@ Example 5
 	Correct operation validated. See README.md for run and reporting rules.
 	CoreMark 1.0 : 1875.316231 / GCC8.3.0 -Wno-maybe-uninitialized -fno-common -funroll-loops -finline-functions -falign-functions=16 -falign-jumps=4 -falign-loops=4 - / STACKlimit=1000 -fno-if-conversion2 -fselective-scheduling -fno-tree-dominator-opts
 
+The ICICLE Kit Libero design used in this project can be found [here](https://github.com/polarfire-soc/icicle-kit-reference-design).
+
+This project provides build configurations and debug launchers, as explained [here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)

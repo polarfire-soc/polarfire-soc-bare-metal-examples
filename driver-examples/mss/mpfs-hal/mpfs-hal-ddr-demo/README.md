@@ -278,3 +278,8 @@ file under hart-software-services/boards/\<my-board> directory.
     "${workspace_loc:/${ProjName}/src/boards/<my-board>}"
     "${workspace_loc:/${ProjName}/src/boards/<my-board>/platform_config}"
    ```
+The ICICLE Kit Libero design used in this project can be found [here](https://github.com/polarfire-soc/icicle-kit-reference-design).
+
+The Discovery Kit Libero design used in this project can be found [here](https://github.com/polarfire-soc/polarfire-soc-discovery-kit-reference-design)
+
+This project provides build configurations and debug launchers, as explained [here](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/blob/main/README.md)
