@@ -1,8 +1,4 @@
-/Debug*/
-/Release*/
-/core
-/LIM-Debug/
-/LIM-Release/
-/eNVM-Scratchpad-Release/
-/DDR-Release/
-/.settings/
+/.settings*/
+/src/boards/*/fpga_design_config/**
+/*-Debug/
+/*-Release/

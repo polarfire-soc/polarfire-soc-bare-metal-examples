@@ -1,6 +1,6 @@
 # Projects build files
-/*/Debug
-/*/Release
+/*/*-Debug
+/*/*-Release
 
 # Workspace files
 

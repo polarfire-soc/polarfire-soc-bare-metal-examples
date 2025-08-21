@@ -1,8 +1,4 @@
-/Debug/
-/Release*/
-/LIM-Debug/
-/DDR-Release/
-/LIM-Release/
-/eNVM-Scratchpad-Release/
 /.settings*/
-*src/boards/icicle-kit-es/fpga_design_config/**
+/src/boards/*/fpga_design_config/**
+/*-Debug/
+/*-Release/

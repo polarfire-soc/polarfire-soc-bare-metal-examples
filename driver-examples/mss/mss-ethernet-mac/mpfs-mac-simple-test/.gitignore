@@ -1,4 +1,4 @@
-/Debug/
-/Debug - BeagleV-Fire/
-/Debug-BeagleV-Fire/
-/Debug - Icicle Kit/
+/.settings*/
+/src/boards/*/fpga_design_config/**
+/*-Debug/
+/*-Release/

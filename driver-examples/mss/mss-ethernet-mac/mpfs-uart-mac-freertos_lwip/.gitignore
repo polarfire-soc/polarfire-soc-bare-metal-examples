@@ -1,3 +1,4 @@
-/DDR-Release/
-/DDR-Release-BeagleV-Fire/
-/DDR-Release-Icicle-Kit/
+/.settings*/
+/src/boards/*/fpga_design_config/**
+/*-Debug/
+/*-Release/
