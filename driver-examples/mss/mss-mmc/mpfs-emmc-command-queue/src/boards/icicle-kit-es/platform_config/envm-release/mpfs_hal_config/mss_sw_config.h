@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -160,8 +160,8 @@
  * by MSS configurator settings, and items are enabled/disabled by this method.
  * The reason you may want to use below is to save code space.
  */
-//#define SGMII_SUPPORT
-//#define DDR_SUPPORT
+#define SGMII_SUPPORT
+#define DDR_SUPPORT
 #define MSSIO_SUPPORT
 
 /*
