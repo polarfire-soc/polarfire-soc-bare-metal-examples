@@ -2,7 +2,7 @@
 <?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144" moduleId="org.eclipse.cdt.core.settings" name="LIM-Debug-IcicleKitEs">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144" moduleId="org.eclipse.cdt.core.settings" name="Icicle-Kit-LIM-Debug">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -14,7 +14,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Download to and debug from LIM memory. Not optimized(-O0).(Could be used with boot mode 0)" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144" name="LIM-Debug-IcicleKitEs" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/icicle-kit-es. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Optimization level: None (-O0) - Bootmode: idle boot mode 0" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144" name="Icicle-Kit-LIM-Debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/icicle-kit-es. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es">
 					<folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144." name="/" resourcePath="">
 						<toolChain id="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug.498479678" name="RISC-V Cross GCC" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug">
 							<option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash.1915793275" name="Create flash image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -119,7 +119,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975" moduleId="org.eclipse.cdt.core.settings" name="LIM-Release-Icicle-Kit-Es">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975" moduleId="org.eclipse.cdt.core.settings" name="Icicle-Kit-LIM-Scratchpad-Release">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -131,7 +131,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="Download to and debug from LIM memory. Optimized (-Os). (Could be used with boot mode 2)" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975" name="LIM-Release-Icicle-Kit-Es" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" postannouncebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/icicle-kit-es. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="Optimization level: Optimize Size (-Os) - Bootmode: user-secure boot mode 2" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975" name="Icicle-Kit-LIM-Scratchpad-Release" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" postannouncebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/icicle-kit-es. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es">
 					<folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975." name="/" resourcePath="">
 						<toolChain id="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.release.1860825255" name="RISC-V Cross GCC" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.release">
 							<option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash.211392224" name="Create flash image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -239,7 +239,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644" moduleId="org.eclipse.cdt.core.settings" name="DDR-Release-IcicleKitEs">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644" moduleId="org.eclipse.cdt.core.settings" name="Icicle-Kit-DDR-Release">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -251,7 +251,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Execute from cached DDR memory – typically via a bootloader. Optimized (-Os)." id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644" name="DDR-Release-IcicleKitEs" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/icicle-kit-es. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Optimization level: Optimize Size (-Os) - Bootmode: generate payload and flash to device" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644" name="Icicle-Kit-DDR-Release" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/icicle-kit-es. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es">
 					<folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644." name="/" resourcePath="">
 						<toolChain id="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug.1675365092" name="RISC-V Cross GCC" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug">
 							<option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash.102026068" name="Create flash image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -360,7 +360,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753" moduleId="org.eclipse.cdt.core.settings" name="eNVM-Scratchpad-Release-IcicleKitEs">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753" moduleId="org.eclipse.cdt.core.settings" name="Icicle-Kit-eNVM-Scratchpad-Release">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -372,7 +372,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Booting from eNVM, program relocates itself to scratchpad memory and continues execution. Optimized (-Os). (Could be used with boot mode 1)" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753" name="eNVM-Scratchpad-Release-IcicleKitEs" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/icicle-kit-es. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Optimization level: Optimize Size (-Os) - Bootmode: non-secure boot mode 1" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753" name="Icicle-Kit-eNVM-Scratchpad-Release" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/icicle-kit-es. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es">
 					<folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753." name="/" resourcePath="">
 						<toolChain id="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug.1060360555" name="RISC-V Cross GCC" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug">
 							<option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash.869158607" name="Create flash image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -481,7 +481,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.2083236753">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.2083236753" moduleId="org.eclipse.cdt.core.settings" name="LIM-Debug-DiscoveryKit">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.2083236753" moduleId="org.eclipse.cdt.core.settings" name="Discovery-Kit-LIM-Debug">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -493,7 +493,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Download to and debug from LIM memory. Not optimized(-O0).(Could be used with boot mode 0)" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.2083236753" name="LIM-Debug-DiscoveryKit" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/mpfs-discovery-kit. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/mpfs-discovery-kit/fpga_design/design_description/   ../src/boards/mpfs-discovery-kit">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Optimization level: None (-O0) - Bootmode: idle boot mode 0" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.2083236753" name="Discovery-Kit-LIM-Debug" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/mpfs-discovery-kit. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/mpfs-discovery-kit/fpga_design/design_description/   ../src/boards/mpfs-discovery-kit">
 					<folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.2083236753." name="/" resourcePath="">
 						<toolChain id="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug.415534703" name="RISC-V Cross GCC" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug">
 							<option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash.18573729" name="Create flash image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -598,7 +598,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975.1442286837">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975.1442286837" moduleId="org.eclipse.cdt.core.settings" name="LIM-Release-DiscoveryKit">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975.1442286837" moduleId="org.eclipse.cdt.core.settings" name="Discovery-Kit-LIM-Scratchpad-Release">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -610,7 +610,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="Download to and debug from LIM memory. Optimized (-Os). (Could be used with boot mode 2)" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975.1442286837" name="LIM-Release-DiscoveryKit" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" postannouncebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/mpfs-discovery-kit. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/mpfs-discovery-kit/fpga_design/design_description/   ../src/boards/mpfs-discovery-kit">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="${cross_rm} -rf" description="Optimization level: Optimize Size (-Os) - Bootmode: user-secure boot mode 2" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975.1442286837" name="Discovery-Kit-LIM-Scratchpad-Release" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release" postannouncebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/icicle-kit-es/fpga_design/design_description/   ../src/boards/icicle-kit-es" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/mpfs-discovery-kit. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/mpfs-discovery-kit/fpga_design/design_description/   ../src/boards/mpfs-discovery-kit">
 					<folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.release.1142866975.1442286837." name="/" resourcePath="">
 						<toolChain id="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.release.883299667" name="RISC-V Cross GCC" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.release">
 							<option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash.1135777571" name="Create flash image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -719,7 +719,7 @@
 			<storageModule moduleId="ilg.gnumcueclipse.managedbuild.packs"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753.861145049">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753.861145049" moduleId="org.eclipse.cdt.core.settings" name="eNVM-Scratchpad-Release-DiscoveryKit">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753.861145049" moduleId="org.eclipse.cdt.core.settings" name="Discovery-Kit-eNVM-Scratchpad-Release">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -731,7 +731,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Booting from eNVM, program relocates itself to scratchpad memory and continues execution. Optimized (-Os). (Could be used with boot mode 1)" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753.861145049" name="eNVM-Scratchpad-Release-DiscoveryKit" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/mpfs-discovery-kit. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/mpfs-discovery-kit/fpga_design/design_description/   ../src/boards/mpfs-discovery-kit">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Optimization level: Optimize Size (-Os) - Bootmode: non-secure boot mode 1" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753.861145049" name="Discovery-Kit-eNVM-Scratchpad-Release" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/mpfs-discovery-kit. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/mpfs-discovery-kit/fpga_design/design_description/   ../src/boards/mpfs-discovery-kit">
 					<folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.365133753.861145049." name="/" resourcePath="">
 						<toolChain id="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug.2033447990" name="RISC-V Cross GCC" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug">
 							<option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash.257731954" name="Create flash image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -840,7 +840,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644.1253058181">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644.1253058181" moduleId="org.eclipse.cdt.core.settings" name="DDR-Release-DiscoveryKit">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644.1253058181" moduleId="org.eclipse.cdt.core.settings" name="Discovery-Kit-DDR-Release">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -852,7 +852,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Execute from cached DDR memory – typically via a bootloader. Optimized (-Os)." id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644.1253058181" name="DDR-Release-DiscoveryKit" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/mpfs-discovery-kit. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/mpfs-discovery-kit/fpga_design/design_description/   ../src/boards/mpfs-discovery-kit">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="${cross_rm} -rf" description="Optimization level: Optimize Size (-Os) - Bootmode: generate payload and flash to device" id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644.1253058181" name="Discovery-Kit-DDR-Release" parent="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug" preannouncebuildStep="This step generates the configuration header files from the xml file which contains the hardware configurations of your Libero design. For this project the xml configurations are located at  ../src/boards/mpfs-discovery-kit. You will need to have your board specific folder if you are working on another board" prebuildStep="${env_var:MACRO_PYTHON_BINARY_PATH_AND_EXECUTABLE} ../src/platform/soc_config_generator/mpfs_configuration_generator.py ../src/boards/mpfs-discovery-kit/fpga_design/design_description/   ../src/boards/mpfs-discovery-kit">
 					<folderInfo id="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.2024989144.693916644.1253058181." name="/" resourcePath="">
 						<toolChain id="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug.986605178" name="RISC-V Cross GCC" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.toolchain.elf.debug">
 							<option id="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash.583211497" name="Create flash image" superClass="ilg.gnumcueclipse.managedbuild.cross.riscv.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
@@ -966,18 +966,26 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="eNVM-Scratchpad-Release-DiscoveryKit"/>
+		<configuration configurationName="LIM-Debug">
+			<resource resourceType="PROJECT" workspacePath="/mpfs-rtc-time"/>
+		</configuration>
+		<configuration configurationName="LIM-Release-DiscoveryKit"/>
+		<configuration configurationName="DDR-Release-IcicleKitEs"/>
+		<configuration configurationName="eNVM-Scratchpad-Release">
+			<resource resourceType="PROJECT" workspacePath="/mpfs-rtc-time"/>
+		</configuration>
+		<configuration configurationName="eNVM-Scratchpad-Release-IcicleKitEs"/>
 		<configuration configurationName="LIM-Release">
 			<resource resourceType="PROJECT" workspacePath="/mpfs-rtc-time"/>
 		</configuration>
 		<configuration configurationName="DDR-Release">
 			<resource resourceType="PROJECT" workspacePath="/mpfs-rtc-time"/>
 		</configuration>
-		<configuration configurationName="LIM-Debug">
-			<resource resourceType="PROJECT" workspacePath="/mpfs-rtc-time"/>
-		</configuration>
-		<configuration configurationName="eNVM-Scratchpad-Release">
-			<resource resourceType="PROJECT" workspacePath="/mpfs-rtc-time"/>
-		</configuration>
+		<configuration configurationName="LIM-Debug-DiscoveryKit"/>
+		<configuration configurationName="LIM-Release-Icicle-Kit-Es"/>
+		<configuration configurationName="LIM-Debug-IcicleKitEs"/>
+		<configuration configurationName="DDR-Release-DiscoveryKit"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/mpfs-rtc-time"/>
 		</configuration>
