@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -61,11 +61,11 @@
  * your application to the target memory and kicks-off U54_1 to run it.
  */
 #ifndef MPFS_HAL_FIRST_HART
-#define MPFS_HAL_FIRST_HART  1
+#define MPFS_HAL_FIRST_HART  0
 #endif
 
 #ifndef MPFS_HAL_LAST_HART
-#define MPFS_HAL_LAST_HART   1
+#define MPFS_HAL_LAST_HART   4
 #endif
 
 /*
@@ -94,7 +94,7 @@
  *   MPFS_HAL_LAST_HART above
  *
  */
-#define IMAGE_LOADED_BY_BOOTLOADER 1
+#define IMAGE_LOADED_BY_BOOTLOADER 0
 #if (IMAGE_LOADED_BY_BOOTLOADER == 0)
 #define MPFS_HAL_HW_CONFIG
 #endif

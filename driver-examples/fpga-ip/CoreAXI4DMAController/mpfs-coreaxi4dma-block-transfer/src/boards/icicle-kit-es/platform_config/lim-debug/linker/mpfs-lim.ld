@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -8,10 +8,9 @@
  */
 /*******************************************************************************
  * 
- * file name : mpfs_envm.ld
- * Use with Bare metal startup code.
- * Startup code runs from envm on MSS reset
- *
+ * file name : mpfs_lim.ld
+ * Used when debugging code. The debugger loads the code to LIM.
+ * 
  * You can find details on the PolarFireSoC Memory map in the mpfs-memory-hierarchy.md
  * which can be found under the link below:
  * https://github.com/polarfire-soc/polarfire-soc-documentation
@@ -33,32 +32,23 @@ reside. (Note: The first 256B page of envm is used for metadata associated with
 secure boot. When not using secure boot (mode 0,1), this area is still reserved 
 by convention. It allows easier transition from non-secure to secure boot flow
 during the development process.
-When debugging a bare metal program that is run out of reset from envm, a linker 
-script will be used whereby the program will run from LIM instead of envm.
-In this case, the reset vector in the linker script is normally set to the 
-start of LIM, 0x0800_0000.
-This means you are not continually programming the envm each time you load a 
-program and there is no limitation with break points when debugging.
-See the mpfs-lim.ld example linker script when runing from LIM.
 
 ------------------------------------------------------------------------------*/
 
 
 MEMORY
 {
-    /* In this example, our reset vector is set to point to the */
-    /* start at page 1 of the envm */
     envm (rx) : ORIGIN  = 0x20220100, LENGTH = 128k - 0x100
-    dtim (rwx) : ORIGIN  = 0x01000000, LENGTH = 7k       
+    dtim (rwx) : ORIGIN = 0x01000000, LENGTH = 7k
     /* This 1K of DTIM is used to run code when switching the envm clock */
     switch_code_dtim (rx) : ORIGIN = 0x01001c00, LENGTH = 1k 
-    e51_itim (rwx)     : ORIGIN = 0x01800000, LENGTH = 28k
-    u54_1_itim (rwx)   : ORIGIN = 0x01808000, LENGTH = 28k
-    u54_2_itim (rwx)   : ORIGIN = 0x01810000, LENGTH = 28k
-    u54_3_itim (rwx)   : ORIGIN = 0x01818000, LENGTH = 28k
-    u54_4_itim (rwx)   : ORIGIN = 0x01820000, LENGTH = 28k
-    l2lim (rwx)        : ORIGIN = 0x08000000, LENGTH = 256k
-    scratchpad(rwx)    : ORIGIN = 0x0A000000, LENGTH = 256k
+    e51_itim (rwx) : ORIGIN = 0x01800000, LENGTH = 28k
+    u54_1_itim (rwx) : ORIGIN = 0x01808000, LENGTH = 28k
+    u54_2_itim (rwx) : ORIGIN = 0x01810000, LENGTH = 28k
+    u54_3_itim (rwx) : ORIGIN = 0x01818000, LENGTH = 28k
+    u54_4_itim (rwx) : ORIGIN = 0x01820000, LENGTH = 28k
+    l2lim (rwx)      : ORIGIN = 0x08000000, LENGTH = 256k
+    scratchpad(rwx)  : ORIGIN = 0x0A000000, LENGTH = 256k
     /* DDR sections example */
     ddr_cached_32bit (rwx) : ORIGIN  = 0x80000000, LENGTH = 768M
     ddr_non_cached_32bit (rwx) : ORIGIN  = 0xC0000000, LENGTH = 256M
@@ -67,7 +57,7 @@ MEMORY
     ddr_non_cached_38bit (rwx) : ORIGIN  = 0x1400000000, LENGTH = 0k
     ddr_wcb_38bit (rwx) : ORIGIN  = 0x1800000000, LENGTH  = 0k
 }
-                               
+
 HEAP_SIZE           = 8k;   /* needs to be calculated for your application */
 
 /*
@@ -84,11 +74,11 @@ SIZE_OF_COMMON_HART_MEM = 4k;
  * HLS hart 0                                                                    
  * stack hart1                                                                   
  * HLS hart 1                                                                    
- * etc                                                                           
+ * etc
  * Actual Stack size per hart = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE)                                                                 
  * note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h                       
  */
- 
+
 /*
  * Stack size for each hart's application.
  * These are the stack sizes that will be allocated to each hart before starting
@@ -99,6 +89,7 @@ STACK_SIZE_U54_1_APPLICATION = 8k;
 STACK_SIZE_U54_2_APPLICATION = 8k;
 STACK_SIZE_U54_3_APPLICATION = 8k;
 STACK_SIZE_U54_4_APPLICATION = 8k;
+
 
 SECTIONS
 {
@@ -130,13 +121,13 @@ SECTIONS
     PROVIDE(__u54_3_itim_end = ORIGIN(u54_3_itim) + LENGTH(u54_3_itim));
     PROVIDE(__u54_4_itim_start = ORIGIN(u54_4_itim));
     PROVIDE(__u54_4_itim_end = ORIGIN(u54_4_itim) + LENGTH(u54_4_itim));
-    
-    . = __envm_start;
+    /* text: text code section */
+    . = __l2lim_start;
     .text : ALIGN(0x10)
     {
         __text_load = LOADADDR(.text);
         __text_start = .; 
-        *(.text.init)
+         *(.text.init)
         . = ALIGN(0x10);
         *(.text .text.* .gnu.linkonce.t.*)
         *(.plt)
@@ -171,14 +162,14 @@ SECTIONS
         KEEP (*(.fini_array))
         KEEP (*(SORT(.fini_array.*)))
         PROVIDE_HIDDEN (__fini_array_end = .);
-        
+
         *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2)
         *(.srodata*)
-        
+
         . = ALIGN(0x10);
         __text_end = .;
-    } > envm
-
+    } > l2lim
+ 
     .l2_scratchpad : ALIGN(0x10)
     { 
         __l2_scratchpad_load = LOADADDR(.l2_scratchpad);
@@ -188,15 +179,15 @@ SECTIONS
         . = ALIGN(0x10);
         __l2_scratchpad_end = .;
         __l2_scratchpad_vma_end = .;
-    } >scratchpad AT> envm
+    } >scratchpad AT> l2lim
   
     /* 
-     *   The .ram_code section will contain the code that is run from RAM.
-     *   We are using this code to switch the clocks including envm clock.
-     *   This can not be done when running from envm
-     *   This will need to be copied to ram, before any of this code is run.
-     */
-    .ram_code :
+    *   The .ram_code section will contain the code That is run from RAM.
+    *   We are using this code to switch the clocks including eNVM clock.
+    *   This can not be done when running from eNVM
+    *   This will need to be copied to ram, before any of this code is run.
+    */
+    .ram_code : ALIGN(0x10)
     {
         . = ALIGN (4);
         __sc_load = LOADADDR (.ram_code);
@@ -207,24 +198,7 @@ SECTIONS
         *(.ram_coderodata*)
         . = ALIGN (4);
         __sc_end = .;
-    } >switch_code_dtim AT>envm
-    
-    /* 
-    *   The .ddr_code section will contain the code that is run from DDR.
-    *   This is to verify DDR working as expeted
-    */
-    .ddr_code :
-    {
-        . = ALIGN (4);
-        __ddr_load = LOADADDR (.ram_code);
-        __ddr_start = .;
-        *(.ddr_codetext)        /* .ram_codetext sections (code) */
-        *(.ddr_codetext*)       /* .ram_codetext* sections (code)  */
-        *(.ddr_coderodata)      /* read-only data (constants) */
-        *(.ddr_coderodata*)
-        . = ALIGN (4);
-        __ddr_end = .;
-    } >ddr_cached_32bit AT>envm
+    } >switch_code_dtim AT> l2lim
 
     /* short/global data section */
     .sdata : ALIGN(0x10)
@@ -239,8 +213,8 @@ SECTIONS
         *(.sdata .sdata.* .gnu.linkonce.s.*)
         . = ALIGN(0x10);
         __sdata_end = .;
-    } > l2lim AT > envm
-    
+    } > l2lim
+
     /* data section */
     .data : ALIGN(0x10)
     { 
@@ -251,7 +225,7 @@ SECTIONS
         *(.data .data.* .gnu.linkonce.d.*)
         . = ALIGN(0x10);
         __data_end = .;
-    } > l2lim AT > envm
+    } > l2lim
 
     /* sbss section */
     .sbss : ALIGN(0x10)
@@ -276,7 +250,7 @@ SECTIONS
 
     /* End of uninitialized data segment */
     _end = .;
-  
+
     .heap : ALIGN(0x10)
     {
         __heap_start = .;
@@ -285,7 +259,7 @@ SECTIONS
         . = ALIGN(0x10);
         _heap_end = __heap_end;
     } > l2lim
-   
+  
     /* must be on 4k boundary- corresponds to page size */
     .stack : ALIGN(0x1000)
     {
@@ -294,31 +268,31 @@ SECTIONS
         . += STACK_SIZE_E51_APPLICATION;
         PROVIDE(__app_stack_top_h0 = .);
         PROVIDE(__stack_top_h0$ = .);
-    
+
         PROVIDE(__stack_bottom_h1$ = .);
         PROVIDE(__app_stack_bottom_h1$ = .);
         . += STACK_SIZE_U54_1_APPLICATION;
         PROVIDE(__app_stack_top_h1 = .);
         PROVIDE(__stack_top_h1$ = .);
-    
+
         PROVIDE(__stack_bottom_h2$ = .);
         PROVIDE(__app_stack_bottom_h2 = .);
         . += STACK_SIZE_U54_2_APPLICATION;
         PROVIDE(__app_stack_top_h2 = .);
         PROVIDE(__stack_top_h2$ = .);
-    
+
         PROVIDE(__stack_bottom_h3$ = .);
         PROVIDE(__app_stack_bottom_h3 = .);
         . += STACK_SIZE_U54_3_APPLICATION;
         PROVIDE(__app_stack_top_h3 = .);
         PROVIDE(__stack_top_h3$ = .);
-    
+
         PROVIDE(__stack_bottom_h4$ = .);
         PROVIDE(__app_stack_bottom_h4 = .);
         . += STACK_SIZE_U54_4_APPLICATION;
         PROVIDE(__app_stack_top_h4 = .);
         PROVIDE(__stack_top_h4$ = .);
-        
+
     } > l2lim
     
     /* 
