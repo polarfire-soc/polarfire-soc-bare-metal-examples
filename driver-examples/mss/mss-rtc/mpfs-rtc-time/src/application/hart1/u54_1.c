@@ -19,15 +19,6 @@
 #include "inc/uart_mapping.h"
 extern struct mss_uart_instance* p_uartmap_u54_1;
 
-/* Constant used for setting RTC control register. */
-#define BIT_SET 0x00010000U
-
-/* 1MHz clock is RTC clock source. */
-#define RTC_PERIPH_PRESCALER              (1000000u - 1u)
-
-/* Constant used for setting RTC control register. */
-#define BIT_SET 0x00010000U
-
 /* 1MHz clock is RTC clock source. */
 #define RTC_PERIPH_PRESCALER              (1000000u - 1u)
 
@@ -82,9 +73,7 @@ void u54_1(void)
 
     MSS_UART_polled_tx_string(p_uartmap_u54_1, g_greeting_msg);
 
-    SYSREG->RTC_CLOCK_CR &= ~BIT_SET;
-    SYSREG->RTC_CLOCK_CR = LIBERO_SETTING_MSS_EXT_SGMII_REF_CLK / LIBERO_SETTING_MSS_RTC_TOGGLE_CLK;
-    SYSREG->RTC_CLOCK_CR |= BIT_SET;
+    set_RTC_divisor();
 
     /* Initialize RTC. */
     MSS_RTC_init(MSS_RTC_LO_BASE, MSS_RTC_CALENDAR_MODE, RTC_PERIPH_PRESCALER );
