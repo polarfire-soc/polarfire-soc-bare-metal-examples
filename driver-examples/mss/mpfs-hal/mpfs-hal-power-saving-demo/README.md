@@ -126,6 +126,8 @@ for each board.
 1. The following menu should appear if the DDR has trained successfully
 
   ```
+  CURRENT LOCATION: main-menu
+
   This program is run from E51
 
   MPFS HAL Power Saving Options:
@@ -136,27 +138,28 @@ for each board.
   5  Display state machine menu
   6  Toggle periodic low power mode
   c  Display PAC1934 current monitor values
-
-  Type 0 to show the menu again
   ```
 
 2. When the bootup menu is displayed:
 
   ```
+  CURRENT LOCATION: main-menu/bootup-menu
+
   Select a bootup option:
 
   MPFS HAL Power Saving Options:
   1  How to toggle ON/OFF Parked Hart RAM at bootup
   2  How to toggle ON/OFF RAM of Unused Peripherals at bootup
+  3  Display enabled and disabled bootup peripherals
   c  Display PAC1934 current monitor values
   m  Go back to main menu
-
-  Type 0 to show the menu again
   ```
 
 3. When the DDR menu is displayed:
 
   ```
+  CURRENT LOCATION: main-menu/ddr-menu
+
   Select a DDR option:
 
   Make sure that u54_1 hart is turned on before selecting an option:
@@ -171,13 +174,13 @@ for each board.
   c  Display PAC1934 current monitor values
   m  Go back to main menu
   WARNING: DDR is not accessible when in self-refresh mode, or PLL is disabled
-
-  Type 0 to show the menu again
   ```
 
 4. When the clock scaling menu is displayed:
 
   ```
+  CURRENT LOCATION: main-menu/clock-scaling-menu
+
   Select a clock scaling option:
 
   Make sure that u54_1 hart is turned on before selecting an option:
@@ -186,13 +189,13 @@ for each board.
   3  Display clock status
   c  Display PAC1934 current monitor values
   m  Go back to main menu
-
-  Type 0 to show the menu again
   ```
 
 5. When the max power-saving menu is displayed:
 
   ```
+  CURRENT LOCATION: main-menu/max-power-saving-menu
+
   Select a max power-saving option:
 
   Make sure that u54_1 hart is turned on before selecting an option:
@@ -202,21 +205,20 @@ for each board.
   4  Display clock status
   c  Display PAC1934 current monitor values
   m  Go back to main menu
-
-  Type 0 to show the menu again
   ```
 
 6. When the state machine menu is displayed:
 
   ```
-  Select a handshake option:
+  CURRENT LOCATION: main-menu/state-machine-menu
 
-  1  Start app by sending request to u54_1 core
-  2  Get state machine status
+  Select a state machine option:
+
+  1  Send request to u54_1 core - LOW POWER
+  2  Send request to u54_1 core - DEFAULT POWER
+  3  Get state machine status
   c  Display PAC1934 current monitor values
   m  Go back to main menu
-
-  Type 0 to show the menu again
   ```
 
 ## UART configuration
@@ -235,7 +237,7 @@ terminal.
 
 ## References
 
-[PolarFire® FPGA and PolarFire SoC FPGA Memory Controller](https://onlinedocs.microchip.com/pr/GUID-FF8061A7-7A15-470F-A6F5-E733C24D85F0-en-US-1/index.html)  
+[PolarFire® FPGA and PolarFire SoC FPGA Memory Controller](https://onlinedocs.microchip.com/pr/GUID-FF8061A7-7A15-470F-A6F5-E733C24D85F0-en-US-1/index.html)
 [PolarFire® SoC MSS Technical Reference Manual](https://onlinedocs.microchip.com/pr/GUID-0E320577-28E6-4365-9BB8-9E1416A0A6E4-en-US-3/index.html)
 [SoftConsole Releases](https://www.microchip.com/en-us/products/fpgas-and-plds/fpga-and-soc-design-tools/soc-fpga/softconsole#Download%20Software)
 
