@@ -196,6 +196,12 @@
 #define DDR_SUPPORT
 #define MSSIO_SUPPORT
 
+/* Route I2C1 through fabric and put PAD26/PAD27 in fabric mode for PAC1934. */
+#define LIBERO_SETTING_IOMUX0_CR        0x00000FDDUL
+#define LIBERO_SETTING_ALT_IOMUX0_CR    0x00000FDDUL
+#define LIBERO_SETTING_IOMUX4_CR        0x88CC4444UL
+#define LIBERO_SETTING_ALT_IOMUX4_CR    0x88CC4444UL
+
 /*
  * Uncomment MICROCHIP_STDIO_THRU_MMUARTx to enable stdio port
  * Note: you must have mss_mmuart driver source code included in the project.
@@ -290,4 +296,3 @@ output. 1 implies it has been configured, 0 it has not been configured. */
 
 /* Comment the above define and uncomment this define to enable all peripherals */
 // #define LIBERO_SETTING_CONFIGURED_PERIPHERALS   0x0009FFFFUL
-
