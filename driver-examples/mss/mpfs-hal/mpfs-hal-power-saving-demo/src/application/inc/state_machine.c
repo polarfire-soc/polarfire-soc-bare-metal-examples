@@ -15,14 +15,6 @@
 #include "state_machine.h"
 #include "menu_selector.h"
 
-/*
- * External data
- */
-extern uint32_t user_sm_request_h0;
-extern uint32_t user_sm_request_h1;
-extern uint32_t state_machine_status_request_h0;
-extern uint32_t state_machine_status_request_h1;
-extern uint32_t low_power_flag;
 
 /*
  * Local function declarations
@@ -46,7 +38,7 @@ uint32_t state_machine_h0(void)
     static FS_DATA_0 fs_h0 = {.sm = FS_SM_0_INIT};
     static uint32_t previous_user_request = 0U;
     char info_string[200];
-    
+
     switch (fs_h0.sm)
     {
         default:

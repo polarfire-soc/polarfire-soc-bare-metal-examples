@@ -5,6 +5,12 @@
 #include "menu_selector.h"
 #include "drivers/off-chip/pac1934/pac1934.h"
 
+volatile uint32_t monitor_current_flag = 0U;
+uint32_t user_sm_request_h0 = 0U;
+uint32_t low_power_flag = 0U;
+uint32_t state_machine_status_request_h0 = 0U;
+uint32_t state_machine_status_request_h1 = 0U;
+
 /* MENUS */
 const uint8_t menu_power_saving[] =
 "\r\n"
@@ -21,7 +27,7 @@ const uint8_t menu_power_saving[] =
 "6  Toggle periodic low power mode\r\n"
 "c  Display PAC1934 current monitor values\r\n";
 
-const uint8_t display_menu_bootup_options[] = 
+const uint8_t display_menu_bootup_options[] =
 "\r\n"
 "CURRENT LOCATION: main-menu/bootup-menu\r\n"
 "\r\n"
@@ -834,7 +840,7 @@ void periodic_lp_mode(void)
                 ;
             }
             MSS_TIM1_stop(TIMER_LO);
-            
+
             /* high power mode */
             select_ddr_option(RESET_TO_DEFAULT);
             select_clock_scaling_option(DEFAULT_CLOCK_SCALE);

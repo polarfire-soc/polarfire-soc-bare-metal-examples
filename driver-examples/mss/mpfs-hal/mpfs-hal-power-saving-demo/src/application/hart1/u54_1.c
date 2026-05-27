@@ -28,10 +28,6 @@ static void clear_pattern_in_memory_block(void);
 static void place_pattern_in_memory_block(void);
 static void verify_pattern_in_memory_block(void);
 
-extern mss_uart_instance_t *g_uart;
-extern volatile uint32_t ddr_sr_test;
-extern volatile uint32_t monitor_current_flag;
-
 uint8_t rx_size = 0;
 uint8_t g_rx_buff[1] = {0};
 
@@ -61,10 +57,11 @@ char info_string[100];
 void u54_1(void)
 {
     HLS_DATA* hls = (HLS_DATA*)(uintptr_t)get_tp_reg();
-    uint32_t error;
+    uint32_t error = 0U;
     volatile PATTERN_TEST_PARAMS pattern_test;
-
     volatile uint32_t icount = 0U;
+    ddr_sr_test = 0U;
+    monitor_current_flag = 0U;
 
     pattern_test.base = DDR_NON_CACHED_BASE;
     pattern_test.size = DDR_NON_CACHED_SIZE;
@@ -81,7 +78,7 @@ void u54_1(void)
     do
     {
         __asm("wfi");
-    }while(0 == (read_csr(mip) & MIP_MSIP));
+    } while (0U == (read_csr(mip) & MIP_MSIP));
 
     /* The hart is out of WFI, clear the SW interrupt. Hear onwards Application
      * can enable and use any interrupts as required */
@@ -97,18 +94,7 @@ void u54_1(void)
                   MSS_UART_115200_BAUD,
                   MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
-    if (0 == PAC1934_sensor_probe())
-    {
-        ;
-    }
-    else
-    {
-        MSS_UART_polled_tx_string (g_uart, "\r\nPAC1934 sensor probe failed");
-    }
-
-    error = 0U;
-    ddr_sr_test = 0;
-    monitor_current_flag = 0;
+    (void)PAC1934_sensor_probe();
 
     while (1U)
     {
@@ -145,7 +131,7 @@ void u54_1(void)
         {
             mpfs_hal_turn_ddr_selfrefresh_off();
             MSS_UART_polled_tx_string(g_uart,
-            "DDR self-refresh turned off, check status by typing '6'\r\n");        
+            "DDR self-refresh turned off, check status by typing '6'\r\n");
             ddr_sr_test = 0U;
         }
         /* 6  Check ddr self refresh status */
@@ -159,7 +145,7 @@ void u54_1(void)
         {
             mpfs_hal_ddr_logic_power_state(DDR_LOW_POWER,
                                             DDR_TOGGLE_OUTPUTS);
-            MSS_UART_polled_tx_string(g_uart, 
+            MSS_UART_polled_tx_string(g_uart,
             "DDR PLL output status: DISABLED\r\n");
             ddr_sr_test = 0U;
         }
@@ -168,7 +154,7 @@ void u54_1(void)
         {
             mpfs_hal_ddr_logic_power_state(DDR_NORMAL_POWER,
                                             DDR_TOGGLE_OUTPUTS);
-            MSS_UART_polled_tx_string(g_uart, 
+            MSS_UART_polled_tx_string(g_uart,
             "DDR PLL output status: ENABLED\r\n");
             ddr_sr_test = 0U;
         }
@@ -199,7 +185,7 @@ static void check_self_refresh_status(void)
 static void clear_pattern_in_memory_block(void)
 {
     volatile uint32_t *mem_pointer = (uint32_t*)BASE_ADDRESS_CACHED_32_DDR;
-    
+
     while (mem_pointer < (uint32_t*)MAX_ADDRESS)
     {
         *mem_pointer = 0x00000000U;
@@ -213,7 +199,7 @@ static void clear_pattern_in_memory_block(void)
 static void place_pattern_in_memory_block(void)
 {
     volatile uint32_t *mem_pointer = (uint32_t*)BASE_ADDRESS_CACHED_32_DDR;
-    
+
     while (mem_pointer < (uint32_t*)MAX_ADDRESS)
     {
         *mem_pointer = PATTERN_WALKING_ONE;
