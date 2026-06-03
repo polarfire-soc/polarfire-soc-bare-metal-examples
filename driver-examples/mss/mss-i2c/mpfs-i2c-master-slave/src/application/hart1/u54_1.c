@@ -12,6 +12,7 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #include "drivers/mss/mss_i2c/mss_i2c.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
@@ -289,20 +290,44 @@ void u54_1(void)
                     MSS_UART_polled_tx_string(
                             g_uart,
                             (const uint8_t *)"\n\rMR-ST Mode is Selected\n\r");
-                    /* Perform Master Receive - Slave Transmit */
-                    instance = do_read_transaction(
-                            SLAVE_SER_ADDR,
-                            g_master_rx_buf, sizeof(g_master_rx_buf));
+				/* Clear RX buffer before reading */
+					memset(g_master_rx_buf, 0, BUFFER_SIZE);
+
+					/* Read only valid length */
+					if (g_tx_length > 0)
+					{
+
+					    instance = do_read_transaction(
+					            SLAVE_SER_ADDR,
+					            g_master_rx_buf,
+					            g_tx_length);
+					}
+					else
+					{
+					    MSS_UART_polled_tx_string(g_uart,
+					            (const uint8_t *)"Skip MR-ST: No data available\n\r");
+					    instance = MSS_I2C_SUCCESS;
+					}
+
 
                     if (MSS_I2C_SUCCESS == instance)
                     {
-                        MSS_UART_polled_tx_string(
-                                g_uart,
-                                (const uint8_t *)
-                                "Data Read Successful and Data is: ");
-                        MSS_UART_polled_tx(g_uart,
-                                g_master_rx_buf,
-                                sizeof(g_master_rx_buf));
+
+                                if (g_tx_length > 0)
+                                {
+                                    MSS_UART_polled_tx_string(g_uart,
+                                                                   (const uint8_t *)
+                                                                   "Data Read Successful and Data is: ");
+                                    MSS_UART_polled_tx(g_uart,
+                                            g_master_rx_buf,
+                                            g_tx_length);
+                                }
+                                else
+                                {
+                                    MSS_UART_polled_tx_string(g_uart,
+                                            (const uint8_t *)"No data to read (0-byte transfer)\n\r");
+                                }
+					
                         MSS_UART_polled_tx_string(g_uart,
                                 (const uint8_t*)
                                 "\n\r-----------------------------------------"
@@ -554,21 +579,27 @@ mss_i2c_slave_handler_ret_t slave_write_handler
     uint16_t rx_size
 )
 {
-    uint8_t loop_count;
-
-    if (rx_size > BUFFER_SIZE) /* Safety check and limit the data length */
+    if (rx_size > BUFFER_SIZE)
     {
         rx_size = BUFFER_SIZE;
     }
+    uint8_t loop_count;
 
-    /* Copy only the data we have received */
+    /* Clear TX buffer */
+    memset(g_slave_tx_buffer, 0, BUFFER_SIZE);
+
+    /* Copy received data */
     for (loop_count = 0; loop_count < rx_size; loop_count++)
     {
-        g_slave_tx_buffer[loop_count] = g_slave_rx_buffer[loop_count];
+        g_slave_tx_buffer[loop_count] = p_rx_data[loop_count];
     }
+
+    /* ✅ CRITICAL FIX: update TX length dynamically */
+    MSS_I2C_set_slave_tx_buffer(I2C_SLAVE, g_slave_tx_buffer, rx_size);
 
     return MSS_I2C_REENABLE_SLAVE_RX;
 }
+
 
 /*------------------------------------------------------------------------------
  * I2C-0 completion handler
@@ -732,6 +763,9 @@ uint8_t get_data ()
             g_uart,
             (const uint8_t*)
             "\n\rEnter up to 32 characters to write to I2C1: ");
+			
+/* Clear TX buffer before reading RX buffer to avoid unwanted data */
+    memset(g_master_tx_buf, 0, BUFFER_SIZE);
     count = 0;
     while (!complete)
     {
