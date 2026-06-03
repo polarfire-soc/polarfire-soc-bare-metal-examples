@@ -36,8 +36,6 @@ instruction to use different menu options provided by the example project.
 Use menu option 1 to write between 0 and 32 bytes of data from the master I2C
 device to the slave I2C device. Any data received by the slave is written to
 the slave_tx_buffer[] array and overwrites some or all of the default contents 
-- "<<-------Slave Tx data ------->>". 0 byte transfers are allowed with this
-option but not with option 3 below.
 
 Use menu option 2 to read the 32 bytes of data from the Slave I2C 
 slave_tx_buffer[] via I2C and display it on the console.
