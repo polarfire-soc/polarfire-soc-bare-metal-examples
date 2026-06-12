@@ -8,7 +8,7 @@
  * Example project demonstrating the use of MCP7941x Real-time Clock driver
  * Please refer to the README.md file for further info.
  */
-
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/_stdint.h>
@@ -66,6 +66,34 @@ static void print_date_time(mcp7941x_time_t * cur_time);
 static void draw_bar(void);
 
 static void draw_name(void);
+
+
+
+void uart_read_line(char *buf, uint32_t max_len)
+{
+    uint32_t idx = 0;
+    uint8_t ch;
+
+    while (idx < (max_len - 1))
+    {
+        /* Wait until a character is received */
+        while (MSS_UART_get_rx(g_uart, &ch, 1) == 0);
+
+        /* Echo back (optional but useful) */
+        MSS_UART_polled_tx(g_uart, &ch, 1);
+
+        /* Stop on Enter key */
+        if ((ch == '\r') || (ch == '\n'))
+        {
+            break;
+        }
+
+        buf[idx++] = ch;
+    }
+
+    buf[idx] = '\0';  // null terminate
+}
+
 
 void u54_1 (void)
 {
@@ -139,24 +167,61 @@ void u54_1 (void)
                 break;
 
             case '2' :
+                /* Capture user-requested date and time for Option 2 */
+                  draw_bar();
 
-                set_time.seconds = 00u;
-                set_time.minutes = 9u;
-                set_time.hours = 18u;
-                set_time.weekday = 4u;
-                set_time.monthday = 29u ;
-                set_time.year = 21u ;
-                set_time.month = 4u;
+                  MSS_UART_polled_tx_string(g_uart,
+                          (const uint8_t*)"\r\nEnter GMT Date & Time\r\n");
+                  draw_bar();
+                  char input[10];
 
-                draw_bar();
-                MSS_UART_polled_tx_string(g_uart,
-                        (const uint8_t*)"          UPDATED DATE & TIME\r\n");
-                draw_bar();
-                mcp7941x_set_gmt_time(set_time);
-                print_date_time(&set_time);
-                g_rx_size = 0u;
+                  // SECOND
+                  MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\r\nEnter Seconds (0-59): ");
+                  uart_read_line(input, sizeof(input));
+                  set_time.seconds = atoi(input);
 
-                break ;
+                  // MINUTE
+                  MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\r\nEnter Minutes (0-59): ");
+                  uart_read_line(input, sizeof(input));
+                  set_time.minutes = atoi(input);
+
+                  // HOUR
+                  MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\r\nEnter Hour (0-23): ");
+                  uart_read_line(input, sizeof(input));
+                  set_time.hours = atoi(input);
+
+                  // WEEKDAY
+                  MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\r\nEnter Weekday (1-7): ");
+                  uart_read_line(input, sizeof(input));
+                  set_time.weekday = atoi(input);
+
+                  // DATE
+                  MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\r\nEnter Day (1-31): ");
+                  uart_read_line(input, sizeof(input));
+                  set_time.monthday = atoi(input);
+
+                  // MONTH
+                  MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\r\nEnter Month (1-12): ");
+                  uart_read_line(input, sizeof(input));
+                  set_time.month = atoi(input);
+
+                  // YEAR
+                  MSS_UART_polled_tx_string(g_uart, (const uint8_t*)"\r\nEnter Year (0-99): ");
+                  uart_read_line(input, sizeof(input));
+                  set_time.year = atoi(input);
+
+                  // Set RTC
+                  mcp7941x_set_gmt_time(set_time);
+
+                  draw_bar();
+                  MSS_UART_polled_tx_string(g_uart,
+                          (const uint8_t*)"\nUPDATED DATE & TIME\r\n");
+                  draw_bar();
+
+                  // Display back
+                  print_date_time(&set_time);
+                  g_rx_size = 0u;
+                  break;
 
             case '3' :
 
