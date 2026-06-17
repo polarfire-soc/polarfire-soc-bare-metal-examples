@@ -21,7 +21,7 @@
 #include "inc/common.h"
 #include "inc/menu_selector.h"
 #include "inc/state_machine.h"
-#include "drivers/off-chip/pac1934/pac1934.h"
+#include "drivers/off_chip/pac1934/pac1934.h"
 
 static void check_self_refresh_status(void);
 static void clear_pattern_in_memory_block(void);

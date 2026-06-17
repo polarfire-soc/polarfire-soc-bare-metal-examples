@@ -17,7 +17,7 @@
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
 #include "mpfs_hal/mpfs_hal_version.h"
-#include "drivers/off-chip/pac1934/pac1934.h"
+#include "drivers/off_chip/pac1934/pac1934.h"
 
 #include "inc/common.h"
 #include "inc/menu_selector.h"
