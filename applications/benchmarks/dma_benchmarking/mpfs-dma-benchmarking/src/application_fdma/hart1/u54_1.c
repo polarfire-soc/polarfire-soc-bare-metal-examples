@@ -32,8 +32,8 @@ static const char fdma_menu_greeting[] = "\r\n\r\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 static const char invalid_selection_message[] = "\r\n\r\nInvalid option!\r\nPlease select one "
                                                 "of the following:\r\n\r\n";
 
-static const char fdma_options[] = "\r\n\t1: Cached DDR to Non-Cached DDR\r\n"
-                                   "\t2: Cached DDR to Cached DDR\r\n"
+static const char fdma_options[] = "\r\n\t1: Cached DDR to Cached DDR\r\n"
+                                   "\t2: Cached DDR to Non-Cached DDR\r\n"
                                    "\r\n"
                                    "\t3: Non-Cached DDR to Non-Cached DDR\r\n"
                                    "\t4: Non-Cached DDR to Cached DDR\r\n"
