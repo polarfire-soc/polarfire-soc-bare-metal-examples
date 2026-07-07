@@ -55,8 +55,8 @@ static const char fdma_menu_greeting[] =
 static const char invalid_selection_message[] = "\r\n\r\nInvalid option!\r\nPlease select one "
                                                 "of the following:\r\n\r\n";
 
-static const char fdma_options[] = "\r\n\t1: Cached DDR to Non-Cached DDR\r\n"
-                                   "\t2: Cached DDR to Cached DDR\r\n"
+static const char fdma_options[] = "\r\n\t1: Cached DDR to Cached DDR\r\n"
+                                   "\t2: Cached DDR to Non-Cached DDR\r\n"
                                    "\r\n"
                                    "\t3: Non-Cached DDR to Non-Cached DDR\r\n"
                                    "\t4: Non-Cached DDR to Cached DDR\r\n"
@@ -71,7 +71,7 @@ static const char divider[] = "=================================================
 
 static const char table_header[] = " Data             PDMA             FDMA             PDMA       "
                                    "      FDMA             PDMA             FDMA\r\n"
-                                   " Size             Source           Destination      Source     "
+                                   " Size             Source           Source           Destination"
                                    "      Destination      Time             Time\r\n"
                                    " (Bytes)          Address          Address          Address    "
                                    "      Address          (micro-sec)      (micro-sec)\r\n";
@@ -485,7 +485,33 @@ u54_1(void)
                             "\r\nSelected FDMA Benchmark: %i\r\n\r\n",
                             (fdma_choice - '0'));
                     MSS_UART_polled_tx_string(uart1, selection_message);
-                    fdma_benchmarking_index = fdma_choice - '1';
+
+                    /* Map FDMA menu option to correct benchmark list index.
+                     * The fdma_benchmark_list has 4 entries per FDMA config:
+                     * Option 1 (Cached DDR to Cached DDR)        -> index 0
+                     * Option 2 (Cached DDR to Non-Cached DDR)    -> index 4
+                     * Option 3 (Non-Cached DDR to Non-Cached DDR)-> index 12
+                     * Option 4 (Non-Cached DDR to Cached DDR)    -> index 8
+                     * Option 5 (FPGA Fabric to Non-Cached DDR)   -> index 16
+                     * Option 6 (FPGA Fabric to Cached DDR)       -> index 20
+                     */
+                    switch (fdma_choice)
+                    {
+                        case '1': fdma_benchmarking_index = FDMA_IDX_CACHED_TO_CACHED;
+                                  break;
+                        case '2': fdma_benchmarking_index = FDMA_IDX_CACHED_TO_NON_CACHED;
+                                  break;
+                        case '3': fdma_benchmarking_index = FDMA_IDX_NON_CACHED_TO_NON_CACHED;
+                                  break;
+                        case '4': fdma_benchmarking_index = FDMA_IDX_NON_CACHED_TO_CACHED;
+                                  break;
+                        case '5': fdma_benchmarking_index = FDMA_IDX_FABRIC_TO_NON_CACHED;
+                                  break;
+                        case '6': fdma_benchmarking_index = FDMA_IDX_FABRIC_TO_CACHED;
+                                  break;
+                        default:  fdma_benchmarking_index = FDMA_IDX_CACHED_TO_CACHED;
+                                  break;
+                    }
                     pdma_benchmarking_index = pdma_choice - '1';
 
                     total_benchmarks = 1u;
@@ -767,7 +793,7 @@ u54_1(void)
                             break;
 
                         case PDMA_NON_CACHED_DDR0:
-                            print_table_cell(memory_descriptors[0]);
+                            print_table_cell(memory_descriptors[1]);
                             break;
 
                         case PDMA_NON_CACHED_DDR1:
