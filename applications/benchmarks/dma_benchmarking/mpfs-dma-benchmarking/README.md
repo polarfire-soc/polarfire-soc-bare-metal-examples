@@ -42,7 +42,7 @@ This document :
 The associated [DMA benchmarking results][1] document contains a full set of
 results, in addition to a discussion of the performance of each DMA controller.
 
-[1]: https://mi-v-ecosystem.github.io/redirects/polarfire-soc/benchmarks/Readme
+[1]: https://github.com/polarfire-soc/polarfire-soc-documentation/blob/master/benchmarks/dma-benchmarking/README.md
 
 ## Requirements
 
@@ -61,8 +61,8 @@ results, in addition to a discussion of the performance of each DMA controller.
 [2]: https://www.microchip.com/en-us/development-tool/MPFS-ICICLE-KIT-ES
 [3]: https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design
 [4]: https://www.microchip.com/en-us/products/fpgas-and-plds/fpga-and-soc-design-tools/soc-fpga/softconsole
-[5]: https://ttssh2.osdn.jp/index.html.en
-[6]: https://mi-v-ecosystem.github.io/redirects/demo-mpfs-dma-benchmarking
+[5]: https://github.com/TeraTermProject/teraterm/releases
+[6]: https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/tree/main/applications/benchmarks/dma_benchmarking/mpfs-dma-benchmarking
 [7]: https://mi-v-ecosystem.github.io/redirects/polarfire-soc-bare-metal-examples-driver-examples-mss-mpfs-hal-ddr-demo-readme
 
 ### Tested on
@@ -264,3 +264,4 @@ on how to configure the MPFS HAL DDR Demo project.
 
 9. Complete the prerequisite: [connecting to Icicle Kit via UART](#connecting-to-the-icicle-kit-via-uart),
    observe UART1 and press `SPACE` when prompted to run the P-DMA benchmarks.
+
