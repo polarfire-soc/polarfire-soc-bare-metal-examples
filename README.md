@@ -58,8 +58,8 @@ polarfire-soc-bare-metal-examples
   Fig. 1. (a) applications (b) driver-examples
 ```
 
-The ***applications (Fig. 1(a))*** folder contains applications that are ready-to-use on your
-PolarFire&reg; device. The ***driver-examples (Fig. 1(b))*** folder contains example projects that
+The `applications` folder (Fig. 1(a)) contains applications that are ready-to-use on your
+PolarFire&reg; device. The `driver-examples` folder (Fig. 1(b)) contains example projects that
 demonstrate the PolarFire SoC Microprocessor Sub-System (MSS) peripheral device drivers. These
 examples serve as an easy starting point for users to start exploring PolarFire SoC.
 
@@ -151,10 +151,11 @@ The table below shows the build configuration and it's default corresponding lin
 
 **Note**:
 If you need to modify the linker script for your project, copy the linker from the
-*/**platform_config_reference (Fig. 2(g))*** folder into the appropriate folder under
-*/**platform_config (Fig. 2(e))*** and make your changes there. Do not modify the linker scripts
-that are found in the */**platform_config_reference (Fig. 2(g))*** folder. See Figure 2 below for
-more infomation on the folder structure for your project.
+`<project-root>/src/platform/platform_config_reference` folder (Fig. 2(g)) into the appropriate
+folder under `<project-root>/src/boards/<target-board>/platform_config` (Fig. 2(e)) and make your
+changes there. Do not modify the linker scripts that are found in the
+`<project-root>/src/platform/platform_config_reference` folder. See Figure 2 below for more
+infomation on the folder structure for your project.
 
 The following image shows where the linker path can be found and modified within the project
 Properties window in SoftConsole:
@@ -213,39 +214,41 @@ Fig. 2. (a) boards (b) <target-board> (c) design_description
 ### 3.5. Updating Example Projects
 
 When you want to update your SoftConsole example project to the latest release of the platform
-repository, please download the [platform repository](https://mi-v-ecosystem.github.io/redirects/repo-platform) and replace the */src/**platform (Fig. 2(f))*** directory in the
-example project with it. When you update the */src/**platform (Fig. 2(f))*** folder in your project, you must make
-sure that the reference design and the .xml file are compatible with it. Also ensure that any
-customized mss_sw_config.h or linker scripts under *\<project-root>/src/boards/\<icicle-kit>
-/**platform_config (Fig. 2(e))*** folder are also updated accordingly.
+repository, please download the
+[platform repository](https://mi-v-ecosystem.github.io/redirects/repo-platform) and replace the
+`<project-root>/src/platform` directory (Fig. 2(f)) in the example project with it. When you update
+the `<project-root>/src/platform` folder, you must make sure that the reference design and the .xml
+file are compatible with it. Also ensure that any customized mss_sw_config.h or linker scripts under
+the `<project-root>/src/boards/<icicle-kit>/platform_config` folder (Fig. 2(e)) are also updated
+accordingly.
 
 ### 3.6. Hardware Configurations
 
 #### 3.6.1. Locating the Hardware Configurations
 
-The hardware configurations are located in the *\<project-root>/src/boards/**\<target-board> (Fig. 2(b))***
-folder. The header files in the *\<project-root>/src/boards/\<target-board>/**fpga_design_config
-(Fig. 2(d))*** folder define the hardware configurations such as clocks, memory, IO etc. These
-files are automatically generated from the .xml file provided in the *\<project-root>/src/boards
-/\<target-board>/fpga_design/**design_description (Fig. 2(c))*** folder on each build. The
-***fpga_design_config (Fig. 2(d))*** folder is not found in the project unless a build has been
+The hardware configurations are located in the `<project-root>/src/boards/<target-board>` folder
+(Fig. 2(b)). The header files in the
+`<project-root>/src/boards/<target-board>/fpga_design_config` folder (Fig. 2(d)) define the hardware
+configurations such as clocks, memory, IO etc. These files are automatically generated from the
+.xml file provided in the
+`<project-root>/src/boards/<target-board>/fpga_design/design_description` folder (Fig. 2(c)) on each
+build. The `fpga_design_config` folder (Fig. 2(d)) is not found in the project unless a build has been
 successfully executed.
 
 Each project contains an .xml matching the configuration in the reference design. You must make sure
 that the configurations in the example project match the actual configurations of the Libero&reg;
 design that you are using to test the example project. The design configuration data (.xml and .cfg),
 generated from the MSS configuration used in your Libero project, must be placed under the
-*\<project-root>/src/boards/\<target-board>/fpga_design/**design_description (Fig. 2(c))*** and
-*\<project-root>/src/boards/\<target-board>/fpga_design/**mss_configuration (Fig. 2(c))***
-folders.
+`<project-root>/src/boards/<target-board>/fpga_design/design_description` and
+`<project-root>/src/boards/<target-board>/fpga_design/mss_configuration` folders (Fig. 2(c)).
 
 
 The following image shows the *Pre-build steps* command which has three arguments:
-1. Path to mpfs_configuration_generator.py, which generates ***fpga_design_config (Fig. 2(d))***
-   folder.
-2. Path to the ***design_description (Fig. 2(c))*** folder, where the .xml file is used as an input.
-3. Path to the ***\<target-board> (Fig. 2(b))*** folder, where ***fpga_design_config (Fig. 2(d))***
-   will be generated as on output.
+1. Path to mpfs_configuration_generator.py, which generates the `fpga_design_config` folder
+   (Fig. 2(d)).
+2. Path to the `design_description` folder (Fig. 2(c)), where the .xml file is used as an input.
+3. Path to the `<target-board>` folder (Fig. 2(b)), where `fpga_design_config` (Fig. 2(d)) will be
+   generated as on output.
 
 ![build-steps.png](./images/build-steps.png)
 
@@ -265,25 +268,26 @@ For an example walkthrough of customizing a bare metal application, watch our pl
 
 ### 3.7. Software Configurations
 
-The files in the *\<project-root>/src/boards/\<target-board>/**platform_config (Fig. 2(e))*** folder
+The files in the `<project-root>/src/boards/<target-board>/platform_config` folder (Fig. 2(e))
 define the software configurations, such as the number of harts being used by the software and the
 tick rate of the internal timer of each hart etc. These configurations have no dependency on the
-hardware configurations in the ***fpga_design_config Fig 2(d)*** folder.
+hardware configurations in the `fpga_design_config` folder (Fig. 2(d)).
 
 Note: Changing these software configurations may require a change in your application code.
 
-The default software configurations are stored under the *\<project-root>/platform
-/**platform_config_reference (Fig. 2(g))*** folder. These configuration files should not be
-modified. The files that should be modified are found in */**platform_config (Fig. 2(e))***. If you
-need to change the default software configurations, you are advised to create a new folder to
-replicate this folder under the *\<project-root>/src/**boards (Fig. 2(a))*** folder and make the
-modifications there. It would look like *\<project-root>/src/boards/\<target-board>
-/**platform_config (Fig. 2(e))***
+The default software configurations are stored under the
+`<project-root>/src/platform/platform_config_reference` folder (Fig. 2(g)). These configuration
+files should not be modified. The files that should be modified are found in
+`<project-root>/src/boards/<target-board>/platform_config` (Fig. 2(e)). If you need to change the
+default software configurations, you are advised to create a new folder to replicate this folder
+under the `<project-root>/src/boards` folder (Fig. 2(a)) and make the modifications there. It would
+look like
+`<project-root>/src/boards/<target-board>/platform_config` (Fig. 2(e)).
 
 
-To choose a particular software configuration, include either the platform_config_reference or the
-project specific *\<project-root>/src/boards/\<custom-board>/**platform_config (Fig. 2(e))***
-path via the SoftConsole project settings.
+To choose a particular software configuration, include either `platform_config_reference` or the
+project-specific `<project-root>/src/boards/<custom-board>/platform_config` path (Fig. 2(e)) via the
+SoftConsole project settings.
 
 ![include-paths.png](./images/include-paths-1.png)
 
@@ -321,8 +325,8 @@ is used. For example, when an application stored in eNVM starts running after re
 
 Set `IMAGE_LOADED_BY_BOOTLOADER = 1` when the application's executable image is loaded by a previous
 stage bootloader. The DDR-Release is one such configuration which uses this setting. The
-modified `mss_sw_config.h` can be found under the *\<project-root>/src/boards/\<icicle-kit>
-/**platform_config folder (Fig. 1(e))***.
+modified `mss_sw_config.h` can be found under the
+`<project-root>/src/boards/<icicle-kit>/platform_config` folder (Fig. 1(e)).
 
 ![confgi2.png](./images/confgi2.png)
 
@@ -392,7 +396,11 @@ device.
 
 ![external-tools-config.png](./images/external-tools-config.png)
 
-Alternatively, the `/applications/mpfs-blank-baremetal` project provides the external tool launchers for the various Microchip PFSoC kits. Importing the `/applications/mpfs-blank-baremetal` project in your SoftConsole workspace and keeping it open will make these tool launchers available in the SoftConsole IDE as demonstrated below
+Alternatively, the
+[`<project-root>/applications/mpfs-blank-baremetal`](./applications/mpfs-blank-baremetal) project
+provides the external tool launchers for the various Microchip PFSoC kits. Importing the
+`<project-root>/applications/mpfs-blank-baremetal` project in your SoftConsole workspace and keeping
+it open will make these tool launchers available in the SoftConsole IDE as demonstrated below.
 
 ![Importing mpfs-blank-baremetal to access the external launcher tools](./images/external-tools.gif)
 
