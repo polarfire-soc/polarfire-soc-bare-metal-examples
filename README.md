@@ -102,25 +102,25 @@ optimization level (e.g. -Os, -O0 etc.). You may use these pre-made configuratio
 own configuration using the SoftConsole project settings. Below is the list of all the main build
 configurations provided by default with each project:
 
-| Configuration           | Description | Example use    |
-| ----------------------- | ------------| -------------  |
-| LIM-Debug*               | Download to and debug from LIM memory. Not-optimized (-O0). (Could be used with boot mode 0) | This build configuration can be used to step-debug bare metal software typically in the initial development phase. The device should be configured to boot mode 0 and the embedded software loaded using the debugger. |
-| LIM-Release*             | Download to and debug from LIM memory. Optimized (-Os). (Could be used with boot mode 2) | This build configuration is similar to LIM-Debug build configuration but uses higher optimization level (-Os). It initially runs from LIM, configures scratchpad, copies itself to it and executes from there. This build configuration is closer to a typical release code and still allows step-debugging.  |
-| DDR-Release*             | Execute from cached DDR memory – typically via a bootloader. Optimized (-Os). | This build configuration is used when this embedded software is going to be run from DDR memory. It is assumed at this point that the embedded software has been tested by either pre-configuring DDR (for example by using the HSS) and loading the embedded software into DDR using the debugger or by running the embedded software from the LIM. This can be used in an SMP or AMP configuration. |
-| eNVM-Scratchpad-Release* | Booting from eNVM, program relocates itself to scratchpad memory and continues execution. Optimized (-Os). (Could be used with boot mode 1) | This build configuration is used when the embedded software is programmed to the eNVM and executes straight after the reset. It is assumed that this embedded software has already been tested using the LIM-Debug or LIM-Release configuration.                                                                                                                                                      |
+| Configuration                 | Description | Example use    |
+| ----------------------------- | ------------| -------------  |
+| `*-LIM-Debug`                 | Download to and debug from LIM memory. Not-optimized (-O0). (Could be used with boot mode 0) | This build configuration can be used to step-debug bare metal software typically in the initial development phase. The device should be configured to boot mode 0 and the embedded software loaded using the debugger. |
+| `*-LIM-Release`               | Download to and debug from LIM memory. Optimized (-Os). (Could be used with boot mode 2) | This build configuration is similar to LIM-Debug build configuration but uses higher optimization level (-Os). It initially runs from LIM, configures scratchpad, copies itself to it and executes from there. This build configuration is closer to a typical release code and still allows step-debugging.  |
+| `*-DDR-Release`               | Execute from cached DDR memory – typically via a bootloader. Optimized (-Os). | This build configuration is used when this embedded software is going to be run from DDR memory. It is assumed at this point that the embedded software has been tested by either pre-configuring DDR (for example by using the HSS) and loading the embedded software into DDR using the debugger or by running the embedded software from the LIM. This can be used in an SMP or AMP configuration. |
+| `*-eNVM-Scratchpad-Release`   | Booting from eNVM, program relocates itself to scratchpad memory and continues execution. Optimized (-Os). (Could be used with boot mode 1) | This build configuration is used when the embedded software is programmed to the eNVM and executes straight after the reset. It is assumed that this embedded software has already been tested using the LIM-Debug or LIM-Release configuration.                                                                                                                                                      |
 
-Note that the build configuration names used in the above table are representative. In practice they will be typically extended with the hardware kit name for which are they are implemented.
+The build configuration names in the table are representative. In practice, they are typically
+prefixed with the name of the hardware kit for which they are implemented.
 
 For example:
 
-    - DDR-Release-DiscoveryKit
-    - DDR-Release-IcicleKit
-    - LIM-Debug-DiscoveryKit
-    - LIM-Debug-IcicleKit
+- `Discovery-Kit-DDR-Release`
+- `Icicle-Kit-DDR-Release`
+- `Discovery-Kit-LIM-Debug`
+- `Icicle-Kit-LIM-Debug`
 
 ### 3.1. Debug Build Configurations
 
-The build configurations postfixed with \*-Debug are intended for the debugging stages of your
 The build configurations postfixed with \*-Debug are intended for the debugging stages of your
 project. By convention, the \*-Debug configurations use optimization level -O0 and generate maximum
 debug symbol information for the user.
@@ -397,9 +397,9 @@ according to the following table.
 | **Package** | FCVG484                            | FCVG484                         | FCG1152   | FCSG325       |
 
 > [!NOTE]
-> The Icicle Kit ES and production boards use the same Icicle Kit build configuration because the
-> bare-metal projects use the same `<project-root>/src/boards/icicle-kit-es` configuration for both
-> devices. However, you must select the external tool launcher with the correct programming
+> The Icicle Kit ES and production boards use the same `Icicle-Kit-*` build configurations. The
+> bare-metal projects also use the same `<project-root>/src/boards/icicle-kit-es` configuration for
+> both devices. However, you must select the external tool launcher with the correct programming
 > arguments. The ES launcher uses `--die MPFS250T_ES --package FCVG484`, while the production
 > launcher uses `--die MPFS250T --package FCVG484`. The die differs between the boards, but the
 > package is the same.
