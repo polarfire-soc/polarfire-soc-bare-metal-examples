@@ -396,8 +396,16 @@ according to the following table.
 | **Die**     | MPFS250T_ES                        | MPFS250T                        | MPFS250T  | MPFS095T      |
 | **Package** | FCVG484                            | FCVG484                         | FCG1152   | FCSG325       |
 
+> [!NOTE]
+> The Icicle Kit ES and production boards use the same Icicle Kit build configuration because the
+> bare-metal projects use the same `<project-root>/src/boards/icicle-kit-es` configuration for both
+> devices. However, you must select the external tool launcher with the correct programming
+> arguments. The ES launcher uses `--die MPFS250T_ES --package FCVG484`, while the production
+> launcher uses `--die MPFS250T --package FCVG484`. The die differs between the boards, but the
+> package is the same.
+
 The following figure shows the External Tools Configurations window, and how
-*PolarFire-SoC-Icicle-kit-program non-secure boot mode 1* is configured for the Icicle Kit ES
+`PolarFire-SoC-Icicle-kit-ES-program non-secure boot mode 1` is configured for the Icicle Kit ES
 device.
 
 ![external-tools-config.png](./images/external-tools-config.png)
