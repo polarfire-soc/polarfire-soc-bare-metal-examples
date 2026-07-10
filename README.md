@@ -26,6 +26,11 @@
 
 ## 1. Repository Structure
 
+> [!WARNING]
+> On Windows, deeply nested repository locations can cause some file paths to exceed the path
+> length limits in Git or other tools. If you encounter a "filename too long" error, clone or move
+> the repository to a shorter location, such as `C:\pfsoc-examples`.
+
 The following diagram (Figure 1) shows the structural hierarchy of the applications within the
 polarfire-soc-bare-metal-examples repository:
 
