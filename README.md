@@ -34,7 +34,7 @@
 The following diagram (Figure 1) shows the structural hierarchy of the applications within the
 polarfire-soc-bare-metal-examples repository:
 
-```ruby
+```text
 polarfire-soc-bare-metal-examples
                |
                |- applications <--------------------------------------------(a)
@@ -176,7 +176,7 @@ To open *Properties* window in SoftConsole:
 The following diagram (Figure 2) shows the structural hierararchy of projects within the
 polarfire-soc-bare-metal-examples repository:
 
-```ruby
+```text
 <project-root>
     |-- src
          |- application
