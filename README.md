@@ -78,15 +78,16 @@ The table below contains a list of the projects in this repository and the board
 
 | Development Board              | Supported examples                                                                   |
 | ------------------ | ----------------------------------------------------------------------------- |
-| Icicle Kit          | Supports all examples unless stated otherwise                                 |
-| Icicle Kit ES      | Supports all examples. Only the IAP/Autoupdat service from mpfs-sys-serv-example is not supported on the Icicle kits with engineering sample (ES) devices|
+| Icicle Kit          | Supports all examples except `user-crypto` examples unless stated otherwise. |
+| Icicle Kit ES       | Supports all examples except `user-crypto` examples unless stated otherwise. The IAP/Autoupdate service from `mpfs-sys-serv-example` is not supported on Icicle Kits with engineering sample (ES) devices. |
 | BeagleV-Fire        | **Driver Examples:** <br> - mss-ethernet-mac: [mpfs-mac-mcc-stack](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-mcc-stack), [mpfs-mac-simple-test](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-simple-test), [mpfs-uart-mac-freertos_lwip](./driver-examples/mss/mss-ethernet-mac/mpfs-uart-mac-freertos_lwip) |
 | Discovery Kit | **Applications:** <br> - mpfs-blank-baremetal: [mpfs-blank-baremetal](./applications/mpfs-blank-baremetal) <br><br> **Driver Examples:** <br> - core-pwm: [mpfs-corepwm-slow-blink](./driver-examples/fpga-ip/CorePWM/mpfs-corepwm-slow-blink) <br> - mpfs-hal: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo) <br> - mss-pdma: [mpfs-pdma-read-write](./driver-examples/mss/mss-pdma/mpfs-pdma-read-write) <br> - mss-timer: [mpfs-timer-example](./driver-examples/mss/mss-timer/mpfs-timer-example) <br> - mss-spi: [mpfs-spi-master-slave](./driver-examples/mss/mss-spi/mpfs-spi-master-slave) <br> - mss-watchdog: [mpfs-watchdog-interrupt](./driver-examples/mss/mss-watchdog/mpfs-watchdog-interrupt) <br> - mss-i2c: [mpfs-i2c-master-slave](./driver-examples/mss/mss-i2c/mpfs-i2c-master-slave) <br> - mss-mmc: [mpfs-emmc-sd-write-read](./driver-examples/mss/mss-mmc/mpfs-emmc-sd-write-read)                                                                                                                                                                                                                                                                                                                                                                                           |
-| Video Kit     | **Applications:** <br> - user-crypto: [mpfs-user-crypto-aes-cryptography](./applications/user-crypto/mpfs-user-crypto-aes-cryptography), [mpfs-user-crypto-ccm-services](./applications/user-crypto/mpfs-user-crypto-ccm-services), [mpfs-user-crypto-dsa-services](./applications/user-crypto/mpfs-user-crypto-dsa-services), <br>[mpfs-user-crypto-ecdsa-services](./applications/user-crypto/mpfs-user-crypto-ecdsa-services), [mpfs-user-crypto-key-agreement-services](./applications/user-crypto/mpfs-user-crypto-key-agreement-services), [mpfs-user-crypto-key-tree-services](./applications/user-crypto/mpfs-user-crypto-key-tree-services), <br>[mpfs-user-crypto-message-authentication-services](./applications/user-crypto/mpfs-user-crypto-message-authentication-services), [mpfs-user-crypto-ndrbg-services](./applications/user-crypto/mpfs-user-crypto-ndrbg-services), [mpfs-user-crypto-rsa-cryptography-services](./applications/user-crypto/mpfs-user-crypto-rsa-cryptography-services), <br>[mpfs-user-crypto-rsa-services](./applications/user-crypto/mpfs-user-crypto-rsa-services)<br><br> **Driver Examples:** <br> - mpfs-hal: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo), [mpfs-hal-power-saving-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-power-saving-demo)<br> |
+| Video Kit            | **Applications:** <br> - user-crypto: Supports all examples unless stated otherwise. <br><br> **Driver Examples:** <br> - mpfs-hal: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo), [mpfs-hal-power-saving-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-power-saving-demo)<br> |
 
-All of the projects are tested on the PolarFire SoC Icicle kit. All the projects are tested with the
-latest available [Icicle kit Reference Libero design](https://github.com/polarfire-soc/icicle-kit-reference-design) or one of it's variants, unless noted otherwise.
-Please refer to the README markdown file in each project for details.
+Projects listed as supported on the PolarFire SoC Icicle Kit are tested with the latest available
+[Icicle Kit Reference Libero design](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design)
+or one of its variants, unless noted otherwise. Please refer to the README markdown file in each
+project for details.
 
 **NOTE:** From v2025.07 onwards, the Icicle kit reference design provides two different assets
 - MPFS_ICICLE_KIT_2025_07.zip - For newer Icicle kits with production version PFSoC FPGA device (MPFS250T)
@@ -429,7 +430,8 @@ onto your device.
 
 ![elf-release.png](./images/elf-release.png)
 
-Please click for information on the [HSS Payload Generator](https://github.com/polarfire-soc/hart-software-services/tree/master/tools/hss-payload-generator)
+Please click for information on the
+[HSS Payload Generator](https://mi-v-ecosystem.github.io/redirects/tool-hss-payload-generator)
 
 ## 5. References
 
