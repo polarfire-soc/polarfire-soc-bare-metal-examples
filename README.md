@@ -415,10 +415,10 @@ Please click for information on the [HSS Payload Generator](https://github.com/p
   configurations, refer to the [PolarFire SoC platform](https://mi-v-ecosystem.github.io/redirects/repo-platform).
 - For more details on the SoftConsole Bare metal software project folder structure, refer to the
   [Bare Metal Software Projects Structure](https://mi-v-ecosystem.github.io/redirects/bare-metal-project-structure_bare-metal-software-project-structure).
-- For more information on boot modes, refer to the [PolarFire SoC Boot Modes](https://mi-v-ecosystem.github.io/redirects/boot-modes_boot-modes-fundamentals), and
-  [polarfire-soc-boot-mode-programming-support-in-softconsole](https://mi-v-ecosystem.github.io/SoftConsole-Documentation/SoftConsole-v2021.3/using_softconsole/mpfs.html#polarfire-soc-boot-mode-programming-support-in-softconsole)
+- For more information on boot modes, refer to the
+  [PolarFire SoC Boot Modes](https://mi-v-ecosystem.github.io/redirects/boot-modes_boot-modes-fundamentals).
 - For a fresh example project template with each necessary device configuration, refer to the
-  [MPFS Blank Baremetal Example Project](https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples/tree/main/applications/mpfs-blank-baremetal).
+  [PolarFire SoC Bare Metal Examples repository](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples).
 
 ---
 
