@@ -15,6 +15,7 @@
     - [3.7. Software Configurations](#37-software-configurations)
       - [3.7.1. `MPFS_HAL_FIRST_HART` and `MPFS_HAL_LAST_HART`](#371-mpfs_hal_first_hart-and-mpfs_hal_last_hart)
       - [3.7.2. `IMAGE_LOADED_BY_BOOTLOADER`](#372-image_loaded_by_bootloader)
+    - [3.8. Renode Build Configurations](#38-renode-build-configurations)
   - [4. Launching Project](#4-launching-project)
     - [4.1. Debug Launchers](#41-debug-launchers)
     - [4.2. Programming to LIM or eNVM](#42-programming-to-lim-or-envm)
@@ -22,6 +23,7 @@
     - [4.3. Programming to DDR](#43-programming-to-ddr)
       - [4.3.1. Programming with the MPFS HAL DDR Demo](#431-programming-with-the-mpfs-hal-ddr-demo)
       - [4.3.2. Programming with the HSS Payload Generator](#432-programming-with-the-hss-payload-generator)
+    - [4.4. Launching with Renode](#44-launching-with-renode)
   - [5. References](#5-references)
 
 ---
@@ -339,6 +341,29 @@ modified `mss_sw_config.h` can be found under the
 
 ![confgi2.png](./images/confgi2.png)
 
+### 3.8. Renode Build Configurations
+
+Projects that support Renode include launchers whose names contain `renode`. The Renode debug
+launcher uses the executable from the project's active build configuration. Before launching:
+
+1. Select or create a build configuration for Renode.
+2. Define `RENODE_DEBUG` in the project-specific `mss_sw_config.h` and set the configuration as
+   active.
+3. Build the project and confirm that its `.elf` file is generated in the active build directory.
+4. Check the project README for any Renode-specific configuration or peripheral limitations.
+
+`RENODE_DEBUG` enables MPFS HAL behavior intended for emulation, including bypassing waits for
+hardware-only status changes. Keep this symbol confined to the Renode build configuration; do not
+define it in configurations used on physical hardware. Renode-related preprocessor symbols,
+including `RENODE_DEBUG` and `RENODE_SIM_DDR_TRAINING`, can be found or defined in the
+project-specific `mss_sw_config.h` file.
+
+DDR training is unnecessary in Renode because the emulated DDR is already reliable. If DDR training
+is enabled, startup can take significantly longer. `RENODE_SIM_DDR_TRAINING` is a separate symbol
+that skips the DDR training sequence while retaining DDR support. If the application does not use
+DDR, you can instead disable `DDR_SUPPORT` in the project-specific `mss_sw_config.h`, as described
+in [section 3.7](#37-software-configurations).
+
 ## 4. Launching Project
 
 ### 4.1. Debug Launchers
@@ -462,6 +487,26 @@ create a payload `.bin` file, then write the payload to the eMMC or SD card from
 
 For configuration details and usage instructions, refer to the
 [HSS Payload Generator](https://mi-v-ecosystem.github.io/redirects/tool-hss-payload-generator).
+
+### 4.4. Launching with Renode
+
+Renode runs the example on an emulated PolarFire SoC platform, so no physical board programming is
+required. For projects that provide a combined launch group:
+
+1. Build the project using the active configuration selected in
+   [section 3.8](#38-renode-build-configurations).
+2. In SoftConsole, open **Run > Debug Configurations**.
+3. Select `<project-name> renode all-harts start-platform-and-debug`.
+4. Start the configuration. It launches the Renode platform, waits for its GDB server, and then
+   starts the project's Renode debug configuration.
+
+The UART console and logging options are available on the **Startup** tab of
+`<project-name> renode all-harts debug`.
+
+If a project does not provide the combined launch group, start its Renode emulation platform from
+**Run > External Tools**, wait until Renode is ready for a GDB connection, and then start the
+project's `renode all-harts debug` configuration from **Run > Debug Configurations**. Refer to the
+project README for the exact launcher names and any project-specific instructions.
 
 ## 5. References
 
