@@ -1,9 +1,10 @@
 # PolarFire&reg; SoC Bare Metal Examples
+
 ---
-- [PolarFire® SoC Bare Metal Examples](#polarfire-soc-bare-metal-examples)
+- [PolarFire SoC Bare Metal Examples](#polarfire-soc-bare-metal-examples)
   - [1. Repository Structure](#1-repository-structure)
   - [2. Supported Devices](#2-supported-devices)
-  - [3. Configuring and Building Project](#3-configuring-and-building-project)
+  - [3. Configuring and Building a Project](#3-configuring-and-building-a-project)
     - [3.1. Debug Build Configurations](#31-debug-build-configurations)
     - [3.2. Release Build Configurations](#32-release-build-configurations)
     - [3.3. Linker Scripts](#33-linker-scripts)
@@ -11,15 +12,15 @@
     - [3.5. Updating Example Projects](#35-updating-example-projects)
     - [3.6. Hardware Configurations](#36-hardware-configurations)
       - [3.6.1. Locating the Hardware Configurations](#361-locating-the-hardware-configurations)
-      - [3.6.2. Customizing Project with Custom Libro Design](#362-customizing-project-with-custom-libro-design)
+      - [3.6.2. Customizing a Project with a Custom Libero Design](#362-customizing-a-project-with-a-custom-libero-design)
     - [3.7. Software Configurations](#37-software-configurations)
       - [3.7.1. `MPFS_HAL_FIRST_HART` and `MPFS_HAL_LAST_HART`](#371-mpfs_hal_first_hart-and-mpfs_hal_last_hart)
       - [3.7.2. `IMAGE_LOADED_BY_BOOTLOADER`](#372-image_loaded_by_bootloader)
     - [3.8. Renode Build Configurations](#38-renode-build-configurations)
-  - [4. Launching Project](#4-launching-project)
+  - [4. Launching a Project](#4-launching-a-project)
     - [4.1. Debug Launchers](#41-debug-launchers)
     - [4.2. Programming to LIM or eNVM](#42-programming-to-lim-or-envm)
-      - [4.2.1. Configuring External Tools for Particular Boards (only for eNVM Release)](#421-configuring-external-tools-for-particular-boards-only-for-envm-release)
+      - [4.2.1. Configuring External Tools for Particular Boards (eNVM Release Only)](#421-configuring-external-tools-for-particular-boards-envm-release-only)
     - [4.3. Programming to DDR](#43-programming-to-ddr)
       - [4.3.1. Programming with the MPFS HAL DDR Demo](#431-programming-with-the-mpfs-hal-ddr-demo)
       - [4.3.2. Programming with the HSS Payload Generator](#432-programming-with-the-hss-payload-generator)
@@ -67,12 +68,12 @@ polarfire-soc-bare-metal-examples
   Fig. 1. (a) applications (b) driver-examples
 ```
 
-The `applications` folder (Fig. 1(a)) contains applications that are ready-to-use on your
-PolarFire&reg; device. The `driver-examples` folder (Fig. 1(b)) contains example projects that
-demonstrate the PolarFire SoC Microprocessor Sub-System (MSS) peripheral device drivers. These
+The `applications` folder (Figure 1(a)) contains applications that are ready to use on your
+PolarFire&reg; device. The `driver-examples` folder (Figure 1(b)) contains example projects that
+demonstrate the PolarFire SoC Microprocessor Subsystem (MSS) peripheral device drivers. These
 examples serve as an easy starting point for users to start exploring PolarFire SoC.
 
-Each project provides its own README markdown file, explaining the project's functionality and usage
+Each project provides its own README file, explaining the project's functionality and usage
 instructions. All projects provide a set of ready-to-use build, debug, and launch configurations.
 These are detailed in the following sections of this document.
 
@@ -80,42 +81,50 @@ These are detailed in the following sections of this document.
 
 The table below contains a list of the projects in this repository and the boards they support:
 
-| Development Board              | Supported examples                                                                   |
-| ------------------ | ----------------------------------------------------------------------------- |
-| Icicle Kit          | Supports all examples except `user-crypto` examples unless stated otherwise. |
-| Icicle Kit ES       | Supports all examples except `user-crypto` examples unless stated otherwise. The IAP/Autoupdate service from `mpfs-sys-serv-example` is not supported on Icicle Kits with engineering sample (ES) devices. |
-| BeagleV-Fire        | **Driver Examples:** <br> - mss-ethernet-mac: [mpfs-mac-mcc-stack](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-mcc-stack), [mpfs-mac-simple-test](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-simple-test), [mpfs-uart-mac-freertos_lwip](./driver-examples/mss/mss-ethernet-mac/mpfs-uart-mac-freertos_lwip) |
-| Discovery Kit | **Applications:** <br> - mpfs-blank-baremetal: [mpfs-blank-baremetal](./applications/mpfs-blank-baremetal) <br><br> **Driver Examples:** <br> - core-pwm: [mpfs-corepwm-slow-blink](./driver-examples/fpga-ip/CorePWM/mpfs-corepwm-slow-blink) <br> - mpfs-hal: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo) <br> - mss-pdma: [mpfs-pdma-read-write](./driver-examples/mss/mss-pdma/mpfs-pdma-read-write) <br> - mss-timer: [mpfs-timer-example](./driver-examples/mss/mss-timer/mpfs-timer-example) <br> - mss-spi: [mpfs-spi-master-slave](./driver-examples/mss/mss-spi/mpfs-spi-master-slave) <br> - mss-watchdog: [mpfs-watchdog-interrupt](./driver-examples/mss/mss-watchdog/mpfs-watchdog-interrupt) <br> - mss-i2c: [mpfs-i2c-master-slave](./driver-examples/mss/mss-i2c/mpfs-i2c-master-slave) <br> - mss-mmc: [mpfs-emmc-sd-write-read](./driver-examples/mss/mss-mmc/mpfs-emmc-sd-write-read)                                                                                                                                                                                                                                                                                                                                                                                           |
-| Video Kit            | **Applications:** <br> - user-crypto: Supports all examples unless stated otherwise. <br><br> **Driver Examples:** <br> - mpfs-hal: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo), [mpfs-hal-power-saving-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-power-saving-demo)<br> |
+| Development Board | Supported Examples |
+| ----------------- | ------------------ |
+| Icicle Kit | All examples except `user-crypto` examples, unless stated otherwise. |
+| Icicle Kit ES | All examples except `user-crypto` examples, unless stated otherwise.<br><br>The IAP/Autoupdate service from `mpfs-sys-serv-example` is not supported on Icicle Kits with engineering sample (ES) devices. |
+| BeagleV-Fire | **Driver examples**<br>&bull; `mss-ethernet-mac`: [mpfs-mac-mcc-stack](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-mcc-stack)<br>&bull; `mss-ethernet-mac`: [mpfs-mac-simple-test](./driver-examples/mss/mss-ethernet-mac/mpfs-mac-simple-test)<br>&bull; `mss-ethernet-mac`: [mpfs-uart-mac-freertos_lwip](./driver-examples/mss/mss-ethernet-mac/mpfs-uart-mac-freertos_lwip) |
+| Discovery Kit | **Applications**<br>&bull; `mpfs-blank-baremetal`: [mpfs-blank-baremetal](./applications/mpfs-blank-baremetal)<br><br>**Driver examples**<br>&bull; `core-pwm`: [mpfs-corepwm-slow-blink](./driver-examples/fpga-ip/CorePWM/mpfs-corepwm-slow-blink)<br>&bull; `mpfs-hal`: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo)<br>&bull; `mss-pdma`: [mpfs-pdma-read-write](./driver-examples/mss/mss-pdma/mpfs-pdma-read-write)<br>&bull; `mss-timer`: [mpfs-timer-example](./driver-examples/mss/mss-timer/mpfs-timer-example)<br>&bull; `mss-spi`: [mpfs-spi-master-slave](./driver-examples/mss/mss-spi/mpfs-spi-master-slave)<br>&bull; `mss-watchdog`: [mpfs-watchdog-interrupt](./driver-examples/mss/mss-watchdog/mpfs-watchdog-interrupt)<br>&bull; `mss-i2c`: [mpfs-i2c-master-slave](./driver-examples/mss/mss-i2c/mpfs-i2c-master-slave)<br>&bull; `mss-mmc`: [mpfs-emmc-sd-write-read](./driver-examples/mss/mss-mmc/mpfs-emmc-sd-write-read) |
+| Video Kit | **Applications**<br>&bull; `user-crypto`: All examples, unless stated otherwise.<br><br>**Driver examples**<br>&bull; `mpfs-hal`: [mpfs-hal-ddr-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-ddr-demo)<br>&bull; `mpfs-hal`: [mpfs-hal-power-saving-demo](./driver-examples/mss/mpfs-hal/mpfs-hal-power-saving-demo) |
 
 Projects listed as supported on the PolarFire SoC Icicle Kit are tested with the latest available
 [Icicle Kit Reference Libero design](https://mi-v-ecosystem.github.io/redirects/repo-icicle-kit-reference-design)
-or one of its variants, unless noted otherwise. Please refer to the README markdown file in each
+or one of its variants, unless noted otherwise. Refer to the README file in each
 project for details.
 
-**NOTE:** From v2025.07 onwards, the Icicle kit reference design provides two different assets
-- MPFS_ICICLE_KIT_2025_07.zip - For newer Icicle kits with production version PFSoC FPGA device (MPFS250T)
-- MPFS_ICICLE_KIT_ES_2025_07.zip - For Icicle kits with Engineering Sample (ES) version of FPGA device (MPFS250T_ES)
+> [!NOTE]
+> From v2025.07 onwards, the Icicle Kit reference design provides two assets:
+>
+> - `MPFS_ICICLE_KIT_2025_07.zip` for newer Icicle Kits with a production PolarFire SoC FPGA
+>   device (`MPFS250T`).
+> - `MPFS_ICICLE_KIT_ES_2025_07.zip` for Icicle Kits with an engineering sample (ES) FPGA device
+>   (`MPFS250T_ES`).
+>
+> Except for the die name, the `.cfg` and `.xml` files generated by the MSS Configurator are
+> identical for both devices. Bare-metal projects do not use the die-name parameter for
+> configuration, so all bare-metal examples continue to use the `boards/icicle-kit-es` folder for
+> both kit versions. HSS uses separate folders for the two kits to manage the Linux boot sequence.
 
-Except for the die name, the .cfg and .xml files generated by the MSS Configurator are identical for both devices. Additionally, the die name parameter is not used by Bare Metal projects for configuration purposes; therefore, all Bare Metal example projects will continue to use the boards/icicle-kit-es folder for both kit versions. In contrast, the HSS uses two separate folders for the respective kits to manage the Linux boot sequence.
+## 3. Configuring and Building a Project
 
-## 3. Configuring and Building Project
+The build configurations provide different options for running a project on your board. The main
+options include memory selection (for example, LIM, scratchpad, or DDR) and optimization level (for
+example, `-Os` or `-O0`). You may use these predefined configurations or create your own using the
+SoftConsole project settings. The following table lists the main configurations provided by
+default:
 
-The build configurations provide you with different options on how you want your project to run on
-your board. The main options available include memory selection (e.g. LIM, Scratchpad, DDR) and
-optimization level (e.g. -Os, -O0 etc.). You may use these pre-made configurations, or create your
-own configuration using the SoftConsole project settings. Below is the list of all the main build
-configurations provided by default with each project:
+| Configuration | Description | Example Use |
+| ------------- | ----------- | ----------- |
+| `*-LIM-Debug` | Download to and debug from LIM memory. Not optimized (`-O0`). Can be used with boot mode 0. | Step-debug bare-metal software during initial development. Configure the device for boot mode 0 and load the software using the debugger. |
+| `*-LIM-Release` | Download to and debug from LIM memory. Optimized for size (`-Os`). Can be used with boot mode 2. | Run initially from LIM, configure scratchpad memory, copy the program to it, and continue execution there. This configuration is closer to release code while still allowing step-debugging. |
+| `*-DDR-Release` | Execute from cached DDR memory, typically via a bootloader. Optimized for size (`-Os`). | Run tested software from DDR in an SMP or AMP configuration. DDR can be initialized by HSS or another application before the software is loaded with the debugger. |
+| `*-eNVM-Scratchpad-Release` | Boot from eNVM, relocate to scratchpad memory, and continue execution. Optimized for size (`-Os`). Can be used with boot mode 1. | Run software from eNVM after reset. Test the software first with a `*-LIM-Debug` or `*-LIM-Release` configuration. |
 
-| Configuration                 | Description | Example use    |
-| ----------------------------- | ------------| -------------  |
-| `*-LIM-Debug`                 | Download to and debug from LIM memory. Not-optimized (-O0). (Could be used with boot mode 0) | This build configuration can be used to step-debug bare metal software typically in the initial development phase. The device should be configured to boot mode 0 and the embedded software loaded using the debugger. |
-| `*-LIM-Release`               | Download to and debug from LIM memory. Optimized (-Os). (Could be used with boot mode 2) | This build configuration is similar to LIM-Debug build configuration but uses higher optimization level (-Os). It initially runs from LIM, configures scratchpad, copies itself to it and executes from there. This build configuration is closer to a typical release code and still allows step-debugging.  |
-| `*-DDR-Release`               | Execute from cached DDR memory – typically via a bootloader. Optimized (-Os). | This build configuration is used when this embedded software is going to be run from DDR memory. It is assumed at this point that the embedded software has been tested by either pre-configuring DDR (for example by using the HSS) and loading the embedded software into DDR using the debugger or by running the embedded software from the LIM. This can be used in an SMP or AMP configuration. |
-| `*-eNVM-Scratchpad-Release`   | Booting from eNVM, program relocates itself to scratchpad memory and continues execution. Optimized (-Os). (Could be used with boot mode 1) | This build configuration is used when the embedded software is programmed to the eNVM and executes straight after the reset. It is assumed that this embedded software has already been tested using the LIM-Debug or LIM-Release configuration.                                                                                                                                                      |
-
-The build configuration names in the table are representative. In practice, they are typically
-prefixed with the name of the hardware kit for which they are implemented.
+The asterisk represents a project-specific prefix. Depending on the project, a configuration may
+use a board name, an application name, or no prefix. Select the exact configuration name shown in
+SoftConsole for the imported project.
 
 For example:
 
@@ -126,60 +135,62 @@ For example:
 
 ### 3.1. Debug Build Configurations
 
-The build configurations postfixed with \*-Debug are intended for the debugging stages of your
-project. By convention, the \*-Debug configurations use optimization level -O0 and generate maximum
-debug symbol information for the user.
+The build configurations suffixed with `-Debug` are intended for the debugging stages of your
+project. By convention, the `-Debug` configurations use optimization level `-O0` and generate
+maximum debug symbol information for the user.
 
 ### 3.2. Release Build Configurations
 
-The build configurations postfixed with \*-Release are intended for the final release versions of
+The build configurations suffixed with `-Release` are intended for the final release versions of
 your projects, where an executable is stored in non-volatile memory and runs after power-on-reset,
-or the executable is launched by a previous stage bootloader. By convention, the \*-Release
-configurations use optimization level -Os and do not generate debug symbol information. They also
-define the NDEBUG macro which is used to exclude any debug code from the build.
+or the executable is launched by a previous stage bootloader. By convention, the `-Release`
+configurations use optimization level `-Os` and do not generate debug symbol information. They also
+define the `NDEBUG` macro, which is used to exclude debug code from the build.
 
-![optimization-debug.png](./images/optimization-debug-1.png)
+![SoftConsole optimization and debugging settings](./images/optimization-debug-1.png)
 
-To open *Properties* window in SoftConsole:
-1. Click *Project* tab at the top of your SoftConsole instance.
-2. Click *Properties*. (or use keyboard shortcut Ctrl+Alt+Shift+P)
+To open the **Properties** window in SoftConsole:
+
+1. Select **Project** at the top of SoftConsole.
+2. Select **Properties**, or use the `Ctrl+Alt+Shift+P` keyboard shortcut.
 
 ### 3.3. Linker Scripts
 
 Each build configuration needs a linker script. The linker script describes the memory layout of the
 executable. Each build configuration selects the appropriate linker script via the project settings
-for the build configuration. For example, DDR-Release by default uses
-mpfs-ddr-loaded-by-boot-loader.ld.
+for the build configuration. For example, `*-DDR-Release` uses
+`mpfs-ddr-loaded-by-boot-loader.ld` by default.
 
-The table below shows the build configuration and it's default corresponding linker script.
+The table below shows each build configuration suffix and its corresponding default linker script.
 
-| Build Configuration     | Linker Script                     |
-|-------------------------|-----------------------------------|
-| LIM-Debug               | mpfs-lim.ld                       |
-| LIM-Release             | mpfs-lim-lma-scratchpad-vma.ld    |
-| DDR-Release             | mpfs-ddr-loaded-by-boot-loader.ld |
-| eNVM-Scratchpad-Release | mpfs-envm-lma-scratchpad-vma.ld   |
+| Build Configuration         | Linker Script                           |
+| --------------------------- | --------------------------------------- |
+| `*-LIM-Debug`               | `mpfs-lim.ld`                           |
+| `*-LIM-Release`             | `mpfs-lim-lma-scratchpad-vma.ld`        |
+| `*-DDR-Release`             | `mpfs-ddr-loaded-by-boot-loader.ld`     |
+| `*-eNVM-Scratchpad-Release` | `mpfs-envm-lma-scratchpad-vma.ld`       |
 
-**Note**:
-If you need to modify the linker script for your project, copy the linker from the
-`<project-root>/src/platform/platform_config_reference` folder (Fig. 2(g)) into the appropriate
-folder under `<project-root>/src/boards/<target-board>/platform_config` (Fig. 2(e)) and make your
-changes there. Do not modify the linker scripts that are found in the
-`<project-root>/src/platform/platform_config_reference` folder. See Figure 2 below for more
-infomation on the folder structure for your project.
+> [!NOTE]
+> If you need to modify the linker script for your project, copy the linker from the
+> `<project-root>/src/platform/platform_config_reference` folder (Figure 2(g)) into the appropriate
+> folder under `<project-root>/src/boards/<target-board>/platform_config` (Figure 2(e)) and make your
+> changes there. Do not modify the linker scripts that are found in the
+> `<project-root>/src/platform/platform_config_reference` folder. See Figure 2 below for more
+> information on the project folder structure.
 
 The following image shows where the linker path can be found and modified within the project
 Properties window in SoftConsole:
 
-![linker-script.png](./images/linker-script-1.png)
+![SoftConsole linker script setting](./images/linker-script-1.png)
 
-To open *Properties* window in SoftConsole:
-1. Click *Project* tab at the top of your SoftConsole instance.
-2. Click *Properties*. (or use keyboard shortcut Ctrl+Alt+Shift+P)
+To open the **Properties** window in SoftConsole:
+
+1. Select **Project** at the top of SoftConsole.
+2. Select **Properties**, or use the `Ctrl+Alt+Shift+P` keyboard shortcut.
 
 ### 3.4. Project Structure
 
-The following diagram (Figure 2) shows the structural hierararchy of projects within the
+The following diagram (Figure 2) shows the structural hierarchy of projects within the
 polarfire-soc-bare-metal-examples repository:
 
 ```text
@@ -227,10 +238,10 @@ Fig. 2. (a) boards (b) <target-board> (c) design_description
 When you want to update your SoftConsole example project to the latest release of the platform
 repository, please download the
 [platform repository](https://mi-v-ecosystem.github.io/redirects/repo-platform) and replace the
-`<project-root>/src/platform` directory (Fig. 2(f)) in the example project with it. When you update
-the `<project-root>/src/platform` folder, you must make sure that the reference design and the .xml
-file are compatible with it. Also ensure that any customized mss_sw_config.h or linker scripts under
-the `<project-root>/src/boards/<icicle-kit>/platform_config` folder (Fig. 2(e)) are also updated
+`<project-root>/src/platform` directory (Figure 2(f)) in the example project with it. When you update
+the `<project-root>/src/platform` folder, make sure that the reference design and the `.xml`
+file are compatible with it. Also ensure that any customized `mss_sw_config.h` or linker scripts under
+the `<project-root>/src/boards/<target-board>/platform_config` folder (Figure 2(e)) are also updated
 accordingly.
 
 ### 3.6. Hardware Configurations
@@ -238,95 +249,95 @@ accordingly.
 #### 3.6.1. Locating the Hardware Configurations
 
 The hardware configurations are located in the `<project-root>/src/boards/<target-board>` folder
-(Fig. 2(b)). The header files in the
-`<project-root>/src/boards/<target-board>/fpga_design_config` folder (Fig. 2(d)) define the hardware
-configurations such as clocks, memory, IO etc. These files are automatically generated from the
-.xml file provided in the
-`<project-root>/src/boards/<target-board>/fpga_design/design_description` folder (Fig. 2(c)) on each
-build. The `fpga_design_config` folder (Fig. 2(d)) is not found in the project unless a build has been
+(Figure 2(b)). The header files in the
+`<project-root>/src/boards/<target-board>/fpga_design_config` folder (Figure 2(d)) define the hardware
+configurations such as clocks, memory, and I/O. These files are automatically generated from the
+`.xml` file provided in the
+`<project-root>/src/boards/<target-board>/fpga_design/design_description` folder (Figure 2(c)) on each
+build. The `fpga_design_config` folder (Figure 2(d)) is not found in the project unless a build has been
 successfully executed.
 
-Each project contains an .xml matching the configuration in the reference design. You must make sure
+Each project contains an `.xml` file matching the configuration in the reference design. Make sure
 that the configurations in the example project match the actual configurations of the Libero&reg;
-design that you are using to test the example project. The design configuration data (.xml and .cfg),
+design that you are using to test the example project. The design configuration data (`.xml` and `.cfg`),
 generated from the MSS configuration used in your Libero project, must be placed under the
 `<project-root>/src/boards/<target-board>/fpga_design/design_description` and
-`<project-root>/src/boards/<target-board>/fpga_design/mss_configuration` folders (Fig. 2(c)).
+`<project-root>/src/boards/<target-board>/fpga_design/mss_configuration` folders (Figure 2(c)).
 
+The following image shows the **Pre-build steps** command, which has three arguments:
 
-The following image shows the *Pre-build steps* command which has three arguments:
-1. Path to mpfs_configuration_generator.py, which generates the `fpga_design_config` folder
-   (Fig. 2(d)).
-2. Path to the `design_description` folder (Fig. 2(c)), where the .xml file is used as an input.
-3. Path to the `<target-board>` folder (Fig. 2(b)), where `fpga_design_config` (Fig. 2(d)) will be
-   generated as on output.
+1. Path to `mpfs_configuration_generator.py`, which generates the `fpga_design_config` folder
+   (Figure 2(d)).
+2. Path to the `design_description` folder (Figure 2(c)), where the `.xml` file is used as input.
+3. Path to the `<target-board>` folder (Figure 2(b)), where `fpga_design_config` (Figure 2(d)) will be
+   generated as an output.
 
-![build-steps.png](./images/build-steps.png)
+![SoftConsole pre-build command and arguments](./images/build-steps.png)
 
-To open *Properties* window in SoftConsole:
-1. Click *Project* tab at the top of your SoftConsole instance.
-2. Click *Properties*. (or use keyboard shortcut Ctrl+Alt+Shift+P)
+To open the **Properties** window in SoftConsole:
 
-#### 3.6.2. Customizing Project with Custom Libro Design
+1. Select **Project** at the top of SoftConsole.
+2. Select **Properties**, or use the `Ctrl+Alt+Shift+P` keyboard shortcut.
 
-When you make changes to the reference Libero design or create your own design, the bare metal
+#### 3.6.2. Customizing a Project with a Custom Libero Design
+
+When you make changes to the reference Libero design or create your own design, the bare-metal
 project will need to be customized for that design.
 
-For an example walkthrough of customizing a bare metal application, watch our playlist:
+For an example walkthrough of customizing a bare-metal application, watch our playlist:
 
 [![Bare Metal Example Customization](https://img.youtube.com/vi/DEXnrbb-QqI/mqdefault.jpg)](https://mi-v-ecosystem.github.io/redirects/youtube-bare-metal-example-customization)
 
-
 ### 3.7. Software Configurations
 
-The files in the `<project-root>/src/boards/<target-board>/platform_config` folder (Fig. 2(e))
+The files in the `<project-root>/src/boards/<target-board>/platform_config` folder (Figure 2(e))
 define the software configurations, such as the number of harts being used by the software and the
-tick rate of the internal timer of each hart etc. These configurations have no dependency on the
-hardware configurations in the `fpga_design_config` folder (Fig. 2(d)).
+tick rate of each hart's internal timer. These configurations have no dependency on the
+hardware configurations in the `fpga_design_config` folder (Figure 2(d)).
 
-Note: Changing these software configurations may require a change in your application code.
+> [!NOTE]
+> Changing these software configurations may require changes to your application code.
 
 The default software configurations are stored under the
-`<project-root>/src/platform/platform_config_reference` folder (Fig. 2(g)). These configuration
+`<project-root>/src/platform/platform_config_reference` folder (Figure 2(g)). These configuration
 files should not be modified. The files that should be modified are found in
-`<project-root>/src/boards/<target-board>/platform_config` (Fig. 2(e)). If you need to change the
+`<project-root>/src/boards/<target-board>/platform_config` (Figure 2(e)). If you need to change the
 default software configurations, you are advised to create a new folder to replicate this folder
-under the `<project-root>/src/boards` folder (Fig. 2(a)) and make the modifications there. It would
+under the `<project-root>/src/boards` folder (Figure 2(a)) and make the modifications there. It would
 look like
-`<project-root>/src/boards/<target-board>/platform_config` (Fig. 2(e)).
-
+`<project-root>/src/boards/<target-board>/platform_config` (Figure 2(e)).
 
 To choose a particular software configuration, include either `platform_config_reference` or the
-project-specific `<project-root>/src/boards/<custom-board>/platform_config` path (Fig. 2(e)) via the
+project-specific `<project-root>/src/boards/<custom-board>/platform_config` path (Figure 2(e)) via the
 SoftConsole project settings.
 
-![include-paths.png](./images/include-paths-1.png)
+![SoftConsole platform configuration include paths](./images/include-paths-1.png)
 
-To open *Properties* window in SoftConsole:
-1. Click *Project* tab at the top of your SoftConsole instance.
-2. Click *Properties*. (or use keyboard shortcut Ctrl+Alt+Shift+P)
+To open the **Properties** window in SoftConsole:
 
-#### 3.7.1. MPFS_HAL_FIRST_HART and MPFS_HAL_LAST_HART
+1. Select **Project** at the top of SoftConsole.
+2. Select **Properties**, or use the `Ctrl+Alt+Shift+P` keyboard shortcut.
+
+#### 3.7.1. `MPFS_HAL_FIRST_HART` and `MPFS_HAL_LAST_HART`
 
 These defines are used to select the number of harts your application will use.
 
-| Hart name | Hart number |
-| --------- | ----------- |
-| E51       | 0           |
-| U54_1     | 1           |
-| U54_2     | 2           |
-| U54_3     | 3           |
-| U54_4     | 4           |
+| Hart Name | Hart Number |
+| --------- | ----------: |
+| `E51`     |           0 |
+| `U54_1`   |           1 |
+| `U54_2`   |           2 |
+| `U54_3`   |           3 |
+| `U54_4`   |           4 |
 
-A typical usecase is when you are developing the bootloader software to be executed on E51 which is
-run from eNVM and copies an application executable to the DDR memory and wakes-up U54_1 alone to
-execute that application. In this case, the bootloader software project will set MPFS_HAL_FIRST_HART
-= 0 and MPFS_HAL_LAST_HART = 1.
+A typical use case is developing bootloader software that executes on the E51 from eNVM, copies an
+application executable to DDR, and wakes only `U54_1` to execute the application. In this case, the
+bootloader project sets `MPFS_HAL_FIRST_HART = 0` and `MPFS_HAL_LAST_HART = 1`.
 
-The application running on U54_1 will set MPFS_HAL_FIRST_HART = 1 and MPFS_HAL_LAST_HART = 1 as
-shown in the figure below.
+The application running on `U54_1` sets `MPFS_HAL_FIRST_HART = 1` and
+`MPFS_HAL_LAST_HART = 1`, as shown in the figure below.
 
-![confgi1.png](./images/confgi1.png)
+![First and last hart settings in SoftConsole](./images/confgi1.png)
 
 #### 3.7.2. `IMAGE_LOADED_BY_BOOTLOADER`
 
@@ -335,11 +346,11 @@ One of the important software configurations is `IMAGE_LOADED_BY_BOOTLOADER` in 
 is used. For example, when an application stored in eNVM starts running after reset.
 
 Set `IMAGE_LOADED_BY_BOOTLOADER = 1` when the application's executable image is loaded by a previous
-stage bootloader. The DDR-Release is one such configuration which uses this setting. The
+stage bootloader. `*-DDR-Release` is one configuration that uses this setting. The
 modified `mss_sw_config.h` can be found under the
-`<project-root>/src/boards/<icicle-kit>/platform_config` folder (Fig. 1(e)).
+`<project-root>/src/boards/<target-board>/platform_config` folder (Figure 2(e)).
 
-![confgi2.png](./images/confgi2.png)
+![Image-loaded-by-bootloader setting in SoftConsole](./images/confgi2.png)
 
 ### 3.8. Renode Build Configurations
 
@@ -347,16 +358,15 @@ Projects that support Renode include launchers whose names contain `renode`. The
 launcher uses the executable from the project's active build configuration. Before launching:
 
 1. Select or create a build configuration for Renode.
-2. Define `RENODE_DEBUG` in the project-specific `mss_sw_config.h` and set the configuration as
-   active.
+2. Set `RENODE_DEBUG` in the project-specific `mss_sw_config.h` and make the configuration active.
 3. Build the project and confirm that its `.elf` file is generated in the active build directory.
 4. Check the project README for any Renode-specific configuration or peripheral limitations.
 
 `RENODE_DEBUG` enables MPFS HAL behavior intended for emulation, including bypassing waits for
 hardware-only status changes. Keep this symbol confined to the Renode build configuration; do not
 define it in configurations used on physical hardware. Renode-related preprocessor symbols,
-including `RENODE_DEBUG` and `RENODE_SIM_DDR_TRAINING`, can be found or defined in the
-project-specific `mss_sw_config.h` file.
+including `RENODE_DEBUG` and `RENODE_SIM_DDR_TRAINING`, are configured in the project-specific
+`mss_sw_config.h` file.
 
 DDR training is unnecessary in Renode because the emulated DDR is already reliable. If DDR training
 is enabled, startup can take significantly longer. `RENODE_SIM_DDR_TRAINING` is a separate symbol
@@ -364,65 +374,62 @@ that skips the DDR training sequence while retaining DDR support. If the applica
 DDR, you can instead disable `DDR_SUPPORT` in the project-specific `mss_sw_config.h`, as described
 in [section 3.7](#37-software-configurations).
 
-## 4. Launching Project
+## 4. Launching a Project
 
 ### 4.1. Debug Launchers
 
 The following two pre-configured debug launchers are provided with each project.
 
-| Configuration                                | Description                                                                                                                                                                                                                                                                                                                   |
-| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| *\<project name> hw all-harts debug.launch*  | Intended to be used with \*-Debug configurations. Resets MSS.<br> Downloads the executable and the symbols to the memory. Sets up PC to start location.                                                                                                                                                                       |
-| *\<project name> hw all-harts attach.launch* | Intended to be used with \*-Release configurations. Does not reset MSS. <br> Loads only the symbol information and attaches to harts. Typically used to check the current state of harts. If the project is linked to RAM memory such as DDR, you will be able to set breakpoints, step, examine variables and debug further. |
+| Configuration | Description |
+| ------------- | ----------- |
+| `<project-name> hw all-harts debug.launch` | Use with `*-Debug` configurations. Resets the MSS, downloads the executable and symbols to memory, and sets the program counter to the start location. |
+| `<project-name> hw all-harts attach.launch` | Use with `*-Release` configurations. Does not reset the MSS. Loads only symbol information and attaches to the harts. For programs linked to RAM such as DDR, you can set breakpoints, step through code, examine variables, and continue debugging. |
 
 The following image shows the different debug configurations in SoftConsole:
 
-![debug-configs.png](./images/debug-configs.png)
+![SoftConsole debug configurations](./images/debug-configs.png)
 
-To open *Debug Configurations* window in SoftConsole:
-1. Click *Run* tab at the top of your SoftConsole instance.
-2. Click *Debug Configurations*.
+To open the **Debug Configurations** window in SoftConsole:
 
-Both launchers are configured to use the currently *active* build configuration. Make sure that an
-appropriate build configuration is set as *active* to avoid issues. Executing on the harts will
-not work.
+1. Select **Run** at the top of SoftConsole.
+2. Select **Debug Configurations**.
+
+Both launchers use the currently **active** build configuration. Make sure that the appropriate
+build configuration is active before launching the project.
 
 The following table shows the correspondence between program launchers and build configurations.
 
-| Program Launcher                              | Build Configuration     |
-| --------------------------------------------- | ----------------------- |
-| PolarFire SoC program idle boot mode 0        | LIM-Debug               |
+| Program Launcher                       | Build Configuration |
+| -------------------------------------- | ------------------- |
+| PolarFire SoC program idle boot mode 0 | `*-LIM-Debug`       |
 
 You may change the existing debug launchers or create your own launcher to suit your project.
 
 ### 4.2. Programming to LIM or eNVM
 
-To program the PolarFire SoC Bare Metal Examples on to your desired board using SoftConsole, the
-program launchers found in the External Tools section of SoftConsole are the way to achieve this.
-These program launchers correspond with a particular build configuration. If you try to run a
-program launcher without first running the corresponding build, the program will not be flashed
-onto the board.
+To program a PolarFire SoC bare-metal example onto your board using SoftConsole, use a program
+launcher from the **External Tools** section. Each launcher corresponds to a particular build
+configuration. Build the corresponding configuration before running the launcher; otherwise, the
+program cannot be written to the board.
 
 The following table shows the correspondence between program launchers and build configurations.
 
-| Program Launcher                              | Build Configuration     |
-| --------------------------------------------- | ----------------------- |
-| PolarFire SoC program non-secure boot mode 1  | eNVM-Scratchpad-Release |
-| PolarFire SoC program user-secure boot mode 2 | LIM-Release             |
+| Program Launcher                              | Build Configuration          |
+| --------------------------------------------- | ---------------------------- |
+| PolarFire SoC program non-secure boot mode 1  | `*-eNVM-Scratchpad-Release`  |
+| PolarFire SoC program user-secure boot mode 2 | `*-LIM-Release`              |
 
-#### 4.2.1. Configuring External Tools for Particular Boards (only for eNVM Release)
+#### 4.2.1. Configuring External Tools for Particular Boards (eNVM Release Only)
 
-The board you are using, as well as the die and package of the FPGA device on it matters when using the External
-Tools to program your device. These must be correctly specified as arguments in the External Tools
-Configurations window in SoftConsole.
+The board, FPGA die, and package must be specified correctly when using **External Tools** to program
+the device. Set them as arguments in the **External Tools Configurations** window in SoftConsole.
 
-Depending on the die and package of the FPGA device on your board, you will need to set the External Tools Arguments
-according to the following table.
+Set the **External Tools Arguments** according to the FPGA die and package shown below.
 
-|             | Icicle Kit ES (Engineering Sample) | Icicle Kit (Production Silicon) | Video Kit | Discovery Kit |
-|-------------|------------------------------------|---------------------------------|-----------|---------------|
-| **Die**     | MPFS250T_ES                        | MPFS250T                        | MPFS250T  | MPFS095T      |
-| **Package** | FCVG484                            | FCVG484                         | FCG1152   | FCSG325       |
+| Attribute | Icicle Kit ES (Engineering Sample) | Icicle Kit (Production Silicon) | Video Kit  | Discovery Kit |
+| --------- | ----------------------------------- | -------------------------------- | ---------- | ------------- |
+| Die       | `MPFS250T_ES`                       | `MPFS250T`                       | `MPFS250T` | `MPFS095T`   |
+| Package   | `FCVG484`                           | `FCVG484`                        | `FCG1152`  | `FCSG325`    |
 
 > [!NOTE]
 > The Icicle Kit ES and production boards use the same `Icicle-Kit-*` build configurations. The
@@ -436,11 +443,11 @@ The following figure shows the External Tools Configurations window, and how
 `PolarFire-SoC-Icicle-kit-ES-program non-secure boot mode 1` is configured for the Icicle Kit ES
 device.
 
-![external-tools-config.png](./images/external-tools-config.png)
+![Icicle Kit ES external tool configuration](./images/external-tools-config.png)
 
 Alternatively, the
 [`<project-root>/applications/mpfs-blank-baremetal`](./applications/mpfs-blank-baremetal) project
-provides the external tool launchers for the various Microchip PFSoC kits. Importing the
+provides the external tool launchers for the various Microchip PolarFire SoC kits. Importing the
 `<project-root>/applications/mpfs-blank-baremetal` project in your SoftConsole workspace and keeping
 it open will make these tool launchers available in the SoftConsole IDE as demonstrated below.
 
@@ -483,7 +490,7 @@ using its `*-DDR-Release` configuration, then use the resulting `.elf` file and 
 file to specify the target harts, entry points, and DDR addresses. Run the HSS Payload Generator to
 create a payload `.bin` file, then write the payload to the eMMC or SD card from which HSS boots.
 
-![elf-release.png](./images/elf-release.png)
+![DDR release ELF file in the SoftConsole Project Explorer](./images/elf-release.png)
 
 For configuration details and usage instructions, refer to the
 [HSS Payload Generator](https://mi-v-ecosystem.github.io/redirects/tool-hss-payload-generator).
@@ -512,7 +519,7 @@ project README for the exact launcher names and any project-specific instruction
 
 - For the latest releases of the MPFS HAL, peripheral device drivers and default reference platform
   configurations, refer to the [PolarFire SoC platform](https://mi-v-ecosystem.github.io/redirects/repo-platform).
-- For more details on the SoftConsole Bare metal software project folder structure, refer to the
+- For more details on the SoftConsole bare-metal software project folder structure, refer to the
   [Bare Metal Software Projects Structure](https://mi-v-ecosystem.github.io/redirects/bare-metal-project-structure_bare-metal-software-project-structure).
 - For more information on boot modes, refer to the
   [PolarFire SoC Boot Modes](https://mi-v-ecosystem.github.io/redirects/boot-modes_boot-modes-fundamentals).
