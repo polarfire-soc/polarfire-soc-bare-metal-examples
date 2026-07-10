@@ -17,10 +17,10 @@
       - [3.7.2. IMAGE\_LOADED\_BY\_BOOTLOADER](#372-image_loaded_by_bootloader)
   - [4. Launching Project](#4-launching-project)
     - [4.1. Debug Launchers](#41-debug-launchers)
-    - [4.1. Programming to LIM or eNVM](#41-programming-to-lim-or-envm)
-      - [4.1.1. Configuring External Tools for Particular Boards (only for eNVM Release)](#411-configuring-external-tools-for-particular-boards-only-for-envm-release)
-    - [4.2. Programming to DDR](#42-programming-to-ddr)
-  - [6. References](#6-references)
+    - [4.2. Programming to LIM or eNVM](#42-programming-to-lim-or-envm)
+      - [4.2.1. Configuring External Tools for Particular Boards (only for eNVM Release)](#421-configuring-external-tools-for-particular-boards-only-for-envm-release)
+    - [4.3. Programming to DDR](#43-programming-to-ddr)
+  - [5. References](#5-references)
 
 ---
 
@@ -357,7 +357,7 @@ The following table shows the correspondence between program launchers and build
 
 You may change the existing debug launchers or create your own launcher to suit your project.
 
-### 4.1. Programming to LIM or eNVM
+### 4.2. Programming to LIM or eNVM
 
 To program the PolarFire SoC Bare Metal Examples on to your desired board using SoftConsole, the
 program launchers found in the External Tools section of SoftConsole are the way to achieve this.
@@ -372,7 +372,7 @@ The following table shows the correspondence between program launchers and build
 | PolarFire SoC program non-secure boot mode 1  | eNVM-Scratchpad-Release |
 | PolarFire SoC program user-secure boot mode 2 | LIM-Release             |
 
-#### 4.1.1. Configuring External Tools for Particular Boards (only for eNVM Release)
+#### 4.2.1. Configuring External Tools for Particular Boards (only for eNVM Release)
 
 The board you are using, as well as the die and package of the FPGA device on it matters when using the External
 Tools to program your device. These must be correctly specified as arguments in the External Tools
@@ -396,7 +396,7 @@ Alternatively, the `/applications/mpfs-blank-baremetal` project provides the ext
 
 ![Importing mpfs-blank-baremetal to access the external launcher tools](./images/external-tools.gif)
 
-## 4.2. Programming to DDR
+### 4.3. Programming to DDR
 
 To program the PolarFire SoC Bare Metal Examples to the DDR of your desired board. You will first
 have to execute a DDR-Release build for your project. You will then have to use the .elf file(s)
@@ -409,7 +409,7 @@ onto your device.
 
 Please click for information on the [HSS Payload Generator](https://github.com/polarfire-soc/hart-software-services/tree/master/tools/hss-payload-generator)
 
-## 6. References
+## 5. References
 
 - For the latest releases of the MPFS HAL, peripheral device drivers and default reference platform
   configurations, refer to the [PolarFire SoC platform](https://mi-v-ecosystem.github.io/redirects/repo-platform).
