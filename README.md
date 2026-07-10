@@ -13,8 +13,8 @@
       - [3.6.1. Locating the Hardware Configurations](#361-locating-the-hardware-configurations)
       - [3.6.2. Customizing Project with Custom Libro Design](#362-customizing-project-with-custom-libro-design)
     - [3.7. Software Configurations](#37-software-configurations)
-      - [3.7.1. MPFS\_HAL\_FIRST\_HART and MPFS\_HAL\_LAST\_HART](#371-mpfs_hal_first_hart-and-mpfs_hal_last_hart)
-      - [3.7.2. IMAGE\_LOADED\_BY\_BOOTLOADER](#372-image_loaded_by_bootloader)
+      - [3.7.1. `MPFS_HAL_FIRST_HART` and `MPFS_HAL_LAST_HART`](#371-mpfs_hal_first_hart-and-mpfs_hal_last_hart)
+      - [3.7.2. `IMAGE_LOADED_BY_BOOTLOADER`](#372-image_loaded_by_bootloader)
   - [4. Launching Project](#4-launching-project)
     - [4.1. Debug Launchers](#41-debug-launchers)
     - [4.2. Programming to LIM or eNVM](#42-programming-to-lim-or-envm)
@@ -313,15 +313,15 @@ shown in the figure below.
 
 ![confgi1.png](./images/confgi1.png)
 
-#### 3.7.2. IMAGE_LOADED_BY_BOOTLOADER
+#### 3.7.2. `IMAGE_LOADED_BY_BOOTLOADER`
 
-One of the important software configurations is the IMAGE_LOADED_BY_BOOTLOADER in the
-mss_sw_config.h file. We set IMAGE_LOADED_BY_BOOTLOADER = 0 when no previous stage bootloader
+One of the important software configurations is `IMAGE_LOADED_BY_BOOTLOADER` in the
+`mss_sw_config.h` file. We set `IMAGE_LOADED_BY_BOOTLOADER = 0` when no previous stage bootloader
 is used. For example, when an application stored in eNVM starts running after reset.
 
-Set IMAGE_LOADED_BY_BOOTLOADER = 1 when the application's executable image is loaded by a previous
+Set `IMAGE_LOADED_BY_BOOTLOADER = 1` when the application's executable image is loaded by a previous
 stage bootloader. The DDR-Release is one such configuration which uses this setting. The
-modified mss_sw_config.h can be found under the *\<project-root>/src/boards/\<icicle-kit>
+modified `mss_sw_config.h` can be found under the *\<project-root>/src/boards/\<icicle-kit>
 /**platform_config folder (Fig. 1(e))***.
 
 ![confgi2.png](./images/confgi2.png)
