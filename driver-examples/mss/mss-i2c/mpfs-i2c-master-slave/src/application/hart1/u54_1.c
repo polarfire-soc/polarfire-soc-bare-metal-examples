@@ -290,24 +290,24 @@ void u54_1(void)
                     MSS_UART_polled_tx_string(
                             g_uart,
                             (const uint8_t *)"\n\rMR-ST Mode is Selected\n\r");
-				/* Clear RX buffer before reading */
-					memset(g_master_rx_buf, 0, BUFFER_SIZE);
+                /* Clear RX buffer before reading */
+                    memset(g_master_rx_buf, 0, BUFFER_SIZE);
 
-					/* Read only valid length */
-					if (g_tx_length > 0)
-					{
+                    /* Read only valid length */
+                    if (g_tx_length > 0)
+                    {
 
-					    instance = do_read_transaction(
-					            SLAVE_SER_ADDR,
-					            g_master_rx_buf,
-					            g_tx_length);
-					}
-					else
-					{
-					    MSS_UART_polled_tx_string(g_uart,
-					            (const uint8_t *)"Skip MR-ST: No data available\n\r");
-					    instance = MSS_I2C_SUCCESS;
-					}
+                        instance = do_read_transaction(
+                                SLAVE_SER_ADDR,
+                                g_master_rx_buf,
+                                g_tx_length);
+                    }
+                    else
+                    {
+                        MSS_UART_polled_tx_string(g_uart,
+                                (const uint8_t *)"Skip MR-ST: No data available\n\r");
+                        instance = MSS_I2C_SUCCESS;
+                    }
 
 
                     if (MSS_I2C_SUCCESS == instance)
@@ -327,7 +327,7 @@ void u54_1(void)
                                     MSS_UART_polled_tx_string(g_uart,
                                             (const uint8_t *)"No data to read (0-byte transfer)\n\r");
                                 }
-					
+                    
                         MSS_UART_polled_tx_string(g_uart,
                                 (const uint8_t*)
                                 "\n\r-----------------------------------------"
@@ -763,8 +763,7 @@ uint8_t get_data ()
             g_uart,
             (const uint8_t*)
             "\n\rEnter up to 32 characters to write to I2C1: ");
-			
-/* Clear TX buffer before reading RX buffer to avoid unwanted data */
+    /*Clear TX buffer before reading RX buffer to avoid unwanted data */
     memset(g_master_tx_buf, 0, BUFFER_SIZE);
     count = 0;
     while (!complete)
@@ -824,5 +823,5 @@ void SysTick_Handler_h1_IRQHandler(void)
 void Software_h1_IRQHandler(void)
 {
     uint64_t hart_id = read_csr(mhartid);
-	count_sw_ints_h1++;
+    count_sw_ints_h1++;
 }
