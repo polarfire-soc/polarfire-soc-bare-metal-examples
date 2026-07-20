@@ -75,7 +75,6 @@ DSTATUS mmc_di_if_init(void)
             Stat = false;
         }
     }
-
     status = (MSS_MMC_INIT_SUCCESS == ret_status) ? 0 : STA_NOINIT;
     return status;
 }
@@ -92,21 +91,21 @@ DRESULT mmc_di_if_write(const BYTE *buff, DWORD sector, BYTE count)
         mmc_main_plic_IRQHandler();
         mmc_status = MSS_MMC_get_transfer_status();
     } while (MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status);
-
     /* Write to physical memory */
     mmc_status = MSS_MMC_adma2_write(buff, sector, (count * 512));
-
-    /* Check status */
-    if (MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status)
+   uint32_t  timeout = 0xFFFFFFu;
+    do
     {
-        do
-        {
-            mmc_main_plic_IRQHandler();
-            mmc_status = MSS_MMC_get_transfer_status();
-        } while (MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status);
+       mmc_main_plic_IRQHandler();
+       mmc_status = MSS_MMC_get_transfer_status();
+    } while ((MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status) || (--timeout == 0u));
+    if (0u == timeout)
+    {
+       mmc_reset_block();
+       g_mmc_initialized = false;   /* Force full re-init on next call */
+       return RES_ERROR;
     }
-
-    status = (MSS_MMC_TRANSFER_SUCCESS == mmc_status) ? RES_ERROR : RES_OK;
+    status = (MSS_MMC_TRANSFER_SUCCESS != mmc_status) ? RES_ERROR : RES_OK;
     return status;
 }
 
@@ -125,17 +124,18 @@ DRESULT mmc_di_if_read(DWORD sector, BYTE *buff, BYTE count)
 
     /* Read physical memory */
     mmc_status = MSS_MMC_adma2_read(sector, buff, (count * 512));
-
-    /* Check status */
-    if (MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status)
+    uint32_t timeout = 0xFFFFFFu;
+    do
     {
-        do
-        {
-            mmc_main_plic_IRQHandler();
-            mmc_status = MSS_MMC_get_transfer_status();
-        } while (MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status);
+       mmc_main_plic_IRQHandler();
+       mmc_status = MSS_MMC_get_transfer_status();
+    } while ((MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status) || (--timeout == 0u));
+    if (0u == timeout)
+    {
+       mmc_reset_block();
+       g_mmc_initialized = false;   /* Force full re-init on next call */
+       return RES_ERROR;
     }
-
     status = (MSS_MMC_TRANSFER_SUCCESS != mmc_status) ? RES_ERROR : RES_OK;
     return status;
 }

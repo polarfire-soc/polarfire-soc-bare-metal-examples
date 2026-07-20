@@ -111,7 +111,7 @@ DRESULT disk_write(BYTE pdrv,        /* Physical drive number (0..) */
 
 #ifdef PHY_DRIV_MMC
 
-        write_result = mmc_di_if_write(buff, sector, (count * 512));
+        write_result = mmc_di_if_write(buff, sector, (count));
 
 #endif
 
