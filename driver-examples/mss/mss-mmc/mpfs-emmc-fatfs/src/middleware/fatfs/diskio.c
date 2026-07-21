@@ -9,13 +9,11 @@
 #include <stdint.h>
 
 #if defined(PHY_DRIV_MMC) && defined(PHY_DRIV_USB)
-#error "please define single physical memory drive either PHY_DRIV_MMC \
-or PHY_DRIV_USB in discio.h file."
+#error "please define single physical memory drive either PHY_DRIV_MMC or PHY_DRIV_USB in discio.h file."
 #endif
 
 #if !defined(PHY_DRIV_MMC) && !defined(PHY_DRIV_USB)
-#error "please define a physical memory drive either PHY_DRIV_MMC \
-or PHY_DRIV_USB in discio.h file."
+#error "please define a physical memory drive either PHY_DRIV_MMC or PHY_DRIV_USB in discio.h file."
 #endif
 
 #ifdef PHY_DRIV_MMC

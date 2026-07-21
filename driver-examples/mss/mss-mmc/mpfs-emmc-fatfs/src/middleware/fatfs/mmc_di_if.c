@@ -18,6 +18,8 @@
 
 #ifdef PHY_DRIV_MMC
 /*-------------------------- Local variable section --------------------------*/
+#define MMC_TRANSFER_TIMEOUT_COUNT  0xFFFFFFu
+
 static uint8_t g_mmc_initialized = false;
 
 /*------------------------ Local function declaration section ----------------*/
@@ -84,27 +86,33 @@ DRESULT mmc_di_if_write(const BYTE *buff, DWORD sector, BYTE count)
 {
     DRESULT status = RES_ERROR;
     mss_mmc_status_t mmc_status = MSS_MMC_TRANSFER_FAIL;
+    uint32_t timeout = MMC_TRANSFER_TIMEOUT_COUNT;
 
-    /* Check status */
+    /* Wait for any previous transfer to complete */
     do
     {
         mmc_main_plic_IRQHandler();
         mmc_status = MSS_MMC_get_transfer_status();
     } while (MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status);
+
     /* Write to physical memory */
     mmc_status = MSS_MMC_adma2_write(buff, sector, (count * 512));
-   uint32_t  timeout = 0xFFFFFFu;
+
+    /* Poll for write completion with timeout */
+    timeout = MMC_TRANSFER_TIMEOUT_COUNT;
     do
     {
-       mmc_main_plic_IRQHandler();
-       mmc_status = MSS_MMC_get_transfer_status();
+        mmc_main_plic_IRQHandler();
+        mmc_status = MSS_MMC_get_transfer_status();
     } while ((MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status) || (--timeout == 0u));
+
     if (0u == timeout)
     {
-       mmc_reset_block();
-       g_mmc_initialized = false;   /* Force full re-init on next call */
-       return RES_ERROR;
+        mmc_reset_block();
+        g_mmc_initialized = false;   /* Force full re-init on next call */
+        return RES_ERROR;
     }
+
     status = (MSS_MMC_TRANSFER_SUCCESS != mmc_status) ? RES_ERROR : RES_OK;
     return status;
 }
@@ -112,10 +120,11 @@ DRESULT mmc_di_if_write(const BYTE *buff, DWORD sector, BYTE count)
 /* MMC Read function */
 DRESULT mmc_di_if_read(DWORD sector, BYTE *buff, BYTE count)
 {
-
     DRESULT status = RES_ERROR;
     mss_mmc_status_t mmc_status = MSS_MMC_TRANSFER_FAIL;
-    /* Check status */
+    uint32_t timeout = MMC_TRANSFER_TIMEOUT_COUNT;
+
+    /* Wait for any previous transfer to complete */
     do
     {
         mmc_main_plic_IRQHandler();
@@ -124,18 +133,22 @@ DRESULT mmc_di_if_read(DWORD sector, BYTE *buff, BYTE count)
 
     /* Read physical memory */
     mmc_status = MSS_MMC_adma2_read(sector, buff, (count * 512));
-    uint32_t timeout = 0xFFFFFFu;
+
+    /* Poll for read completion with timeout */
+    timeout = MMC_TRANSFER_TIMEOUT_COUNT;
     do
     {
-       mmc_main_plic_IRQHandler();
-       mmc_status = MSS_MMC_get_transfer_status();
+        mmc_main_plic_IRQHandler();
+        mmc_status = MSS_MMC_get_transfer_status();
     } while ((MSS_MMC_TRANSFER_IN_PROGRESS == mmc_status) || (--timeout == 0u));
+
     if (0u == timeout)
     {
-       mmc_reset_block();
-       g_mmc_initialized = false;   /* Force full re-init on next call */
-       return RES_ERROR;
+        mmc_reset_block();
+        g_mmc_initialized = false;   /* Force full re-init on next call */
+        return RES_ERROR;
     }
+
     status = (MSS_MMC_TRANSFER_SUCCESS != mmc_status) ? RES_ERROR : RES_OK;
     return status;
 }
