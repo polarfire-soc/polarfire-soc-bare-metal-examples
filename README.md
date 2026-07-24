@@ -320,7 +320,10 @@ To open the **Properties** window in SoftConsole:
 
 #### 3.7.1. `MPFS_HAL_FIRST_HART` and `MPFS_HAL_LAST_HART`
 
-These defines are used to select the number of harts your application will use.
+These defines select the inclusive range of hart IDs that the MPFS HAL starts for an application.
+`MPFS_HAL_FIRST_HART` identifies the first hart in the range and
+`MPFS_HAL_LAST_HART` identifies the last. Both values must be from 0 through 4, and the first value
+must not be greater than the last value.
 
 | Hart Name | Hart Number |
 | --------- | ----------: |
@@ -330,12 +333,21 @@ These defines are used to select the number of harts your application will use.
 | `U54_3`   |           3 |
 | `U54_4`   |           4 |
 
-A typical use case is developing bootloader software that executes on the E51 from eNVM, copies an
-application executable to DDR, and wakes only `U54_1` to execute the application. In this case, the
-bootloader project sets `MPFS_HAL_FIRST_HART = 0` and `MPFS_HAL_LAST_HART = 1`.
+The first selected hart performs the common system initialization. It then releases the other harts
+in the selected range, in ascending hart-ID order. Harts outside the range remain in a
+wait-for-interrupt (`WFI`) loop unless other software starts them. Because the range is contiguous,
+selecting harts 1 and 3 also selects hart 2.
 
-The application running on `U54_1` sets `MPFS_HAL_FIRST_HART = 1` and
-`MPFS_HAL_LAST_HART = 1`, as shown in the figure below.
+For example, consider a bootloader stored in eNVM that runs on the E51, copies a second application
+to DDR, and starts that application on `U54_1`:
+
+1. The bootloader project sets `MPFS_HAL_FIRST_HART = 0` and `MPFS_HAL_LAST_HART = 1`. The E51
+   (hart 0) performs system initialization and then releases `U54_1` (hart 1).
+2. The DDR application is built separately with `MPFS_HAL_FIRST_HART = 1` and
+   `MPFS_HAL_LAST_HART = 1`. For this image, `U54_1` is both the first and last selected hart, so
+   the application runs only on `U54_1`.
+
+The figure below shows the settings for the DDR application.
 
 ![First and last hart settings in SoftConsole](./images/confgi1.png)
 
