@@ -2,3 +2,4 @@
 /src/boards/*/fpga_design_config/**
 /*-Debug/
 /*-Release//LIM-Debug/
+/LIM-Debug/

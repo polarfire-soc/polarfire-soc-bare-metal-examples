@@ -591,9 +591,6 @@
 		<scannerConfigBuildInfo instanceId="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1108727901;ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1108727901.;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.291789809;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.2087733837">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1108727901.797710902;ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.1108727901.797710902.;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.395700447;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.1395176444">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297;ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.190460338;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.1726880214">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>

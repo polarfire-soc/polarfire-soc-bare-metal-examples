@@ -2,6 +2,7 @@
 /src/boards/*/fpga_design_config/**
 /*-Debug/
 /*-Release//DDR-Release/
+/DDR-Release/
 /DDR-Release-BeagleV-Fire/
 /DDR-Release-Icicle-Kit/
 /Debug-Discovery-Kit/

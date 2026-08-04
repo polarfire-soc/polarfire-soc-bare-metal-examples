@@ -2,6 +2,7 @@
 /src/boards/*/fpga_design_config/**
 /*-Debug/
 /*-Release//*-Release//Debug/
+/Debug/
 /Debug - BeagleV-Fire/
 /Debug-BeagleV-Fire/
 /Debug - Icicle Kit/

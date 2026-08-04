@@ -500,15 +500,6 @@ static void init_global_constructors(void)
 static void park_hart(void)
 {
     clear_csr(mstatus, MSTATUS_MIE);
-
-    {
-        uint64_t dummy;
-        while(1)
-        {
-            dummy++;
-        }
-
-    }
     __asm volatile("fence.i");
     __asm volatile("li ra,0x20003120");
     __asm volatile("ret");
