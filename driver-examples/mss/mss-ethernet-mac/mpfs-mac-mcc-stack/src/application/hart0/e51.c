@@ -139,6 +139,12 @@ extern uint16_t RTL_MSS_SGMII_reg[17];
 void dump_rtl_regs(const mss_mac_instance_t *this_mac);
 #endif
 
+#if MSS_MAC_USE_PHY_VSC8221
+extern uint16_t VSC8221_reg_0[32];
+extern uint16_t VSC8221_reg_1[16];
+void dump_vsc8221_regs(mss_mac_instance_t *this_mac);
+#endif
+
 /*
  * Align these on an 8 byte boundary as we might be using IEEE 1588 time
  * stamping and that uses b2 of the buffer pointer to indicate that a timestamp
@@ -558,7 +564,7 @@ low_level_init(void)
     g_mac_config.mac_addr[2] = 0x00;
     g_mac_config.mac_addr[3] = 0x12;
     g_mac_config.mac_addr[4] = 0x34;
-#if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
     g_mac_config.mac_addr[5] = 0x58; /* In case there is also an Icicle Kit out there... */
 #else
     g_mac_config.mac_addr[5] = 0x56;
@@ -840,6 +846,7 @@ low_level_init(void)
 #endif
 
 #if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ALOE
+
     g_mac_config.phy_addr = PHY_VSC8541_MDIO_ADDR;
     g_mac_config.phy_type = MSS_MAC_DEV_PHY_VSC8541;
     g_mac_config.pcs_phy_addr = SGMII_MDIO_ADDR;
@@ -855,6 +862,26 @@ low_level_init(void)
 #endif
 
     g_test_mac = &g_mac0;
+#endif
+
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+    g_test_mac = &g_mac0;
+    g_mac_config.phy_addr = PHY_VSC8221_MDIO_ADDR;
+    g_mac_config.phy_type = MSS_MAC_DEV_PHY_VSC8221;
+    g_mac_config.phy_flags = PHY_VSC8221_EEPROM_INIT;
+    g_mac_config.pcs_phy_addr = SGMII_MDIO_ADDR;
+    g_mac_config.interface_type = TBI;
+    g_mac_config.phy_autonegotiate = MSS_MAC_VSC8221_phy_autonegotiate;
+    g_mac_config.phy_mac_autonegotiate = MSS_MAC_VSC8221_mac_autonegotiate;
+    g_mac_config.phy_get_link_status = MSS_MAC_VSC8221_phy_get_link_status;
+    g_mac_config.phy_init = MSS_MAC_VSC8221_phy_init;
+    g_mac_config.phy_set_link_speed = MSS_MAC_VSC8221_phy_set_link_speed;
+
+#if MSS_MAC_USE_PHY_DP83867
+    g_mac_config.phy_extended_read = NULL_mmd_read_extended_regs;
+    g_mac_config.phy_extended_write = NULL_mmd_write_extended_regs;
+#endif
+
 #endif
 
     if (g_test_mac == &g_mac1) /* Change MAC to avoid confusing Ethernet switch */
@@ -1228,6 +1255,12 @@ stats_dump(void)
         {
             dump_rtl_regs(g_test_mac);
         }
+
+        if (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)
+        {
+            dump_vsc8221_regs(g_test_mac);
+        }
+
 #endif
     }
 

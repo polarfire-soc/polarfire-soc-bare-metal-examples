@@ -21,12 +21,16 @@
 #include <stdio.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"
-#if ((MPFS_HAL_FIRST_HART == 1) && (MPFS_HAL_LAST_HART == 1))
+#if ((MPFS_HAL_FIRST_HART == 1) && (MPFS_HAL_LAST_HART == 1)) || ((MPFS_HAL_FIRST_HART == 0) && (MPFS_HAL_LAST_HART == 1))
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 #include "inc/common.h"
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
 
 volatile uint32_t count_sw_ints_h1 = 0U;
+
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+extern uint64_t wait_flag;
+#endif
 
 /* Main function for the hart1(U54_1 processor).
  * Application code running on hart1 is placed here
@@ -37,10 +41,21 @@ volatile uint32_t count_sw_ints_h1 = 0U;
 void
 u54_1(void)
 {
+    int dummy;
+
     volatile uint32_t icount = 0U;
 
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+    /* Wait for U51 to finish all start up code */
+    while(wait_flag != 0x987654321UL)
+    {
+        dummy++;
+    }
+#endif
+
 #if ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || \
-     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
+     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || \
+    (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0))
 
     /*
      * Enable mac local interrupts to hart 1, U54 1

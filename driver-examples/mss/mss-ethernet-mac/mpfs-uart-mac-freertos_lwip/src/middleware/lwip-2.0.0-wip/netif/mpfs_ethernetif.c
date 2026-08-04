@@ -206,6 +206,8 @@ low_level_init(struct netif *netif)
     netif->hwaddr[4] = 0x34;
 #if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0
     netif->hwaddr[5] = 0x58;
+#elif MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0
+    netif->hwaddr[5] = 0x59;
 #else
     netif->hwaddr[5] = 0x56;
 #endif
@@ -433,6 +435,26 @@ low_level_init(struct netif *netif)
     g_mac_config.use_local_ints        = MSS_MAC_ENABLE;
 
 #endif
+
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+    g_mac_config.phy_addr = PHY_VSC8221_MDIO_ADDR;
+    g_mac_config.phy_type = MSS_MAC_DEV_PHY_VSC8221;
+    g_mac_config.phy_flags = PHY_VSC8221_EEPROM_INIT;
+    g_mac_config.pcs_phy_addr = SGMII_MDIO_ADDR;
+    g_mac_config.interface_type = TBI;
+    g_mac_config.phy_autonegotiate = MSS_MAC_VSC8221_phy_autonegotiate;
+    g_mac_config.phy_mac_autonegotiate = MSS_MAC_VSC8221_mac_autonegotiate;
+    g_mac_config.phy_get_link_status = MSS_MAC_VSC8221_phy_get_link_status;
+    g_mac_config.phy_init = MSS_MAC_VSC8221_phy_init;
+    g_mac_config.phy_set_link_speed = MSS_MAC_VSC8221_phy_set_link_speed;
+#if MSS_MAC_USE_PHY_DP83867
+    g_mac_config.phy_extended_read = NULL_mmd_read_extended_regs;
+    g_mac_config.phy_extended_write = NULL_mmd_write_extended_regs;
+#endif
+
+    g_mac_config.use_local_ints        = MSS_MAC_ENABLE;
+#endif
+
     vSemaphoreCreateBinary(xSemaphore);
 
     if( xSemaphore == NULL )
@@ -503,7 +525,7 @@ low_level_init(struct netif *netif)
      * receive buffers by indicating when a transmit buffer can be released or
      * a receive buffer has been filled with an rx packet.
      */
-#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
+#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0))
     MSS_MAC_set_tx_callback(&g_mac0, 0, packet_tx_complete_handler);
     MSS_MAC_set_rx_callback(&g_mac0, 0, mac_rx_callback);
 #else
@@ -528,7 +550,7 @@ low_level_init(struct netif *netif)
          */
         if(count != (RX_BUFFER_COUNT - 1))
         {
-#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
+#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0))
             MSS_MAC_receive_pkt(&g_mac0, 0, g_mac_rx_buffer[count], 0, 0);
 #else
             MSS_MAC_receive_pkt(&g_mac1, 0, g_mac_rx_buffer[count], 0, 0);
@@ -536,7 +558,7 @@ low_level_init(struct netif *netif)
         }
         else
         {
-#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
+#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0))
             MSS_MAC_receive_pkt(&g_mac0, 0, g_mac_rx_buffer[count], 0, -1);
 #else
             MSS_MAC_receive_pkt(&g_mac1, 0, g_mac_rx_buffer[count], 0, -1);
@@ -608,7 +630,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
         	tx_status = MSS_MAC_send_pkt((mss_mac_instance_t *)0xC0000000LLU, (void *)0xC0030000LLU, pckt_length, (void *)&g_mac_tx_buffer_used[0]);
 
 #else
-#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
+#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0))
         	tx_status = MSS_MAC_send_pkt(&g_mac0, 0, g_mac_tx_buffer[0], pckt_length, (void *)&g_mac_tx_buffer_used[0]);
 #else
         	tx_status = MSS_MAC_send_pkt(&g_mac1, 0, g_mac_tx_buffer[0], pckt_length, (void *)&g_mac_tx_buffer_used[0]);
@@ -779,7 +801,7 @@ low_level_input
                 length += q->len;
             }
             /* Reassign packet buffer for reception once we have copied it */
-#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
+#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0))
             MSS_MAC_receive_pkt(&g_mac0, 0, p_rx_packet, 0, 1);
 #else
             MSS_MAC_receive_pkt(&g_mac1, 0, p_rx_packet, 0, 1);
@@ -804,7 +826,7 @@ low_level_input
              *  Silently drop current packet and reassign packet buffer for
              *  reception
              */
-#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
+#if defined(G5_SOC_EMU_USE_GEM0) && ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0))
             MSS_MAC_receive_pkt(&g_mac0, 0, p_rx_packet, 0, 1);
 #else
             MSS_MAC_receive_pkt(&g_mac1, 0, p_rx_packet, 0, 1);

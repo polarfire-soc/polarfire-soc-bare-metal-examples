@@ -46,7 +46,9 @@
 #include "drivers/mss/mss_ethernet_mac/phy.h"
 #include "drivers/mss/mss_gpio/mss_gpio.h"
 #include "inc/common.h"
-
+#define TARGET_DISCOVERY_KIT
+#define TARGET_G5_SOC
+#define MSS_MAC_USE_PHY_VSC8221 1
 #if defined(MSS_MAC_USE_DDR) && (MSS_MAC_USE_DDR == MSS_MAC_MEM_CRYPTO)
 /*
  * The crypto libraries have been removed from the example projects as they are
@@ -59,6 +61,9 @@
 
 #if defined(TARGET_ALOE)
 #define PRINT_STRING(x) MSS_FU540_UART_polled_tx(&g_mss_FU540_uart0, x, strlen(x));
+#elif defined(TARGET_DISCOVERY_KIT)
+#define DEMO_UART       &g_mss_uart1_lo
+#define PRINT_STRING(x) MSS_UART_polled_tx_string(DEMO_UART, (uint8_t *)x);
 #else
 #define DEMO_UART       &g_mss_uart0_lo
 #define PRINT_STRING(x) MSS_UART_polled_tx_string(DEMO_UART, (uint8_t *)x);
@@ -112,6 +117,13 @@ extern uint16_t RTL_reg_1[16];
 extern uint16_t RTL_reg_2[6];
 extern uint16_t RTL_MSS_SGMII_reg[17];
 void dump_rtl_regs(const mss_mac_instance_t *this_mac);
+#endif
+
+
+#if MSS_MAC_USE_PHY_VSC8221
+extern uint16_t VSC8221_reg_0[32];
+extern uint16_t VSC8221_reg_1[16];
+void dump_vsc8221_regs(mss_mac_instance_t *this_mac);
 #endif
 
 /*
@@ -685,9 +697,31 @@ low_level_init(void)
     g_mac_config.mac_addr[2] = 0x00;
     g_mac_config.mac_addr[3] = 0x12;
     g_mac_config.mac_addr[4] = 0x34;
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+    g_mac_config.mac_addr[5] = 0x58;
+   #else
     g_mac_config.mac_addr[5] = 0x56;
+#endif
+
 
     g_mac_config.tsu_clock_select = 1U;
+
+#if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0
+    g_test_mac = &g_mac0;
+    g_mac_config.phy_addr = PHY_RTL8211_MDIO_ADDR;
+    g_mac_config.phy_type = MSS_MAC_DEV_PHY_RTL8211;
+    g_mac_config.pcs_phy_addr = SGMII_MDIO_ADDR;
+    g_mac_config.interface_type = TBI;
+    g_mac_config.phy_autonegotiate = MSS_MAC_RTL8211_phy_autonegotiate;
+    g_mac_config.phy_mac_autonegotiate = MSS_MAC_RTL8211_mac_autonegotiate;
+    g_mac_config.phy_get_link_status = MSS_MAC_RTL8211_phy_get_link_status;
+    g_mac_config.phy_init = MSS_MAC_RTL8211_phy_init;
+    g_mac_config.phy_set_link_speed = MSS_MAC_RTL8211_phy_set_link_speed;
+    g_mac_config.phy_extended_read = mmd_read_extended_regs;
+    g_mac_config.phy_extended_write = mmd_write_extended_regs;
+
+#endif
+
 
 #if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_SVG_GMII_GEM0
 
@@ -714,7 +748,7 @@ low_level_init(void)
 
     g_test_mac = &g_mac0;
 #endif
-
+//
 #if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_SVG_GMII_GEM1
 
     /*
@@ -740,23 +774,9 @@ low_level_init(void)
 
     g_test_mac = &g_mac1;
 #endif
+//
 
-#if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0
-    g_test_mac = &g_mac0;
-    g_mac_config.phy_addr = PHY_RTL8211_MDIO_ADDR;
-    g_mac_config.phy_type = MSS_MAC_DEV_PHY_RTL8211;
-    g_mac_config.pcs_phy_addr = SGMII_MDIO_ADDR;
-    g_mac_config.interface_type = TBI;
-    g_mac_config.phy_autonegotiate = MSS_MAC_RTL8211_phy_autonegotiate;
-    g_mac_config.phy_mac_autonegotiate = MSS_MAC_RTL8211_mac_autonegotiate;
-    g_mac_config.phy_get_link_status = MSS_MAC_RTL8211_phy_get_link_status;
-    g_mac_config.phy_init = MSS_MAC_RTL8211_phy_init;
-    g_mac_config.phy_set_link_speed = MSS_MAC_RTL8211_phy_set_link_speed;
-    g_mac_config.phy_extended_read = mmd_read_extended_regs;
-    g_mac_config.phy_extended_write = mmd_write_extended_regs;
-
-#endif
-
+//
 #if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM1) || \
     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || \
     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM1) || \
@@ -767,6 +787,7 @@ low_level_init(void)
 #if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || \
     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0)
     g_test_mac = &g_mac0;
+
 #else
     g_test_mac = &g_mac1;
 #endif
@@ -790,6 +811,31 @@ low_level_init(void)
 #endif
 
 #endif
+
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+    g_test_mac = &g_mac0;
+    g_mac_config.phy_addr = PHY_VSC8221_MDIO_ADDR;
+    g_mac_config.phy_type = MSS_MAC_DEV_PHY_VSC8221;
+    g_mac_config.phy_flags = PHY_VSC8221_EEPROM_INIT;
+    g_mac_config.pcs_phy_addr = SGMII_MDIO_ADDR;
+    g_mac_config.interface_type = TBI;
+    g_mac_config.phy_autonegotiate = MSS_MAC_VSC8221_phy_autonegotiate;
+    g_mac_config.phy_mac_autonegotiate = MSS_MAC_VSC8221_mac_autonegotiate;
+    g_mac_config.phy_get_link_status = MSS_MAC_VSC8221_phy_get_link_status;
+    g_mac_config.phy_init = MSS_MAC_VSC8221_phy_init;
+    g_mac_config.phy_set_link_speed = MSS_MAC_VSC8221_phy_set_link_speed;
+
+#if MSS_MAC_USE_PHY_DP83867
+    g_mac_config.phy_extended_read = NULL_mmd_read_extended_regs;
+    g_mac_config.phy_extended_write = NULL_mmd_write_extended_regs;
+#endif
+
+#endif
+
+
+
+
+
 
 #if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_SVG_SGMII_GEM0
 
@@ -1198,6 +1244,38 @@ print_help(void)
         MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
     }
 
+    if (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)
+    {
+        /* Select extended registers page */
+        MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0001U);
+
+        phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 17);
+        drive = (phy_reg & 0x001CU) >> 2;
+
+        /* Select standard registers page */
+        MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
+
+        phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1);
+        if (phy_reg & (1 << 3)) {
+            loopback = 4;
+        }
+        else {
+            phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR);
+            if (phy_reg & (1 << 14)) {
+                loopback = 5;
+            }
+            else {
+                phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2);
+                if (phy_reg & (1 << 0)) {
+                    loopback = 6;
+                }
+                else {
+                    loopback = 0;
+                }
+            }
+        }
+    }
+
     if (g_test_mac == &g_mac0)
     {
         reg_ptr = &CFG_DDR_SGMII_PHY->CH0_CNTL.CH0_CNTL;
@@ -1212,7 +1290,7 @@ print_help(void)
 
     sprintf(info_string, "a - Initiate a PHY Media autonegotiation cycle\n\r");
     PRINT_STRING(info_string);
-    if (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type)
+    if ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type))
     {
         sprintf(info_string, "A - Initiate a PHY SGMII autonegotiation cycle\n\r");
         PRINT_STRING(info_string);
@@ -1230,7 +1308,7 @@ print_help(void)
     PRINT_STRING(info_string);
     sprintf(info_string, "c - Capture and dump next packet\n\r");
     PRINT_STRING(info_string);
-    if (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type)
+    if ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type))
     {
         sprintf(info_string, "C - Reset SGMII CDR\n\r");
         PRINT_STRING(info_string);
@@ -1251,8 +1329,11 @@ print_help(void)
     PRINT_STRING(info_string);
     sprintf(info_string, "f - Display system clock frequencies\n\r");
     PRINT_STRING(info_string);
+    if (MSS_MAC_DEV_PHY_VSC8221 != g_test_mac->phy_type)
+    {
     sprintf(info_string, "g - Display MSS GPIO 2 input values\n\r");
     PRINT_STRING(info_string);
+    }
 #endif
     sprintf(info_string, "h - Display this help information\n\r");
     PRINT_STRING(info_string);
@@ -1271,23 +1352,25 @@ print_help(void)
             "l - Toggle SW Loopback mode ---------------(%s)\n\r",
             g_loopback ? "enabled" : "disabled");
     PRINT_STRING(info_string);
-    if (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type)
+    if ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type))
     {
         sprintf(info_string,
                 "L - Toggle SGMII Link Status display mode--(%s)\n\r",
                 g_link_status ? "enabled" : "disabled");
         PRINT_STRING(info_string);
     }
-
+    if (MSS_MAC_DEV_PHY_VSC8221 != g_test_mac->phy_type)
+    {
     sprintf(info_string, "m - TX scan - halt on AMBA error\n\r");
     PRINT_STRING(info_string);
     sprintf(info_string, "M - TX scan - halt on no AMBA error\n\r");
     PRINT_STRING(info_string);
+    }
     sprintf(info_string,
             "n - Toggle TX response length adjust mode -(%s)\n\r",
             g_tx_add_1 ? "enabled" : "disabled");
     PRINT_STRING(info_string);
-    if (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type)
+    if ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type))
     {
         sprintf(info_string,
                 "o - Cycle through TX ODT settings ---------(%d)\n\r",
@@ -1327,6 +1410,30 @@ print_help(void)
             PRINT_STRING("Recovered clock transmission mode)\n\r");
         }
     }
+    if (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)
+    {
+        PRINT_STRING("P - Select PHY SGMII Loopback mode --------(");
+        if (0 == loopback)
+        {
+            PRINT_STRING("Disabled)\n\r");
+        }
+        else if (4 == loopback)
+        {
+            PRINT_STRING("Far-End loopback)\n\r");
+        }
+        else if (5 == loopback)
+        {
+            PRINT_STRING("Near-End loopback)\n\r");
+        }
+        else if (6 == loopback)
+        {
+            PRINT_STRING("Connector loopback)\n\r");
+        }
+        else if (7 == loopback)
+        {
+            PRINT_STRING("Recovered clock transmission mode)\n\r");
+        }
+    }
     sprintf(info_string, "q - Enter user mode loopback test\n\r");
     PRINT_STRING(info_string);
     sprintf(info_string, "r - Reset statistics counts\n\r");
@@ -1339,7 +1446,7 @@ print_help(void)
     PRINT_STRING(info_string);
     sprintf(info_string, "T - Transmit sample ARP packet - 60+ bytes 0x00 padded\n\r");
     PRINT_STRING(info_string);
-    if (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type)
+    if ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type))
     {
         PRINT_STRING("u - Toggle PCS enable ---------------------(");
         temp_net_config = g_test_mac->mac_base->NETWORK_CONFIG;
@@ -1405,7 +1512,7 @@ print_help(void)
     PRINT_STRING(info_string);
     sprintf(info_string, "+/- Increment/Decrement length adjust -----(%d)\n\r", g_tx_adjust);
     PRINT_STRING(info_string);
-    if (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type)
+    if ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type))
     {
         sprintf(info_string,
                 "#/~ Increment/Decrement TX drive strength -(%d)\n\r",
@@ -1420,7 +1527,8 @@ print_help(void)
     }
     if ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) ||
         (MSS_MAC_DEV_PHY_VSC8541 == g_test_mac->phy_type) ||
-        (MSS_MAC_DEV_PHY_VSC8575 == g_test_mac->phy_type))
+        (MSS_MAC_DEV_PHY_VSC8575 == g_test_mac->phy_type) ||
+        (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type))
     {
         sprintf(info_string,
                 "( - Display PHY register value.\n\r    Use 4 digit hex register number with page "
@@ -2772,6 +2880,20 @@ mac_task(void *pvParameters)
                   MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 #endif
     PRINT_STRING("PolarFire MSS Ethernet MAC Test program\n\r");
+#if defined(TARGET_ALOE)
+    PRINT_STRING("Target is Aloe Vera Boardn\r");
+#elif defined(TARGET_ICICLE_KIT)
+    PRINT_STRING("Target is Icicle Kit Boardn\r");
+#elif defined(TARGET_BEAGLEV_FIRE)
+    PRINT_STRING("Target is BeagleV Fire Boardn\r");
+#elif defined(TARGET_DISCOVERY_KIT)
+    PRINT_STRING("Target is Discovery Kit Boardn\r");
+#endif
+
+
+
+
+
 
     PRINT_STRING("Polling method for TXRX. Typed characters will be echoed.\n\r");
     __enable_irq();
@@ -2836,7 +2958,7 @@ mac_task(void *pvParameters)
                 g_test_mac->phy_autonegotiate(g_test_mac);
                 PRINT_STRING("Finished autonegotiation\n\r");
             }
-            else if ((rx_buff[0] == 'A') && (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if ((rx_buff[0] == 'A') && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 PRINT_STRING("Starting SGMII autonegotiation\n\r");
                 g_test_mac->phy_mac_autonegotiate(/* mss_mac_instance_t*/ (const void *)g_test_mac);
@@ -2935,7 +3057,9 @@ mac_task(void *pvParameters)
             else if (rx_buff[0] == 'e')
             {
                 if ((MSS_MAC_DEV_PHY_RTL8211 == g_test_mac->phy_type) ||
-                    (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+                    (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) ||
+                    (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)
+                    )
                 {
                     PRINT_STRING("SGMII Info\n\r");
 
@@ -3073,6 +3197,25 @@ mac_task(void *pvParameters)
                     PRINT_STRING(info_string);
                 }
 
+                if (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)
+                {
+                    PRINT_STRING("\n\rVSC8221 Ethernet PHY Media Info\n\r");
+                    dump_vsc8221_regs(g_test_mac);
+                    sprintf(info_string, "Media control      = %08X\n\r", VSC8221_reg_0[0]);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string, "Media status       = %08X\n\r", VSC8221_reg_0[1]);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string, "1000Base-T control = %08X\n\r", VSC8221_reg_0[9]);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string, "1000Base-T status  = %08X\n\r", VSC8221_reg_0[10]);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string, "Aux control/status = %08X\n\r", VSC8221_reg_0[28]);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string, "AN Advertisment    = %08X\n\r", VSC8221_reg_0[4]);
+                    PRINT_STRING(info_string);
+                    sprintf(info_string, "AN LP Ability      = %08X\n\r", VSC8221_reg_0[5]);                    
+                }
+
                 if (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type)
                 {
                     PRINT_STRING("\n\rVSC8662 Ethernet PHY Media Info\n\r");
@@ -3126,7 +3269,7 @@ mac_task(void *pvParameters)
             {
                 display_clocks();
             }
-            else if (rx_buff[0] == 'g')
+            else if ((rx_buff[0] == 'g') && (MSS_MAC_DEV_PHY_VSC8221 != g_test_mac->phy_type))
             {
                 volatile uint32_t temp_in;
 
@@ -3246,7 +3389,7 @@ mac_task(void *pvParameters)
                     PRINT_STRING("Link status display off\n\r");
                 }
             }
-            else if ((rx_buff[0] == 'm') || (rx_buff[0] == 'M'))
+            else if (((rx_buff[0] == 'm') || (rx_buff[0] == 'M')) && (MSS_MAC_DEV_PHY_VSC8221 != g_test_mac->phy_type))
             {
                 int32_t tx_status;
                 int rollover = 0;
@@ -3331,7 +3474,7 @@ mac_task(void *pvParameters)
                     PRINT_STRING("TX loopback length increment disabled\n\r");
                 }
             }
-            else if ((rx_buff[0] == 'o') && (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if ((rx_buff[0] == 'o') && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 volatile uint32_t temp_ctl;
                 volatile uint32_t odt;
@@ -3359,7 +3502,7 @@ mac_task(void *pvParameters)
 
                 *reg_ptr = temp_ctl;
             }
-            else if ((rx_buff[0] == 'O') && (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if ((rx_buff[0] == 'O') && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 volatile uint32_t temp_ctl;
                 volatile uint32_t odt;
@@ -3400,8 +3543,10 @@ mac_task(void *pvParameters)
                     PRINT_STRING("Promiscuous mode off\n\r");
                 }
             }
-            else if ((rx_buff[0] == 'P') && (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if (rx_buff[0] == 'P')
             {
+                if (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type)
+                {
                 volatile uint16_t phy_reg;
                 volatile uint16_t loopback;
 
@@ -3452,6 +3597,133 @@ mac_task(void *pvParameters)
 
                 /* Select standard registers page */
                 MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
+                }
+                else if (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)
+                {
+                volatile uint16_t phy_reg;
+                volatile uint16_t loopback;
+
+                if (0 == (loopback & 4)) /* Not in loopback at the moment */
+                {
+                    loopback = 4; /* Start with Far-End loopback loopback */
+                }
+                else if (7 == loopback) /* Currently at end of list */
+                {
+                    loopback = 0;
+                }
+                else
+                {
+                    loopback++;
+                }
+
+                if (0 == loopback)
+                {
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
+                    /* Disable MASTER/SLAVE Manual Configuration Unset Value */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000);
+                    phy_reg &= ~(0x0800);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000, phy_reg);
+                    /* Disable Connector Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2);
+                    phy_reg &= ~(0x0001);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2, phy_reg);
+                    /* Enable Automatic Pair Swap Correction */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL);
+                    phy_reg &= ~(0x0020);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL, phy_reg);
+                   /* Disable Far-End Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1);
+                    phy_reg &= ~(0x0008);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1, phy_reg);
+                    /* Disable Near-End Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR);
+                    phy_reg &= ~(0x4000);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR, phy_reg);
+                    PRINT_STRING("Disabling PHY SGMII loopback\n\r");
+                }
+                else if (4 == loopback)
+                {
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
+                    /* Disable Near-End Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR);
+                    phy_reg &= ~(0x4000);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR, phy_reg);
+                    /* Disable MASTER/SLAVE Manual Configuration Unset Value */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000);
+                    phy_reg &= ~(0x0800);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000, phy_reg);
+                    /* Disable Connector Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2);
+                    phy_reg &= ~(0x0001);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2, phy_reg);
+                    /* Enable Automatic Pair Swap Correction */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL);
+                    phy_reg &= ~(0x0020);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL, phy_reg);
+                    /* Enable Far-End Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1);
+                    phy_reg |= 0x0008;
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1, phy_reg);
+                    PRINT_STRING("PHY Far-End loopback enabled\n\r");
+                }
+                else if (5 == loopback)
+                {
+                    /* Disable MASTER/SLAVE Manual Configuration Unset Value */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000);
+                    phy_reg &= ~(0x0800);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000, phy_reg);
+                    /* Disable Connector Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2);
+                    phy_reg &= ~(0x0001);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2, phy_reg);
+                    /* Enable Automatic Pair Swap Correction */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL);
+                    phy_reg &= ~(0x0020);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL, phy_reg);
+                   /* Disable Far-End Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1);
+                    phy_reg &= ~(0x0008);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1, phy_reg);
+                    /* Enable Near-End Loopback */
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR);
+                    phy_reg |= 0x4000;
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR, phy_reg);
+                    PRINT_STRING("PHY Near-End loopback loopback enabled\n\r");
+                }
+                else if (6 == loopback)
+                {
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
+                   /* Disable Far-End Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1);
+                    phy_reg &= ~(0x0008);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1, phy_reg);
+                    /* Disable Near-End Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR);
+                    phy_reg &= ~(0x4000);
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR, phy_reg);                    
+                    /* Enable MASTER/SLAVE Manual Configuration Enable and Set Value */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000);
+                    phy_reg |= 0x1800;
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000, phy_reg);
+                    /* Enable Connector Loopback */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2);
+                    phy_reg |= 0x0001;
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2, phy_reg);
+                    /* Disable Automatic Pair Swap Correction */
+                    phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL);
+                    phy_reg |= 0x0020;
+                    MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL, phy_reg);                    
+                    PRINT_STRING("PHY Connector loopback enabled\n\r");
+                }
+                else if (7 == loopback)
+                {
+                    PRINT_STRING("PHY Recovered clock transmission mode enabled\n\r");
+                }
+
+                /* Select standard registers page */
+                MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
+                }
             }
             else if (rx_buff[0] == 'q')
             {
@@ -3761,7 +4033,7 @@ mac_task(void *pvParameters)
                 PRINT_STRING(info_string);
                 stats_dump();
             }
-            else if ((rx_buff[0] == 'S') && (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if ((rx_buff[0] == 'S') && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 PRINT_STRING("Starting MAC SGMII autonegotiation\n\r");
                 msgmii_autonegotiate(g_test_mac);
@@ -3817,7 +4089,7 @@ mac_task(void *pvParameters)
                     }
                 }
             }
-            else if ((rx_buff[0] == 'u') && (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if ((rx_buff[0] == 'u') && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 volatile uint32_t temp_net_config;
 
@@ -3834,7 +4106,7 @@ mac_task(void *pvParameters)
                     PRINT_STRING("PCS is disabled\r\n");
                 }
             }
-            else if ((rx_buff[0] == 'U') && (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if ((rx_buff[0] == 'U') && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 volatile uint32_t temp_net_config;
 
@@ -3851,7 +4123,7 @@ mac_task(void *pvParameters)
                     PRINT_STRING("SGMII mode is disabled\r\n");
                 }
             }
-            else if ((rx_buff[0] == 'v') && (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if ((rx_buff[0] == 'v') && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 volatile uint32_t temp_pcs_control;
 
@@ -3868,7 +4140,7 @@ mac_task(void *pvParameters)
                     PRINT_STRING("PCS Loopback mode is disabled\r\n");
                 }
             }
-            else if ((rx_buff[0] == 'V') && (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if ((rx_buff[0] == 'V') && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 volatile uint32_t temp_pcs_control;
                 volatile uint16_t phy_reg;
@@ -4223,8 +4495,7 @@ mac_task(void *pvParameters)
                     PRINT_STRING("TX loopback length adjust decremented\n\r");
                 }
             }
-            else if (((rx_buff[0] == '#') || (rx_buff[0] == '~')) &&
-                     (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if (((rx_buff[0] == '#') || (rx_buff[0] == '~')) && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 volatile uint32_t temp_ctl;
                 volatile uint32_t drive;
@@ -4260,8 +4531,7 @@ mac_task(void *pvParameters)
 
                 *reg_ptr = temp_ctl;
             }
-            else if (((rx_buff[0] == '>') || (rx_buff[0] == '<')) &&
-                     (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if (((rx_buff[0] == '>') || (rx_buff[0] == '<')) && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 volatile uint16_t phy_reg;
                 volatile uint16_t drive;
@@ -4298,8 +4568,7 @@ mac_task(void *pvParameters)
                 /* Select standard registers page */
                 MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
             }
-            else if (((rx_buff[0] == '[') || (rx_buff[0] == ']')) &&
-                     (MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type))
+            else if (((rx_buff[0] == '[') || (rx_buff[0] == ']')) && ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) || (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type)))
             {
                 volatile uint32_t temp_ctl;
                 volatile uint32_t offset;
@@ -4338,7 +4607,8 @@ mac_task(void *pvParameters)
             else if (((rx_buff[0] == '(') || (rx_buff[0] == ')')) &&
                      ((MSS_MAC_DEV_PHY_VSC8662 == g_test_mac->phy_type) ||
                       (MSS_MAC_DEV_PHY_VSC8541 == g_test_mac->phy_type) ||
-                      (MSS_MAC_DEV_PHY_VSC8575 == g_test_mac->phy_type)))
+                      (MSS_MAC_DEV_PHY_VSC8575 == g_test_mac->phy_type) ||
+                      (MSS_MAC_DEV_PHY_VSC8221 == g_test_mac->phy_type) ))
             {
                 uint8_t input_char = 0;
                 uint8_t number_buf[5];
@@ -4499,3 +4769,4 @@ mac_task(void *pvParameters)
         }
     }
 }
+

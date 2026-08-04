@@ -146,6 +146,7 @@ mss_mac_instance_t g_mac0;
 /* Private Functions                                                      */
 /**************************************************************************/
 static void mac_reset(void);
+static void mac_delay(mss_mac_instance_t *this_mac, uint32_t usecs);
 static void config_mac_hw(mss_mac_instance_t *this_mac, const mss_mac_cfg_t *cfg);
 static void tx_desc_ring_init(mss_mac_instance_t *this_mac);
 static void rx_desc_ring_init(mss_mac_instance_t *this_mac);
@@ -277,6 +278,7 @@ MSS_MAC_init(mss_mac_instance_t *this_mac, mss_mac_cfg_t *cfg)
     {
         this_mac->phy_addr = cfg->phy_addr;
         this_mac->pcs_phy_addr = cfg->pcs_phy_addr;
+        this_mac->phy_flags = cfg->phy_flags;
         this_mac->interface_type = cfg->interface_type;
         this_mac->jumbo_frame_enable = cfg->jumbo_frame_enable;
         this_mac->phy_type = cfg->phy_type;
@@ -295,6 +297,7 @@ MSS_MAC_init(mss_mac_instance_t *this_mac, mss_mac_cfg_t *cfg)
         this_mac->phy_controller = cfg->phy_controller;
         this_mac->speed_mode = cfg->speed_mode;
         this_mac->speed_duplex_select = cfg->speed_duplex_select;
+        this_mac->core_clock = cfg->core_clock;
 #if MSS_MAC_USE_PHY_DP83867
         this_mac->phy_extended_read = cfg->phy_extended_read;
         this_mac->phy_extended_write = cfg->phy_extended_write;
@@ -863,6 +866,8 @@ MSS_MAC_cfg_struct_def_init(mss_mac_cfg_t *cfg)
 
         cfg->phy_extended_read = NULL_mmd_read_extended_regs;
         cfg->phy_extended_write = NULL_mmd_write_extended_regs;
+
+        cfg->core_clock = LIBERO_SETTING_MSS_COREPLEX_CPU_CLK;
     }
 }
 
@@ -872,6 +877,45 @@ MSS_MAC_cfg_struct_def_init(mss_mac_cfg_t *cfg)
 static void
 mac_reset(void)
 {
+}
+
+/******************************************************************************
+ * Simple delay function in uS steps for up to about 71.5 minutes max...
+ * uses cpu ticks to guage delay so needs the config set up with a valid value.
+ */
+void MSS_MAC_delay(const  mss_mac_instance_t *this_mac, uint32_t usecs)
+{
+    uint64_t target;
+    volatile uint32_t last_cycle;
+    volatile uint64_t ticks;
+    volatile uint32_t temp;
+    uint32_t done = 0;
+
+    last_cycle = (uint32_t)read_csr(mcycle); /* Grab count as soon as possible */
+    temp = this_mac->core_clock / 1000000;  /* Ticks per uS */
+    if(0 == temp)                           /* clock really low... */
+        temp = 1;
+
+    target = (uint64_t)usecs * (uint64_t)temp;
+    do
+    {
+        /*
+         * 32 bit rollover in arithmetic means we get the correct result even
+         * count has rolled over and current CSR is less than last_cycle...
+         */
+        temp = (uint32_t)read_csr(mcycle);
+        ticks = (uint64_t)(temp - last_cycle);
+        if(target > ticks)
+        {
+            target -= ticks;
+            last_cycle = temp;
+        }
+        else
+        {
+            done = 1;
+        }
+
+    } while(!done);
 }
 
 #if defined(TARGET_ALOE)

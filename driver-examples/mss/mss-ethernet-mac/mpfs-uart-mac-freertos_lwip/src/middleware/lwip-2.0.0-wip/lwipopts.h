@@ -1329,7 +1329,7 @@
  * sys_thread_new() when the thread is created.
  */
 #ifndef TCPIP_THREAD_STACKSIZE
-#define TCPIP_THREAD_STACKSIZE          16384 /* 400 */
+#define TCPIP_THREAD_STACKSIZE          1000 /* = 8K bytes */
 #endif
 
 /**

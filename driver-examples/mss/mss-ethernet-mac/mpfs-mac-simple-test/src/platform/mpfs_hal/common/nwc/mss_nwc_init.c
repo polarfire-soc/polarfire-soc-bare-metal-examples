@@ -1,16 +1,16 @@
-/*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_nwc_init.c
- * @author Microchip-FPGA Embedded Systems Solutions
- * @brief north west corner, calls required startup code
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief mss_nwc initiation source file
+ *
+ * north west corner (NWC) initiation
+ *
+ * See file "mss_nwc_init.h" for description of the functions implemented
+ * in this file.
  *
  */
 

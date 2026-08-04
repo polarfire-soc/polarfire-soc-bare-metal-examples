@@ -69,13 +69,13 @@ void http_server_netconn_thread(void *arg);
 void dump_vsc8575_regs(mss_mac_instance_t *this_mac);
 #endif
 
-#if 0
-#define MY_STATIC_IP_ADDRESS "192.168.0.30"
-#define MY_STATIC_IP_GATEWAY "192.168.0.1"
+#if 1
+#define MY_STATIC_IP_ADDRESS "192.168.2.30"
+#define MY_STATIC_IP_GATEWAY "192.168.2.1"
 #define MY_STATIC_IP_MASK    "255.255.255.0"
 #else
-#define MY_STATIC_IP_ADDRESS "192.168.128.249"
-#define MY_STATIC_IP_GATEWAY "192.168.128.252"
+#define MY_STATIC_IP_ADDRESS "10.2.2.20"
+#define MY_STATIC_IP_GATEWAY "10.2.2.1"
 #define MY_STATIC_IP_MASK    "255.255.255.0"
 #endif
 
@@ -289,6 +289,7 @@ prvLinkStatusTask(void *pvParameters)
     ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || \
+     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL))
         stats = MSS_MAC_read_stat(&g_mac0, 1);
         /* Run through loop every 500 milliseconds. */
@@ -312,6 +313,8 @@ volatile int second_task_count = 0;
 #if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0
 /* MMUART 2 is on P9 pins 24(TXD) and 26(RXD) */
 #define UART_DEMO &g_mss_uart2_lo
+#elif MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0
+#define UART_DEMO &g_mss_uart0_lo
 #else
 #define UART_DEMO &g_mss_uart1_lo
 #endif
@@ -355,12 +358,22 @@ TaskHandle_t thandle_link;
 TaskHandle_t thandle_web;
 TaskHandle_t thandle_blinky;
 
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+uint64_t wait_flag;
+#endif
+
 void
 e51(void)
 {
     volatile int ix;
+
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+    wait_flag = 0x987654321UL;
+#endif
+
 #if ((MSS_MAC_HW_PLATFORM != MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) && \
-     (MSS_MAC_HW_PLATFORM != MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
+        (MSS_MAC_HW_PLATFORM != MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) && \
+        (MSS_MAC_HW_PLATFORM != MSS_MAC_DESIGN_DISCOVERY_GEM0))
     free_rtos(); /* should never return */
 #endif
     while (1)
@@ -380,7 +393,7 @@ free_rtos(void)
     BaseType_t rtos_result;
     volatile int ix;
 
-    rtos_result = xTaskCreate(e51_task, "e51", 4000, NULL, uartPRIMARY_PRIORITY, NULL);
+    rtos_result = xTaskCreate(e51_task, "e51", 1000, NULL, uartPRIMARY_PRIORITY, NULL);
     if (1 != rtos_result)
     {
         int ix;
@@ -389,7 +402,7 @@ free_rtos(void)
     }
 
     rtos_result =
-        xTaskCreate(blinky_task, "e51-2nd", 4000, NULL, uartPRIMARY_PRIORITY + 2, &thandle_blinky);
+        xTaskCreate(blinky_task, "e51-2nd", 1000, NULL, uartPRIMARY_PRIORITY + 2, &thandle_blinky);
     if (1 != rtos_result)
     {
         int ix;
@@ -399,7 +412,7 @@ free_rtos(void)
 
     rtos_result = xTaskCreate(http_server_netconn_thread,
                               (char *)"http_server",
-                              4000,
+                              1000,
                               NULL,
                               uartPRIMARY_PRIORITY + 3,
                               &thandle_web);
@@ -414,7 +427,7 @@ free_rtos(void)
     /* Create the task the Ethernet link status. */
     rtos_result = xTaskCreate(prvLinkStatusTask,
                               (char *)"EthLinkStatus",
-                              4000,
+                              1000,
                               NULL,
                               uartPRIMARY_PRIORITY + 1,
                               &thandle_link);
@@ -517,7 +530,30 @@ e51_task(void *pvParameters)
     timecmp = ((volatile uint64_t *)0x02004000) + hartid;
 
 #endif
-#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0)
+
+    #if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+    g_mac_config.phy_addr = PHY_VSC8221_MDIO_ADDR;
+    g_mac_config.phy_type = MSS_MAC_DEV_PHY_VSC8221;
+    g_mac_config.phy_flags = PHY_VSC8221_EEPROM_INIT;
+    g_mac_config.pcs_phy_addr = SGMII_MDIO_ADDR;
+    g_mac_config.interface_type = TBI;
+    g_mac_config.phy_autonegotiate = MSS_MAC_VSC8221_phy_autonegotiate;
+    g_mac_config.phy_mac_autonegotiate = MSS_MAC_VSC8221_mac_autonegotiate;
+    g_mac_config.phy_get_link_status = MSS_MAC_VSC8221_phy_get_link_status;
+    g_mac_config.phy_init = MSS_MAC_VSC8221_phy_init;
+    g_mac_config.phy_set_link_speed = MSS_MAC_VSC8221_phy_set_link_speed;
+
+#if MSS_MAC_USE_PHY_DP83867
+    g_mac_config.phy_extended_read = NULL_mmd_read_extended_regs;
+    g_mac_config.phy_extended_write = NULL_mmd_write_extended_regs;
+#endif
+
+    /* U54 2 values */
+    mtime = (volatile uint64_t *)0x0200bff8;
+    timecmp = ((volatile uint64_t *)0x02004000) + hartid;
+#endif
+
+    #if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0)
 
     MSS_GPIO_init(GPIO2_LO);
     MSS_GPIO_config(GPIO2_LO, MSS_GPIO_0, MSS_GPIO_OUTPUT_MODE); /* LED 0 */
@@ -1005,6 +1041,7 @@ e51_task(void *pvParameters)
     ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_SGMII_GEM0) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || \
+     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
     while (MSS_MAC_AVAILABLE != g_mac0.mac_available)
 #else

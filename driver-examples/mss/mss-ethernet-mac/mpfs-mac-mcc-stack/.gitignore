@@ -1,3 +1,7 @@
+/LIM-Debug/
+/LIM-Debug-BeagleV-Fire/
+/LIM-Debug-IcIcle-Kit/
+/LIM-Debug-Discovery-Kit/
 /.settings*/
 /src/boards/*/fpga_design_config/**
 /*-Debug/

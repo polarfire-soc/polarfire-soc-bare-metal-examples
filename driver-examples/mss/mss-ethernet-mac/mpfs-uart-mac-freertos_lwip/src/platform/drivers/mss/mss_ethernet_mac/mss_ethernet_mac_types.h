@@ -618,6 +618,7 @@ typedef struct __mss_mac_cfg_t
     uint32_t speed_duplex_select;       /*!< Link speed and duplex mode allowed to setup a link when autonegotiation is enabled. */
     uint8_t  mac_addr[6];               /*!< Station's MAC address */
     uint32_t phy_addr;                  /*!< Address of Ethernet PHY on MII management interface. */
+    uint32_t phy_flags;                 /*!< PHY specific flags */
     uint32_t pcs_phy_addr;              /*!< Address of SGMII interface controller on MII management interface. */
 #if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
     GPIO_TypeDef  *phy_soft_reset_gpio; /*!< GPIO device soft reset for PHY is connected to */
@@ -650,6 +651,7 @@ typedef struct __mss_mac_cfg_t
     uint32_t mmsl_int_priority;         /*!< MMSL interrupt */
     uint32_t tsu_clock_select;          /*!< 0 for default TSU clock, 1 for fabric tsu clock */
     uint32_t amba_burst_length;         /*!< AXI burst length for DMA data transfers */
+    uint32_t core_clock;                /*!< CPU clock speed for timing calcs */
 } mss_mac_cfg_t;
 
 /***************************************************************************//**
@@ -1310,6 +1312,7 @@ typedef struct mss_mac_instance
     uint32_t phy_type;                  /*!< PHY device type associated with this GEM */
     uint32_t phy_addr;                  /*!< Address of Ethernet PHY on MII management interface. */
     uint32_t pcs_phy_addr;              /*!< Address of SGMII interface controller on MII management interface. */
+    uint32_t phy_flags;                 /*!< PHY specific flags */
 #if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
 
     GPIO_TypeDef  *phy_soft_reset_gpio; /*!< GPIO device soft reset for PHY is connected to */
@@ -1328,6 +1331,7 @@ typedef struct mss_mac_instance
     uint8_t  mac_addr[6];               /*!< Station's MAC address */
     mss_mac_speed_mode_t speed_mode;    /*!< Link speed mode of operation */
     uint32_t speed_duplex_select;       /*!< Link speed and duplex mode allowed to setup a link when autonegotiation is enabled. */
+    uint32_t core_clock;                /*!< CPU clock speed for timing calcs */
 
     /* PHY interface functions */
     mss_mac_phy_init_t            phy_init;              /*!< Pointer to PHY init function */

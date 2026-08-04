@@ -1,17 +1,11 @@
-/*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/***************************************************************************
- *
  * @file mss_seg.h
- * @author Microchip-FPGA Embedded Systems Solutions
- * @brief segmentation block defines
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief mss_seg header file
  *
  * These blocks allow the DDR memory to be allocated to cached, non-cached
  * regions and trace depending on the amount of DDR memory physically connected.

@@ -1,4 +1,8 @@
 /.settings*/
 /src/boards/*/fpga_design_config/**
 /*-Debug/
-/*-Release/
+/*-Release//*-Release//Debug/
+/Debug - BeagleV-Fire/
+/Debug-BeagleV-Fire/
+/Debug - Icicle Kit/
+/Debug-Discovery-Kit/

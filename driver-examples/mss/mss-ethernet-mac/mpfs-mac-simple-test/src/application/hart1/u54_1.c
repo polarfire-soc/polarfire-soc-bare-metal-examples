@@ -92,4 +92,15 @@ U54_1_sysTick_IRQHandler(void)
 {
     g_tick_counter += HART1_TICK_RATE_MS;
 }
+#else
+u54_1(void)
+{
+    uint64_t dummy;
+
+    for(;;)
+    {
+        dummy++;
+    }
+}
+
 #endif /* ((MPFS_HAL_FIRST_HART == 1) && (MPFS_HAL_LAST_HART ==1)) */

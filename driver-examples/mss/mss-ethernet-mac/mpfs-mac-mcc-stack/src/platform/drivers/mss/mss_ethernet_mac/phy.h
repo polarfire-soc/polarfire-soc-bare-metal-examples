@@ -62,6 +62,23 @@ extern "C" {
 #define MII_TI_CTRL                  (0X1FU)
 #define MII_TI_SGMIICTL1             (0XD3U)
 
+/* VSC8221 registers */
+
+#define MII_BYPASS_CTRL              (0x12U)
+#define MII_CTRL_STAT                (0x16U)
+#define MII_PHY_CTRL_1               (0x17U)
+#define MII_PHY_CTRL_2               (0x18U)
+#define MII_LED_CTRL                 (0x1BU)
+#define MII_EXT_PAGE                 (0x1FU)
+
+/* VSC8221 Extended page registers */
+
+#define MII_SERDES_CTRL_1            (0x11U)
+#define MII_SERDES_CTRL_2            (0x13U)
+#define MII_PHY_CTRL_3               (0x14U)
+#define MII_EEPROM_STAT              (0x14U)
+#define MII_PHY_CTRL_4               (0x17U)
+
 /* Basic mode control register. */
 #define BMCR_RESV                    (0x003FU) /* Unused...                   */
 #define BMCR_SPEED1000               (0x0040U) /* MSB of Speed (1000)         */
@@ -237,13 +254,17 @@ extern "C" {
 #else
 #define PHY_VSC8541_MDIO_ADDR (26U) /* SVG MSS board PHY */
 #endif
-#define PHY_VSC8662_0_MDIO_ADDR (8U) /* SVG MSS board port 0 */
-#define PHY_VSC8662_1_MDIO_ADDR (9U) /* SVG MSS board port 1 */
-#define PHY_VSC8575_MDIO_ADDR   (4U) /* G5 SoC Emulation Platform Peripheral Daughter Board PHY */
-#define PHY_DP83867_MDIO_ADDR   (3U) /* G5 SoC Emulation Platform native PHY */
-#define PHY_RTL8211_MDIO_ADDR   (1U) /* G5 SoC BeagleV-Fire PHY */
-#define PHY_NULL_MDIO_ADDR      (0U) /* No PHY here actually... */
+#define PHY_VSC8662_0_MDIO_ADDR (8U)  /* SVG MSS board port 0 */
+#define PHY_VSC8662_1_MDIO_ADDR (9U)  /* SVG MSS board port 1 */
+#define PHY_VSC8575_MDIO_ADDR   (4U)  /* G5 SoC Emulation Platform Peripheral Daughter Board PHY */
+#define PHY_DP83867_MDIO_ADDR   (3U)  /* G5 SoC Emulation Platform native PHY */
+#define PHY_RTL8211_MDIO_ADDR   (1U)  /* G5 SoC BeagleV-Fire PHY */
+#define PHY_VSC8221_MDIO_ADDR   (11U) /* G5 SoC Discovery Kit Board PHY */
+#define PHY_NULL_MDIO_ADDR      (0U)  /* No PHY here actually... */
 #define SGMII_MDIO_ADDR         (16U) /* Internal PHY in G5 SoC Emulation Platform SGMII to GMII core */
+
+#define PHY_VSC8221_EEPROM_INIT (1U)  /* Design includes automatic EEPROM initialisation */
+
 
 /**************************************************************************/
 /* Public function declarations                                           */
@@ -274,6 +295,10 @@ void MSS_MAC_NULL_phy_init(/* mss_mac_instance_t */ const void *v_this_mac, uint
 
 #if MSS_MAC_USE_PHY_RTL8211
 void MSS_MAC_RTL8211_phy_init(/* mss_mac_instance_t */ const void *v_this_mac, uint8_t phy_addr);
+#endif
+
+#if MSS_MAC_USE_PHY_VSC8221
+void MSS_MAC_VSC8221_phy_init(/* mss_mac_instance_t */ const void *v_this_mac, uint8_t phy_addr);
 #endif
 
 /***************************************************************************/ /**
@@ -314,6 +339,11 @@ void MSS_MAC_RTL8211_phy_set_link_speed(/* mss_mac_instance_t */ void *v_this_ma
                                         uint32_t speed_duplex_select,
                                         mss_mac_speed_mode_t speed_mode);
 #endif
+#if MSS_MAC_USE_PHY_VSC8221
+void MSS_MAC_VSC8221_phy_set_link_speed(/* mss_mac_instance_t */ void *v_this_mac,
+                                        uint32_t speed_duplex_select,
+                                        mss_mac_speed_mode_t speed_mode);
+#endif
 
 /***************************************************************************/ /**
 
@@ -347,6 +377,11 @@ void MSS_MAC_NULL_phy_mac_autonegotiate(/* mss_mac_instance_t */ const void *v_t
 #if MSS_MAC_USE_PHY_RTL8211
 void MSS_MAC_RTL8211_phy_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac);
 void MSS_MAC_RTL8211_mac_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac);
+#endif
+
+#if MSS_MAC_USE_PHY_VSC8221
+void MSS_MAC_VSC8221_phy_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac);
+void MSS_MAC_VSC8221_mac_autonegotiate(/* mss_mac_instance_t */ const void *v_this_mac);
 #endif
 
 /***************************************************************************/ /**
@@ -390,6 +425,13 @@ uint8_t MSS_MAC_NULL_phy_get_link_status(
 
 #if MSS_MAC_USE_PHY_RTL8211
 uint8_t MSS_MAC_RTL8211_phy_get_link_status(
+    /* mss_mac_instance_t */ const void *v_this_mac,
+    mss_mac_speed_t *speed,
+    uint8_t *fullduplex);
+#endif
+
+#if MSS_MAC_USE_PHY_VSC8221
+uint8_t MSS_MAC_VSC8221_phy_get_link_status(
     /* mss_mac_instance_t */ const void *v_this_mac,
     mss_mac_speed_t *speed,
     uint8_t *fullduplex);

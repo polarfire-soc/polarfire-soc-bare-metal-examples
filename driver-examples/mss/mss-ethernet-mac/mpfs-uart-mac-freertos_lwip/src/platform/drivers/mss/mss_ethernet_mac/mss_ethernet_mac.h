@@ -440,7 +440,11 @@ extern "C" {
 #if defined(TARGET_ALOE)
 #define MSS_MAC_DEF_PHY_CLK                         MSS_MAC_BY224_PHY_CLK /*!< @brief For Aloe this is divide by 96, good for up to 560MHz */
 #else
-#define MSS_MAC_DEF_PHY_CLK                         MSS_MAC_BY96_PHY_CLK /*!< @brief For MPFS this is divide by 96, good for up to 240MHz */
+ #if defined(TARGET_DISCOVERY_KIT)
+ #define MSS_MAC_DEF_PHY_CLK                         MSS_MAC_BY224_PHY_CLK /*!< @brief For Aloe this is divide by 96, good for up to 560MHz */
+ #else
+ #define MSS_MAC_DEF_PHY_CLK                         MSS_MAC_BY96_PHY_CLK /*!< @brief For MPFS this is divide by 96, good for up to 240MHz */
+ #endif
 #endif
 
 /***************************************************************************//**
@@ -518,6 +522,8 @@ extern uint8_t *g_mss_mac_ddr_ptr;
 /**************************************************************************/
 /* Public Function declarations                                           */
 /**************************************************************************/
+
+void MSS_MAC_delay(const mss_mac_instance_t *this_mac, uint32_t usecs);
 
 /***************************************************************************//**
   The _MSS_MAC_cfg_struct_def_init()_ function initializes a _mss_mac_cfg_t_

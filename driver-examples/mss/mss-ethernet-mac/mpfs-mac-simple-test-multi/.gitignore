@@ -1,4 +1,4 @@
 /.settings*/
 /src/boards/*/fpga_design_config/**
 /*-Debug/
-/*-Release/
+/*-Release//LIM-Debug/

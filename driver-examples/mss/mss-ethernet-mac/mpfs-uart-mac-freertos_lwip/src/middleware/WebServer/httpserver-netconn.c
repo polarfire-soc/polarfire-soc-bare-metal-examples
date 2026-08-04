@@ -135,6 +135,8 @@ static const char http_html_ok_hdr[] = "HTTP/1.1 200 OK\r\n\r\n";
 #define DEMO_PLATFORM "MPFS Icicle Board GEM 0<br />FreeRTOS + lwIP U54-1"
 #elif (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0)
 #define DEMO_PLATFORM "MPFS BeagleV-Fire Board GEM 0<br />FreeRTOS + lwIP U54-1"
+#elif (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+#define DEMO_PLATFORM "MPFS Discovery Kit Board GEM 0<br />FreeRTOS + lwIP U54-1"
 #else
 #define DEMO_PLATFORM "G5SoC SVG MSS Peripheral Board<br />FreeRTOS + lwIP"
 #endif
