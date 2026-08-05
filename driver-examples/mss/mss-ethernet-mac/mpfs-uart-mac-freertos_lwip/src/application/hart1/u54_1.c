@@ -20,15 +20,42 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "mpfs_hal/mss_hal.h"
 #if ((MPFS_HAL_FIRST_HART == 1) && (MPFS_HAL_LAST_HART == 1)) || ((MPFS_HAL_FIRST_HART == 0) && (MPFS_HAL_LAST_HART == 1))
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 #include "inc/common.h"
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
 
+/* Set to 1 to use direct mode and set to 0 to use vectored mode.
+ *
+ * VECTOR MODE=Direct --> all traps into machine mode cause the pc to be set to the
+ * vector base address (BASE) in the mtvec register.
+ *
+ * VECTOR MODE=Vectored --> all synchronous exceptions into machine mode cause the
+ * pc to be set to the BASE, whereas interrupts cause the pc to be set to the
+ * address BASE plus four times the interrupt cause number.
+ *
+ * Both the local interrupt and PLIC interrupt versions of this app use the
+ * direct mode but you can enable the vectored mode for the local interrupt
+ * version to try out the vector mode but only one GEM interrupt is currently
+ * supported.
+ */
+#if ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || \
+     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || \
+    (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL))
+#define mainVECTOR_MODE_DIRECT                1
+#else
+#define mainVECTOR_MODE_DIRECT                1
+#endif
+
+extern void freertos_risc_v_trap_handler( void );
+extern void freertos_vector_table( void );
+extern void freertos_vector_table_h1( void );
+
 volatile uint32_t count_sw_ints_h1 = 0U;
 
-#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
 extern uint64_t wait_flag;
 #endif
 
@@ -42,8 +69,15 @@ void
 u54_1(void)
 {
     volatile uint32_t icount = 0U;
+#if (IMAGE_LOADED_BY_BOOTLOADER == 1)
+    while(0 == icount)
+    {
+        icount++;
+        icount--;
+    }
+#endif
 
-#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
     /* Wait for U51 to finish all start up code */
     while(wait_flag != 0x987654321UL)
     {
@@ -54,7 +88,8 @@ u54_1(void)
 
 #if ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || \
-    (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0))
+     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0) || \
+     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL))
 
     /*
      * Enable mac local interrupts to hart 1, U54 1
@@ -63,6 +98,15 @@ u54_1(void)
     /*
      * Call free RTOS. Will not return from here
      */
+#if ( mainVECTOR_MODE_DIRECT == 1 )
+    {
+        __asm__ volatile ( "csrw mtvec, %0" : : "r" ( freertos_risc_v_trap_handler ) );
+    }
+#else
+    {
+        __asm__ volatile ( "csrw mtvec, %0" : : "r" ( ( uintptr_t ) freertos_vector_table_h1 | 0x1 ) );
+    }
+#endif
     free_rtos();
 #endif
     /*

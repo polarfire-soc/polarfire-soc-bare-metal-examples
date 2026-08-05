@@ -13,12 +13,11 @@
 #include "httpserver-netconn.h"
 
 /* FreeRTOS includes. */
-#include "FreeRTOS.h"
-#include "queue.h"
-
 #include "mpfs_hal/mss_hal.h"
 
 #include <assert.h>
+#include <FreeRTOS.h>
+#include <queue.h>
 
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
@@ -135,6 +134,8 @@ static const char http_html_ok_hdr[] = "HTTP/1.1 200 OK\r\n\r\n";
 #define DEMO_PLATFORM "MPFS Icicle Board GEM 0<br />FreeRTOS + lwIP U54-1"
 #elif (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0)
 #define DEMO_PLATFORM "MPFS BeagleV-Fire Board GEM 0<br />FreeRTOS + lwIP U54-1"
+#elif (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL)
+#define DEMO_PLATFORM "MPFS Discovery Kit Board GEM 0<br />FreeRTOS + lwIP U54-1 Local Ints"
 #elif (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
 #define DEMO_PLATFORM "MPFS Discovery Kit Board GEM 0<br />FreeRTOS + lwIP U54-1"
 #else

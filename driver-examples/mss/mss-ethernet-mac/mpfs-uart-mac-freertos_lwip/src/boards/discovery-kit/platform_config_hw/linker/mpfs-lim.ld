@@ -281,6 +281,8 @@ SECTIONS
         PROVIDE(__app_stack_top_h1 = .);
         PROVIDE(__stack_top_h1$ = .);
 
+        PROVIDE(__freertos_irq_stack_top = .);
+
         PROVIDE(__stack_bottom_h2$ = .);
         PROVIDE(__app_stack_bottom_h2 = .);
         . += STACK_SIZE_U54_2_APPLICATION;

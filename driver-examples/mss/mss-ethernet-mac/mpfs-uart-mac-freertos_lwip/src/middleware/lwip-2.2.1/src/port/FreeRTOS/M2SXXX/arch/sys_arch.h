@@ -32,10 +32,10 @@
 #ifndef __SYS_RTXC_H__
 #define __SYS_RTXC_H__
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
+#include <FreeRTOS.h>
+#include <queue.h>
+#include <semphr.h>
+#include <task.h>
 
 #define SYS_MBOX_NULL (xQueueHandle)0
 #define SYS_SEM_NULL  (xSemaphoreHandle)0

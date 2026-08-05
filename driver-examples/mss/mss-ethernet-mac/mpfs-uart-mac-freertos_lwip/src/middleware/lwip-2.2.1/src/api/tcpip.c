@@ -274,7 +274,7 @@ tcpip_inpkt(struct pbuf *p, struct netif *inp, netif_input_fn input_fn)
   msg->msg.inp.p = p;
   msg->msg.inp.netif = inp;
   msg->msg.inp.input_fn = input_fn;
-  if (sys_mbox_trypost(&tcpip_mbox, msg) != ERR_OK) {
+  if (sys_mbox_trypost_fromisr(&tcpip_mbox, msg) != ERR_OK) {
     memp_free(MEMP_TCPIP_MSG_INPKT, msg);
     return ERR_MEM;
   }

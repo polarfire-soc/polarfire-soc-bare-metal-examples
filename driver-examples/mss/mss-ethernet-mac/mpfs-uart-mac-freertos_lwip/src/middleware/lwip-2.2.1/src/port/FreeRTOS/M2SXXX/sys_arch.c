@@ -443,7 +443,7 @@ sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, 
 sys_prot_t sys_arch_protect(void);
 sys_prot_t sys_arch_protect(void)
 {
-    vPortEnterCritical();
+    portENTER_CRITICAL();
     return 1;
 }
 
@@ -457,7 +457,7 @@ void sys_arch_unprotect(sys_prot_t pval);
 void sys_arch_unprotect(sys_prot_t pval)
 {
     (void) pval;
-    vPortExitCritical();
+    portEXIT_CRITICAL();
 }
 
 uint32_t sys_arch_random(void)

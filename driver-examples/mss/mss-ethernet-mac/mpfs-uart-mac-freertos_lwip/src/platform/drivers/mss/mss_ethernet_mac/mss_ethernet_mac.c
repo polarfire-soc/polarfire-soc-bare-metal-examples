@@ -25,7 +25,7 @@
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_sw_cfg.h"
 
 #if defined(USING_FREERTOS)
-#include "FreeRTOS.h"
+#include <FreeRTOS.h>
 #endif
 
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
@@ -2503,6 +2503,7 @@ MSS_MAC_send_pkts_fast(mss_mac_instance_t *this_mac,
 
 #endif /* defined(MSS_MAC_SPEED_TEST) */
 
+
 /******************************************************************************
  *
  */
@@ -2511,7 +2512,13 @@ extern BaseType_t g_mac_context_switch;
 #endif
 
 #if defined(USING_FREERTOS)
-extern UBaseType_t uxCriticalNesting;
+/*
+ * We need access to this to prevent Freertos from enabling interrupts if any
+ * critical section guarding is carried out by a xxxFromISR function called by
+ * temporarily raising the count to stop it hitting 0 and triggering a
+ * re-enabling of interrupts.
+ */
+extern size_t xCriticalNesting;
 #endif
 #if defined(TARGET_ALOE)
 uint8_t MAC0_plic_53_IRQHandler(void);
@@ -2519,9 +2526,9 @@ uint8_t
 MAC0_plic_53_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 0U);
 #endif
@@ -2537,11 +2544,27 @@ uint8_t
 PLIC_mac0_int_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 0U);
+#endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC0_INT_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
 #endif
 
     return (EXT_IRQ_KEEP_ENABLED);
@@ -2554,12 +2577,29 @@ uint8_t
 PLIC_mac0_queue1_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 1U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 1U);
 #endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC0_QUEUE1_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
+#endif
+
     return (EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -2570,12 +2610,29 @@ uint8_t
 PLIC_mac0_queue2_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 2U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 2U);
 #endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC0_QUEUE2_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
+#endif
+
     return (EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -2586,12 +2643,29 @@ uint8_t
 PLIC_mac0_queue3_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 3U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 3U);
 #endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC0_QUEUE3_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
+#endif
+
     return (EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -2602,12 +2676,29 @@ uint8_t
 PLIC_mac0_emac_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_emac0, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_emac0, 0U);
 #endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC0_EMAC_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
+#endif
+
     return (EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -2628,12 +2719,29 @@ uint8_t
 PLIC_mac1_int_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 0U);
 #endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC1_INT_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
+#endif
+
     return (EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -2644,12 +2752,29 @@ uint8_t
 PLIC_mac1_queue1_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 1U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 1U);
 #endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC1_QUEUE1_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
+#endif
+
     return (EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -2660,12 +2785,29 @@ uint8_t
 PLIC_mac1_queue2_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 2U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 2U);
 #endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC1_QUEUE2_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
+#endif
+
     return (EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -2676,12 +2818,29 @@ uint8_t
 PLIC_mac1_queue3_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 3U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 3U);
 #endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC1_QUEUE3_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
+#endif
+
     return (EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -2692,12 +2851,29 @@ uint8_t
 PLIC_mac1_emac_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_emac1, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_emac1, 0U);
 #endif
+#if defined(USING_LWIP)
+    if (0 != g_mac_context_switch)
+    {
+        PLIC_CompleteIRQ(MAC1_EMAC_PLIC);
+        g_mac_context_switch = 0;
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         *
+         * We shouldn't get to here if a task switch is pending but I'm assuming
+         * that doing two PLIC_CompleteIRQ()s would be benign - here and when we
+         * return to the handle_m_ext_interrupt() function...
+         */
+    }
+#endif
+
     return (EXT_IRQ_KEEP_ENABLED);
 }
 
@@ -2728,9 +2904,9 @@ void
 U54_1_mac0_emac_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_emac0, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_emac0, 0U);
 #endif
@@ -2738,7 +2914,11 @@ U54_1_mac0_emac_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2750,9 +2930,9 @@ void
 U54_1_mac0_queue3_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 3U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 3U);
 #endif
@@ -2760,7 +2940,11 @@ U54_1_mac0_queue3_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2772,9 +2956,9 @@ void
 U54_1_mac0_queue2_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 2U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 2U);
 #endif
@@ -2782,7 +2966,11 @@ U54_1_mac0_queue2_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2794,9 +2982,9 @@ void
 U54_1_mac0_queue1_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 1U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 1U);
 #endif
@@ -2804,7 +2992,11 @@ U54_1_mac0_queue1_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2816,9 +3008,9 @@ void
 U54_1_mac0_int_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 0U);
 #endif
@@ -2826,7 +3018,11 @@ U54_1_mac0_int_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2848,9 +3044,9 @@ void
 U54_2_mac0_emac_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_emac0, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_emac0, 0U);
 #endif
@@ -2858,7 +3054,11 @@ U54_2_mac0_emac_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2870,9 +3070,9 @@ void
 U54_2_mac0_queue3_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 3U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 3U);
 #endif
@@ -2880,7 +3080,11 @@ U54_2_mac0_queue3_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2892,9 +3096,9 @@ void
 U54_2_mac0_queue2_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 2U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 2U);
 #endif
@@ -2902,7 +3106,11 @@ U54_2_mac0_queue2_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2914,9 +3122,9 @@ void
 U54_2_mac0_queue1_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 1U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 1U);
 #endif
@@ -2924,7 +3132,11 @@ U54_2_mac0_queue1_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2936,9 +3148,9 @@ void
 U54_2_mac0_int_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac0, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac0, 0U);
 #endif
@@ -2946,7 +3158,11 @@ U54_2_mac0_int_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2968,9 +3184,9 @@ void
 U54_3_mac1_emac_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_emac1, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_emac1, 0U);
 #endif
@@ -2978,7 +3194,11 @@ U54_3_mac1_emac_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -2990,9 +3210,9 @@ void
 U54_3_mac1_queue3_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 3U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 3U);
 #endif
@@ -3000,7 +3220,11 @@ U54_3_mac1_queue3_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -3012,9 +3236,9 @@ void
 U54_3_mac1_queue2_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 2U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 2U);
 #endif
@@ -3022,7 +3246,11 @@ U54_3_mac1_queue2_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -3034,9 +3262,9 @@ void
 U54_3_mac1_queue1_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 1U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 1U);
 #endif
@@ -3044,7 +3272,11 @@ U54_3_mac1_queue1_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -3056,9 +3288,9 @@ void
 U54_3_mac1_int_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 0U);
 #endif
@@ -3066,7 +3298,11 @@ U54_3_mac1_int_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -3088,9 +3324,9 @@ void
 U54_4_mac1_emac_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_emac1, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_emac1, 0U);
 #endif
@@ -3098,7 +3334,11 @@ U54_4_mac1_emac_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -3110,9 +3350,9 @@ void
 U54_4_mac1_queue3_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 3U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 3U);
 #endif
@@ -3120,7 +3360,11 @@ U54_4_mac1_queue3_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -3132,9 +3376,9 @@ void
 U54_4_mac1_queue2_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 2U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 2U);
 #endif
@@ -3142,7 +3386,11 @@ U54_4_mac1_queue2_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -3154,9 +3402,9 @@ void
 U54_4_mac1_queue1_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 1U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 1U);
 #endif
@@ -3164,7 +3412,11 @@ U54_4_mac1_queue1_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -3176,9 +3428,9 @@ void
 U54_4_mac1_int_local_IRQHandler(void)
 {
 #if defined(USING_FREERTOS)
-    uxCriticalNesting++;
+    xCriticalNesting++;
     generic_mac_irq_handler(&g_mac1, 0U);
-    uxCriticalNesting--;
+    xCriticalNesting--;
 #else
     generic_mac_irq_handler(&g_mac1, 0U);
 #endif
@@ -3186,7 +3438,11 @@ U54_4_mac1_int_local_IRQHandler(void)
     if (0 != g_mac_context_switch)
     {
         g_mac_context_switch = 0;
-        vPortYieldISR();
+        portEND_SWITCHING_ISR(1);
+        /*
+         * When the task that was running at the time of the IRQ is re-scheduled
+         * it should continue from the stored MEPC location and not here.
+         */
     }
 #endif
 }
@@ -3196,7 +3452,6 @@ U54_4_mac1_int_local_IRQHandler(void)
 /* Define the following if your GEM is configured to clear on read for int flags
  * In this case you should not write to the int status reg ... */
 /* #define GEM_FLAGS_CLR_ON_RD */
-
 static void
 generic_mac_irq_handler(mss_mac_instance_t *this_mac, uint64_t queue_no)
 {

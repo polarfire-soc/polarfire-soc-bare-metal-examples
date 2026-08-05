@@ -1348,7 +1348,7 @@
  * sys_mbox_new() when tcpip_init is called.
  */
 #ifndef TCPIP_MBOX_SIZE
-#define TCPIP_MBOX_SIZE                 0
+#define TCPIP_MBOX_SIZE                 1
 #endif
 
 /**
@@ -1415,7 +1415,7 @@
  * to sys_mbox_new() when the recvmbox is created.
  */
 #ifndef DEFAULT_RAW_RECVMBOX_SIZE
-#define DEFAULT_RAW_RECVMBOX_SIZE       0
+#define DEFAULT_RAW_RECVMBOX_SIZE       1
 #endif
 
 /**
@@ -1424,7 +1424,7 @@
  * to sys_mbox_new() when the recvmbox is created.
  */
 #ifndef DEFAULT_UDP_RECVMBOX_SIZE
-#define DEFAULT_UDP_RECVMBOX_SIZE       0
+#define DEFAULT_UDP_RECVMBOX_SIZE       1
 #endif
 
 /**
@@ -1433,7 +1433,7 @@
  * to sys_mbox_new() when the recvmbox is created.
  */
 #ifndef DEFAULT_TCP_RECVMBOX_SIZE
-#define DEFAULT_TCP_RECVMBOX_SIZE       0
+#define DEFAULT_TCP_RECVMBOX_SIZE       1
 #endif
 
 /**
@@ -1442,7 +1442,7 @@
  * sys_mbox_new() when the acceptmbox is created.
  */
 #ifndef DEFAULT_ACCEPTMBOX_SIZE
-#define DEFAULT_ACCEPTMBOX_SIZE         0
+#define DEFAULT_ACCEPTMBOX_SIZE         1
 #endif
 
 /*

@@ -43,9 +43,9 @@
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac.h"
 #endif
 /* Kernel includes. */
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
 
 #define IP4_IP_ADDR 0
 #define IP4_IP_MASK 1

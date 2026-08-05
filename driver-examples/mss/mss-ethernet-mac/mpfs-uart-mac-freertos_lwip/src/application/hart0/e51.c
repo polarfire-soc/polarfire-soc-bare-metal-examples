@@ -47,10 +47,10 @@
 #include "drivers/mss/mss_ethernet_mac/phy.h"
 
 /* Kernel includes. */
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "timers.h"
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
+#include <timers.h>
 
 #include "lwip/sockets.h"
 #include "WebServer/if_utils.h"
@@ -69,10 +69,22 @@ void http_server_netconn_thread(void *arg);
 void dump_vsc8575_regs(mss_mac_instance_t *this_mac);
 #endif
 
+
 #if 1
+#if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0
+#define MY_STATIC_IP_ADDRESS "192.168.2.32"
+#define MY_STATIC_IP_GATEWAY "192.168.2.1"
+#define MY_STATIC_IP_MASK    "255.255.255.0"
+#elif ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0) || \
+       (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL))
 #define MY_STATIC_IP_ADDRESS "192.168.2.30"
 #define MY_STATIC_IP_GATEWAY "192.168.2.1"
 #define MY_STATIC_IP_MASK    "255.255.255.0"
+#else
+#define MY_STATIC_IP_ADDRESS "192.168.2.31"
+#define MY_STATIC_IP_GATEWAY "192.168.2.1"
+#define MY_STATIC_IP_MASK    "255.255.255.0"
+#endif
 #else
 #define MY_STATIC_IP_ADDRESS "10.2.2.20"
 #define MY_STATIC_IP_GATEWAY "10.2.2.1"
@@ -290,6 +302,7 @@ prvLinkStatusTask(void *pvParameters)
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0) || \
+     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL))
         stats = MSS_MAC_read_stat(&g_mac0, 1);
         /* Run through loop every 500 milliseconds. */
@@ -313,7 +326,8 @@ volatile int second_task_count = 0;
 #if MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0
 /* MMUART 2 is on P9 pins 24(TXD) and 26(RXD) */
 #define UART_DEMO &g_mss_uart2_lo
-#elif MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0
+#elif ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0) || \
+       (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL))
 #define UART_DEMO &g_mss_uart0_lo
 #else
 #define UART_DEMO &g_mss_uart1_lo
@@ -330,11 +344,17 @@ blinky_task(void *pvParameters)
     {
         second_task_count++;
 #if defined(TARGET_G5_SOC)
-        /* Flash an LED to show something is happening */
+        /*
+         * Flash an LED to show something is happening
+         * Should toggle every 2.5 seconds.
+         */
         if ((second_task_count % 5) == 0)
         {
 #if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0)
             MSS_GPIO_set_output(GPIO2_LO, MSS_GPIO_0, (second_task_count / 5) & 1);
+#elif ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0) || \
+       (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL))
+            MSS_GPIO_set_output(GPIO2_LO, MSS_GPIO_17, (second_task_count / 5) & 1);
 #else
             MSS_GPIO_set_output(GPIO2_LO, MSS_GPIO_16, (second_task_count / 5) & 1);
 #endif
@@ -358,7 +378,11 @@ TaskHandle_t thandle_link;
 TaskHandle_t thandle_web;
 TaskHandle_t thandle_blinky;
 
-#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+/*
+ * If not loaded by HSS example project runs e51 first to set up hardware and
+ * then lets u54s run.
+ */
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
 uint64_t wait_flag;
 #endif
 
@@ -367,13 +391,14 @@ e51(void)
 {
     volatile int ix;
 
-#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
     wait_flag = 0x987654321UL;
 #endif
 
 #if ((MSS_MAC_HW_PLATFORM != MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) && \
         (MSS_MAC_HW_PLATFORM != MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0) && \
-        (MSS_MAC_HW_PLATFORM != MSS_MAC_DESIGN_DISCOVERY_GEM0))
+        (MSS_MAC_HW_PLATFORM != MSS_MAC_DESIGN_DISCOVERY_GEM0) && \
+        (MSS_MAC_HW_PLATFORM != MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL))
     free_rtos(); /* should never return */
 #endif
     while (1)
@@ -531,7 +556,8 @@ e51_task(void *pvParameters)
 
 #endif
 
-    #if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+#if ((MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0) || \
+     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL))
     g_mac_config.phy_addr = PHY_VSC8221_MDIO_ADDR;
     g_mac_config.phy_type = MSS_MAC_DEV_PHY_VSC8221;
     g_mac_config.phy_flags = PHY_VSC8221_EEPROM_INIT;
@@ -551,6 +577,10 @@ e51_task(void *pvParameters)
     /* U54 2 values */
     mtime = (volatile uint64_t *)0x0200bff8;
     timecmp = ((volatile uint64_t *)0x02004000) + hartid;
+
+    MSS_GPIO_init(GPIO2_LO);
+    MSS_GPIO_config(GPIO2_LO, MSS_GPIO_17, MSS_GPIO_OUTPUT_MODE); /* LED 1 */
+
 #endif
 
     #if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0)
@@ -975,10 +1005,13 @@ e51_task(void *pvParameters)
     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM1)   ||\ \
     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) */
 
-    //    PLIC_init();
+#if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
+    PLIC_init();
+#endif
+
     __disable_local_irq((int8_t)MMUART0_E51_INT);
 
-    vPortSetupTimer();
+//    vPortSetupTimer();
 
     MSS_UART_init(UART_DEMO,
                   MSS_UART_115200_BAUD,
@@ -1013,7 +1046,7 @@ e51_task(void *pvParameters)
     MSS_UART_polled_tx_string(UART_DEMO, "CALIni() done..\n\r");
 #endif
 
-#if 0
+#if 1
     PLIC_SetPriority(MAC0_INT_PLIC,  7);
     PLIC_SetPriority(MAC1_INT_PLIC,  7);
     PLIC_SetPriority(MAC0_EMAC_PLIC, 7);
@@ -1042,6 +1075,7 @@ e51_task(void *pvParameters)
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0) || \
+     (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL) || \
      (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0))
     while (MSS_MAC_AVAILABLE != g_mac0.mac_available)
 #else

@@ -47,8 +47,8 @@
 #endif
 /* Kernel includes. */
 #if defined(USING_FREERTOS)
-#include "FreeRTOS.h"
-#include "task.h"
+#include <FreeRTOS.h>
+#include <task.h>
 #else
 extern volatile uint64_t g_tick_counter;
 #endif

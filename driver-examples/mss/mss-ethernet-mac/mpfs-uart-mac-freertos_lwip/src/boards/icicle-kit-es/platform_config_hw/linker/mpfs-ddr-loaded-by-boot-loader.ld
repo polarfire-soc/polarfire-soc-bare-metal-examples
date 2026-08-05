@@ -131,11 +131,11 @@ HEAP_SIZE           = 0k;               /* needs to be calculated for your appli
  * These are the stack sizes that will be allocated to each hart before starting
  * each hart's application function, e51(), u54_1(), u54_2(), u54_3(), u54_4().
  */
-STACK_SIZE_E51_APPLICATION = 1k;
-STACK_SIZE_U54_1_APPLICATION = 1k;
-STACK_SIZE_U54_2_APPLICATION = 1k;
-STACK_SIZE_U54_3_APPLICATION = 1k;
-STACK_SIZE_U54_4_APPLICATION = 1k;
+STACK_SIZE_E51_APPLICATION = 8k;
+STACK_SIZE_U54_1_APPLICATION = 8k;
+STACK_SIZE_U54_2_APPLICATION = 8k;
+STACK_SIZE_U54_3_APPLICATION = 8k;
+STACK_SIZE_U54_4_APPLICATION = 8k;
 
 /* reset address 0xC0000000 */
 SECTION_START_ADDRESS           = 0x80000000; 
@@ -302,6 +302,8 @@ SECTIONS
     PROVIDE(__app_stack_top_h1 = .);
     PROVIDE(__stack_top_h1$ = .);
     
+    PROVIDE(__freertos_irq_stack_top = .);
+
     PROVIDE(__stack_bottom_h2$ = .);
     PROVIDE(__app_stack_bottom_h2 = .);
     . += STACK_SIZE_U54_2_APPLICATION;

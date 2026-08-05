@@ -149,7 +149,8 @@
 #define MSS_MAC_DESIGN_SVG_GMII_GEM0_SGMII_GEM1 (25) /*!< @brief Silicon validation  board GEM0 (GMII) and GEM1 (SGMII) */
 #define MSS_MAC_DESIGN_ICICLE_STD_GEM0_LOCAL    (26) /*!< @brief Icicle board local ints on U54 1 */
 #define MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0        (27) /*!< @brief BeagleV-Fire board GEM0 Standard Reference Design */
-#define MSS_MAC_DESIGN_DISCOVERY_GEM0           (28) /*!< @brief PFSoC Discovery Kit board GEM0 Standard Reference Design */
+#define MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL     (28) /*!< @brief PFSoC Discovery Kit board GEM0 Standard Reference Design */
+#define MSS_MAC_DESIGN_DISCOVERY_GEM0           (29) /*!< @brief PFSoC Discovery Kit board GEM0 Standard Reference Design */
 
 #if defined(TARGET_ALOE)
 #define MSS_MAC_PHY_INTERFACE GMII /* Only one option allowed here... */
@@ -185,7 +186,7 @@
 #elif defined(TARGET_BEAGLEV_FIRE)
 #define MSS_MAC_HW_PLATFORM MSS_MAC_DESIGN_BEAGLEV_FIRE_GEM0
 #elif defined(TARGET_DISCOVERY_KIT)
-#define MSS_MAC_HW_PLATFORM MSS_MAC_DESIGN_DISCOVERY_GEM0
+#define MSS_MAC_HW_PLATFORM MSS_MAC_DESIGN_DISCOVERY_GEM0_LOCAL
 #else
 #define MSS_MAC_HW_PLATFORM MSS_MAC_DESIGN_ICICLE_STD_GEM0
 #endif

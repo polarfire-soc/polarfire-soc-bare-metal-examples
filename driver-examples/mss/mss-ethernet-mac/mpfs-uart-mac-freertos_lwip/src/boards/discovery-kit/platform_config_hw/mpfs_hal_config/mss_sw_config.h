@@ -50,9 +50,9 @@
 #endif
 
 /*
- * MPFS_APP_LAUNCHED_BY_BOOTLOADER
- * We set MPFS_APP_LAUNCHED_BY_BOOTLOADER = 0 if we are a boot-loader
- * Set MPFS_APP_LAUNCHED_BY_BOOTLOADER = 1 if loaded by a boot loader
+ * IMAGE_LOADED_BY_BOOTLOADER
+ * We set IMAGE_LOADED_BY_BOOTLOADER = 0 if we are a boot-loader
+ * Set IMAGE_LOADED_BY_BOOTLOADER = 1 if loaded by a boot loader
  *
  * MPFS_HAL_HW_CONFIG is defined if we are a boot-loader. This is a
  * conditional compile switch is used to determine if MPFS HAL will perform the
@@ -73,8 +73,8 @@
  *   MPFS_HAL_LAST_HART above
  *
  */
-#define MPFS_APP_LAUNCHED_BY_BOOTLOADER 0
-#if (MPFS_APP_LAUNCHED_BY_BOOTLOADER == 0)
+#define IMAGE_LOADED_BY_BOOTLOADER 0
+#if (IMAGE_LOADED_BY_BOOTLOADER == 0)
 #define MPFS_HAL_HW_CONFIG
 #endif
 
