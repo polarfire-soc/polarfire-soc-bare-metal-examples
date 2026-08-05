@@ -41,14 +41,13 @@ extern uint64_t wait_flag;
 void
 u54_1(void)
 {
-    int dummy;
-
     volatile uint32_t icount = 0U;
 
 #if (MSS_MAC_HW_PLATFORM == MSS_MAC_DESIGN_DISCOVERY_GEM0)
     /* Wait for U51 to finish all start up code */
     while(wait_flag != 0x987654321UL)
     {
+        volatile int dummy;
         dummy++;
     }
 #endif

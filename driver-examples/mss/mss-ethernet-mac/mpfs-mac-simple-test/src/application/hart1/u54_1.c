@@ -93,7 +93,7 @@ U54_1_sysTick_IRQHandler(void)
     g_tick_counter += HART1_TICK_RATE_MS;
 }
 #else
-u54_1(void)
+void u54_1(void)
 {
     uint64_t dummy;
 

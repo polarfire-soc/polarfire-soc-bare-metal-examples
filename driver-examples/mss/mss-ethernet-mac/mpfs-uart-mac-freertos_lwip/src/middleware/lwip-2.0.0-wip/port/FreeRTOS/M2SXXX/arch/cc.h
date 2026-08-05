@@ -81,7 +81,10 @@ typedef int sys_prot_t;
 
 uint32_t sys_arch_random(void);
 
-#define LWIP_RAND   sys_arch_random
+//#define LWIP_RAND   sys_arch_random
+#define LWIP_RAND()   (lwip_port_rand())
+
+#define LWIP_NO_LIMITS_H 1
 
 #define LWIP_PLATFORM_BYTESWAP 1
 

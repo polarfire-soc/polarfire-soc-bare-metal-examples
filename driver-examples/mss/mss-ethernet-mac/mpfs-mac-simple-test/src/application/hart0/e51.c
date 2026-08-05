@@ -46,9 +46,7 @@
 #include "drivers/mss/mss_ethernet_mac/phy.h"
 #include "drivers/mss/mss_gpio/mss_gpio.h"
 #include "inc/common.h"
-#define TARGET_DISCOVERY_KIT
-#define TARGET_G5_SOC
-#define MSS_MAC_USE_PHY_VSC8221 1
+
 #if defined(MSS_MAC_USE_DDR) && (MSS_MAC_USE_DDR == MSS_MAC_MEM_CRYPTO)
 /*
  * The crypto libraries have been removed from the example projects as they are
@@ -62,7 +60,7 @@
 #if defined(TARGET_ALOE)
 #define PRINT_STRING(x) MSS_FU540_UART_polled_tx(&g_mss_FU540_uart0, x, strlen(x));
 #elif defined(TARGET_DISCOVERY_KIT)
-#define DEMO_UART       &g_mss_uart1_lo
+#define DEMO_UART       &g_mss_uart0_lo
 #define PRINT_STRING(x) MSS_UART_polled_tx_string(DEMO_UART, (uint8_t *)x);
 #else
 #define DEMO_UART       &g_mss_uart0_lo
@@ -2881,19 +2879,14 @@ mac_task(void *pvParameters)
 #endif
     PRINT_STRING("PolarFire MSS Ethernet MAC Test program\n\r");
 #if defined(TARGET_ALOE)
-    PRINT_STRING("Target is Aloe Vera Boardn\r");
+    PRINT_STRING("Target is Aloe Vera Board\n\r");
 #elif defined(TARGET_ICICLE_KIT)
-    PRINT_STRING("Target is Icicle Kit Boardn\r");
+    PRINT_STRING("Target is Icicle Kit Board\n\r");
 #elif defined(TARGET_BEAGLEV_FIRE)
-    PRINT_STRING("Target is BeagleV Fire Boardn\r");
+    PRINT_STRING("Target is BeagleV Fire Board\n\r");
 #elif defined(TARGET_DISCOVERY_KIT)
-    PRINT_STRING("Target is Discovery Kit Boardn\r");
+    PRINT_STRING("Target is Discovery Kit Board\n\r");
 #endif
-
-
-
-
-
 
     PRINT_STRING("Polling method for TXRX. Typed characters will be echoed.\n\r");
     __enable_irq();
