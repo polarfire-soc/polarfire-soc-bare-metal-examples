@@ -1,77 +1,41 @@
 /*
-    FreeRTOS V7.2.0 - Copyright (C) 2012 Real Time Engineers Ltd.
-	
-
-    ***************************************************************************
-     *                                                                       *
-     *    FreeRTOS tutorial books are available in pdf and paperback.        *
-     *    Complete, revised, and edited pdf reference manuals are also       *
-     *    available.                                                         *
-     *                                                                       *
-     *    Purchasing FreeRTOS documentation will not only help you, by       *
-     *    ensuring you get running as quickly as possible and with an        *
-     *    in-depth knowledge of how to use FreeRTOS, it will also help       *
-     *    the FreeRTOS project to continue with its mission of providing     *
-     *    professional grade, cross platform, de facto standard solutions    *
-     *    for microcontrollers - completely free of charge!                  *
-     *                                                                       *
-     *    >>> See http://www.FreeRTOS.org/Documentation for details. <<<     *
-     *                                                                       *
-     *    Thank you for using FreeRTOS, and thank you for your support!      *
-     *                                                                       *
-    ***************************************************************************
-
-
-    This file is part of the FreeRTOS distribution.
-
-    FreeRTOS is free software; you can redistribute it and/or modify it under
-    the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation AND MODIFIED BY the FreeRTOS exception.
-    >>>NOTE<<< The modification to the GPL is included to allow you to
-    distribute a combined work that includes FreeRTOS without being obliged to
-    provide the source code for proprietary components outside of the FreeRTOS
-    kernel.  FreeRTOS is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-    more details. You should have received a copy of the GNU General Public
-    License and the FreeRTOS license exception along with FreeRTOS; if not it
-    can be viewed here: http://www.freertos.org/a00114.html and also obtained
-    by writing to Richard Barry, contact details for whom are available on the
-    FreeRTOS WEB site.
-
-    1 tab == 4 spaces!
-    
-    ***************************************************************************
-     *                                                                       *
-     *    Having a problem?  Start by reading the FAQ "My application does   *
-     *    not run, what could be wrong?                                      *
-     *                                                                       *
-     *    http://www.FreeRTOS.org/FAQHelp.html                               *
-     *                                                                       *
-    ***************************************************************************
-
-    
-    http://www.FreeRTOS.org - Documentation, training, latest information, 
-    license and contact details.
-    
-    http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
-    including FreeRTOS+Trace - an indispensable productivity tool.
-
-    Real Time Engineers ltd license FreeRTOS to High Integrity Systems, who sell 
-    the code with commercial support, indemnification, and middleware, under 
-    the OpenRTOS brand: http://www.OpenRTOS.com.  High Integrity Systems also
-    provide a safety engineered and independently SIL3 certified version under 
-    the SafeRTOS brand: http://www.SafeRTOS.com.
-*/
+ * FreeRTOS Kernel <DEVELOPMENT BRANCH>
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
+ *
+ */
 
 #ifndef PORTMACRO_H
 #define PORTMACRO_H
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-extern "C" {
+    extern "C" {
 #endif
+/* *INDENT-ON* */
 
-#include <machine/ic.h>
+#include <machine/cpu.h>
 
 /*-----------------------------------------------------------
  * Port specific definitions.
@@ -84,32 +48,36 @@ extern "C" {
  */
 
 /* Type definitions. */
-#define portCHAR		char
-#define portFLOAT		float
-#define portDOUBLE		double
-#define portLONG		long
-#define portSHORT		short
-#define portSTACK_TYPE	unsigned portLONG
-#define portBASE_TYPE	portLONG
+#define portCHAR          char
+#define portFLOAT         float
+#define portDOUBLE        double
+#define portLONG          long
+#define portSHORT         short
+#define portSTACK_TYPE    uint32_t
+#define portBASE_TYPE     long
 
-#if( configUSE_16_BIT_TICKS == 1 )
-	typedef unsigned portSHORT portTickType;
-	#define portMAX_DELAY ( portTickType ) 0xffff
+typedef portSTACK_TYPE   StackType_t;
+typedef long             BaseType_t;
+typedef unsigned long    UBaseType_t;
+
+#if ( configTICK_TYPE_WIDTH_IN_BITS == TICK_TYPE_WIDTH_16_BITS )
+    typedef uint16_t     TickType_t;
+    #define portMAX_DELAY    ( TickType_t ) 0xffff
+#elif ( configTICK_TYPE_WIDTH_IN_BITS == TICK_TYPE_WIDTH_32_BITS )
+    typedef uint32_t     TickType_t;
+    #define portMAX_DELAY    ( TickType_t ) ( 0xFFFFFFFFUL )
 #else
-	typedef unsigned portLONG portTickType;
-	#define portMAX_DELAY ( portTickType ) 0xffffffff
+    #error configTICK_TYPE_WIDTH_IN_BITS set to unsupported tick type width.
 #endif
 /*-----------------------------------------------------------*/
 
 /* Architecture specifics. */
-#define portSTACK_GROWTH							( -1 )
-#define portTICK_RATE_MS							( ( portTickType ) 1000 / configTICK_RATE_HZ )
-#define portBYTE_ALIGNMENT							4
-#define portNOP()									__asm__ volatile ( "mov r0, r0" )
-#define portCRITICAL_NESTING_IN_TCB					1
-#define portIRQ_TRAP_YIELD							31
-#define portKERNEL_INTERRUPT_PRIORITY_LEVEL			0
-#define portSYSTEM_INTERRUPT_PRIORITY_LEVEL			0
+#define portSTACK_GROWTH               ( -1 )
+#define portTICK_PERIOD_MS             ( ( TickType_t ) 1000 / configTICK_RATE_HZ )
+#define portBYTE_ALIGNMENT             4
+#define portNOP()    __asm__ volatile ( "mov r0, r0" )
+#define portCRITICAL_NESTING_IN_TCB    1
+#define portIRQ_TRAP_YIELD             31
 /*-----------------------------------------------------------*/
 
 /* Task utilities. */
@@ -118,72 +86,74 @@ extern void vPortYield( void );
 
 /*---------------------------------------------------------------------------*/
 
-#define portYIELD()		asm __volatile__( " trap #%0 "::"i"(portIRQ_TRAP_YIELD):"memory")
+#define portYIELD()    asm __volatile__ ( " trap #%0 " : : "i" ( portIRQ_TRAP_YIELD ) : "memory" )
 /*---------------------------------------------------------------------------*/
 
 extern void vTaskEnterCritical( void );
 extern void vTaskExitCritical( void );
-#define portENTER_CRITICAL()		vTaskEnterCritical()
-#define portEXIT_CRITICAL()			vTaskExitCritical()
+#define portENTER_CRITICAL()    vTaskEnterCritical()
+#define portEXIT_CRITICAL()     vTaskExitCritical()
 /*---------------------------------------------------------------------------*/
 
 /* Critical section management. */
-#define portDISABLE_INTERRUPTS() ic->cpl = ( portSYSTEM_INTERRUPT_PRIORITY_LEVEL + 1 )
-#define portENABLE_INTERRUPTS() ic->cpl = portKERNEL_INTERRUPT_PRIORITY_LEVEL
+#define portDISABLE_INTERRUPTS()    cpu_int_disable()
+#define portENABLE_INTERRUPTS()     cpu_int_enable()
 
 /*---------------------------------------------------------------------------*/
 
-#define portYIELD_FROM_ISR( xHigherPriorityTaskWoken ) if( xHigherPriorityTaskWoken != pdFALSE ) vTaskSwitchContext()
+#define portYIELD_FROM_ISR( xHigherPriorityTaskWoken )    do { if( xHigherPriorityTaskWoken != pdFALSE ) vTaskSwitchContext( ); } while( 0 )
 
 /*---------------------------------------------------------------------------*/
 
-#define portSAVE_CONTEXT()				\
-	asm __volatile__																								\
-	(																												\
-		"sub	r1, #68					\n" /* Make space on the stack for the context. */							\
-		"std	r2, [r1] + 	0			\n"																			\
-		"stq	r4, [r1] +	8			\n"																			\
-		"stq	r8, [r1] +	24			\n"																			\
-		"stq	r12, [r1] +	40			\n"																			\
-		"mov	r6, rtt					\n"																			\
-		"mov	r7, psr					\n"																			\
-		"std	r6, [r1] +	56			\n"																			\
-		"movhi	r2, #16384				\n"	/* Set the pointer to the IC. */										\
-		"ldub	r3, [r2] + 2			\n"	/* Load the current interrupt mask. */									\
-		"st		r3, [r1]+ 64			\n"	/* Store the interrupt mask on the stack. */ 							\
-		"ld		r2, [r0]+short(pxCurrentTCB)	\n"	/* Load the pointer to the TCB. */								\
-		"st		r1, [r2]				\n"	/* Save the stack pointer into the TCB. */								\
-		"mov	r14, r1					\n"	/* Compiler expects r14 to be set to the function stack. */				\
-	);
+#define portSAVE_CONTEXT()                                                                                      \
+    asm __volatile__                                                                                            \
+    (                                                                                                           \
+        "sub    r1, #68                 \n" /* Make space on the stack for the context. */                      \
+        "std    r2, [r1] +  0           \n"                                                                     \
+        "stq    r4, [r1] +  8           \n"                                                                     \
+        "stq    r8, [r1] +  24          \n"                                                                     \
+        "stq    r12, [r1] + 40          \n"                                                                     \
+        "mov    r6, rtt                 \n"                                                                     \
+        "mov    r7, psr                 \n"                                                                     \
+        "std    r6, [r1] +  56          \n"                                                                     \
+        "movhi  r2, #16384              \n"         /* Set the pointer to the IC. */                            \
+        "ldub   r3, [r2] + 2            \n"         /* Load the current interrupt mask. */                      \
+        "st     r3, [r1]+ 64            \n"         /* Store the interrupt mask on the stack. */                \
+        "ld     r2, [r0]+short(pxCurrentTCB)    \n" /* Load the pointer to the TCB. */                          \
+        "st     r1, [r2]                \n"         /* Save the stack pointer into the TCB. */                  \
+        "mov    r14, r1                 \n"         /* Compiler expects r14 to be set to the function stack. */ \
+    );
 /*---------------------------------------------------------------------------*/
 
-#define portRESTORE_CONTEXT()																						\
-	asm __volatile__(																								\
-		"ld		r2, [r0]+short(pxCurrentTCB)	\n"	/* Load the TCB to find the stack pointer and context. */		\
-		"ld		r1, [r2]				\n"																			\
-		"movhi	r2, #16384				\n"	/* Set the pointer to the IC. */										\
-		"ld		r3, [r1] + 64			\n"	/* Load the previous interrupt mask. */									\
-		"stb	r3, [r2] + 2  			\n"	/* Set the current interrupt mask to be the previous. */				\
-		"ldd	r6, [r1] + 56			\n"	/* Restore context. */													\
-		"mov	rtt, r6					\n"																			\
-		"mov	psr, r7					\n"																			\
-		"ldd	r2, [r1] + 0			\n"																			\
-		"ldq	r4, [r1] +	8			\n"																			\
-		"ldq	r8, [r1] +	24			\n"																			\
-		"ldq	r12, [r1] +	40			\n"																			\
-		"add	r1, #68					\n"																			\
-		"rti							\n"																			\
-	 );
+#define portRESTORE_CONTEXT()                                                                                 \
+    asm __volatile__ (                                                                                        \
+        "ld     r2, [r0]+short(pxCurrentTCB)    \n" /* Load the TCB to find the stack pointer and context. */ \
+        "ld     r1, [r2]                \n"                                                                   \
+        "movhi  r2, #16384              \n"         /* Set the pointer to the IC. */                          \
+        "ld     r3, [r1] + 64           \n"         /* Load the previous interrupt mask. */                   \
+        "stb    r3, [r2] + 2            \n"         /* Set the current interrupt mask to be the previous. */  \
+        "ldd    r6, [r1] + 56           \n"         /* Restore context. */                                    \
+        "mov    rtt, r6                 \n"                                                                   \
+        "mov    psr, r7                 \n"                                                                   \
+        "ldd    r2, [r1] + 0            \n"                                                                   \
+        "ldq    r4, [r1] +  8           \n"                                                                   \
+        "ldq    r8, [r1] +  24          \n"                                                                   \
+        "ldq    r12, [r1] + 40          \n"                                                                   \
+        "add    r1, #68                 \n"                                                                   \
+        "rti                            \n"                                                                   \
+        );
 
 /*---------------------------------------------------------------------------*/
 
 /* Task function macros as described on the FreeRTOS.org WEB site. */
-#define portTASK_FUNCTION_PROTO( vFunction, pvParameters ) void vFunction( void *pvParameters )
-#define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void *pvParameters )
+#define portTASK_FUNCTION_PROTO( vFunction, pvParameters )    void vFunction( void * pvParameters )
+#define portTASK_FUNCTION( vFunction, pvParameters )          void vFunction( void * pvParameters )
 /*---------------------------------------------------------------------------*/
 
+/* *INDENT-OFF* */
 #ifdef __cplusplus
-}
+    }
 #endif
+/* *INDENT-ON* */
 
 #endif /* PORTMACRO_H */

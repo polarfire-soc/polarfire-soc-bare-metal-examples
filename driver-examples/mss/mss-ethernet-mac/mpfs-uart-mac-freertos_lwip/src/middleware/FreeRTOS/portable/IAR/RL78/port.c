@@ -1,76 +1,38 @@
 /*
-    FreeRTOS V7.2.0 - Copyright (C) 2012 Real Time Engineers Ltd.
-	
-
-    ***************************************************************************
-     *                                                                       *
-     *    FreeRTOS tutorial books are available in pdf and paperback.        *
-     *    Complete, revised, and edited pdf reference manuals are also       *
-     *    available.                                                         *
-     *                                                                       *
-     *    Purchasing FreeRTOS documentation will not only help you, by       *
-     *    ensuring you get running as quickly as possible and with an        *
-     *    in-depth knowledge of how to use FreeRTOS, it will also help       *
-     *    the FreeRTOS project to continue with its mission of providing     *
-     *    professional grade, cross platform, de facto standard solutions    *
-     *    for microcontrollers - completely free of charge!                  *
-     *                                                                       *
-     *    >>> See http://www.FreeRTOS.org/Documentation for details. <<<     *
-     *                                                                       *
-     *    Thank you for using FreeRTOS, and thank you for your support!      *
-     *                                                                       *
-    ***************************************************************************
-
-
-    This file is part of the FreeRTOS distribution.
-
-    FreeRTOS is free software; you can redistribute it and/or modify it under
-    the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation AND MODIFIED BY the FreeRTOS exception.
-    >>>NOTE<<< The modification to the GPL is included to allow you to
-    distribute a combined work that includes FreeRTOS without being obliged to
-    provide the source code for proprietary components outside of the FreeRTOS
-    kernel.  FreeRTOS is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-    more details. You should have received a copy of the GNU General Public
-    License and the FreeRTOS license exception along with FreeRTOS; if not it
-    can be viewed here: http://www.freertos.org/a00114.html and also obtained
-    by writing to Richard Barry, contact details for whom are available on the
-    FreeRTOS WEB site.
-
-    1 tab == 4 spaces!
-    
-    ***************************************************************************
-     *                                                                       *
-     *    Having a problem?  Start by reading the FAQ "My application does   *
-     *    not run, what could be wrong?                                      *
-     *                                                                       *
-     *    http://www.FreeRTOS.org/FAQHelp.html                               *
-     *                                                                       *
-    ***************************************************************************
-
-    
-    http://www.FreeRTOS.org - Documentation, training, latest information, 
-    license and contact details.
-    
-    http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
-    including FreeRTOS+Trace - an indispensable productivity tool.
-
-    Real Time Engineers ltd license FreeRTOS to High Integrity Systems, who sell 
-    the code with commercial support, indemnification, and middleware, under 
-    the OpenRTOS brand: http://www.OpenRTOS.com.  High Integrity Systems also
-    provide a safety engineered and independently SIL3 certified version under 
-    the SafeRTOS brand: http://www.SafeRTOS.com.
-*/
+ * FreeRTOS Kernel <DEVELOPMENT BRANCH>
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
+ *
+ */
 
 /* Scheduler includes. */
 #include "FreeRTOS.h"
 #include "task.h"
 
 /* The critical nesting value is initialised to a non zero value to ensure
-interrupts don't accidentally become enabled before the scheduler is started. */
-#define portINITIAL_CRITICAL_NESTING  ( ( unsigned short ) 10 )
+ * interrupts don't accidentally become enabled before the scheduler is started. */
+#define portINITIAL_CRITICAL_NESTING    ( ( uint16_t ) 10 )
 
 /* Initial PSW value allocated to a newly created task.
  *   1100011000000000
@@ -83,35 +45,40 @@ interrupts don't accidentally become enabled before the scheduler is started. */
  *   |--------------------- Zero Flag set
  *   ---------------------- Global Interrupt Flag set (enabled)
  */
-#define portPSW		  ( 0xc6UL )
+#define portPSW                         ( 0xc6UL )
 
 /* The address of the pxCurrentTCB variable, but don't know or need to know its
-type. */
-typedef void tskTCB;
-extern volatile tskTCB * volatile pxCurrentTCB;
+ * type. */
+typedef void TCB_t;
+extern volatile TCB_t * volatile pxCurrentTCB;
 
 /* Each task maintains a count of the critical section nesting depth.  Each time
-a critical section is entered the count is incremented.  Each time a critical
-section is exited the count is decremented - with interrupts only being
-re-enabled if the count is zero.
-
-usCriticalNesting will get set to zero when the scheduler starts, but must
-not be initialised to zero as that could cause problems during the startup
-sequence. */
-volatile unsigned short usCriticalNesting = portINITIAL_CRITICAL_NESTING;
+ * a critical section is entered the count is incremented.  Each time a critical
+ * section is exited the count is decremented - with interrupts only being
+ * re-enabled if the count is zero.
+ *
+ * usCriticalNesting will get set to zero when the scheduler starts, but must
+ * not be initialised to zero as that could cause problems during the startup
+ * sequence. */
+volatile uint16_t usCriticalNesting = portINITIAL_CRITICAL_NESTING;
 
 /*-----------------------------------------------------------*/
 
 /*
  * Sets up the periodic ISR used for the RTOS tick.
  */
-static void prvSetupTimerInterrupt( void );
+extern void vApplicationSetupTimerInterrupt( void );
 
 /*
- * Defined in portasm.s87, this function starts the scheduler by loading the
- * context of the first task to run.
+ * Starts the scheduler by loading the context of the first Task to run.
+ * (implemented in portasm.s).
  */
 extern void vPortStartFirstTask( void );
+
+/*
+ * Used to catch tasks that attempt to return from their implementing function.
+ */
+static void prvTaskExitError( void );
 
 /*-----------------------------------------------------------*/
 
@@ -121,136 +88,154 @@ extern void vPortStartFirstTask( void );
  *
  * See the header file portable.h.
  */
-portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE pxCode, void *pvParameters )
+StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
+                                     TaskFunction_t pxCode,
+                                     void * pvParameters )
 {
-unsigned long *pulLocal;
+    uint32_t * pulLocal;
+    /* With large data sizeof( StackType_t ) == 2, and
+     * sizeof( StackType_t * ) == 4.  With small data
+     * sizeof( StackType_t ) == 2 and sizeof( StackType_t * ) == 2. */
+#if __DATA_MODEL__ == __DATA_MODEL_FAR__
+    {
+        /* Far pointer parameters are passed using the A:DE registers (24-bit).
+         * Although they are stored in memory as a 32-bit value.  Hence decrement
+         * the stack pointer, so 2 bytes are left for the contents of A, before
+         * storing the pvParameters value. */
+        pxTopOfStack--;
+        pulLocal = ( uint32_t * ) pxTopOfStack;
+        #if  __CALLING_CONVENTION__ == __CC_V2__
+            /* V2: parameter via A:DE, do not push pvParameters on stack */
+        #else
+            /* V1 or unknown: keep stack write */
+            *pulLocal = ( uint32_t ) pvParameters;
+            pxTopOfStack--;
+        #endif
+        /* The return address is a 32-bit value. So decrement the stack pointer
+         * in order to make extra room needed to store the correct value.  See the
+         * comments above the prvTaskExitError() prototype at the top of this file. */
+        pxTopOfStack--;
+        pulLocal = ( uint32_t * ) pxTopOfStack;
+        *pulLocal = ( uint32_t ) prvTaskExitError;
+        pxTopOfStack--;
+        /* The task function start address combined with the PSW is also stored
+         * as a 32-bit value. So leave a space for the second two bytes. */
+        pxTopOfStack--;
+        pulLocal = ( uint32_t * ) pxTopOfStack;
+        *pulLocal = ( ( ( uint32_t ) pxCode ) | ( portPSW << 24UL ) );
+        pxTopOfStack--;
+        /* Register image on task entry. */
+        #if  __CALLING_CONVENTION__ == __CC_V2__
+        {
+            uint32_t p = ( uint32_t ) pvParameters;
+            uint16_t de_init = (uint16_t)( p & 0xFFFFU );
+            uint16_t ax_init = (uint16_t)( ((p >> 16) & 0xFFU) << 8 );
+            /* AX register image */
+            *pxTopOfStack = ( StackType_t ) ax_init;
+            pxTopOfStack--;
+            /* HL register image (dummy) */
+            *pxTopOfStack = ( StackType_t ) 0x2222;
+            pxTopOfStack--;
+            /* CS:ES register image */
+            *pxTopOfStack = ( StackType_t ) 0x0F00;
+            pxTopOfStack--;
+            /* DE register image */
+            *pxTopOfStack = ( StackType_t ) de_init;
+            pxTopOfStack--;
+        }
+        #else
+            /* An initial value for the AX register. */
+            *pxTopOfStack = ( StackType_t ) 0x1111;
+            pxTopOfStack--;
+            /* HL register image (dummy) */
+            *pxTopOfStack = ( StackType_t ) 0x2222;
+            pxTopOfStack--;
+            /* CS:ES register image */
+            *pxTopOfStack = ( StackType_t ) 0x0F00;
+            pxTopOfStack--;
+            /* DE register image (dummy) */
+            *pxTopOfStack = ( StackType_t ) 0xDEDE;
+            pxTopOfStack--;
+        #endif
+        /* BC remains a dummy value (not used for parameter passing). */
+        *pxTopOfStack = ( StackType_t ) 0xBCBC;
+        pxTopOfStack--;
+    }
+#else /* if __DATA_MODEL__ == __DATA_MODEL_FAR__ */
+    {
+       /* The return address, leaving space for the first two bytes of the
+         * 32-bit value.  See the comments above the prvTaskExitError() prototype
+         * at the top of this file. */
+        pxTopOfStack--;
+        pulLocal = ( uint32_t * ) pxTopOfStack;
+        *pulLocal = ( uint32_t ) prvTaskExitError;
+        pxTopOfStack--;
+        /* Task function.  Again as it is written as a 32-bit value a space is
+         * left on the stack for the second two bytes. */
+        pxTopOfStack--;
+        /* Task function start address combined with the PSW. */
+        pulLocal = ( uint32_t * ) pxTopOfStack;
+        *pulLocal = ( ( ( uint32_t ) pxCode ) | ( portPSW << 24UL ) );
+        pxTopOfStack--;
+        /* The parameter is passed in AX. */
+        *pxTopOfStack = ( StackType_t ) pvParameters;
+        pxTopOfStack--;
+        /* An initial value for the HL register. */
+        *pxTopOfStack = ( StackType_t ) 0x2222;
+        pxTopOfStack--;
+        /* CS and ES registers. */
+        *pxTopOfStack = ( StackType_t ) 0x0F00;
+        pxTopOfStack--;
+        /* The remaining general purpose registers DE and BC */
+        *pxTopOfStack = ( StackType_t ) 0xDEDE;
+        pxTopOfStack--;
+        *pxTopOfStack = ( StackType_t ) 0xBCBC;
+        pxTopOfStack--;
+    }
+#endif /* __DATA_MODEL__ */
+    /* Finally the critical section nesting count is set to zero when the task
+     * first starts. */
+    *pxTopOfStack = ( StackType_t ) portNO_CRITICAL_SECTION_NESTING;
+    /* Return a pointer to the top of the stack that has been generated so
+     * it can be stored in the task control block for the task. */
+    return pxTopOfStack;
+}
 
-	#if __DATA_MODEL__ == __DATA_MODEL_FAR__
-	{
-		/* Parameters are passed in on the stack, and written using a 32bit value
-		hence a space is left for the second two bytes. */
-		pxTopOfStack--;
+/*-----------------------------------------------------------*/
 
-		/* Write in the parameter value. */
-		pulLocal =  ( unsigned long * ) pxTopOfStack;
-		*pulLocal = ( unsigned long ) pvParameters;
-		pxTopOfStack--;
+static void prvTaskExitError( void )
+{
+    /* A function that implements a task must not exit or attempt to return to
+     * its caller as there is nothing to return to.  If a task wants to exit it
+     * should instead call vTaskDelete( NULL ).
+     *
+     * Artificially force an assert() to be triggered if configASSERT() is
+     * defined, then stop here so application writers can catch the error. */
+    configASSERT( usCriticalNesting == ~0U );
+    portDISABLE_INTERRUPTS();
 
-		/* These values are just spacers.  The return address of the function
-		would normally be written here. */
-		*pxTopOfStack = ( portSTACK_TYPE ) 0xcdcd;
-		pxTopOfStack--;
-		*pxTopOfStack = ( portSTACK_TYPE ) 0xcdcd;
-		pxTopOfStack--;
-
-		/* The start address / PSW value is also written in as a 32bit value,
-		so leave a space for the second two bytes. */
-		pxTopOfStack--;
-	
-		/* Task function start address combined with the PSW. */
-		pulLocal = ( unsigned long * ) pxTopOfStack;
-		*pulLocal = ( ( ( unsigned long ) pxCode ) | ( portPSW << 24UL ) );
-		pxTopOfStack--;
-
-		/* An initial value for the AX register. */
-		*pxTopOfStack = ( portSTACK_TYPE ) 0x1111;
-		pxTopOfStack--;
-	}
-	#else
-	{
-		/* Task function address is written to the stack first.  As it is
-		written as a 32bit value a space is left on the stack for the second
-		two bytes. */
-		pxTopOfStack--;
-
-		/* Task function start address combined with the PSW. */
-		pulLocal = ( unsigned long * ) pxTopOfStack;
-		*pulLocal = ( ( ( unsigned long ) pxCode ) | ( portPSW << 24UL ) );
-		pxTopOfStack--;
-
-		/* The parameter is passed in AX. */
-		*pxTopOfStack = ( portSTACK_TYPE ) pvParameters;
-		pxTopOfStack--;
-	}
-	#endif
-
-	/* An initial value for the HL register. */
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x2222;
-	pxTopOfStack--;
-
-	/* CS and ES registers. */
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x0F00;
-	pxTopOfStack--;
-
-	/* Finally the remaining general purpose registers DE and BC */
-	*pxTopOfStack = ( portSTACK_TYPE ) 0xDEDE;
-	pxTopOfStack--;
-	*pxTopOfStack = ( portSTACK_TYPE ) 0xBCBC;
-	pxTopOfStack--;
-
-	/* Finally the critical section nesting count is set to zero when the task
-	first starts. */
-	*pxTopOfStack = ( portSTACK_TYPE ) portNO_CRITICAL_SECTION_NESTING;	
-
-	/* Return a pointer to the top of the stack that has beene generated so it
-	can	be stored in the task control block for the task. */
-	return pxTopOfStack;
+    for( ; ; )
+    {
+    }
 }
 /*-----------------------------------------------------------*/
 
-portBASE_TYPE xPortStartScheduler( void )
+BaseType_t xPortStartScheduler( void )
 {
-	/* Setup the hardware to generate the tick.  Interrupts are disabled when
-	this function is called. */
-	prvSetupTimerInterrupt();
+    /* Setup the hardware to generate the tick. Interrupts are disabled when
+     * this function is called. */
+    vApplicationSetupTimerInterrupt();
 
-	/* Restore the context of the first task that is going to run. */
-	vPortStartFirstTask();
+    /* Restore the context of the first task that is going to run. */
+    vPortStartFirstTask();
 
-	/* Execution should not reach here as the tasks are now running! */
-	return pdTRUE;
+    /* Execution should not reach here as the tasks are now running! */
+    return pdTRUE;
 }
 /*-----------------------------------------------------------*/
 
 void vPortEndScheduler( void )
 {
-	/* It is unlikely that the RL78/G13 port will get stopped.  If required simply
-	disable the tick interrupt here. */
+    /* It is unlikely that the RL78 port will get stopped. */
 }
 /*-----------------------------------------------------------*/
-
-static void prvSetupTimerInterrupt( void )
-{
-const unsigned short usClockHz = 15000UL; /* Internal clock. */
-const unsigned short usCompareMatch = ( usClockHz / configTICK_RATE_HZ ) + 1UL;
-
-	/* Use the internal 15K clock. */
-	OSMC = 0x16U;
-
-	/* Supply the RTC clock. */
-	RTCEN = 1U;
-	
-	/* Disable ITMC operation. */
-	ITMC = 0x0000;
-	
-	/* Disable INTIT interrupt. */
-	ITMK = 1U;
-	
-	/* Set INTIT high priority */
-	ITPR1 = 1U;
-	ITPR0 = 1U;
-	
-	/* Set interval. */
-	ITMC = usCompareMatch;
-
-	/* Clear INIT interrupt. */
-	ITIF = 0U;
-	
-	/* Enable INTIT interrupt. */
-	ITMK = 0U;
-	
-	/* Enable IT operation. */
-	ITMC |= 0x8000;
-}
-/*-----------------------------------------------------------*/
-

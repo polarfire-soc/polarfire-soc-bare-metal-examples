@@ -1,72 +1,34 @@
 /*
-    FreeRTOS V7.2.0 - Copyright (C) 2012 Real Time Engineers Ltd.
-	
-
-    ***************************************************************************
-     *                                                                       *
-     *    FreeRTOS tutorial books are available in pdf and paperback.        *
-     *    Complete, revised, and edited pdf reference manuals are also       *
-     *    available.                                                         *
-     *                                                                       *
-     *    Purchasing FreeRTOS documentation will not only help you, by       *
-     *    ensuring you get running as quickly as possible and with an        *
-     *    in-depth knowledge of how to use FreeRTOS, it will also help       *
-     *    the FreeRTOS project to continue with its mission of providing     *
-     *    professional grade, cross platform, de facto standard solutions    *
-     *    for microcontrollers - completely free of charge!                  *
-     *                                                                       *
-     *    >>> See http://www.FreeRTOS.org/Documentation for details. <<<     *
-     *                                                                       *
-     *    Thank you for using FreeRTOS, and thank you for your support!      *
-     *                                                                       *
-    ***************************************************************************
-
-
-    This file is part of the FreeRTOS distribution.
-
-    FreeRTOS is free software; you can redistribute it and/or modify it under
-    the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation AND MODIFIED BY the FreeRTOS exception.
-    >>>NOTE<<< The modification to the GPL is included to allow you to
-    distribute a combined work that includes FreeRTOS without being obliged to
-    provide the source code for proprietary components outside of the FreeRTOS
-    kernel.  FreeRTOS is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-    more details. You should have received a copy of the GNU General Public
-    License and the FreeRTOS license exception along with FreeRTOS; if not it
-    can be viewed here: http://www.freertos.org/a00114.html and also obtained
-    by writing to Richard Barry, contact details for whom are available on the
-    FreeRTOS WEB site.
-
-    1 tab == 4 spaces!
-    
-    ***************************************************************************
-     *                                                                       *
-     *    Having a problem?  Start by reading the FAQ "My application does   *
-     *    not run, what could be wrong?                                      *
-     *                                                                       *
-     *    http://www.FreeRTOS.org/FAQHelp.html                               *
-     *                                                                       *
-    ***************************************************************************
-
-    
-    http://www.FreeRTOS.org - Documentation, training, latest information, 
-    license and contact details.
-    
-    http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
-    including FreeRTOS+Trace - an indispensable productivity tool.
-
-    Real Time Engineers ltd license FreeRTOS to High Integrity Systems, who sell 
-    the code with commercial support, indemnification, and middleware, under 
-    the OpenRTOS brand: http://www.OpenRTOS.com.  High Integrity Systems also
-    provide a safety engineered and independently SIL3 certified version under 
-    the SafeRTOS brand: http://www.SafeRTOS.com.
-*/
+ * FreeRTOS Kernel <DEVELOPMENT BRANCH>
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * https://www.FreeRTOS.org
+ * https://github.com/FreeRTOS
+ *
+ */
 
 /*-----------------------------------------------------------
- * Implementation of functions defined in portable.h for the Atmel ARM7 port.
- *----------------------------------------------------------*/
+* Implementation of functions defined in portable.h for the Atmel ARM7 port.
+*----------------------------------------------------------*/
 
 
 /* Standard includes. */
@@ -77,30 +39,30 @@
 #include "task.h"
 
 /* Constants required to setup the initial stack. */
-#define portINITIAL_SPSR				( ( portSTACK_TYPE ) 0x1f ) /* System mode, ARM mode, interrupts enabled. */
-#define portTHUMB_MODE_BIT				( ( portSTACK_TYPE ) 0x20 )
-#define portINSTRUCTION_SIZE			( ( portSTACK_TYPE ) 4 )
+#define portINITIAL_SPSR           ( ( StackType_t ) 0x1f )      /* System mode, ARM mode, interrupts enabled. */
+#define portTHUMB_MODE_BIT         ( ( StackType_t ) 0x20 )
+#define portINSTRUCTION_SIZE       ( ( StackType_t ) 4 )
 
 /* Constants required to setup the PIT. */
-#define portPIT_CLOCK_DIVISOR			( ( unsigned long ) 16 )
-#define portPIT_COUNTER_VALUE			( ( ( configCPU_CLOCK_HZ / portPIT_CLOCK_DIVISOR ) / 1000UL ) * portTICK_RATE_MS )
+#define portPIT_CLOCK_DIVISOR      ( ( uint32_t ) 16 )
+#define portPIT_COUNTER_VALUE      ( ( ( configCPU_CLOCK_HZ / portPIT_CLOCK_DIVISOR ) / 1000UL ) * portTICK_PERIOD_MS )
 
 /* Constants required to handle critical sections. */
-#define portNO_CRITICAL_NESTING 		( ( unsigned long ) 0 )
+#define portNO_CRITICAL_NESTING    ( ( uint32_t ) 0 )
 
 
-#define portINT_LEVEL_SENSITIVE  0
-#define portPIT_ENABLE      	( ( unsigned short ) 0x1 << 24 )
-#define portPIT_INT_ENABLE     	( ( unsigned short ) 0x1 << 25 )
+#define portINT_LEVEL_SENSITIVE    0
+#define portPIT_ENABLE             ( ( uint16_t ) 0x1 << 24 )
+#define portPIT_INT_ENABLE         ( ( uint16_t ) 0x1 << 25 )
 /*-----------------------------------------------------------*/
 
 /* Setup the PIT to generate the tick interrupts. */
 static void prvSetupTimerInterrupt( void );
 
 /* ulCriticalNesting will get set to zero when the first task starts.  It
-cannot be initialised to 0 as this will cause interrupts to be enabled
-during the kernel initialisation process. */
-unsigned long ulCriticalNesting = ( unsigned long ) 9999;
+ * cannot be initialised to 0 as this will cause interrupts to be enabled
+ * during the kernel initialisation process. */
+uint32_t ulCriticalNesting = ( uint32_t ) 9999;
 
 /*-----------------------------------------------------------*/
 
@@ -110,189 +72,181 @@ unsigned long ulCriticalNesting = ( unsigned long ) 9999;
  *
  * See header file for description.
  */
-portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE pxCode, void *pvParameters )
+StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
+                                     TaskFunction_t pxCode,
+                                     void * pvParameters )
 {
-portSTACK_TYPE *pxOriginalTOS;
+    StackType_t * pxOriginalTOS;
 
-	pxOriginalTOS = pxTopOfStack;
+    pxOriginalTOS = pxTopOfStack;
 
-	/* To ensure asserts in tasks.c don't fail, although in this case the assert
-	is not really required. */
-	pxTopOfStack--;
+    /* To ensure asserts in tasks.c don't fail, although in this case the assert
+     * is not really required. */
+    pxTopOfStack--;
 
-	/* Setup the initial stack of the task.  The stack is set exactly as
-	expected by the portRESTORE_CONTEXT() macro. */
+    /* Setup the initial stack of the task.  The stack is set exactly as
+     * expected by the portRESTORE_CONTEXT() macro. */
 
-	/* First on the stack is the return address - which in this case is the
-	start of the task.  The offset is added to make the return address appear
-	as it would within an IRQ ISR. */
-	*pxTopOfStack = ( portSTACK_TYPE ) pxCode + portINSTRUCTION_SIZE;		
-	pxTopOfStack--;
+    /* First on the stack is the return address - which in this case is the
+     * start of the task.  The offset is added to make the return address appear
+     * as it would within an IRQ ISR. */
+    *pxTopOfStack = ( StackType_t ) pxCode + portINSTRUCTION_SIZE;
+    pxTopOfStack--;
 
-	*pxTopOfStack = ( portSTACK_TYPE ) 0xaaaaaaaa;	/* R14 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) pxOriginalTOS; /* Stack used when task starts goes in R13. */
-	pxTopOfStack--;
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x12121212;	/* R12 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x11111111;	/* R11 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x10101010;	/* R10 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x09090909;	/* R9 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x08080808;	/* R8 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x07070707;	/* R7 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x06060606;	/* R6 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x05050505;	/* R5 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x04040404;	/* R4 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x03030303;	/* R3 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x02020202;	/* R2 */
-	pxTopOfStack--;	
-	*pxTopOfStack = ( portSTACK_TYPE ) 0x01010101;	/* R1 */
-	pxTopOfStack--;	
+    *pxTopOfStack = ( StackType_t ) 0xaaaaaaaa;    /* R14 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) pxOriginalTOS; /* Stack used when task starts goes in R13. */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x12121212;    /* R12 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x11111111;    /* R11 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x10101010;    /* R10 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x09090909;    /* R9 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x08080808;    /* R8 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x07070707;    /* R7 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x06060606;    /* R6 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x05050505;    /* R5 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x04040404;    /* R4 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x03030303;    /* R3 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x02020202;    /* R2 */
+    pxTopOfStack--;
+    *pxTopOfStack = ( StackType_t ) 0x01010101;    /* R1 */
+    pxTopOfStack--;
 
-	/* When the task starts is will expect to find the function parameter in
-	R0. */
-	*pxTopOfStack = ( portSTACK_TYPE ) pvParameters; /* R0 */
-	pxTopOfStack--;
+    /* When the task starts is will expect to find the function parameter in
+     * R0. */
+    *pxTopOfStack = ( StackType_t ) pvParameters; /* R0 */
+    pxTopOfStack--;
 
-	/* The status register is set for system mode, with interrupts enabled. */
-	*pxTopOfStack = ( portSTACK_TYPE ) portINITIAL_SPSR;
-	
-	if( ( ( unsigned long ) pxCode & 0x01UL ) != 0x00UL )
-	{
-		/* We want the task to start in thumb mode. */
-		*pxTopOfStack |= portTHUMB_MODE_BIT;
-	}	
-	
-	pxTopOfStack--;
+    /* The status register is set for system mode, with interrupts enabled. */
+    *pxTopOfStack = ( StackType_t ) portINITIAL_SPSR;
 
-	/* Interrupt flags cannot always be stored on the stack and will
-	instead be stored in a variable, which is then saved as part of the
-	tasks context. */
-	*pxTopOfStack = portNO_CRITICAL_NESTING;
+    if( ( ( uint32_t ) pxCode & 0x01UL ) != 0x00UL )
+    {
+        /* We want the task to start in thumb mode. */
+        *pxTopOfStack |= portTHUMB_MODE_BIT;
+    }
 
-	return pxTopOfStack;	
+    pxTopOfStack--;
+
+    /* Interrupt flags cannot always be stored on the stack and will
+     * instead be stored in a variable, which is then saved as part of the
+     * tasks context. */
+    *pxTopOfStack = portNO_CRITICAL_NESTING;
+
+    return pxTopOfStack;
 }
 /*-----------------------------------------------------------*/
 
-portBASE_TYPE xPortStartScheduler( void )
+BaseType_t xPortStartScheduler( void )
 {
-extern void vPortStartFirstTask( void );
+    extern void vPortStartFirstTask( void );
 
-	/* Start the timer that generates the tick ISR.  Interrupts are disabled
-	here already. */
-	prvSetupTimerInterrupt();
+    /* Start the timer that generates the tick ISR.  Interrupts are disabled
+     * here already. */
+    prvSetupTimerInterrupt();
 
-	/* Start the first task. */
-	vPortStartFirstTask();	
+    /* Start the first task. */
+    vPortStartFirstTask();
 
-	/* Should not get here! */
-	return 0;
+    /* Should not get here! */
+    return 0;
 }
 /*-----------------------------------------------------------*/
 
 void vPortEndScheduler( void )
 {
-	/* It is unlikely that the ARM port will require this function as there
-	is nothing to return to.  */
+    /* It is unlikely that the ARM port will require this function as there
+     * is nothing to return to.  */
 }
 /*-----------------------------------------------------------*/
 
 #if configUSE_PREEMPTION == 0
 
-	/* The cooperative scheduler requires a normal IRQ service routine to
-	simply increment the system tick. */
-	static __arm __irq void vPortNonPreemptiveTick( void );
-	static __arm __irq void vPortNonPreemptiveTick( void )
-	{
-		unsigned long ulDummy;
-		
-		/* Increment the tick count - which may wake some tasks but as the
-		preemptive scheduler is not being used any woken task is not given
-		processor time no matter what its priority. */
-		vTaskIncrementTick();
-		
-		/* Clear the PIT interrupt. */
-		ulDummy = AT91C_BASE_PITC->PITC_PIVR;
-		
-		/* End the interrupt in the AIC. */
-		AT91C_BASE_AIC->AIC_EOICR = ulDummy;
-	}
+/* The cooperative scheduler requires a normal IRQ service routine to
+ * simply increment the system tick. */
+    static __arm __irq void vPortNonPreemptiveTick( void );
+    static __arm __irq void vPortNonPreemptiveTick( void )
+    {
+        uint32_t ulDummy;
 
-#else
+        /* Increment the tick count - which may wake some tasks but as the
+         * preemptive scheduler is not being used any woken task is not given
+         * processor time no matter what its priority. */
+        xTaskIncrementTick();
 
-	/* Currently the IAR port requires the preemptive tick function to be
-	defined in an asm file. */
+        /* Clear the PIT interrupt. */
+        ulDummy = AT91C_BASE_PITC->PITC_PIVR;
 
-#endif
+        /* End the interrupt in the AIC. */
+        AT91C_BASE_AIC->AIC_EOICR = ulDummy;
+    }
+
+#else /* if configUSE_PREEMPTION == 0 */
+
+/* Currently the IAR port requires the preemptive tick function to be
+ * defined in an asm file. */
+
+#endif /* if configUSE_PREEMPTION == 0 */
 
 /*-----------------------------------------------------------*/
 
 static void prvSetupTimerInterrupt( void )
 {
-AT91PS_PITC pxPIT = AT91C_BASE_PITC;
+    AT91PS_PITC pxPIT = AT91C_BASE_PITC;
 
-	/* Setup the AIC for PIT interrupts.  The interrupt routine chosen depends
-	on whether the preemptive or cooperative scheduler is being used. */
-	#if configUSE_PREEMPTION == 0
+    /* Setup the AIC for PIT interrupts.  The interrupt routine chosen depends
+     * on whether the preemptive or cooperative scheduler is being used. */
+    #if configUSE_PREEMPTION == 0
+        AT91F_AIC_ConfigureIt( AT91C_BASE_AIC, AT91C_ID_SYS, AT91C_AIC_PRIOR_HIGHEST, portINT_LEVEL_SENSITIVE, ( void ( * )( void ) )vPortNonPreemptiveTick );
+    #else
+        extern void( vPortPreemptiveTick )( void );
+        AT91F_AIC_ConfigureIt( AT91C_BASE_AIC, AT91C_ID_SYS, AT91C_AIC_PRIOR_HIGHEST, portINT_LEVEL_SENSITIVE, ( void ( * )( void ) )vPortPreemptiveTick );
+    #endif
 
-		AT91F_AIC_ConfigureIt( AT91C_BASE_AIC, AT91C_ID_SYS, AT91C_AIC_PRIOR_HIGHEST, portINT_LEVEL_SENSITIVE, ( void (*)(void) ) vPortNonPreemptiveTick );
+    /* Configure the PIT period. */
+    pxPIT->PITC_PIMR = portPIT_ENABLE | portPIT_INT_ENABLE | portPIT_COUNTER_VALUE;
 
-	#else
-		
-		extern void ( vPortPreemptiveTick )( void );
-		AT91F_AIC_ConfigureIt( AT91C_BASE_AIC, AT91C_ID_SYS, AT91C_AIC_PRIOR_HIGHEST, portINT_LEVEL_SENSITIVE, ( void (*)(void) ) vPortPreemptiveTick );
-
-	#endif
-
-	/* Configure the PIT period. */
-	pxPIT->PITC_PIMR = portPIT_ENABLE | portPIT_INT_ENABLE | portPIT_COUNTER_VALUE;
-
-	/* Enable the interrupt.  Global interrupts are disables at this point so
-	this is safe. */
-	AT91F_AIC_EnableIt( AT91C_BASE_AIC, AT91C_ID_SYS );
+    /* Enable the interrupt.  Global interrupts are disabled at this point so
+     * this is safe. */
+    AT91F_AIC_EnableIt( AT91C_BASE_AIC, AT91C_ID_SYS );
 }
 /*-----------------------------------------------------------*/
 
 void vPortEnterCritical( void )
 {
-	/* Disable interrupts first! */
-	__disable_interrupt();
+    /* Disable interrupts first! */
+    __disable_interrupt();
 
-	/* Now interrupts are disabled ulCriticalNesting can be accessed
-	directly.  Increment ulCriticalNesting to keep a count of how many times
-	portENTER_CRITICAL() has been called. */
-	ulCriticalNesting++;
+    /* Now that interrupts are disabled, ulCriticalNesting can be accessed
+     * directly.  Increment ulCriticalNesting to keep a count of how many times
+     * portENTER_CRITICAL() has been called. */
+    ulCriticalNesting++;
 }
 /*-----------------------------------------------------------*/
 
 void vPortExitCritical( void )
 {
-	if( ulCriticalNesting > portNO_CRITICAL_NESTING )
-	{
-		/* Decrement the nesting count as we are leaving a critical section. */
-		ulCriticalNesting--;
+    if( ulCriticalNesting > portNO_CRITICAL_NESTING )
+    {
+        /* Decrement the nesting count as we are leaving a critical section. */
+        ulCriticalNesting--;
 
-		/* If the nesting level has reached zero then interrupts should be
-		re-enabled. */
-		if( ulCriticalNesting == portNO_CRITICAL_NESTING )
-		{
-			__enable_interrupt();
-		}
-	}
+        /* If the nesting level has reached zero then interrupts should be
+         * re-enabled. */
+        if( ulCriticalNesting == portNO_CRITICAL_NESTING )
+        {
+            __enable_interrupt();
+        }
+    }
 }
 /*-----------------------------------------------------------*/
-
-
-
-
-
-
