@@ -150,7 +150,7 @@
  * Note: If you are the zero stage bootloader, set this to one.
  */
 #ifndef MPFS_HAL_CLEAR_MEMORY
-#define MPFS_HAL_CLEAR_MEMORY  0
+#define MPFS_HAL_CLEAR_MEMORY  1
 #endif
 
 /*
@@ -160,22 +160,9 @@
  * by MSS configurator settings, and items are enabled/disabled by this method.
  * The reason you may want to use below is to save code space.
  */
-//#define SGMII_SUPPORT
+#define SGMII_SUPPORT
 #define DDR_SUPPORT
 #define MSSIO_SUPPORT
-
-/* Route I2C1 through fabric and put PAD26/PAD27 in fabric mode for PAC1934. */
-#define LIBERO_SETTING_IOMUX0_CR        0x00000FDDUL
-#define LIBERO_SETTING_ALT_IOMUX0_CR    0x00000FDDUL
-#define LIBERO_SETTING_IOMUX4_CR        0x88CC4444UL
-#define LIBERO_SETTING_ALT_IOMUX4_CR    0x88CC4444UL
-
-/*
- * Uncomment MICROCHIP_STDIO_THRU_MMUARTx to enable stdio port
- * Note: you must have mss_mmuart driver source code included in the project.
- */
-//#define MICROCHIP_STDIO_THRU_MMUARTX    &g_mss_uart0_lo
-//#define MICROCHIP_STDIO_BAUD_RATE       MSS_UART_115200_BAUD
 
 /*
  * DDR software options
@@ -207,3 +194,4 @@
  */
 
 #endif /* USER_CONFIG_MSS_USER_CONFIG_H_ */
+

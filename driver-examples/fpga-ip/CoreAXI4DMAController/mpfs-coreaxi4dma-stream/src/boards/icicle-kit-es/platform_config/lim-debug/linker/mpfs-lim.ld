@@ -123,6 +123,17 @@ SECTIONS
     PROVIDE(__u54_4_itim_end = ORIGIN(u54_4_itim) + LENGTH(u54_4_itim));
     /* text: text code section */
     . = __l2lim_start;
+    
+    .text_init : ALIGN(0x10)
+    {
+        *(.text.init)
+        *system_startup.o (.text .text* .rodata .rodata* .srodata*)
+        *mtrap.o (.text .text* .rodata .rodata* .srodata*)
+        *mss_h2f.o (.text .text* .rodata .rodata* .srodata*)
+        *mss_l2_cache.o (.text .text* .rodata .rodata* .srodata*)
+        . = ALIGN(0x10);
+    } > l2lim
+    
     .text : ALIGN(0x10)
     {
         __text_load = LOADADDR(.text);
