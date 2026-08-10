@@ -3,7 +3,7 @@
 #include "mpfs_hal/mss_hal.h"
 #include "mpfs_hal/mpfs_hal_version.h"
 #include "menu_selector.h"
-#include "drivers/off_chip/pac1934/pac1934.h"
+#include "drivers/off-chip/pac1934/pac1934.h"
 
 volatile uint32_t monitor_current_flag = 0U;
 uint32_t user_sm_request_h0 = 0U;

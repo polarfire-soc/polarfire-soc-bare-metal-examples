@@ -8,12 +8,12 @@
 #ifndef LEGACY_DIR_STRUCTURE
 #include "hal/hal.h"
 #include "core_sysservices_pf.h"
-#include "coresysservicespf_regs.h"
+#include "drivers/fpga_ip/CoreSysServices_PF/coresysservicespf_regs.h"
 
 #else
 #include "hal.h"
 #include "core_sysservices_pf.h"
-#include "coresysservicespf_regs.h"
+#include "drivers/fpga_ip/CoreSysServices_PF/coresysservicespf_regs.h"
 #include "hal_assert.h"
 #endif
 
