@@ -30,3 +30,12 @@ src/platform/drivers/off_chip/micron_mt25/micron_mt25.c.
 
 This project provides build configurations and debug launchers as exaplained
 [here](https://mi-v-ecosystem.github.io/redirects/repo-polarfire-soc-bare-metal-examples)
+ ## Limitations:
+ - MSS QSPI controller provides 3 byte addressing in the XIP mode. The memory map of MSS QSPI also shows max 24bit address space.
+   MSS QSPI provides ADDRUP register to store the bit[31:24] of the address, but they dont get transmitted on the QSPI bus. 
+   And if we have to update the ADDRUP register while executing in XIP mode, then the code needs to be aware about this address change requirement.
+   In XIP mode the MSS QSPI always transfers 3 address bytes, 3 bytes idle and reads 4 data bytes.
+   Effectively, only first 16MBytes of the Flash can be used for XIP.
+    
+ - The MSS QSPI DOES NOT directly support extended RO operation for SPI write commands where the address is 
+   transmitted serially and data is transmitted by the core in BI/QUAD mode to the SPI flash memory. This is not an big issue for flash memories though since quad full(fastest) mode works.
