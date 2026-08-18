@@ -418,8 +418,6 @@ Flash_enter_xip
 
     uint8_t command_buf[5] __attribute__ ((aligned (4))) = {MICRON_WRITE_ENABLE};
     uint32_t temp;
-    volatile mss_qspi_io_format t_io_format;
-
     QSPI_TRANSFER_BLOCK(0, command_buf, 0, (uint8_t*)0, 0, 0);
 
     command_buf[0] = MICRON_WR_V_CONFIG_REG;
@@ -442,11 +440,11 @@ Flash_enter_xip
             (MSS_QSPI_QUAD_EX_RW == g_qspi_config.io_format) ||
             (MSS_QSPI_QUAD_EX_RO == g_qspi_config.io_format))
     {
-        QSPI_TRANSFER_BLOCK(3, command_buf, 1, (uint8_t*)&temp, 4, 10);
+        MSS_QSPI_polled_transfer_block(3, command_buf, 1, (uint8_t*)&temp, 4, 10);
     }
     else
     {
-        QSPI_TRANSFER_BLOCK(3, command_buf, 1, (uint8_t*)&temp, 4, 8);
+        MSS_QSPI_polled_transfer_block(3, command_buf, 1, (uint8_t*)&temp, 4, 8);
     }
 
     MSS_QSPI_get_config(&beforexip_qspi_config);
@@ -498,7 +496,7 @@ Flash_exit_xip
     command_buf[2] = 0x00u;
     command_buf[3] = 0xFFu;
 
-    QSPI_TRANSFER_BLOCK(3, command_buf, 0, (uint8_t*)&temp, 1, 8);
+    MSS_QSPI_polled_transfer_block(3, command_buf, 0, (uint8_t*)&temp, 1, 8);
 
     enable_4byte_addressing();
 }
@@ -735,6 +733,7 @@ probe_io_format
  * if len < pag_size :
  *       Only len bytes are modified, rest remain unchanged.
  */
+
 static uint8_t
 program_page
 (
@@ -757,15 +756,11 @@ program_page
     {
         length = PAGE_LENGTH - offset;
     }
-    volatile mss_qspi_io_format t_io_format;
-
-    t_io_format = update_io_format(MSS_QSPI_NORMAL);
-
-    /*execute Write enable command again for writing the data*/
-    command_buf[0] = MICRON_WRITE_ENABLE;
-    QSPI_TRANSFER_BLOCK(0, command_buf, 0, (uint8_t*)0, 0,0);
-    update_io_format(t_io_format);
-
+        /*
+     * Build address field.
+     * Driver uses 4-byte addressing, so commands with address fields
+     * must send 4 address bytes.
+     */
     command_buf[1] = (addr >> 24) & 0xFFu;
     command_buf[2] = (addr >> 16) & 0xFFu;
     command_buf[3] = (addr >> 8) & 0xFFu;
@@ -782,33 +777,58 @@ program_page
      * Refer command set in the flash memory datasheet*/
     switch(g_qspi_config.io_format)
     {
-       case MSS_QSPI_NORMAL     :
-           command_buf[0] = MICRON_4BYTE_PAGE_PROG;
-           break;
-       case MSS_QSPI_DUAL_EX_RO :
-           command_buf[0] = MICRON_DUAL_INPUT_FAST_PROG;              /* 1-1-2 */
-           break;
-       case MSS_QSPI_QUAD_EX_RO :
-           Flash_init(MSS_QSPI_QUAD_EX_RW);
-           command_buf[0] = 0x38;        /* 1-1-4 */
-           break;
-       case MSS_QSPI_DUAL_EX_RW :
-           command_buf[0] = MICRON_EXT_DUAL_INPUT_FAST_PROG;          /* 1-2-2 */
-           break;
-       case MSS_QSPI_QUAD_EX_RW :
-           command_buf[0] = MICRON_4BYTE_QUAD_INPUT_EXT_FAST_PROG;    /* 1-4-4 */
-           break;
-       case MSS_QSPI_DUAL_FULL  :
-           command_buf[0] = MICRON_4BYTE_PAGE_PROG;
-           break;
-       case MSS_QSPI_QUAD_FULL  :
-           command_buf[0] = MICRON_4BYTE_PAGE_PROG;
-           break;
-       default:
-           ASSERT(0);
-           break;
+        case MSS_QSPI_NORMAL:
+            command_buf[0] = MICRON_4BYTE_PAGE_PROG;
+            break;
+
+        case MSS_QSPI_DUAL_EX_RO:
+
+            command_buf[0] = MICRON_DUAL_INPUT_FAST_PROG;             /* 1-1-2 */
+            break;
+
+        case MSS_QSPI_QUAD_EX_RO:
+            command_buf[0] = MICRON_4BYTE_QUAD_INPUT_FAST_PROG;       /* 1-1-4 */
+            break;
+
+        case MSS_QSPI_DUAL_EX_RW:
+            command_buf[0] = MICRON_EXT_DUAL_INPUT_FAST_PROG;         /* 1-2-2 */
+            break;
+
+        case MSS_QSPI_QUAD_EX_RW:
+            command_buf[0] = MICRON_4BYTE_QUAD_INPUT_EXT_FAST_PROG;   /* 1-4-4 */
+            break;
+
+        case MSS_QSPI_DUAL_FULL:
+        case MSS_QSPI_QUAD_FULL:
+            command_buf[0] = MICRON_4BYTE_PAGE_PROG;
+            break;
+
+        default:
+            ASSERT(0);
+            break;
     }
 
+    /*
+     * Send WRITE ENABLE in normal SPI mode, then restore the original mode.
+     */
+    volatile mss_qspi_io_format saved_io_format;
+    saved_io_format = update_io_format(MSS_QSPI_NORMAL);
+
+    {
+        uint8_t write_enable_cmd[1] __attribute__ ((aligned (4))) =
+        {
+            MICRON_WRITE_ENABLE
+        };
+
+        QSPI_TRANSFER_BLOCK(0, write_enable_cmd, 0, (uint8_t*)0, 0, 0);
+    }
+
+    update_io_format(saved_io_format);
+
+    /*
+     * Send page program command.
+     * num_addr_bytes = 4 because the driver enables 4-byte addressing.
+     */
     QSPI_TRANSFER_BLOCK(4, command_buf, length, (uint8_t*)0u, 0u, 0u);
 
     while (1){
@@ -819,7 +839,6 @@ program_page
 
     return(status & FLAGSTATUS_PFAIL_MASK);
 }
-
 #ifdef __cplusplus
 }
 #endif
