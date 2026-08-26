@@ -90,11 +90,13 @@ void PCDMA_S2MM_configure
     if((xfr_size != 0u) && (cmd_id <= S2MM_CMD_STS_FIFO_DEPTH_MAX) && \
                                       (burst_type <= PCDMA_BURST_TYPE_INCR) )
     {
+#ifdef IP_Config_S2MM_UNDEFINED_BURST_LENGTH_ENABLE
         /* Configure transfer size for the total number of bytes to be
          * transmitted.
          */
         HAL_set_32bit_reg( this_pcdma->base_address, \
                                    COREAXI4PROTOCONV_REGS_S2MM_LEN, xfr_size );
+#endif
 
         /* Configure the lower 32-bits address of the AXI4 memory mapped
          * interface.
