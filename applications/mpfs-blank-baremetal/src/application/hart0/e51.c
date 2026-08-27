@@ -28,6 +28,7 @@ void e51(void)
     (void)mss_config_clk_rst(MSS_PERIPH_MMUART_E51,
             (uint8_t) MPFS_HAL_FIRST_HART,
             PERIPHERAL_ON);
+
     MSS_UART_init(p_uartmap_e51,
             MSS_UART_115200_BAUD,
             MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
