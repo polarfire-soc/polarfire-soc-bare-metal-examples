@@ -111,6 +111,7 @@
 #define MSS_MAC_DEV_PHY_VSC8575_LITE    (0x0010U) /*!< @brief VSC8575 using Lite VTSS API */
 #define MSS_MAC_DEV_PHY_VSC8662         (0x0020U) /*!< @brief VSC8662 without VTSS API */
 #define MSS_MAC_DEV_PHY_RTL8211         (0x0040U) /*!< @brief RTL8211FS-CG BeagleV-Fire */
+#define MSS_MAC_DEV_PHY_VSC8221         (0x0080U) /*!< @brief VSC8221 without VTSS API */
 
 /***************************************************************************//**
  * Defines for the different hardware configurations for the applications using
@@ -172,7 +173,10 @@
  * This macro is a bit map that indicates which PHY sub drivers are included in
  * this build.
  */
-#define MSS_MAC_PHYS (MSS_MAC_DEV_PHY_NULL | MSS_MAC_DEV_PHY_VSC8575_LITE | MSS_MAC_DEV_PHY_DP83867 | MSS_MAC_DEV_PHY_VSC8662 | MSS_MAC_DEV_PHY_VSC8541 | MSS_MAC_DEV_PHY_RTL8211)
+#define MSS_MAC_PHYS (MSS_MAC_DEV_PHY_NULL | MSS_MAC_DEV_PHY_VSC8575_LITE | \
+        MSS_MAC_DEV_PHY_DP83867 | MSS_MAC_DEV_PHY_VSC8662 | \
+        MSS_MAC_DEV_PHY_VSC8541 | MSS_MAC_DEV_PHY_RTL8211 | \
+        MSS_MAC_DEV_PHY_VSC8221 )
 
 /***************************************************************************//**
  * Set this macro to one of the _MSS_MAC_DESIGN_XX_ macros to configure the
@@ -219,6 +223,7 @@
 #define MSS_MAC_USE_PHY_NULL         (0U != (MSS_MAC_PHYS & MSS_MAC_DEV_PHY_NULL))
 #define MSS_MAC_USE_PHY_VSC8662      (0U != (MSS_MAC_PHYS & MSS_MAC_DEV_PHY_VSC8662))
 #define MSS_MAC_USE_PHY_RTL8211      (0U != (MSS_MAC_PHYS & MSS_MAC_DEV_PHY_RTL8211))
+#define MSS_MAC_USE_PHY_VSC8221      (0U != (MSS_MAC_PHYS & MSS_MAC_DEV_PHY_VSC8221))
 
 /***************************************************************************//**
  * Macros for selecting options which change the size of the DMA descriptors.
