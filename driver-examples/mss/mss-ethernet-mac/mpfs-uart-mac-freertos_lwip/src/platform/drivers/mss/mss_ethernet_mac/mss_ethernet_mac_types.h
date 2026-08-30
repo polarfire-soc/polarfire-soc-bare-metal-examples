@@ -617,13 +617,15 @@ typedef struct __mss_mac_cfg_t
     mss_mac_speed_mode_t speed_mode;    /*!< Link speed mode of operation */
     uint32_t speed_duplex_select;       /*!< Link speed and duplex mode allowed to setup a link when autonegotiation is enabled. */
     uint8_t  mac_addr[6];               /*!< Station's MAC address */
+    uint16_t padding;
     uint32_t phy_addr;                  /*!< Address of Ethernet PHY on MII management interface. */
     uint32_t phy_flags;                 /*!< PHY specific flags */
     uint32_t pcs_phy_addr;              /*!< Address of SGMII interface controller on MII management interface. */
+    uint32_t padding2;
 #if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
     GPIO_TypeDef  *phy_soft_reset_gpio; /*!< GPIO device soft reset for PHY is connected to */
-    mss_gpio_id_t  phy_soft_reset_pin;  /*!< GPIO pin soft reset for PHY is connected to */
     GPIO_TypeDef  *phy_hard_reset_gpio; /*!< GPIO device hard reset for PHY is connected to */
+    mss_gpio_id_t  phy_soft_reset_pin;  /*!< GPIO pin soft reset for PHY is connected to */
     mss_gpio_id_t  phy_hard_reset_pin;  /*!< GPIO pin hard reset for PHY is connected to */
 #endif
     /* Use struct instead of typedef as compiler gets confused otherwise... */
@@ -1077,6 +1079,7 @@ struct mss_mac_type_1_filter
     uint8_t  drop_on_match;   /*!< Drop packet instead of routing to queue */
     uint8_t  dstc_enable;     /*!< Enable DS/TC matching */
     uint8_t  udp_port_enable; /*!< Enable UDP port matching */
+    uint8_t  padding;
 };
 
 /***************************************************************************//**
@@ -1149,6 +1152,7 @@ struct mss_mac_type_2_compare
     uint8_t  compare_vlan_s_id; /*!< Compare VLAN S tag */
     uint8_t  compare_offset;    /*!< Offset type - see MSS_MAC_OFFSET_* definitions */
     uint8_t  offset_value;      /*!< Offset value */
+    uint8_t  padding;
 };
 
 /***************************************************************************//**
@@ -1172,6 +1176,7 @@ struct mss_mac_mmsl_config
     uint8_t preemption;            /*!< Enable preemption */
     uint8_t verify_disable;        /*!< Set true to force preemption without testing link */
     uint8_t use_pmac;              /*!< Receive all to pMAC if not preempting */
+    uint8_t  padding;
 };
 
 /***************************************************************************//**
@@ -1259,6 +1264,7 @@ typedef struct mss_mac_queue
     volatile int32_t             in_isr; /*!< Set when processing ISR so functions don't call PLIC enable/disable for protection */
 
     /* Queue specific register addresses to simplify the driver code */
+    uint32_t padding;
     volatile uint32_t           *int_status;        /*!< interrupt status */
     volatile uint32_t           *int_mask;          /*!< interrupt mask */
     volatile uint32_t           *int_enable;        /*!< interrupt enable */
@@ -1288,11 +1294,13 @@ typedef struct mss_mac_queue
 typedef struct mss_mac_instance
 {
     uint32_t          is_emac;    /*!< 0 for primary MAC and non zero for eMAC */
+    uint32_t          padding;
     MAC_TypeDef       *mac_base;  /*!< Register start address - _NULL_ if eMAC */
     eMAC_TypeDef      *emac_base; /*!< Register start address - _NULL_ if primary MAC */
     PLIC_IRQn_Type    mac_q_int[MSS_MAC_QUEUE_COUNT]; /*!< Interrupt numbers for each queue */
 #if defined(TARGET_G5_SOC)
     PLIC_IRQn_Type    mmsl_int; /*!< interrupt number for MMSL interrupt */
+    uint32_t          padding2;
 #endif
 
     mss_mac_queue_t   queue[MSS_MAC_QUEUE_COUNT]; /*!< Queue specific information */
@@ -1313,6 +1321,7 @@ typedef struct mss_mac_instance
     uint32_t phy_addr;                  /*!< Address of Ethernet PHY on MII management interface. */
     uint32_t pcs_phy_addr;              /*!< Address of SGMII interface controller on MII management interface. */
     uint32_t phy_flags;                 /*!< PHY specific flags */
+    uint32_t padding3;
 #if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
 
     GPIO_TypeDef  *phy_soft_reset_gpio; /*!< GPIO device soft reset for PHY is connected to */
@@ -1329,11 +1338,13 @@ typedef struct mss_mac_instance
     uint32_t use_hi_address;            /*!< Non 0 means use upper address range for this device */
     uint32_t use_local_ints;            /*!< non 0 meams use local interrupts for MAC instead of PLIC */
     uint8_t  mac_addr[6];               /*!< Station's MAC address */
+    uint16_t padding4;
     mss_mac_speed_mode_t speed_mode;    /*!< Link speed mode of operation */
     uint32_t speed_duplex_select;       /*!< Link speed and duplex mode allowed to setup a link when autonegotiation is enabled. */
     uint32_t core_clock;                /*!< CPU clock speed for timing calcs */
 
     /* PHY interface functions */
+    uint32_t padding5;
     mss_mac_phy_init_t            phy_init;              /*!< Pointer to PHY init function */
     mss_mac_phy_set_speed_t       phy_set_link_speed;    /*!< Pointer to PHY set link speed function */
     mss_mac_phy_autonegotiate_t   phy_autonegotiate;     /*!< Pointer to PHY autonegotiate function */

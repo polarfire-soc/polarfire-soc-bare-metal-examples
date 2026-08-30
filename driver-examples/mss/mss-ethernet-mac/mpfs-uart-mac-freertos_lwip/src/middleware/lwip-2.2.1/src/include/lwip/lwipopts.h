@@ -1850,7 +1850,7 @@
  * CHECKSUM_GEN_UDP==1: Generate checksums in software for outgoing UDP packets.
  */
 #ifndef CHECKSUM_GEN_UDP
-#define CHECKSUM_GEN_UDP                0 // Fixme: PMCS
+#define CHECKSUM_GEN_UDP                1 // Fixme: PMCS
 #endif
 
 /**

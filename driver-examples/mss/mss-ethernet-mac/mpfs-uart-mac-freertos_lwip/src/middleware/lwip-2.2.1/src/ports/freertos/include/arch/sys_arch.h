@@ -58,8 +58,8 @@ struct _sys_mut {
 };
 typedef struct _sys_mut sys_mutex_t;
 #define sys_mutex_valid_val(mutex)   ((mutex).mut != NULL)
-#define sys_mutex_valid(mutex)       (((mutex) != NULL) && sys_mutex_valid_val(*(mutex)))
-#define sys_mutex_set_invalid(mutex) ((mutex)->mut = NULL)
+//#define sys_mutex_valid(mutex)       (((mutex) != NULL) && sys_mutex_valid_val(*(mutex)))
+//#define sys_mutex_set_invalid(mutex) ((mutex)->mut = NULL)
 #endif /* !LWIP_COMPAT_MUTEX */
 
 struct _sys_sem {

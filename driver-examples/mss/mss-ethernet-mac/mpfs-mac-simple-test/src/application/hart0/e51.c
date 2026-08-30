@@ -142,8 +142,6 @@ mss_mac_cfg_t g_mac_config;
  * Network configuration globals.
  */
 
-extern void init_memory(void);
-
 typedef struct aligned_tx_buf
 {
     uint64_t aligner;
@@ -177,13 +175,13 @@ volatile int g_tx_add_1 = 0; /* Tx length adjustment control to make loopback
 volatile int g_tx_adjust = 1; /* Adjustment to make to the packet length when
                                  enabled by 'n' */
 
-const uint8_t *speed_strings[7] = {"Autonegotiate",
-                                   "10M Half Duplex",
-                                   "10M Full Duplex",
-                                   "100M Half Duplex",
-                                   "100M Full Duplex",
-                                   "1000M Half Duplex",
-                                   "1000M Full Duplex"};
+const uint8_t *speed_strings[7] = {(uint8_t *)"Autonegotiate",
+                                   (uint8_t *)"10M Half Duplex",
+                                   (uint8_t *)"10M Full Duplex",
+                                   (uint8_t *)"100M Half Duplex",
+                                   (uint8_t *)"100M Full Duplex",
+                                   (uint8_t *)"1000M Half Duplex",
+                                   (uint8_t *)"1000M Full Duplex"};
 
 /* Receive packet capture variables */
 
@@ -227,216 +225,6 @@ volatile int g_link_status = 0;
 
 mss_mac_instance_t *g_test_mac = &g_mac1;
 
-/* Define this if you are using the other harts... */
-/* #define USE_OTHER_HARTS */
-#if 0 /* To be removed... */
-int main_first_hart(HLS_DATA* hls)
-{
-    uint64_t hartid = hls->my_hart_id;
-#if defined(USE_OTHER_HARTS)
-    HLS_DATA* hls;
-#endif
-
-    if(hartid == MPFS_HAL_FIRST_HART)
-    {
-#if defined(USE_OTHER_HARTS)
-        uint8_t hard_idx;
-#endif
-        /*
-         * We only use code within the conditional compile
-         * #ifdef MPFS_HAL_HW_CONFIG
-         * if this program is used as part of the initial board bring-up
-         * Please comment/uncomment MPFS_HAL_HW_CONFIG define in
-         * platform/config/software/mpfs_hal/sw_config.h
-         * as required.
-         */
-#ifdef MPFS_HAL_HW_CONFIG
-        load_virtual_rom();
-        config_l2_cache();
-#endif /* MPFS_HAL_HW_CONFIG */
-        init_memory();
-#ifdef MPFS_HAL_HW_CONFIG
-        init_bus_error_unit();
-        init_mem_protection_unit();
-        (void)init_pmp((uint8_t)MPFS_HAL_FIRST_HART);
-        SYSREG->SUBBLK_CLOCK_CR = 0xffffffff;       /* all clocks on */
-
-        /*
-         * Initialise NWC
-         *      Clocks
-         *      SGMII
-         *      DDR
-         *      IOMUX
-         */
-        (void)mss_nwc_init();
-#endif /* MPFS_HAL_HW_CONFIG */
-        /*
-         * Copies text section if relocation required
-         */
-        (void)copy_section(&__text_load, &__text_start, &__text_end);
-
-#ifdef MPFS_HAL_HW_CONFIG
-#if defined(USE_OTHER_HARTS)
-        /*
-         * Start the other harts. They are put in wfi in entry.S
-         * When debugging, harts are released from reset separately,
-         * so we need to make sure hart is in wfi before we try and release.
-        */
-        WFI_SM sm_check_thread = INIT_THREAD_PR;
-        hard_idx = MPFS_HAL_FIRST_HART + 1U;
-        while( hard_idx <= MPFS_HAL_LAST_HART)
-        {
-            uint32_t wait_count;
-
-            switch(sm_check_thread)
-            {
-                case INIT_THREAD_PR:
-                    hls = (HLS_DATA*)((uint8_t *)&__stack_bottom_h1$
-                            + (((uint8_t *)&__stack_top_h1$ -
-                                    (uint8_t *)&__stack_bottom_h1$) * hard_idx)
-                                - (uint8_t *)(HLS_DEBUG_AREA_SIZE));
-                    sm_check_thread = CHECK_WFI;
-                    wait_count = 0U;
-                    break;
-
-                case CHECK_WFI:
-                    if( hls->in_wfi_indicator == HLS_DATA_IN_WFI )
-                    {
-                        /* Separate state- to add a little delay */
-                        sm_check_thread = SEND_WFI;
-                    }
-                    break;
-
-                case SEND_WFI:
-                    raise_soft_interrupt(hard_idx);
-                    sm_check_thread = CHECK_WAKE;
-                    wait_count = 0UL;
-                    break;
-
-                case CHECK_WAKE:
-                    if( hls->in_wfi_indicator == HLS_DATA_PASSED_WFI )
-                    {
-                        sm_check_thread = INIT_THREAD_PR;
-                        hard_idx++;
-                        wait_count = 0UL;
-                    }
-                    else
-                    {
-                        wait_count++;
-                        if(wait_count > 0x10U)
-                        {
-                            if( hls->in_wfi_indicator == HLS_DATA_IN_WFI )
-                            {
-                                raise_soft_interrupt(hard_idx);
-                                wait_count = 0UL;
-                            }
-                        }
-                    }
-                    break;
-            }
-        }
-#endif
-
-#if PSE
-        SYSREG->SUBBLK_CLOCK_CR = 0xffffffff;       /* all clocks on */
-#if defined(G5_SOC_EMU_USE_GEM0)
-#if 0
-        MSS_MPU_configure(MSS_MPU_GEM0, MSS_MPU_PMP_REGION0,
-                0x0000000000000000ULL, 0x0000000100000000ULL,
-                MPU_MODE_READ_ACCESS, MSS_MPU_AM_NAPOT, 0);
-
-        MSS_MPU_configure(MSS_MPU_GEM0, MSS_MPU_PMP_REGION1,
-                0x0000000008000000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-#else
-        MSS_MPU_configure(MSS_MPU_GEM0, MSS_MPU_PMP_REGION0,
-                0x0000000000000000ULL, 0x0000004000000000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-#endif
-
-#if defined(MSS_MAC_USE_DDR)
-#if MSS_MAC_USE_DDR == MSS_MAC_MEM_DDR
-        MSS_MPU_configure(MSS_MPU_GEM0, MSS_MPU_PMP_REGION2,
-                0x00000000C0000000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-#elif MSS_MAC_USE_DDR == MSS_MAC_MEM_FIC0
-        MSS_MPU_configure(MSS_MPU_GEM0, MSS_MPU_PMP_REGION2,
-                0x0000000060000000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-        MPU[4].CFG[2].pmp = MPU_CFG(0x60000000, 21u);
-#elif MSS_MAC_USE_DDR == MSS_MAC_MEM_FIC1
-        MSS_MPU_configure(MSS_MPU_GEM0, MSS_MPU_PMP_REGION2,
-                0x00000000E0000000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-        MPU[4].CFG[2].pmp = MPU_CFG(0xE0000000, 21u);
-#elif MSS_MAC_USE_DDR == MSS_MAC_MEM_CRYPTO
-        MSS_MPU_configure(MSS_MPU_GEM0, MSS_MPU_PMP_REGION2,
-                0x0000000022002000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-#else
-#error "bad memory region defined"
-#endif
-#endif /* defined(MSS_MAC_USE_DDR) */
-#endif /* defined(G5_SOC_EMU_USE_GEM0) */
-
-#if defined(G5_SOC_EMU_USE_GEM1)
-        MSS_MPU_configure(MSS_MPU_GEM1, MSS_MPU_PMP_REGION0,
-                0x0000000000000000ULL, 0x0000000100000000ULL,
-                MPU_MODE_READ_ACCESS, MSS_MPU_AM_NAPOT, 0);
-
-        MSS_MPU_configure(MSS_MPU_GEM1, MSS_MPU_PMP_REGION1,
-                0x0000000008000000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-
-#if defined(MSS_MAC_USE_DDR)
-#if MSS_MAC_USE_DDR == MSS_MAC_MEM_DDR
-        MSS_MPU_configure(MSS_MPU_GEM1, MSS_MPU_PMP_REGION2,
-                0x00000000C0000000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-#elif MSS_MAC_USE_DDR == MSS_MAC_MEM_FIC0
-        MSS_MPU_configure(MSS_MPU_GEM1, MSS_MPU_PMP_REGION2,
-                0x0000000060000000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-        MPU[4].CFG[2].pmp = MPU_CFG(0x60000000, 21u);
-#elif MSS_MAC_USE_DDR == MSS_MAC_MEM_FIC1
-        MSS_MPU_configure(MSS_MPU_GEM1, MSS_MPU_PMP_REGION2,
-                0x00000000E0000000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-        MPU[4].CFG[2].pmp = MPU_CFG(0xE0000000, 21u);
-#elif MSS_MAC_USE_DDR == MSS_MAC_MEM_CRYPTO
-        MSS_MPU_configure(MSS_MPU_GEM1, MSS_MPU_PMP_REGION2,
-                0x0000000022002000ULL, 0x0000000000200000ULL,
-                MPU_MODE_READ_ACCESS | MPU_MODE_WRITE_ACCESS, MSS_MPU_AM_NAPOT, 0);
-#else
-#error "bad memory region defined"
-#endif
-#endif /* defined(MSS_MAC_USE_DDR) */
-#endif /* defined(G5_SOC_EMU_USE_GEM1) */
-
-        SEG[0].u[0].CFG.offset = -(0x0080000000ll >> 24u);
-        SEG[0].u[1].CFG.offset = -(0x1000000000ll >> 24u);
-        SEG[1].u[2].CFG.offset = -(0x00C0000000ll >> 24u);
-        SEG[1].u[3].CFG.offset = -(0x1400000000ll >> 24u);
-        SEG[1].u[4].CFG.offset = -(0x00D0000000ll >> 24u);
-        SEG[1].u[5].CFG.offset = -(0x1800000000ll >> 24u);
-#endif
-#endif /* MPFS_HAL_HW_CONFIG */
-
-        main_other_hart(hls);
-    }
-
-    /* should never get here */
-    while (1)
-    {
-       static volatile uint64_t counter = 0U;
-
-       /* Added some code as debugger hangs if in loop doing nothing */
-       counter = counter + 1;
-    }
-
-    return (0);
-}
-#endif /* To be removed... */
 
 /**============================================================================
  *
@@ -2405,7 +2193,6 @@ void
 mac_task(void *pvParameters)
 {
     static uint32_t add_on = 0;
-    // init_memory();
     char info_string[200];
     uint8_t rx_buff[1];
     size_t rx_size = 0;
@@ -2941,7 +2728,7 @@ mac_task(void *pvParameters)
 #if defined(TARGET_ALOE)
         rx_size = MSS_FU540_UART_get_rx(&g_mss_FU540_uart0, rx_buff, sizeof(rx_buff));
 #else
-        rx_size = MSS_UART_get_rx(DEMO_UART, rx_buff, (uint8_t)sizeof(rx_buff));
+        rx_size = MSS_UART_get_rx(DEMO_UART, rx_buff, sizeof(rx_buff));
 #endif
         if (rx_size > 0)
         {
@@ -3414,7 +3201,7 @@ mac_task(void *pvParameters)
 
                     tx_status = MSS_MAC_send_pkt(g_test_mac,
                                                  0,
-                                                 tx_loc,
+                                                 (uint8_t *)tx_loc,
                                                  sizeof(tx_pak_arp) | g_crc,
                                                  (void *)0);
 
@@ -3584,7 +3371,7 @@ mac_task(void *pvParameters)
                 }
 
                 phy_reg &= 0xFF1FU;
-                phy_reg |= loopback << 5;
+                phy_reg |= (uint16_t)(loopback << 5);
 
                 MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 19, phy_reg);
 
@@ -3614,23 +3401,23 @@ mac_task(void *pvParameters)
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
                     /* Disable MASTER/SLAVE Manual Configuration Unset Value */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000);
-                    phy_reg &= ~(0x0800);
+                    phy_reg &= (uint16_t)~(0x0800);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000, phy_reg);
                     /* Disable Connector Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2);
-                    phy_reg &= ~(0x0001);
+                    phy_reg &= (uint16_t)~(0x0001);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2, phy_reg);
                     /* Enable Automatic Pair Swap Correction */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL);
-                    phy_reg &= ~(0x0020);
+                    phy_reg &= (uint16_t)~(0x0020);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL, phy_reg);
                    /* Disable Far-End Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1);
-                    phy_reg &= ~(0x0008);
+                    phy_reg &= (uint16_t)~(0x0008);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1, phy_reg);
                     /* Disable Near-End Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR);
-                    phy_reg &= ~(0x4000);
+                    phy_reg &= (uint16_t)~(0x4000);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR, phy_reg);
                     PRINT_STRING("Disabling PHY SGMII loopback\n\r");
                 }
@@ -3639,19 +3426,19 @@ mac_task(void *pvParameters)
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
                     /* Disable Near-End Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR);
-                    phy_reg &= ~(0x4000);
+                    phy_reg &= (uint16_t)~(0x4000);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR, phy_reg);
                     /* Disable MASTER/SLAVE Manual Configuration Unset Value */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000);
-                    phy_reg &= ~(0x0800);
+                    phy_reg &= (uint16_t)~(0x0800);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000, phy_reg);
                     /* Disable Connector Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2);
-                    phy_reg &= ~(0x0001);
+                    phy_reg &= (uint16_t)~(0x0001);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2, phy_reg);
                     /* Enable Automatic Pair Swap Correction */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL);
-                    phy_reg &= ~(0x0020);
+                    phy_reg &= (uint16_t)~(0x0020);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL, phy_reg);
                     /* Enable Far-End Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1);
@@ -3663,19 +3450,19 @@ mac_task(void *pvParameters)
                 {
                     /* Disable MASTER/SLAVE Manual Configuration Unset Value */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000);
-                    phy_reg &= ~(0x0800);
+                    phy_reg &= (uint16_t)~(0x0800);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000, phy_reg);
                     /* Disable Connector Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2);
-                    phy_reg &= ~(0x0001);
+                    phy_reg &= (uint16_t)~(0x0001);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_2, phy_reg);
                     /* Enable Automatic Pair Swap Correction */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL);
-                    phy_reg &= ~(0x0020);
+                    phy_reg &= (uint16_t)~(0x0020);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BYPASS_CTRL, phy_reg);
                    /* Disable Far-End Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1);
-                    phy_reg &= ~(0x0008);
+                    phy_reg &= (uint16_t)~(0x0008);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1, phy_reg);
                     /* Enable Near-End Loopback */
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
@@ -3689,11 +3476,11 @@ mac_task(void *pvParameters)
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, 31, 0x0000U);
                    /* Disable Far-End Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1);
-                    phy_reg &= ~(0x0008);
+                    phy_reg &= (uint16_t)~(0x0008);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_PHY_CTRL_1, phy_reg);
                     /* Disable Near-End Loopback */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR);
-                    phy_reg &= ~(0x4000);
+                    phy_reg &= (uint16_t)~(0x4000);
                     MSS_MAC_write_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_BMCR, phy_reg);                    
                     /* Enable MASTER/SLAVE Manual Configuration Enable and Set Value */
                     phy_reg = MSS_MAC_read_phy_reg(g_test_mac, (uint8_t)g_test_mac->phy_addr, MII_CTRL1000);
@@ -4196,7 +3983,7 @@ mac_task(void *pvParameters)
                         }
                     }
 
-                    memcpy(temp_pkt, tx_loc, 128);
+                    memcpy(temp_pkt, (void *)tx_loc, 128);
                     if (rx_buff[0] == 'W')
                     {
                         temp_pkt[12] = 0x08;
@@ -4285,7 +4072,6 @@ mac_task(void *pvParameters)
                 int32_t tx_status;
                 uint8_t temp_pkt[1518];
                 int loops = 0;
-                int count;
                 int inner = 0;
                 int inner2 = 0;
                 volatile uint32_t dummy;
@@ -4377,7 +4163,7 @@ mac_task(void *pvParameters)
                         dummy++; /* Empty loop will cause debug issues... */
                     }
 
-                    memcpy(temp_pkt, tx_loc, packet_size);
+                    memcpy(temp_pkt, (void *)tx_loc, packet_size);
                     temp_pkt[12] = 0x08; /* Kill any length errors */
                     temp_pkt[13] = 0x06;
 
@@ -4551,7 +4337,7 @@ mac_task(void *pvParameters)
                 }
 
                 phy_reg &= 0xFFE3U;
-                phy_reg |= drive << 2;
+                phy_reg |= (uint16_t)(drive << 2);
 
                 sprintf(info_string, "PHY MAC Drive Strength changed to %d\n\r", (int)drive);
                 PRINT_STRING(info_string);

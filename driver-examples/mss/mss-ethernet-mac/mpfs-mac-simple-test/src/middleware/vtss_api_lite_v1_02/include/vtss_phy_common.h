@@ -22,6 +22,8 @@
 
 #define VSC_API_LITE_VERSION  "1.2.0.0"
 
+#define CHK_RC_U8(x) { int32_t __rcode__ = (x); if (__rcode__ != 0) return (uint8_t)__rcode__; }  /**< 0 == Ok; Anthing Else is a Fail */
+#define CHK_RC_U16(x) { int32_t __rcode__ = (x); if (__rcode__ != 0) return (uint16_t)__rcode__; }  /**< 0 == Ok; Anthing Else is a Fail */
 #define CHK_RC(x) { int32_t __rcode__ = (x); if (__rcode__ != 0) return __rcode__; }  /**< 0 == Ok; Anthing Else is a Fail */
 #define VSC_PHY_MICRO_TIMEOUT        (500)  /*- Max Micro Timeout value */
 #define VSC_PHY_CSR_BUSY_TIMEOUT     (255)  /*- Max Value 255 */
@@ -210,6 +212,7 @@ typedef enum
 typedef struct {
     vsc_port_speed_t  port_speed; /**< Speed */
     uint8_t           fdx;        /**< Full duplex=1, Half duplex=0 */
+    uint8_t padding[3];
 } vsc_phy_forced_t;
 
 /** \brief PHY ANEG Advertisement Structure, used in PHY Config  */
@@ -241,6 +244,7 @@ typedef enum {
 /** \brief PHY FLF and FLF2 configuration */
 typedef struct {
     uint8_t  port;                        /**< PHY Port, This is for GPIO, so config must be done on Port 0 to set other ports, For Quad PHY Values are 0-3 */
+    uint8_t padding[3];
     vsc_phy_fast_link_fail_t   flf;       /**< Fast-Link Fail Enable/Disable                      */
     vsc_phy_fast_link_fail_t   flf_2;     /**< Fast-Link Fail2 Enable/Disable, If supported by HW */
 } vsc_phy_conf_flf_t;
@@ -279,6 +283,7 @@ typedef struct {
     uint8_t                             pd_enable;          /**< MAC i/f ANEG parallel detect enable             */
     uint8_t                             aneg_restart;       /**< Restart MAC i/f ANEG */
     uint8_t                             force_adv_ability;  /**< Force adv. ability from Reg18E3 */
+    uint8_t padding[3];
     vsc_phy_mac_serd_pcs_sgmii_pre_t    sgmii_in_pre;       /**< SGMII Input Preamble for 100BaseFX */
     uint8_t                             sgmii_out_pre;      /**< SGMII Output Preamble */
     uint8_t                             serdes_aneg_ena;    /**< MAC SerDes ANEG Enable  */
@@ -286,6 +291,7 @@ typedef struct {
     uint8_t                             serdes_pol_inv_out; /**< Invert SerDes Polarity at output of MAC */
     uint8_t                             fast_link_stat_ena; /**< Fast Link Fail Status Enable */
     uint8_t                             inhibit_odd_start;  /**< Inhibit MAC Odd-Start delay */
+    uint8_t padding2[2];
 } vsc_phy_mac_serd_pcs_cntl_t;
 
 /** \brief  PHY MEDIA SerDes PCS Remote Fault Indication Definition, See Clause 37, Table 37-3 */
@@ -346,6 +352,7 @@ typedef struct phy_conf_t {
     vsc_phy_mode_t                 mode;         /**< PHY mode */
     vsc_phy_forced_t               forced;       /**< Forced mode configuration */
     vsc_phy_auto_neg_t             aneg;         /**< Auto-negotiation mode configuration */
+    uint8_t padding[3];
     vsc_phy_mdi_t                  mdi;          /**< Cu cable MDI (Crossed cable / normal cable) */
     vsc_phy_pkt_mode_t             pkt_mode;     /**< Jumbo Packet Mode */
     vsc_phy_conf_flf_t             flf;          /**< Fast link failure & Fast Link Fail2 configuration */
@@ -357,6 +364,7 @@ typedef struct phy_conf_t {
     vsc_phy_rgmii_gmii_clk_skew_t  tx_clk_skew;  /**< PHY MAC RGMII/GMII Tx Clk Delay */
     vsc_phy_clk_slew_t             clk_slew_rate;/**< PHY MAC Clk Slew Rate, ie. Edge Rate Control */
     vsc_phy_conf_1g_t              conf_1g;      /**< PHY 1G Master/Slave Manual Config for Forced Mode */
+    uint8_t padding2[2];
 } vsc_phy_conf_t;
 
 /** \brief PHY Clause_37 LP Ability Structure, used in PHY Status of CuSFP  */
@@ -364,12 +372,14 @@ typedef struct {
     vsc_port_speed_t  speed;      /**< Speed: 1000M(1G)=2; 100M=1; 10M=0 */
     uint8_t           fdx;        /**< Full duplex=1, Half duplex=0 */
     uint8_t           link;       /**< Link-Up Status=1, Link-Dn Status=0 */
+    uint8_t padding[2];
 } vsc_phy_cl37_status_t;
 
 /** \brief PHY Port Status Struct, used in PHY Status  */
 typedef struct phy_port_status_t {
     uint8_t           link_down;       /**< Link down event occurred since last call */
     uint8_t           link;            /**< Link is up. Remaining fields only valid if TRUE */
+    uint8_t padding[2];
     vsc_port_speed_t  speed;           /**< Speed */
     uint8_t           fdx;             /**< Full duplex */
     uint8_t           remote_fault;    /**< Remote fault signalled */
@@ -383,6 +393,7 @@ typedef struct phy_port_status_t {
     uint8_t           aneg_generate_pause; /**< ANEG Result, Link partner obeys PAUSE frames */
     uint8_t           mdi_cross;       /**< Indication of if Auto-MDIX crossover is performed */
     uint8_t           fiber;           /**< Indication of if the link is a fiber link, TRUE if link is a fiber link. FALSE if link is cu link */
+    uint8_t padding2[3];
     vsc_phy_cl37_status_t  cl37_status; /* Speed, Duplex, and Link from Cl_37 Link Partner for CuSFP Mode */ 
 } vsc_phy_port_status_t;
 
@@ -423,6 +434,7 @@ typedef enum {
 /** \brief PHY Recovered clock configuration */
 typedef struct {
     uint16_t             clk_src_sel;    /**< Source Port for PHY Recovered Clk bits 14:11*/
+    uint16_t padding;
     vsc_phy_clk_src_t    src;            /**< Clock src selection for specified PHY port */
     vsc_phy_freq_t       freq;           /**< Clock Output frequency */
     vsc_phy_clk_squelch  squelch;        /**< Clock squelch level */
@@ -438,6 +450,7 @@ typedef enum {
 /** \brief PHY 1G configuration for Setting Master/Slave */
 typedef struct {
     uint8_t                    clkout_enable;  /**< Enable/Disable of ClkOut for RMII, 1=enabled */
+    uint8_t padding[3];
     vsc_phy_clockout_freq_t    freq_select;    /**< Frequency Select */
 } vsc_phy_clockout_conf_t;
 

@@ -109,7 +109,7 @@ int32_t vsc_phy_write(vsc_phy_control_t  *cntrl, uint16_t page, uint16_t reg, ui
     if (mask != 0xffff) {  // If the MASK is not 0xffff, then key to do Read-Modify-Write
         /* Read-modify-write */
         if ((rc = cntrl->phy_reg_read(cntrl->phy_addr, reg, &rd_reg_val)) == VSC_PHY_OK) {
-            if ((rc = cntrl->phy_reg_write(cntrl->phy_addr, reg, (rd_reg_val & ~mask) | (wr_reg_val & mask))) == VSC_PHY_OK) {
+            if ((rc = cntrl->phy_reg_write(cntrl->phy_addr, reg, (uint16_t)((rd_reg_val & ~mask) | (wr_reg_val & mask)))) == VSC_PHY_OK) {
                 DPRINTK(4, "<Phy_Rd_Mod_Wr> Phy_Addr: 0x%x, Reg:0x%X, Rd value:0x%04x, Write Val: 0x%04x;  Mask: 0x%04x \n", 
                      cntrl->phy_addr, reg, rd_reg_val, (rd_reg_val & ~mask) | (wr_reg_val & mask), mask);
             } else {
@@ -138,7 +138,7 @@ int32_t vsc_phy_wait_for_micro(vsc_phy_control_t *cntrl)
 
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0x1f, VSC_PHY_GPIO_PAGE, 0xffff));
     CHK_RC(vsc_phy_read(cntrl, VSC_PHY_GPIO_PAGE, 0x12, &reg_val));
-    while (reg_val & 0x8000 && timeout > 0) {
+    while ((reg_val & 0x8000) && (timeout > 0)) {
         CHK_RC(vsc_phy_read(cntrl, VSC_PHY_GPIO_PAGE, 0x12, &reg_val));
         timeout--;
         cntrl->phy_usleep(1000);
@@ -170,9 +170,9 @@ static int32_t vsc_phy_set_micro_set_addr(vsc_phy_control_t *cntrl, const uint16
     case VSC_PHY_FAMILY_TESLA:
         if (cntrl->phy_id.revision > VSC_PHY_TESLA_REV_A) {
             if (addr & 0x4000) {
-                reg18g = 0xd000 | (addr & 0xfff);
+                reg18g = (uint16_t)(0xd000 | (addr & 0xfff));
             } else {
-                reg18g = 0xc000 | (addr & 0xfff);
+                reg18g = (uint16_t)(0xc000 | (addr & 0xfff));
             }
             break;
         }
@@ -224,7 +224,7 @@ static int32_t vsc_phy_micro_peek(vsc_phy_control_t *cntrl, uint8_t  post_increm
         return (VSC_PHY_ERROR);
     }
 
-    *peek_byte_ptr = (reg18g >> 4) & 0xff;
+    *peek_byte_ptr = (uint8_t)((reg18g >> 4) & 0xff);
 
     return (VSC_PHY_OK);
 }
@@ -249,7 +249,7 @@ static int32_t vsc_phy_micro_poke(vsc_phy_control_t *cntrl, uint8_t  post_increm
     }
 
     // Setup peek command with or without post-increment
-    reg18g = ((post_increment) ? 0x9006 : 0x8006) | (((uint16_t)poke_byte) << 4);
+    reg18g = (uint16_t)(((post_increment) ? 0x9006 : 0x8006) | (((uint16_t)poke_byte) << 4));
 
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_GPIO_PAGE, 0xffff));
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0x12, reg18g, 0xffff)); // Poke byte into micro memory
@@ -301,10 +301,10 @@ uint16_t vsc_phy_chip_port_get(vsc_phy_control_t  *cntrl)
 {
     uint16_t reg_val;
     uint16_t current_page;
-    CHK_RC(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x1f, &current_page));
-    CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_EXT1_PAGE, 0xffff));
-    CHK_RC(vsc_phy_read(cntrl, VSC_PHY_EXT1_PAGE, 0x17, &reg_val));
-    CHK_RC(vsc_phy_write(cntrl, VSC_PHY_EXT1_PAGE, 0x1f, current_page, 0xffff));
+    CHK_RC_U16(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x1f, &current_page));
+    CHK_RC_U16(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_EXT1_PAGE, 0xffff));
+    CHK_RC_U16(vsc_phy_read(cntrl, VSC_PHY_EXT1_PAGE, 0x17, &reg_val));
+    CHK_RC_U16(vsc_phy_write(cntrl, VSC_PHY_EXT1_PAGE, 0x1f, current_page, 0xffff));
     return (reg_val & 0xF800) >> 11;
 }
 
@@ -348,7 +348,7 @@ static int32_t vsc_phy_csr_ring_read(vsc_phy_control_t  *cntrl,
     vsc_phy_wait_for_csr_ring_busy(cntrl, 19);
 
     mask = (0x1 << 14) - 0x1;
-    reg_value = (0x1 << 15) | ((target_tmp & 0x3) << 12) | (0x1 << 14) | ((csr_reg_addr & mask) << 0);
+    reg_value = (uint16_t)((0x1U << 15) | ((target_tmp & 0x3U) << 12) | (0x1U << 14) | ((csr_reg_addr & mask) << 0));
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_EXT4_PAGE, 0x13, reg_value, 0xffff));
 
     vsc_phy_wait_for_csr_ring_busy(cntrl, 19);
@@ -372,7 +372,7 @@ static int32_t vsc_phy_csr_ring_write(vsc_phy_control_t  *cntrl,
     /* Divide the 32 bit value to [15..0] Bits & [31..16] Bits */
     uint16_t target_tmp = 0;
     uint16_t reg_value_lower = (value & 0xffff);
-    uint16_t reg_value_upper = ((value & 0xffff0000) >> 16);
+    uint16_t reg_value_upper = (uint16_t)((value & 0xffff0000) >> 16);
     uint16_t reg_value = 0;
     uint16_t mask = 0;
     uint8_t  macsec_capable = 0;
@@ -413,7 +413,7 @@ static int32_t vsc_phy_csr_ring_write(vsc_phy_control_t  *cntrl,
     vsc_phy_wait_for_csr_ring_busy(cntrl, 19);
 
     mask = (0x1 << 14) - 0x1;
-    reg_value = (0x1 << 15) | ((target_tmp & 0x3) << 12) | ((csr_reg_addr & mask) << 0);
+    reg_value = (uint16_t)((0x1U << 15) | ((target_tmp & 0x3U) << 12) | ((csr_reg_addr & mask) << 0));
 
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_EXT4_PAGE, 0x13, reg_value, 0xffff));
     vsc_phy_wait_for_csr_ring_busy(cntrl, 19);
@@ -696,7 +696,7 @@ static int32_t vsc_phy_mcb_write_trigger(vsc_phy_control_t     *cntrl,
     uint32_t           rd_dat = 0;
     uint8_t            timeout = 200;
 
-    CHK_RC(vsc_phy_csr_ring_write(cntrl, tgt, mcb_reg_addr, (0x80000000 | (1L << mcb_slave_num))));
+    CHK_RC(vsc_phy_csr_ring_write(cntrl, tgt, mcb_reg_addr, (uint32_t)(0x80000000 | (1L << mcb_slave_num))));
     do {
         CHK_RC(vsc_phy_csr_ring_read(cntrl, tgt, mcb_reg_addr, &rd_dat)); // wait for MCB write to complete
         SD6G_TIMEOUT(timeout);
@@ -713,7 +713,7 @@ static int32_t vsc_phy_mcb_read_trigger(vsc_phy_control_t     *cntrl,
     uint32_t           rd_dat = 0;
     uint8_t            timeout = 200;
 
-    CHK_RC(vsc_phy_csr_ring_write(cntrl, tgt, mcb_reg_addr, (0x40000000 | (1L << mcb_slave_num))));
+    CHK_RC(vsc_phy_csr_ring_write(cntrl, tgt, mcb_reg_addr, (uint32_t)(0x40000000 | (1L << mcb_slave_num))));
     do {
         CHK_RC(vsc_phy_csr_ring_read(cntrl, tgt, mcb_reg_addr, &rd_dat)); // wait for MCB read to complete
         SD6G_TIMEOUT(timeout);
@@ -824,8 +824,8 @@ static int32_t vsc_phy_sd1g_des_cfg_write(vsc_phy_control_t       *cntrl,
     // read old val
     CHK_RC(vsc_phy_csr_ring_read(cntrl, tgt, csr_reg_addr, &reg_val));  // des_cfg
     // mask off old des_phs_ctrl (16:13) and des_mbtr_ctrl (10:8) values
-    reg_val &= ~(0xf << 13); // des_phs_ctrl (16:13)
-    reg_val &= ~(0x7 << 8);  // des_mbtr_ctrl (10:8)
+    reg_val &= ~(0xfU << 13); // des_phs_ctrl (16:13)
+    reg_val &= ~(0x7U << 8);  // des_mbtr_ctrl (10:8)
     // OR in new values for des_phs_ctrl (16:13) and des_mbtr_ctrl (10:8)
     reg_val = reg_val | ((uint32_t)(des_phs_ctrl) << 13) | ((uint32_t)(des_mbtr_ctrl) << 8);
     // write back with updated values
@@ -842,7 +842,7 @@ static int32_t vsc_phy_sd1g_ib_cfg_write(vsc_phy_control_t       *cntrl,
     // read old val
     CHK_RC(vsc_phy_csr_ring_read(cntrl, tgt, csr_reg_addr, &reg_val));  // ib_cfg
     // mask off old ib_ena_cmv_term (13) value
-    reg_val &= ~(1 << 13); // ib_ena_cmv_term (13)
+    reg_val &= (uint16_t)(~(1 << 13)); // ib_ena_cmv_term (13)
     // OR in new value for ib_ena_cmv_term (13)
     reg_val = reg_val | ((uint32_t)(ib_ena_cmv_term) << 13);
     // write back with updated values
@@ -859,7 +859,7 @@ static int32_t vsc_phy_sd1g_misc_cfg_write(vsc_phy_control_t       *cntrl,
     // read old val
     CHK_RC(vsc_phy_csr_ring_read(cntrl, tgt, csr_reg_addr, &reg_val));  // ib_cfg
     // mask off old des_100fx_cpmd_mode (9) value
-    reg_val &= ~(1 << 9); // des_100fx_cpmd_mode (9)
+    reg_val &= ~(1U << 9); // des_100fx_cpmd_mode (9)
     // OR in new value for des_100fx_cpmd_mode (9)
     reg_val = reg_val | ((uint32_t)(des_100fx_cpmd_mode) << 9);
     // write back with updated values
@@ -1007,7 +1007,7 @@ int32_t vsc_phy_sd6g_patch(vsc_phy_control_t    *cntrl)
         // modify RComp value for Viper Rev. A
         CHK_RC(vsc_phy_csr_ring_read(cntrl, 0x7, 0x0f, &rd_dat)); // rcomp_status
         rcomp = rd_dat & 0xf; //~10;
-        ib_rtrm_adj = rcomp - 3;
+        ib_rtrm_adj = (uint8_t)(rcomp - 3);
     } else {
         // use trim offset for Viper Rev. B+ and Elise
         ib_rtrm_adj = 16 - 3;
@@ -1213,7 +1213,7 @@ uint8_t  vsc_phy_chk_serdes_init_mac_mode(vsc_phy_control_t   *cntrl)
     vsc_phy_mac_interface_t          micro_patch_mac_mode = PHY_MAC_IF_MODE_NO_CONNECTION;
 
 
-    CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_STD_PAGE, 0xffff));
+    CHK_RC_U8(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_STD_PAGE, 0xffff));
     port_no = vsc_phy_chip_port_get(cntrl);
     DPRINTK(5, "vsc_phy_chk_serdes_init_mac_mode: Phy_Addr: 0x%x, <<< Chip Port_no: %d  >>>> \n", cntrl->phy_addr, port_no);
 
@@ -1232,9 +1232,9 @@ uint8_t  vsc_phy_chk_serdes_init_mac_mode(vsc_phy_control_t   *cntrl)
         return (VSC_PHY_FALSE);
     }
 
-    CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_GPIO_PAGE, 0xffff));
-    CHK_RC(vsc_phy_read(cntrl, VSC_PHY_GPIO_PAGE, 0x13, &reg_val));
-    CHK_RC(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0x1f, VSC_PHY_STD_PAGE, 0xffff));
+    CHK_RC_U8(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_GPIO_PAGE, 0xffff));
+    CHK_RC_U8(vsc_phy_read(cntrl, VSC_PHY_GPIO_PAGE, 0x13, &reg_val));
+    CHK_RC_U8(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0x1f, VSC_PHY_STD_PAGE, 0xffff));
 
     mac_if = (reg_val >> 14) & 0x3;
     if (mac_if ==  0x1) {  // QSGMII
@@ -1256,12 +1256,12 @@ uint8_t  vsc_phy_chk_serdes_init_mac_mode(vsc_phy_control_t   *cntrl)
         return (VSC_PHY_FALSE);
     }
 
-    CHK_RC(vsc_phy_mcb_read_trigger(cntrl, 0x3f, 0));
-    CHK_RC(vsc_phy_csr_ring_read(cntrl, 0x7, 0x2b, &rd_dat)); // MACRO_CTRL::SERDES1G_PLL_CFG
+    CHK_RC_U8(vsc_phy_mcb_read_trigger(cntrl, 0x3f, 0));
+    CHK_RC_U8(vsc_phy_csr_ring_read(cntrl, 0x7, 0x2b, &rd_dat)); // MACRO_CTRL::SERDES1G_PLL_CFG
     pll_fsm_ena = (uint8_t) ((rd_dat & 0x00000080) >> 7);
 
-    CHK_RC(vsc_phy_mcb_read_trigger(cntrl, 0x3f, 0));
-    CHK_RC(vsc_phy_csr_ring_read(cntrl, 0x7, 0x2c, &rd_dat)); // MACRO_CTRL::SERDES1G_CMN_CFG
+    CHK_RC_U8(vsc_phy_mcb_read_trigger(cntrl, 0x3f, 0));
+    CHK_RC_U8(vsc_phy_csr_ring_read(cntrl, 0x7, 0x2c, &rd_dat)); // MACRO_CTRL::SERDES1G_CMN_CFG
     sys_rst = (uint8_t) ((rd_dat & 0x80000000) >> 31);
     ena_lane = (uint8_t) ((rd_dat & 0x00040000) >> 18);
     hrate = (uint8_t) ((rd_dat & 0x00000080) >> 7);
@@ -1315,7 +1315,7 @@ uint8_t  vsc_phy_chk_serdes_patch_init(vsc_phy_control_t  *cntrl)
     uint8_t          ib_ureg = 0;
     const vsc_phy_mac_interface_t    conf_mac_if = cntrl->mac_if;
 
-    CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_STD_PAGE, 0xffff));
+    CHK_RC_U8(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_STD_PAGE, 0xffff));
     port_no = vsc_phy_chip_port_get(cntrl);
     DPRINTK(5, "vsc_phy_chk_serdes_patch_init: Phy_Addr: 0x%x, <<< Chip Port_no: %d  >>>> \n", cntrl->phy_addr, port_no);
 
@@ -1334,10 +1334,10 @@ uint8_t  vsc_phy_chk_serdes_patch_init(vsc_phy_control_t  *cntrl)
         return (VSC_PHY_FALSE);
     }
 
-    CHK_RC(vsc_phy_mcb_read_trigger(cntrl, 0x3f, 0));
-    CHK_RC(vsc_phy_sd6g_inbuf_cfg0_read(cntrl, &ib_rtrm_adj, &ib_sig_det_clk_sel, &ib_reg_pat_sel_offset, &ib_cal_ena));
-    CHK_RC(vsc_phy_sd6g_inbuf_cfg2_read(cntrl, &ib_tinfv, &ib_tcalv, &ib_ureg));
-    CHK_RC(vsc_phy_sd6g_des_cfg_read(cntrl, &des_phy_ctrl, &des_mbtr_ctrl, &des_bw_hyst, &des_bw_ana));
+    CHK_RC_U8(vsc_phy_mcb_read_trigger(cntrl, 0x3f, 0));
+    CHK_RC_U8(vsc_phy_sd6g_inbuf_cfg0_read(cntrl, &ib_rtrm_adj, &ib_sig_det_clk_sel, &ib_reg_pat_sel_offset, &ib_cal_ena));
+    CHK_RC_U8(vsc_phy_sd6g_inbuf_cfg2_read(cntrl, &ib_tinfv, &ib_tcalv, &ib_ureg));
+    CHK_RC_U8(vsc_phy_sd6g_des_cfg_read(cntrl, &des_phy_ctrl, &des_mbtr_ctrl, &des_bw_hyst, &des_bw_ana));
 
     DPRINTK(5, "SerDes micro-patch for port: %d, ib_reg_pat_sel_offset: %d, ib_tcalv: %d, ib_ureg: %d, des_bw_ana: %d \n",
                port_no, ib_reg_pat_sel_offset, ib_tcalv, ib_ureg, des_bw_ana);
@@ -1371,7 +1371,7 @@ int32_t vsc_get_phy_type(vsc_phy_control_t   *cntrl)
     CHK_RC(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x2, &reg2_val));
     CHK_RC(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x3, &reg3_val));
 
-    cntrl->phy_id.oui = ((reg2_val << 6) | ((reg3_val >> 10) & 0x3F));
+    cntrl->phy_id.oui = (uint32_t)((reg2_val << 6) | ((reg3_val >> 10) & 0x3F));
     cntrl->phy_id.model = ((reg3_val >> 4) & 0x3F);
     cntrl->phy_id.revision = (reg3_val & 0xF);
     DPRINTK(5, "Port: %d,  Reg2: 0x%04x Reg3: 0x%04x \n", port_no, reg2_val, reg3_val);
@@ -2070,7 +2070,7 @@ int32_t vsc_phy_conf_1g_set(vsc_phy_control_t *cntrl, vsc_phy_conf_1g_t   *conf_
     CHK_RC(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x09, &reg_cntrl));
     CHK_RC(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x0A, &reg_status));
 
-    reg_val  = ((conf_1g->master.cfg ? 1 : 0) << 12) | ((conf_1g->master.val ? 1 : 0) << 11);
+    reg_val  = (uint16_t)(((conf_1g->master.cfg ? 1 : 0) << 12) | ((conf_1g->master.val ? 1 : 0) << 11));
 
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x09, reg_val, 0x1800));
 
@@ -2097,7 +2097,7 @@ int32_t  vsc_phy_packet_mode_set(vsc_phy_control_t *cntrl, vsc_phy_pkt_mode_t   
     case VSC_PHY_PKT_MODE_JUMBO_9_KB:
     case VSC_PHY_PKT_MODE_JUMBO_12_KB:
         reg_mask = 0x3 << 4;
-        reg_val = pkt_mode << 4;
+        reg_val = (uint16_t)(pkt_mode << 4);
         CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x18, reg_val, reg_mask));
         break;
     default:
@@ -2140,7 +2140,7 @@ int32_t vsc_phy_conf_set(vsc_phy_control_t * cntrl, vsc_phy_conf_t * conf)
     switch (conf->mode) {
     case VSC_PHY_MODE_ANEG:
         /* Setup register 4 */
-        new_reg_val = (((conf->aneg.tx_remote_fault ? 1 : 0) << 13) |
+        new_reg_val = (uint16_t)(((conf->aneg.tx_remote_fault ? 1 : 0) << 13) |
                          ((conf->aneg.asymmetric_pause ? 1 : 0) << 11) |
                          ((conf->aneg.symmetric_pause ? 1 : 0) << 10) |
                          ((conf->aneg.speed_100m_fdx ? 1 : 0) << 8) |
@@ -2214,7 +2214,7 @@ int32_t vsc_phy_conf_set(vsc_phy_control_t * cntrl, vsc_phy_conf_t * conf)
         CHK_RC(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x09, &cur_reg_val));
         CHK_RC(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x0A, &cur_status_val));
         reg_bit_mask = 0x1800;   // bits Reg9.12:11
-        new_reg_val  = ((conf->conf_1g.master.cfg ? 1 : 0) << 12) | ((conf->conf_1g.master.val ? 1 : 0) << 11);
+        new_reg_val  = (uint16_t)(((conf->conf_1g.master.cfg ? 1 : 0) << 12) | ((conf->conf_1g.master.val ? 1 : 0) << 11));
         CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x09, new_reg_val, reg_bit_mask));
         //printf("vsc_phy_conf_set: Phy_Addr: 0x%x, Manual_Master_Slave:%x, Master:%x \n", 
         //      cntrl->phy_addr, conf->conf_1g.master.cfg, conf->conf_1g.master.val);
@@ -2248,7 +2248,7 @@ int32_t vsc_phy_conf_set(vsc_phy_control_t * cntrl, vsc_phy_conf_t * conf)
     case VSC_PHY_MODE_FORCED:
         /* Setup register 0 */
         reg_bit_mask = 0xffff;
-        new_reg_val = (((conf->forced.port_speed == VSC_SPEED_100M ? 1 : 0) << 13) | (0 << 12) |
+        new_reg_val = (uint16_t)(((conf->forced.port_speed == VSC_SPEED_100M ? 1 : 0) << 13) | (0 << 12) |
                        ((conf->forced.fdx ? 1 : 0) << 8) |
                        ((conf->forced.port_speed == VSC_SPEED_1G ? 1 : 0) << 6) |
                        ((conf->unidir == VSC_PHY_UNIDIR_ENABLE ? 1 : 0) << 5));
@@ -2292,18 +2292,18 @@ int32_t vsc_phy_conf_set(vsc_phy_control_t * cntrl, vsc_phy_conf_t * conf)
             CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_EXT3_PAGE, 0xffff));
             // Setup Reg16E3
             new_reg_val = 0;
-            new_reg_val = (((conf->mac_if_pcs.disable ? 1 : 0) << 15) |
-                                 ((conf->mac_if_pcs.restart ? 1 : 0) << 14) |
-                                 ((conf->mac_if_pcs.pd_enable ? 1 : 0) << 13) |
-                                 ((conf->mac_if_pcs.aneg_restart ? 1 : 0) << 12) |
-                                 ((conf->mac_if_pcs.force_adv_ability ? 1 : 0) << 11) |
+            new_reg_val = (uint16_t)(((conf->mac_if_pcs.disable ? 1U : 0U) << 15) |
+                                 ((conf->mac_if_pcs.restart ? 1U : 0U) << 14) |
+                                 ((conf->mac_if_pcs.pd_enable ? 1U : 0U) << 13) |
+                                 ((conf->mac_if_pcs.aneg_restart ? 1U : 0U) << 12) |
+                                 ((conf->mac_if_pcs.force_adv_ability ? 1U : 0U) << 11) |
                                  (conf->mac_if_pcs.sgmii_in_pre << 9) |
-                                 ((conf->mac_if_pcs.sgmii_out_pre ? 1 : 0) << 8) |
-                                 ((conf->mac_if_pcs.serdes_aneg_ena ? 1 : 0) << 7) |
-                                 ((conf->mac_if_pcs.serdes_pol_inv_in ? 1 : 0) << 6) |
-                                 ((conf->mac_if_pcs.serdes_pol_inv_out ? 1 : 0) << 5) |
-                                 ((conf->mac_if_pcs.fast_link_stat_ena ? 1 : 0) << 4) |
-                                 ((conf->mac_if_pcs.inhibit_odd_start ? 1 : 0) << 2));
+                                 ((conf->mac_if_pcs.sgmii_out_pre ? 1U : 0U) << 8) |
+                                 ((conf->mac_if_pcs.serdes_aneg_ena ? 1U : 0U) << 7) |
+                                 ((conf->mac_if_pcs.serdes_pol_inv_in ? 1U : 0) << 6) |
+                                 ((conf->mac_if_pcs.serdes_pol_inv_out ? 1U : 0U) << 5) |
+                                 ((conf->mac_if_pcs.fast_link_stat_ena ? 1U : 0U) << 4) |
+                                 ((conf->mac_if_pcs.inhibit_odd_start ? 1U : 0U) << 2));
 
             // Recommended by chip designers - Setting VTSS_F_MAC_SERDES_PCS_CONTROL_MAC_IF_PD_ENA,
             // This should allow link-up if the MAC is not doing auto-neg.
@@ -2317,15 +2317,15 @@ int32_t vsc_phy_conf_set(vsc_phy_control_t * cntrl, vsc_phy_conf_t * conf)
 
             // Setup Reg23E3
             new_reg_val = 0;
-            new_reg_val = ((conf->media_if_pcs.remote_fault << 14) |
-                                 ((conf->media_if_pcs.aneg_pd_detect ? 1 : 0) << 13) |
-                                 ((conf->media_if_pcs.force_adv_ability ? 1 : 0) << 11) |
-                                 ((conf->media_if_pcs.serdes_pol_inv_in ? 1 : 0) << 6) |
-                                 ((conf->media_if_pcs.serdes_pol_inv_out ? 1 : 0) << 5) |
-                                 ((conf->media_if_pcs.inhibit_odd_start ? 1 : 0) << 4) |
-                                 ((conf->media_if_pcs.force_hls ? 1 : 0) << 2) |
-                                 ((conf->media_if_pcs.force_fefi ? 1 : 0) << 1) |
-                                 ((conf->media_if_pcs.force_fefi_value ? 1 : 0)));
+            new_reg_val = (uint16_t)((conf->media_if_pcs.remote_fault << 14) |
+                                 ((conf->media_if_pcs.aneg_pd_detect ? 1U : 0U) << 13) |
+                                 ((conf->media_if_pcs.force_adv_ability ? 1U : 0U) << 11) |
+                                 ((conf->media_if_pcs.serdes_pol_inv_in ? 1U : 0U) << 6) |
+                                 ((conf->media_if_pcs.serdes_pol_inv_out ? 1U : 0U) << 5) |
+                                 ((conf->media_if_pcs.inhibit_odd_start ? 1U : 0U) << 4) |
+                                 ((conf->media_if_pcs.force_hls ? 1U : 0U) << 2) |
+                                 ((conf->media_if_pcs.force_fefi ? 1U : 0U) << 1) |
+                                 ((conf->media_if_pcs.force_fefi_value ? 1U : 0U)));
 
             /* If the bits are ON by Default, leave them ON - We don't want to break default behavior */
             /* If clearing bit is desired, Clear the bit in the Register either before or after this Write */
@@ -2788,7 +2788,7 @@ int32_t vsc_phy_clock_conf_set(vsc_phy_control_t          *cntrl,
     case VSC_PHY_FAMILY_NANO :
     case VSC_PHY_FAMILY_MINI :
         /* This uses the current port_no of the PHY  */
-        reg_val |= ((((conf->clk_src_sel % 4) & 0xF) << 11) | (conf->freq << 8) | (conf->squelch << 4));
+        reg_val |= (uint16_t)(((((conf->clk_src_sel % 4U) & 0xFU) << 11) | (conf->freq << 8) | (conf->squelch << 4)));
         break;
 
     default:

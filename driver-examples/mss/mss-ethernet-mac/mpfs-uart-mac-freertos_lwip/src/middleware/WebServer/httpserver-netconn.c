@@ -32,7 +32,10 @@
 #define HTTPD_DEBUG         LWIP_DBG_OFF
 #endif
 
+#if !defined(_ZL303XX_MIV)
 #define RTC_PRESCALER    (50000000u - 1u)        /* 50MhZ clock is RTC clock source. */
+#endif
+
 
 /*------------------------------------------------------------------------------
  * External functions.

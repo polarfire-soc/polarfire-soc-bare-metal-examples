@@ -92,8 +92,8 @@ uint32_t sys_arch_random(void);
 
 #define LWIP_PLATFORM_HTONL(x) __REV(x)
 
-uint16_t lwip_cortem_chksum(const void *dataptr, int len);
 #if !defined(_ZL303XX_MIV)
+uint16_t lwip_cortem_chksum(const void *dataptr, int len);
 #define LWIP_CHKSUM lwip_cortem_chksum
 #endif
 

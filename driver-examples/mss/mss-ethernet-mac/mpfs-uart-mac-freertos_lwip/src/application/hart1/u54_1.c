@@ -49,9 +49,11 @@
 #define mainVECTOR_MODE_DIRECT                1
 #endif
 
+#if ( mainVECTOR_MODE_DIRECT == 1 )
 extern void freertos_risc_v_trap_handler( void );
-extern void freertos_vector_table( void );
+#else
 extern void freertos_vector_table_h1( void );
+#endif
 
 volatile uint32_t count_sw_ints_h1 = 0U;
 

@@ -123,14 +123,14 @@ sys_init(void)
 u32_t
 sys_now(void)
 {
-  return xTaskGetTickCount() * portTICK_PERIOD_MS;
+  return (u32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 #endif
 
 u32_t
 sys_jiffies(void)
 {
-  return xTaskGetTickCount();
+  return (u32_t)xTaskGetTickCount();
 }
 
 #if SYS_LIGHTWEIGHT_PROT

@@ -136,7 +136,7 @@ static int32_t init_scripts_viper(vsc_phy_control_t    *cntrl)
         return(VSC_PHY_ERROR);
     }
 
-    int32_t elements = p_init_scripts->size / 2;
+    int32_t elements = (int32_t)(p_init_scripts->size / 2);
     for (i=0; i < elements; i+=5) {
         ptr = (uint16_t *)p_init_scripts->data + i;
         if ((*ptr == 0) || (*ptr == 1)) {
@@ -158,7 +158,7 @@ static int32_t init_scripts_viper(vsc_phy_control_t    *cntrl)
     }
 
     return (VSC_PHY_OK);
-};
+}
  
 // micro_patch_viper_a is called on Base Port(0) 
 /*< Products: VSC8582, VSC8584, VSC8575, VSC8564, VSC8586 */
@@ -258,7 +258,7 @@ static int32_t micro_patch_viper(vsc_phy_control_t    *cntrl)
     }
 
     // If p_mpatch!=NULL; Apply the Micro-patch
-    code_size = p_mpatch->size + 1;
+    code_size = (uint16_t)(p_mpatch->size + 1);
 
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_EXT1_PAGE, 0x1f, VSC_PHY_GPIO_PAGE, 0xffff));
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0x12, 0x800f, 0xffff));
@@ -278,7 +278,7 @@ static int32_t micro_patch_viper(vsc_phy_control_t    *cntrl)
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0xb,  0x0000, 0xffff));
 
     for (i = 0; i < code_size; i++) {
-        CHK_RC(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0xc, (0x5000 | p_mpatch->data[i]), 0xffff));
+        CHK_RC(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0xc, (uint16_t)(0x5000 | p_mpatch->data[i]), 0xffff));
     }
 
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0xc,  0x0000, 0xffff));
@@ -342,7 +342,7 @@ static int32_t micro_patch_viper(vsc_phy_control_t    *cntrl)
 
     DPRINTK(4, "GOOD CRC! Micro-Patch Code size: %d;  Expected CRC: 0x9995; Calculated CRC: 0x%X\n", code_size, crc_val);
     return (VSC_PHY_OK);
-};
+}
 
 // init_viper_phy_mac_if is called on each Port of the PHY
 // Must be followed by phy_soft_reset to take effect
@@ -397,7 +397,7 @@ static int32_t init_viper_phy_media_if(vsc_phy_control_t    *cntrl)
 
     if (cntrl->media_if != PHY_MEDIA_IF_CU) {
         reg_val = reg_val % 4;
-        reg_val = 0x80C1 | (0x0100 << reg_val) | cmd_100fx;
+        reg_val = (uint16_t)(0x80C1 | (0x0100 << reg_val) | cmd_100fx);
         CHK_RC(vsc_phy_write(cntrl, VSC_PHY_EXT1_PAGE, 0x1f, VSC_PHY_GPIO_PAGE, 0xffff));
         CHK_RC(vsc_phy_write(cntrl, VSC_PHY_GPIO_PAGE, 0x12, reg_val, 0xffff));
         CHK_RC(vsc_phy_wait_for_micro(cntrl));
@@ -406,8 +406,8 @@ static int32_t init_viper_phy_media_if(vsc_phy_control_t    *cntrl)
         CHK_RC(vsc_phy_write(cntrl, VSC_PHY_EXT1_PAGE, 0x1f, VSC_PHY_STD_PAGE, 0xffff));
     }
 
-    reg_val  = (media_op & 0x7) << 8;
-    reg_val |= (cu_pref ? 0x0800 : 0);
+    reg_val  = (uint16_t)((media_op & 0x7U) << 8);
+    reg_val |= (uint16_t)(cu_pref ? (uint16_t)0x0800U : (uint16_t)0U);
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x17, reg_val, 0x0f00));
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x1f, VSC_PHY_STD_PAGE, 0xffff));
 
@@ -424,7 +424,7 @@ int32_t viper_phy_media_sig_adjust(vsc_phy_control_t         *cntrl,
 
     // Note: It is assumed that vsc_get_phy_type() has already been called and the port_cnt is correct for this device!
     // Modulo down to the PHY physical ports
-    tgt_port_no = tgt_port_no % cntrl->phy_id.port_cnt;  
+    tgt_port_no = (uint16_t)(tgt_port_no % cntrl->phy_id.port_cnt);
 
     /* Bug# 19146  */
     /* Adjust the 1G SerDes SigDet Input Threshold and Signal Sensitivity for 100FX */
@@ -454,7 +454,7 @@ static int32_t soft_reset_viper_phy(vsc_phy_control_t    *cntrl)
     CHK_RC(vsc_phy_write(cntrl, VSC_PHY_STD_PAGE, 0x0, 0x8000, 0xffff));
 
     CHK_RC(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x0, &reg_val));
-    while (reg_val & 0x8000 && timeout > 0) {
+    while ((reg_val & 0x8000) && timeout > 0) {
         CHK_RC(vsc_phy_read(cntrl, VSC_PHY_STD_PAGE, 0x0, &reg_val));
         timeout--;
         cntrl->phy_usleep(1000);

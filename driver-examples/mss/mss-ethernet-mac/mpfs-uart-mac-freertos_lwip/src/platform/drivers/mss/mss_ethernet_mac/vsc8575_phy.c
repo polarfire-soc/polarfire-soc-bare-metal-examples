@@ -499,7 +499,7 @@ MSS_MAC_VSC8575_phy_init(/* mss_mac_instance_t */ const void *v_this_mac, uint8_
      * have this stored in the cntrl structure but this involves modifying the
      * API code...
      */
-    g_my_mac = this_mac;
+    g_my_mac = (mss_mac_instance_t *)this_mac;
 
     /* Start out blank for consistency */
     (void)memset(&cntrl, 0, sizeof(cntrl));

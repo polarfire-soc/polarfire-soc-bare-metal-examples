@@ -14,16 +14,17 @@
 
 volatile uint32_t count_sw_ints_h3 = 0U;
 
-static uint64_t uart3_lock;
 static uint8_t g_rx_buff3[5] = {0};
+
+void u54_3_uart0_rx_handler(mss_uart_instance_t *this_uart);
 
 void
 u54_3_uart0_rx_handler(mss_uart_instance_t *this_uart)
 {
-    //   mss_take_mutex((uint64_t)&uart3_lock);
+    (void)this_uart;
+
     MSS_UART_get_rx(&g_mss_uart3_lo, g_rx_buff3, sizeof(g_rx_buff3));
-    MSS_UART_polled_tx_string(&g_mss_uart3_lo, "hart3 MMUART3 local IRQ.\r\n");
-    //   mss_release_mutex((uint64_t)&uart3_lock);
+    MSS_UART_polled_tx_string(&g_mss_uart3_lo, (void *)"hart3 MMUART3 local IRQ.\r\n");
 }
 
 /* Main function for the hart3(U54_3 processor).
@@ -57,11 +58,9 @@ u54_3(void)
 
     __enable_irq();
 
-    //    mss_init_mutex((uint64_t)&uart3_lock);
-
     MSS_UART_init(&g_mss_uart3_lo, MSS_UART_115200_BAUD, MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY);
 
-    MSS_UART_polled_tx_string(&g_mss_uart3_lo, "Hello World from U54_3\r\n");
+    MSS_UART_polled_tx_string(&g_mss_uart3_lo, (void *)"Hello World from U54_3\r\n");
 
     MSS_UART_set_rx_handler(&g_mss_uart3_lo, u54_3_uart0_rx_handler, MSS_UART_FIFO_SINGLE_BYTE);
 
@@ -74,10 +73,8 @@ u54_3(void)
         if (0x100000U == icount)
         {
             icount = 0U;
-            sprintf(info_string, "hart %d\r\n", hartid);
-            //       mss_take_mutex((uint64_t)&uart3_lock);
-            MSS_UART_polled_tx(&g_mss_uart3_lo, info_string, strlen(info_string));
-            //        mss_release_mutex((uint64_t)&uart3_lock);
+            sprintf((void *)info_string, "hart %d\r\n", (int)hartid);
+            MSS_UART_polled_tx(&g_mss_uart3_lo, info_string, (uint32_t)strlen((void *)info_string));
         }
     }
 
@@ -88,6 +85,5 @@ u54_3(void)
 void
 U54_3_software_IRQHandler(void)
 {
-    uint64_t hart_id = read_csr(mhartid);
     count_sw_ints_h3++;
 }

@@ -91,11 +91,6 @@ void dump_vsc8575_regs(mss_mac_instance_t *this_mac);
 #define MY_STATIC_IP_MASK    "255.255.255.0"
 #endif
 
-static uint8_t g_mac_tx_buffer[MSS_MAC_TX_RING_SIZE][MSS_MAC_MAX_TX_BUF_SIZE]
-    __attribute__((aligned(4)));
-static uint8_t g_mac_rx_buffer[MSS_MAC_RX_RING_SIZE][MSS_MAC_MAX_RX_BUF_SIZE]
-    __attribute__((aligned(4)));
-
 mss_mac_cfg_t g_mac_config;
 
 /*==============================================================================
@@ -121,8 +116,6 @@ uint8_t tx_packet_data[60] = {
     0x80, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0xA8, 0x80, 0xFC, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-static volatile int tx_count = 0;
-static volatile int rx_count = 0;
 
 #if 1
 /*==============================================================================
@@ -187,6 +180,8 @@ get_mac_address(uint8_t *mac_addr)
 /*==============================================================================
  *
  */
+void str_to_ipv4_address(ip4_addr_t *address, char *string);
+
 void
 str_to_ipv4_address(ip4_addr_t *address, char *string)
 {
@@ -197,7 +192,7 @@ str_to_ipv4_address(ip4_addr_t *address, char *string)
     index = 0;
     for (count = 0; count != 4; count++)
     {
-        raw_addr[count] = strtol(&string[index], 0, 10); /* Convert 1/4 of address to binary */
+        raw_addr[count] = (uint8_t)strtol(&string[index], 0, 10); /* Convert 1/4 of address to binary */
 
         while (isdigit(string[index])) /* Step over current number */
             index++;
@@ -286,6 +281,8 @@ void ethernetif_tick(void);
 
 mss_mac_speed_t g_net_speed;
 
+void prvLinkStatusTask(void *pvParameters);
+
 void
 prvLinkStatusTask(void *pvParameters)
 {
@@ -333,12 +330,14 @@ volatile int second_task_count = 0;
 #define UART_DEMO &g_mss_uart1_lo
 #endif
 
+void blinky_task(void *pvParameters);
+
 void
 blinky_task(void *pvParameters)
 {
     (void)pvParameters;
 
-    MSS_UART_polled_tx_string(UART_DEMO, "\r\nRunning FreeRTOS task blinky_task...");
+    MSS_UART_polled_tx_string(UART_DEMO, (uint8_t *)"\r\nRunning FreeRTOS task blinky_task...");
 
     for (;;)
     {
@@ -421,7 +420,6 @@ free_rtos(void)
     rtos_result = xTaskCreate(e51_task, "e51", 1000, NULL, uartPRIMARY_PRIORITY, NULL);
     if (1 != rtos_result)
     {
-        int ix;
         for (;;)
             ix++;
     }
@@ -430,7 +428,6 @@ free_rtos(void)
         xTaskCreate(blinky_task, "e51-2nd", 1000, NULL, uartPRIMARY_PRIORITY + 2, &thandle_blinky);
     if (1 != rtos_result)
     {
-        int ix;
         for (;;)
             ix++;
     }
@@ -444,7 +441,6 @@ free_rtos(void)
 
     if (1 != rtos_result)
     {
-        int ix;
         for (;;)
             ix++;
     }
@@ -458,7 +454,6 @@ free_rtos(void)
                               &thandle_link);
     if (1 != rtos_result)
     {
-        int ix;
         for (;;)
             ix++;
     }
@@ -484,18 +479,12 @@ volatile uint64_t *timecmp = (volatile uint64_t *)0x02004000;
 void
 e51_task(void *pvParameters)
 {
-    int count;
-
-    volatile int i;
     int8_t info_string[100];
     uint64_t mcycle_start = 0;
     uint64_t mcycle_end = 0;
     uint64_t delta_mcycle = 0;
-    uint32_t num_loops = 1000000;
     uint32_t hartid = read_csr(mhartid);
-    static volatile uint64_t dummy_h0 = 0;
     uint8_t rx_buff[1];
-    uint32_t rx_idx = 0;
     uint8_t rx_size = 0;
     volatile uint64_t delay_count;
     volatile uint32_t gpio_inputs;
@@ -1017,26 +1006,23 @@ e51_task(void *pvParameters)
                   MSS_UART_115200_BAUD,
                   MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT);
 
-    MSS_UART_polled_tx_string(UART_DEMO, "Current IP settings\n\r");
+    MSS_UART_polled_tx_string(UART_DEMO, (uint8_t *)"Current IP settings\n\r");
     sprintf(info_string,
             "my ip address: %s\n\r",
-            MY_STATIC_IP_ADDRESS,
-            strlen(MY_STATIC_IP_ADDRESS));
-    MSS_UART_polled_tx_string(UART_DEMO, info_string);
+            MY_STATIC_IP_ADDRESS
+            );
+    MSS_UART_polled_tx_string(UART_DEMO, (uint8_t *)info_string);
     sprintf(info_string,
             "my gateway address %s\n\r",
-            MY_STATIC_IP_GATEWAY,
-            strlen(MY_STATIC_IP_GATEWAY));
-    MSS_UART_polled_tx_string(UART_DEMO, info_string);
-    sprintf(info_string, "my ip mask %s\n\r", MY_STATIC_IP_MASK, strlen(MY_STATIC_IP_MASK));
-    MSS_UART_polled_tx_string(UART_DEMO, info_string);
+            MY_STATIC_IP_GATEWAY
+            );
+    MSS_UART_polled_tx_string(UART_DEMO, (uint8_t *)info_string);
+    sprintf(info_string, "my ip mask %s\n\r", MY_STATIC_IP_MASK);
+    MSS_UART_polled_tx_string(UART_DEMO, (uint8_t *)info_string);
     MSS_UART_polled_tx_string(
         UART_DEMO,
-        "Adjust as required, modify #define MY_STATIC_IP_ADDRESS xx.xx.xx.xx etc\n\r");
+        (uint8_t *)"Adjust as required, modify #define MY_STATIC_IP_ADDRESS xx.xx.xx.xx etc\n\r");
 
-    //    PRINT_STRING("PolarFire MSS Ethernet Dual eMAC/pMAC Test program\n\r");
-
-    //    PRINT_STRING("Polling method for TXRX. Typed characters will be echoed.\n\r");
     __enable_irq();
 
 #if defined(MSS_MAC_USE_DDR) && (MSS_MAC_USE_DDR == MSS_MAC_MEM_CRYPTO)
@@ -1098,26 +1084,21 @@ e51_task(void *pvParameters)
         dump_vsc8575_regs(&g_mac0);
 #endif
 #endif
-        rx_size = MSS_UART_get_rx(UART_DEMO, rx_buff, sizeof(rx_buff));
+        rx_size = (uint8_t)MSS_UART_get_rx(UART_DEMO, rx_buff, sizeof(rx_buff));
         if (rx_size > 0)
         {
-            MSS_UART_polled_tx_string(UART_DEMO, "=-");
+            MSS_UART_polled_tx_string(UART_DEMO, (uint8_t *)"=-");
             if (rx_buff[0] == '1')
             {
                 hartid = read_csr(mhartid);
                 mcycle_end = readmcycle();
                 delta_mcycle = mcycle_end - mcycle_start;
 
-                //    sprintf(info_string,"Hart %d, %d loops required %ld cycles, sw ints h0 = %d,
-                //    sw ints h1 = %d, mtime = %d mtimecmp = %d\n\r", hartid,
-                //            num_loops, delta_mcycle, count_sw_ints_h0, count_sw_ints_h1,
-                //            CLINT->MTIME, CLINT->MTIMECMP[0]);
-                //    MSS_UART_polled_tx_string (UART_DEMO, info_string);
             }
             else if (rx_buff[0] == '2')
             {
                 raise_soft_interrupt((uint32_t)0);
-                MSS_UART_polled_tx_string(UART_DEMO, "Raise sw int hart 0\n\r");
+                MSS_UART_polled_tx_string(UART_DEMO, (uint8_t *)"Raise sw int hart 0\n\r");
             }
             else if (rx_buff[0] == '3')
             {
@@ -1126,7 +1107,7 @@ e51_task(void *pvParameters)
                  * Much the same code does on the unleashed-
                  */
                 raise_soft_interrupt((uint32_t)1);
-                MSS_UART_polled_tx_string(UART_DEMO, "Raise sw int hart 1\n\r");
+                MSS_UART_polled_tx_string(UART_DEMO, (uint8_t *)"Raise sw int hart 1\n\r");
             }
             else
             {
@@ -1158,6 +1139,8 @@ vApplicationMallocFailedHook(void)
         ;
 }
 /*-----------------------------------------------------------*/
+
+void vApplicationIdleHook(void);
 
 void
 vApplicationIdleHook(void)

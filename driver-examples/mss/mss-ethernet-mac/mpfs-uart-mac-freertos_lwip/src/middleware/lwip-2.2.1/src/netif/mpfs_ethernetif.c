@@ -203,7 +203,6 @@ ethernetif_init(struct netif *netif)
 static void
 low_level_init(struct netif *netif)
 {
-    const uint8_t * own_hw_adr;
     int32_t count;
 
     /* We only have one network Interface */
@@ -556,7 +555,7 @@ low_level_init(struct netif *netif)
      * This function will need to be called each time a packet is received to
      * hand back the receive buffer to the MAC driver.
      */
-    for(count = 0; count < RX_BUFFER_COUNT; ++count)
+    for(count = 0; count < (int32_t)RX_BUFFER_COUNT; ++count)
     {
         /*
          * We allocate the buffers with the Ethernet MAC interrupt disabled
@@ -688,6 +687,8 @@ static void packet_tx_complete_handler(/* mss_mac_instance_t*/ void *this_mac, u
 
     (void)caller_info;
     (void)this_mac;
+    (void)cdesc;
+    (void)queue_no;
 
     // Unblock the task by releasing the semaphore.
     xSemaphoreGiveFromISR( xSemaphore, &xHigherPriorityTaskWoken );
@@ -712,7 +713,11 @@ static void mac_rx_callback
     void * caller_info
 )
 {
+    (void)this_mac;
+    (void)cdesc;
+    (void)queue_no;
     (void)caller_info;
+
     if(g_p_mac_netif != 0)
     {
         ethernetif_input(g_p_mac_netif, p_rx_packet, pckt_length);

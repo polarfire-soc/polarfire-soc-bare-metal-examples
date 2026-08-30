@@ -146,7 +146,6 @@ mss_mac_instance_t g_mac0;
 /* Private Functions                                                      */
 /**************************************************************************/
 static void mac_reset(void);
-static void mac_delay(mss_mac_instance_t *this_mac, uint32_t usecs);
 static void config_mac_hw(mss_mac_instance_t *this_mac, const mss_mac_cfg_t *cfg);
 static void tx_desc_ring_init(mss_mac_instance_t *this_mac);
 static void rx_desc_ring_init(mss_mac_instance_t *this_mac);
@@ -5229,7 +5228,7 @@ rxpkt_handler(mss_mac_instance_t *this_mac, uint64_t queue_no)
 
                 this_queue->pckt_rx_callback(
                     this_mac,
-                    queue_no,
+                    (uint32_t)queue_no,
                     p_rx_packet,
                     pckt_length,
                     cdesc,
@@ -5307,7 +5306,7 @@ txpkt_handler(mss_mac_instance_t *this_mac, uint64_t queue_no)
                 {
                     this_queue->pckt_tx_callback(
                         this_mac,
-                        queue_no,
+                        (uint32_t)queue_no,
                         p_current_desc,
                         this_queue->tx_caller_info[this_queue->current_tx_desc]);
                 }

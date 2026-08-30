@@ -74,6 +74,10 @@ static inline void spinunlock(volatile long *pLock)
     __sync_lock_release(pLock);
 }
 
+#if defined USING_FREERTOS
+void taskYIELD(void);
+#endif
+
 static inline void spinlock(volatile long *pLock)
 {
     while(__sync_lock_test_and_set(pLock, 1))
