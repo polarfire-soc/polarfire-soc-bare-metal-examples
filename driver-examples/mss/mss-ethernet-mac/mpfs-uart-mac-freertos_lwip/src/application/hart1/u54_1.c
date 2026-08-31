@@ -58,7 +58,7 @@ extern void freertos_vector_table_h1( void );
 volatile uint32_t count_sw_ints_h1 = 0U;
 
 #if (IMAGE_LOADED_BY_BOOTLOADER == 0)
-extern uint64_t wait_flag;
+extern volatile uint64_t wait_flag;
 #endif
 
 /* Main function for the hart1(U54_1 processor).
@@ -72,11 +72,18 @@ u54_1(void)
 {
     volatile uint32_t icount = 0U;
 #if (IMAGE_LOADED_BY_BOOTLOADER == 1)
+/*
+ * Enable this as a debug aid to halt the app when running in DDR so you can
+ * attach and debug. Manually change icount to something like 5 to cause loop
+ * to exit after attaching the debug session.
+ */
+#if 0
     while(0 == icount)
     {
         icount++;
         icount--;
     }
+#endif
 #endif
 
 #if (IMAGE_LOADED_BY_BOOTLOADER == 0)

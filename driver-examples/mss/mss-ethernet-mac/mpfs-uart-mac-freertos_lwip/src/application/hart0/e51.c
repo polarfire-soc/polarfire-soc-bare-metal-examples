@@ -382,7 +382,7 @@ TaskHandle_t thandle_blinky;
  * then lets u54s run.
  */
 #if (IMAGE_LOADED_BY_BOOTLOADER == 0)
-uint64_t wait_flag;
+volatile uint64_t wait_flag;
 #endif
 
 void
