@@ -1,15 +1,12 @@
-/*******************************************************************************
- * Copyright 2019-2024 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2024 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_ethernet_mac_types.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief This file contains type definitions used throughout the PolarFire SoC
- * Microprocessor Subsystem (MSS) Ethernet MAC and PHY device drivers. User need
- * not include this file in application source code.
- * Inclusion of mss_ethernet_mac.h inherits these types.
- * 
+ * @brief mss_ethernet_mac type definition header file
+ *
  */
 
 #ifndef MSS_ETHERNET_MAC_TYPES_H_
@@ -17,7 +14,7 @@
 #include <stdint.h>
 
 #if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
-#include "drivers/mss_gpio/mss_gpio.h"
+#include "drivers/mss/mss_gpio/mss_gpio.h"
 #endif
 
 #ifdef __cplusplus
@@ -31,7 +28,7 @@ extern "C" {
 /***************************************************************************//**
  * MAC interface speed indicator
  *
- * This enumeration specifies the various interface speeds supported by the MAC 
+ * This enumeration specifies the various interface speeds supported by the MAC
  * hardware. These values are used by _MSS_MAC_get_link_status()_ to indicate the
  * current link speed.
  */
@@ -46,7 +43,7 @@ typedef enum __mss_mac_speed_t
 /***************************************************************************//**
  * MAC interface speed mode selector
  *
- * This enumeration specifies the various interface speed mode to use when 
+ * This enumeration specifies the various interface speed mode to use when
  * calling _MSS_MAC_change_speed()_. Anything other than _MSS_MAC_SPEED_AN_
  * results in a fixed speed/duplex configuration and the link partner must be
  * configured the same way for proper communications to be achieved.
@@ -98,7 +95,7 @@ typedef enum __mss_mac_phy_reset_t
 
 /***************************************************************************//**
  * AMBA burst length defines. These are used when setting the
- * _amba_burst_length_ field in the _mss_mac_cfg_t structure_. 
+ * _amba_burst_length_ field in the _mss_mac_cfg_t structure_.
  */
 
 #define MSS_MAC_AMBA_BURST_256  (0U)
@@ -116,10 +113,10 @@ typedef enum __mss_mac_phy_reset_t
  * MSS Ethernet MAC driver to initialize the PHY. This function is registered
  * with the MSS Ethernet MAC driver via the _phy_init_ entry in the
  * _mss_mac_cfg_t_ structure passed to _MSS_MAC_init()_.
- * 
- * The function should match the following prototype: 
+ *
+ * The function should match the following prototype:
  *     `void MSS_MAC_phy_init(const void *this_mac, uint8_t phy_addr);`
- * 
+ *
  * - The _this_mac_ parameter is actually a pointer to the
  * _mss_mac_instance_t_ for the GEM to which the PHY is attached. It is declared
  * as `void *` to avoid issues with recursive structure name references.
@@ -137,8 +134,8 @@ typedef void (*mss_mac_phy_init_t)(/* mss_mac_instance_t */ const void *this_mac
  * MSS Ethernet MAC driver to set the link speed for the PHY. This function is
  * registered with the MSS Ethernet MAC driver via the _phy_set_link_speed_
  * entry in the _mss_mac_cfg_t_ structure passed to _MSS_MAC_init()_.
- * 
- * The function should match the following prototype: 
+ *
+ * The function should match the following prototype:
  * `void MSS_MAC_phy_set_link_speed
  * (
  *      const void *this_mac,
@@ -151,10 +148,10 @@ typedef void (*mss_mac_phy_init_t)(/* mss_mac_instance_t */ const void *this_mac
  * as `void *` to avoid issues with recursive structure name references.
  *
  * - The _speed_duplex_select_ parameter indicates the link speed and duplex
- * combinations to allow when autonegotiation is selected via speed_mode. 
+ * combinations to allow when autonegotiation is selected via speed_mode.
  *
  * - The _speed_mode_ parameter either selects a specific single duplex and
- * speed combination or autonegotiation as the mode to use. 
+ * speed combination or autonegotiation as the mode to use.
  */
 typedef void (*mss_mac_phy_set_speed_t)(/* mss_mac_instance_t */ void *this_mac, uint32_t speed_duplex_select, mss_mac_speed_mode_t speed_mode);
 
@@ -166,10 +163,10 @@ typedef void (*mss_mac_phy_set_speed_t)(/* mss_mac_instance_t */ void *this_mac,
  * the MSS Ethernet MAC driver to instruct the PHY to carry out an
  * autonegotiation operation on the Ethernet link or the SGMII link. These
  * functions are registered with the MSS Ethernet MAC driver via the
- * _phy_autonegotiate_ and _phy_mac_autonegotiate_ entries in the 
+ * _phy_autonegotiate_ and _phy_mac_autonegotiate_ entries in the
  * _mss_mac_cfg_t_ structure passed to _MSS_MAC_init()_.
- * 
- * The function should match the following prototype: 
+ *
+ * The function should match the following prototype:
  *     `void MSS_MAC_phy_autonegotiate(const void *this_mac);`
  *
  * - The _this_mac_ parameter is actually a pointer to the
@@ -186,8 +183,8 @@ typedef void (*mss_mac_phy_autonegotiate_t)(/* mss_mac_instance_t */ const void 
  * MSS Ethernet MAC driver to fetch the link status from the PHY. This function
  * is registered with the MSS Ethernet MAC driver via the _phy_get_link_status_
  * entry in the _mss_mac_cfg_t_ structure passed to _MSS_MAC_init()_.
- * 
- * The function should match the following prototype: 
+ *
+ * The function should match the following prototype:
  * `uint8_t MSS_MAC_phy_get_link_status
  * (
  *     const void *this_mac,
@@ -206,7 +203,7 @@ typedef void (*mss_mac_phy_autonegotiate_t)(/* mss_mac_instance_t */ const void 
  * duplex state - 0 for half duplex and 1 for full duplex.
  *
  * - The function returns 0 if the link is currently down and 1 if it is currently
- * active. 
+ * active.
  *
  * __Note:__ If the link is not active, the speed and duplex values will not be
  * updated.
@@ -228,7 +225,7 @@ typedef uint8_t (*mss_mac_phy_get_link_status_t)
  * routines. The DP83867 PHYs use a different addressing mechanism for accessing
  * extended registers and this function implements the read support.
  *
- * The function should match the following prototype: 
+ * The function should match the following prototype:
  * `uint16_t ti_read_extended_regs(const void * this_mac, uint16_t reg);`
  *
  * - The _this_mac_ parameter is actually a pointer to the
@@ -249,7 +246,7 @@ typedef uint16_t (*mss_mac_phy_extended_read_t)(/* mss_mac_instance_t */ const v
  * routines. The DP83867 PHYs use a different addressing mechanism for accessing
  * extended registers and this function implements the write  support.
  *
- * The function should match the following prototype: 
+ * The function should match the following prototype:
  * `void ti_write_extended_regs(mss_mac_instance_t * this_mac, uint16_t reg);`
  *
  * - The _this_mac_ parameter is actually a pointer to the
@@ -265,10 +262,10 @@ typedef void (*mss_mac_phy_extended_write_t)(/* mss_mac_instance_t */ const void
 
 /***************************************************************************//**
   PolarFire SoC MSS Ethernet MAC Configuration Structure.
-  
+
   The _mss_mac_cfg_t_ type contains the initial configuration values for the
   MPFS Ethernet MAC. You need to create a record of this type to hold the
-  configuration of the MAC. _MSS_MAC_cfg_struct_def_init()_ is used to 
+  configuration of the MAC. _MSS_MAC_cfg_struct_def_init()_ is used to
   initialize the configuration record to default values. Later, the
   configuration elements in the record can be changed to desired values before
   passing them to _MSS_MAC_init()_.
@@ -280,7 +277,7 @@ typedef void (*mss_mac_phy_extended_write_t)(/* mss_mac_instance_t */ const void
   ___interface_type___:
     This indicates the type of interface between the MAC and the PHY. The
     currently supported values are:
-  
+
       - _NULL_PHY_   – No PHY involved, usually for direct connection via the
                        fabric.
       - _GMII_       – Connection via GMII routed through the fabric to external
@@ -300,13 +297,13 @@ typedef void (*mss_mac_phy_extended_write_t)(/* mss_mac_instance_t */ const void
       - _MSS_MAC_DEV_PHY_VSC8662_      – VSC88662 without VTSS API.
       - _MSS_MAC_DEV_PHY_DP83867_      – TI DP83867.
 
-  ___phy_init___  
-  ___phy_set_link_speed___  
-  ___phy_autonegotiate___  
-  ___phy_autonegotiate_mac___  
-  ___phy_get_link_status___  
-  ___phy_extended_read___  
-  ___phy_init_extended_write___:  
+  ___phy_init___
+  ___phy_set_link_speed___
+  ___phy_autonegotiate___
+  ___phy_autonegotiate_mac___
+  ___phy_get_link_status___
+  ___phy_extended_read___
+  ___phy_init_extended_write___:
     These are callback functions for the PHY support within the driver. These
     should be set to the appropriate PHY driver functions for the attached PHY
     device. See _mss_mac_phy_init_t_, _mss_mac_phy_set_speed_t_,
@@ -330,7 +327,7 @@ typedef void (*mss_mac_phy_extended_write_t)(/* mss_mac_instance_t */ const void
       - _MSS_MAC_1000_HDX_
       - _MSS_MAC_1000_FDX_
 
-    If _MSS_MAC_SPEED_AN_ is selected then the _speed_duplex_select_ 
+    If _MSS_MAC_SPEED_AN_ is selected then the _speed_duplex_select_
     configuration parameter indicates the allowed speed combinations. For all
     other modes, the link autonegotiation is disabled.
 
@@ -369,7 +366,7 @@ typedef void (*mss_mac_phy_extended_write_t)(/* mss_mac_instance_t */ const void
 
   ___phy_soft_reset_gpio___:
     Identifies the MSS GPIO device that the PHY soft reset pin is connected to.
-    A Value of _NULL_ indicates the soft reset signal is not available for 
+    A Value of _NULL_ indicates the soft reset signal is not available for
     control via an MSS GPIO pin.
 
   ___phy_soft_reset_pin___:
@@ -435,7 +432,7 @@ typedef void (*mss_mac_phy_extended_write_t)(/* mss_mac_instance_t */ const void
   ___length_field_check___:
     This parameter specifies enable or disable length field check. When enabled,
     the MAC checks the frame length field of received frames to ensure it
-    matches the actual data field length. The allowed values for the 
+    matches the actual data field length. The allowed values for the
     _length_field_check_ configuration parameter are:
 
       - _MSS_MAC_LENGTH_FIELD_CHECK_ENABLE_
@@ -503,8 +500,8 @@ typedef void (*mss_mac_phy_extended_write_t)(/* mss_mac_instance_t */ const void
     The _MSS_MAC_cfg_struct_def_init()_ function sets this configuration
     parameter to _MSS_MAC_TX_FLOW_CTRL_ENABLE_.
 
-  ___ipg_multiplier___  
-  ___ipg_divisor___:  
+  ___ipg_multiplier___
+  ___ipg_divisor___:
     These parameters specify the minimum size of gap (IPG/IFG) to enforce
     between frames (expressed in bit times). They are both 8 bit values and are
     used to calculate an IPG value based on the last packet sent by multiplying
@@ -563,11 +560,11 @@ typedef void (*mss_mac_phy_extended_write_t)(/* mss_mac_instance_t */ const void
     The _MSS_MAC_cfg_struct_def_init()_ function sets this configuration
     parameter to 0.
 
-  ___queue0_int_priority___:  
-  ___queue1_int_priority___:  
-  ___queue2_int_priority___:  
-  ___queue3_int_priority___:  
-  ___mmsl_int_priority___:  
+  ___queue0_int_priority___:
+  ___queue1_int_priority___:
+  ___queue2_int_priority___:
+  ___queue3_int_priority___:
+  ___mmsl_int_priority___:
     These parameters indicate the interrupt priority to use for each of the
     interrupt sources that the GEM supports. A priority of 0 effectively
     disables an interrupt and a priority of 7 is the highest priority that can
@@ -585,7 +582,7 @@ typedef void (*mss_mac_phy_extended_write_t)(/* mss_mac_instance_t */ const void
 
     The _MSS_MAC_cfg_struct_def_init()_ function sets this configuration
     parameter to 0.
-    
+
   ___amba_burst_length___:
     Sets the burst length for the DMA AXI data access transfers. Valid values
     are:
@@ -658,7 +655,7 @@ typedef struct __mss_mac_cfg_t
  * width of the returned statistic value is indicated in the comment against the
  * statistic.
  *
- * These registers are cleared when read, so in order to maintain a proper 
+ * These registers are cleared when read, so in order to maintain a proper
  * running total, the software should maintain counts which are updated by
  * adding the values each time a statistic count is read.
  *
@@ -735,7 +732,7 @@ typedef enum __mss_mac_tsu_addr_t
  * indicates which types of packets should have their IEEE 1588 timestamps
  * recorded in the transmit or receive descriptors.
  *
- * 
+ *
  * This value is used with the _MSS_MAC_get_TSU_rx_mode()_,
  * _MSS_MAC_set_TSU_rx_mode()_, _MSS_MAC_get_TSU_tx_mode()_ and
  * _MSS_MAC_set_TSU_tx_mode()_ functions.
@@ -751,7 +748,7 @@ typedef enum __mss_mac_tsu_mode_t
 
 /***************************************************************************//**
  * This enumeration indicates hash matching modes for accepting received frames.
- * This value is used with the _MSS_MAC_set_hash_mode()_ and 
+ * This value is used with the _MSS_MAC_set_hash_mode()_ and
  * _MSS_MAC_get_hash_mode()_ functions.
  */
 typedef enum __mss_mac_hash_mode_t
@@ -764,7 +761,7 @@ typedef enum __mss_mac_hash_mode_t
 
 /***************************************************************************//**
  * This enumeration indicates sync time stamp adjust modes to use for One Step
- * Synce operation (OSS). This value is used with the 
+ * Synce operation (OSS). This value is used with the
  * _MSS_MAC_set_TSU_oss_mode()_ and _MSS_MAC_get_TSU_oss_mode()_ functions.
  */
 typedef enum __mss_mac_oss_mode_t
@@ -778,9 +775,9 @@ typedef enum __mss_mac_oss_mode_t
 
 
 /***************************************************************************//**
- * This enumeration indicates the pre-emption minimum fragment size which 
+ * This enumeration indicates the pre-emption minimum fragment size which
  * also determines the minimum number of bytes which the pMAC sends before
- * pre-emption is allowed. 
+ * pre-emption is allowed.
  *
  * This value is used in the _mss_mac_mssl_config_t_ structure _frag_size_
  * field.
@@ -805,13 +802,13 @@ typedef enum __mss_mac_frag_size_t
  *
  * __Note:__ The driver currently uses a buffer scheme of one buffer per packet
  * but it is possible to use multiple buffers which each contain a portion of
- * the packet and some of the bit fields are of more importance in that type of 
+ * the packet and some of the bit fields are of more importance in that type of
  * buffer scheme.
  *
  * __Note:__ Some bits have different meanings based on the active configuration
  * of the GEM and these defines represent the values for the configuration(s)
  * used by the driver.
- * 
+ *
  * The following are the transmit offload error codes and their meanings:
  *  - 000 - No Error
  *  - 001 - The Packet was identified as a VLAN type, but the header was not
@@ -829,7 +826,7 @@ typedef enum __mss_mac_frag_size_t
  *  - 111 - A premature end of packet was detected and the TCP/UDP checksum
  *          could not be generated.
  */
- 
+
 #define GEM_RX_DMA_TS_PRESENT     BIT_02 /*!< @brief This descriptor contains a
                                            valid time stamp which indicates the
                                            receive time. */
@@ -860,12 +857,12 @@ typedef enum __mss_mac_frag_size_t
                                                       packet matched. */
 #define GEM_RX_DMA_TYPE_ID_MATCH  BIT_24 /*!< @brief  If set a type ID register
                                            match occurred. */
-#define GEM_RX_DMA_TYPE_ID        (BIT_22 | BIT_23) /*!< @brief Bitfield 
+#define GEM_RX_DMA_TYPE_ID        (BIT_22 | BIT_23) /*!< @brief Bitfield
                                                       indicating which ID
                                                       register was matched. */
 #define GEM_RX_DMA_VLAN_TAG       BIT_21 /*!< @brief Set if a VLAN tag was
                                            detected in the packet. */
-#define GEM_RX_DMA_PRIORITY_TAG   BIT_20 /*!< @brief Priority tag detected — 
+#define GEM_RX_DMA_PRIORITY_TAG   BIT_20 /*!< @brief Priority tag detected —
                                            type ID of 0x8100 and null VLAN
                                            identifier. For packets incorporating
                                            the stacked VLAN processing feature,
@@ -918,7 +915,7 @@ typedef enum __mss_mac_frag_size_t
 #define GEM_TX_DMA_LAST           BIT_15 /*!< @brief When set indicates this is
                                            the last buffer in a frame. */
 #define GEM_TX_DMA_BUFF_LEN       BITS_14 /*!< @brief 14 bit buffer length. */
- 
+
 /*******************************************************************************
  * __Note:__ In the following definitions we use void * for the this_mac
  * parameter as they are used in the definition of the _mss_mac_instance_t_
@@ -943,7 +940,7 @@ struct mss_mac_tx_desc
 #if defined(MSS_MAC_64_BIT_ADDRESS_MODE)
     uint32_t          addr_high;    /*!< High portion of address in 64bit addressing mode */
     uint32_t          unused;       /*!< Unused word in 64bit mode */
-#endif 
+#endif
 #if defined(MSS_MAC_TIME_STAMPED_MODE)
     volatile uint32_t nano_seconds; /*!< Nanoseconds and LSBs of seconds for timestamp */
     volatile uint32_t seconds;      /*!< MSBs of timestamp seconds */
@@ -966,7 +963,7 @@ struct mss_mac_rx_desc
 #if defined(MSS_MAC_64_BIT_ADDRESS_MODE)
     uint32_t          addr_high;    /*!< High portion of address in 64bit addressing mode */
     uint32_t          unused;       /*!< Unused word in 64bit mode */
-#endif 
+#endif
 #if defined(MSS_MAC_TIME_STAMPED_MODE)
     volatile uint32_t nano_seconds; /*!< Nanoseconds and LSBs of seconds for timestamp */
     volatile uint32_t seconds;      /*!< MSBs of timestamp seconds */
@@ -1035,7 +1032,7 @@ struct mss_mac_tsu_time
 /***************************************************************************//**
  * TSU configuration structure.
  *
- * This structure is used with the _MSS_MAC_init_TSU()_ function to configure 
+ * This structure is used with the _MSS_MAC_init_TSU()_ function to configure
  * the initial count value and increment values for the TSU. The driver
  * configures the timer to operate in Increment Mode.
  */
@@ -1056,8 +1053,8 @@ struct mss_mac_tsu_config
 /***************************************************************************//**
  * Type 1 filter structure.
  *
- * This structure is used to configure Type 1 Screening Filters which allow 
- * routing or dropping of packets based on a UDP port number and the 
+ * This structure is used to configure Type 1 Screening Filters which allow
+ * routing or dropping of packets based on a UDP port number and the
  * differentiated services/traffic class field.
  *
  * The match results are ANDed together which means all enabled filters must
@@ -1080,15 +1077,15 @@ struct mss_mac_type_1_filter
 /***************************************************************************//**
  * Type 2 filter structure.
  *
- * This structure is used to configure Type 2 Screening Filters which allow 
+ * This structure is used to configure Type 2 Screening Filters which allow
  * routing or dropping of packets based on Ethertype field values, VLAN priority
  * and arbitrary packet data patterns.
  *
  * Ethertype matching is perfromed using a combination of a Type 2 Filter and
- * and an Ethertype screening register. 
+ * and an Ethertype screening register.
  *
  * Arbitrary data matching is perfromed using a combination of a Type 2 Filter
- * and between 1 and 3 Type 2 Comparer blocks. 
+ * and between 1 and 3 Type 2 Comparer blocks.
  *
  * The match results are ANDed together which means all enabled filters must
  * match for a successful match. Packets can either be dropped or sent to the
@@ -1116,7 +1113,7 @@ struct mss_mac_type_2_filter
 /***************************************************************************//**
  * Type 2 filter comparer structures.
  *
- * This structure is used to configure Type 2 Screening Filter data comparers 
+ * This structure is used to configure Type 2 Screening Filter data comparers
  * which allow filtering on arbitrary packet data patterns. Alternatively the
  * comparer can be configured to match a normal or stacked VLAN tag.
  *
@@ -1152,15 +1149,15 @@ struct mss_mac_type_2_compare
 /***************************************************************************//**
  * Media Merge Sublayer configuration structure.
  *
- * This structure is used to configure the operation of the MMSL via the 
+ * This structure is used to configure the operation of the MMSL via the
  * _MSS_MAC_set_mmsl_mode()_ function and retrieve the current settings via the
  * _MSS_MAC_get_mmsl_mode()_ function.
  *
- * The default operation mode on reset, is no pre-emption and all receive 
+ * The default operation mode on reset, is no pre-emption and all receive
  * traffic routed to the pMAC.
  *
  * If verify_disable is true then the link will switch to pre-emption without
- * negotitation of capabilities with the link partner when preemption is set to 
+ * negotitation of capabilities with the link partner when preemption is set to
  * true.
  */
 typedef struct mss_mac_mmsl_config mss_mac_mmsl_config_t;
@@ -1175,13 +1172,13 @@ struct mss_mac_mmsl_config
 /***************************************************************************//**
  * Media Merge Sublayer statistics structure.
  *
- * This structure is used to return the MMSL statistics counts via the 
+ * This structure is used to return the MMSL statistics counts via the
  * _MSS_MAC_get_mmsl_stats()_ function.
  *
  * __Note:__ These values are actually a mix of 8 and 17 bits but we return them
  * all as 32 bits to simplify collecting the stats.
  *
- * These registers are cleared when read so in order to maintain a proper 
+ * These registers are cleared when read so in order to maintain a proper
  * running total, the software should maintain counts which are updated by
  * adding the values each time a statistic count is read.
  *
@@ -1227,7 +1224,7 @@ struct mss_mac_tx_pkt_info
  * Per queue specific info for device management structure.
  *
  * This structure instantiates the queue specific information for managing the
- * MSS Ethernet MAC driver. 
+ * MSS Ethernet MAC driver.
  */
 typedef struct mss_mac_queue
 {

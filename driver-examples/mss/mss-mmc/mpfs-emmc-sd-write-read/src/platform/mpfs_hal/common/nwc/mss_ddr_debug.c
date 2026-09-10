@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_ddr_debug.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief DDR write and read test functions
+ * @brief mss_ddr_debug source file
  *
  */
 
@@ -216,10 +216,10 @@ void display_ddr_driver_info(mss_uart_instance_t *debug_uart)
                                         {"48","34","27","60"},
                                         {"48","40","34","60"},
                                         {"48","40","34","60"}};
-    const char *ddr_term_str[5U][6U] =
+    const char *ddr_term_str[5U][9U] =
                                     {{"invalid","120","60","40","30","invalid"},
                                      {"invalid","120","60","40","30","invalid"},
-                                     {"invalid","120","80","60","40","30"},
+                                     {"inv","inv","120","80","60","inv","40","inv","30"},
                                      {"invalid","120","80","60","40","30"},
                                      {"invalid","120","80","60","40","30"}};
 #if(DDR_MODE == 2U) /* DDR4*/
@@ -285,24 +285,24 @@ void display_ddr_driver_info(mss_uart_instance_t *debug_uart)
     uprint(debug_uart, (const char*)ddr_cmdadd_order
             [LIBERO_SETTING_CFG_MANUAL_ADDRESS_MAP&0x1]);
 
-    uprint(debug_uart, (const char*)"\n\rDDR FREQ: ");
+    uprint(debug_uart, (const char*)"\n\rDDR Per Pin: ");
     uprint(debug_uart, (const char*)dec_string);
-    uprint(debug_uart, (const char*)"Hz\n\r");
+    uprint(debug_uart, (const char*)"BPS\n\r");
 
     uprint(debug_uart,
                (const char*)"\n\r\n\rFPGA electrical settings\n\r");
     uprint(debug_uart, (const char*)"\n\rFPGA DQ_DRIVE: ");
     uprint(debug_uart, (const char*)ddr_drive_str[DDR_MODE][DDR_FPGA_DQ_DRIVE]);
 
-    uprint(debug_uart, (const char*)"\n\rFPGA DQS_DRIVE(mV): ");
+    uprint(debug_uart, (const char*)"\n\rFPGA DQS_DRIVE(Ohm): ");
     uprint(debug_uart, (const char*)ddr_drive_str[DDR_MODE]
                                                  [DDR_FPGA_DQS_DRIVE]);
 
-    uprint(debug_uart, (const char*)"\n\rFPGA ADD_CMD_DRIV(mV): ");
+    uprint(debug_uart, (const char*)"\n\rFPGA ADD_CMD_DRIV(Ohm): ");
     uprint(debug_uart, (const char*)ddr_drive_str[DDR_MODE]
                                                  [DDR_FPGA_ADD_CMD_DRIVE]);
 
-    uprint(debug_uart, (const char*)"\n\rFPGA ADD_CMD_DRIVE(mV): ");
+    uprint(debug_uart, (const char*)"\n\rFPGA ADD_CMD_DRIVE(Ohm): ");
     uprint(debug_uart, (const char*)ddr_drive_str[DDR_MODE]
                                                  [DDR_FPGA_CLOCK_OUT_DRIVE]);
 

@@ -1,12 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_ethernet_mac.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) 10/100/1000 Mbps Ethernet
- * MAC bare metal software driver public API.
+ * @brief mss_ethernet_mac header file
  *
  */
 
@@ -25,14 +24,14 @@
     and the operating system's driver model is outside the scope of the driver.
 
     Each GEM consists of two Ethernet MAC devices, the pMAC (pre-emptable MAC)
-    and the eMAC (express MAC) which share a single network port. The MMSL 
-    (Media Merge Sub Layer) is responsible for multiplexing the network port 
+    and the eMAC (express MAC) which share a single network port. The MMSL
+    (Media Merge Sub Layer) is responsible for multiplexing the network port
     between the two MACs. When IEEE 802.3br Frame pre-emption is enabled, the
-    transmission of packets via the pMAC can be interrupted by packets 
+    transmission of packets via the pMAC can be interrupted by packets
     transmitted via the eMAC. This can result in pMAC packets being split into
     two or more segments. __Note:__ For this feature to work, both link partners
     must support IEEE 802.3br Frame pre-emption.
-    
+
     The GEMs support GMII/MII and SGMII connections to an external Ethernet PHY
     device and the device driver can configure the devices at run time to select
     which interface is active.
@@ -40,7 +39,7 @@
     The driver implements a sub-driver interface for configuring and controlling
     the PHY and example drivers for a number of different PHYs are provided with
     the driver.
-    
+
     In addition to the standard Ethernet features, the GEMs support a number of
     advanced features including:
         - IEEE 1588 Time stamping support for PTPv1 and PTPv2.
@@ -57,7 +56,7 @@
         - TCP/IP Large Send Offload.
         - Advanced DMA system to provide high performance operation.
 
-    The driver provides basic support for some of these features but more 
+    The driver provides basic support for some of these features but more
     advanced use of the features will require application level support and/or
     modifications to the driver.
 
@@ -67,7 +66,7 @@
     platform. However unlike the previous MSS Ethernet MACs, the PolarFire SoC
     MSS supports up to 4 MACs. Each GEM device has 1 x pMAC and 1 x eMAC, and so
     most driver functions now have a parameter which identifies the specific GEM
-    device and MAC that the function should act upon. In addition, the pMACs 
+    device and MAC that the function should act upon. In addition, the pMACs
     support multiple queues and so some functions require a queue identifier as
     well.
 
@@ -125,7 +124,7 @@
         - __Receive operations__
         - __Reading link status and statistics__
         - __Feature support__
-        
+
     @subsection init Initialization and Configuration
     The MSS Ethernet MAC driver is initialized and configured by
     calling the _MSS_MAC_init()_ function. The _MSS_MAC_init()_ function takes
@@ -138,12 +137,12 @@
     configuration and then overwrite the defaults with the application specific
     settings such as PHY address, PHY type, interface type, allowed link speeds,
     link duplex mode and MAC address etc.
-    
+
     The following functions are used as part of the initialization and
     configuration process:
         - _MSS_MAC_cfg_struct_def_init()_
         - _MSS_MAC_init()_
-        
+
     @subsection tx_ops Transmit Operations
     The MSS Ethernet MAC driver transmit operations are interrupt driven. The
     application must register a transmit call-back function with the driver
@@ -160,12 +159,12 @@
     function once a packet is sent. The transmit call-back function is supplied
     by the application and can be used to, for example, release the memory used
     to store the packet that was sent.
-    
+
     The following functions are used as part of the transmit operations:
         - _MSS_MAC_send_pkt()_
         - _MSS_MAC_send_pkts()_
         - _MSS_MAC_set_tx_callback()_
-        
+
     @subsection rx_ops Receive Operations
     The MSS Ethernet MAC driver receive operations are interrupt driven. The
     application must first register a receive call-back function using the
@@ -178,11 +177,11 @@
     for packet processing. This buffer will not be reused by the MSS Ethernet
     MAC driver unless it is re-allocated to the driver by a call to
     _MSS_MAC_receive_pkt()_.
-    
+
     The following functions are used as part of the receive operations:
         - _MSS_MAC_receive_pkt()_
         - _MSS_MAC_set_rx_callback()_
-        
+
     @subsection stats Reading Status and Statistics
     The MSS Ethernet MAC driver provides the following functions to retrieve the
     current link status and statistics.
@@ -245,6 +244,8 @@
 #define MSS_ETHERNET_MAC_H_
 
 #include <stdbool.h>
+#include "mpfs_hal/mss_hal.h"
+
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_mac_types.h"
 
 #ifdef __cplusplus
@@ -281,7 +282,7 @@ extern "C" {
 #define MSS_MAC_LINK_DOWN                   (0U)
 #define MSS_MAC_LINK_UP                     (1U)
 #define MSS_MAC_HALF_DUPLEX                 (0U)
-#define MSS_MAC_FULL_DUPLEX                 (1U) 
+#define MSS_MAC_FULL_DUPLEX                 (1U)
 
 /***************************************************************************//**
  * Standard all 1s broadcast MAC address value
@@ -326,7 +327,7 @@ extern "C" {
 #endif
 
 /***************************************************************************//**
- * Calculate the RX Buffer size field value automatically by rounding 
+ * Calculate the RX Buffer size field value automatically by rounding
  * _MSS_MAC_MAX_PACKET_SIZE_ up to nearest 64 bytes and dividing by 64.
  */
 #define MSS_MAC_RX_BUF_VALUE ((MSS_MAC_MAX_PACKET_SIZE + 63U) / 64U)
@@ -334,9 +335,9 @@ extern "C" {
 /***************************************************************************//**
   The definition below is provided to specify that the _MSS_MAC_init()_ function
   should attempt to discover the address of the PHY connected to the MACs
-  management interface. It can be used with _mss_mac_cfg_t_ configuration 
+  management interface. It can be used with _mss_mac_cfg_t_ configuration
   parameter _phy_addr_.
-  
+
   __Note:__ To auto detect the PHY address, this drivers scans the valid MDIO
   addresses starting from 0 looking for valid data. This should not be done if
   more than 1 device is connected to the MDIO interface.
@@ -361,13 +362,13 @@ extern "C" {
 /***************************************************************************//**
  * Queue enable / disable.
  *
- *__Note:__ Queue 0 is always enabled 
+ *__Note:__ Queue 0 is always enabled
  */
 #define MSS_MAC_QUEUE_ENABLE                        MSS_MAC_ENABLE
 #define MSS_MAC_QUEUE_DISABLE                       MSS_MAC_DISABLE
 
 /***************************************************************************//**
- * FIFO error detection & correction enable / disable 
+ * FIFO error detection & correction enable / disable
  */
 #define MSS_MAC_ERR_DET_CORR_ENABLE                 MSS_MAC_ENABLE
 #define MSS_MAC_ERR_DET_CORR_DISABLE                MSS_MAC_DISABLE
@@ -375,7 +376,7 @@ extern "C" {
 /***************************************************************************//**
  * Jumbo frame support enable / disable
  *
- * __Note:__ This enables support for the feature but the reception of jumbo 
+ * __Note:__ This enables support for the feature but the reception of jumbo
  * frames still needs to be explicitly enabled via
  * _MSS_MAC_set_jumbo_frames_mode()_
  */
@@ -395,7 +396,7 @@ extern "C" {
 #define MSS_MAC_CRC_DISABLE                         MSS_MAC_DISABLE
 
 /***************************************************************************//**
- * Full duplex mode enable / disable 
+ * Full duplex mode enable / disable
  */
 #define MSS_MAC_FULLDUPLEX_ENABLE                   MSS_MAC_ENABLE
 #define MSS_MAC_FULLDUPLEX_DISABLE                  MSS_MAC_DISABLE
@@ -407,13 +408,13 @@ extern "C" {
 #define MSS_MAC_LOOPBACK_DISABLE                    MSS_MAC_DISABLE
 
 /***************************************************************************//**
- * Receiver flow control enable / disable 
+ * Receiver flow control enable / disable
  */
 #define MSS_MAC_RX_FLOW_CTRL_ENABLE                 MSS_MAC_ENABLE
 #define MSS_MAC_RX_FLOW_CTRL_DISABLE                MSS_MAC_DISABLE
 
 /***************************************************************************//**
- * Transmission flow control enable / disable 
+ * Transmission flow control enable / disable
  */
 #define MSS_MAC_TX_FLOW_CTRL_ENABLE                 MSS_MAC_ENABLE
 #define MSS_MAC_TX_FLOW_CTRL_DISABLE                MSS_MAC_DISABLE
@@ -526,12 +527,12 @@ extern uint8_t *g_mss_mac_ddr_ptr;
   auto-negotiate at all available speeds up to 1000Mbps. This default
   configuration can then be used as parameter to _MSS_MAC_init()_. Typically,
   the default configuration would be modified to suit the application before
-  being passed to _MSS_MAC_init()_. 
- 
+  being passed to _MSS_MAC_init()_.
+
   @param cfg
     This parameter is a pointer to an _mss_mac_cfg_t_ data structure that will
     be used as parameter to function _MSS_MAC_init()_.
- 
+
   @return
     This function does not return a value.
 
@@ -543,7 +544,7 @@ extern uint8_t *g_mss_mac_ddr_ptr;
   address and force a 100Mbps full duplex link.
   @code
     mss_mac_cfg_t mac_config;
-    
+
     MSS_MAC_cfg_struct_def_init(&mac_config);
 
     mac_config.interface_type = TBI;
@@ -561,11 +562,11 @@ extern uint8_t *g_mss_mac_ddr_ptr;
     mac_config.mac_addr[3] = 0x88u;
     mac_config.mac_addr[4] = 0x88u;
     mac_config.mac_addr[5] = 0x88u;
-    
+
     MSS_MAC_init(&g_mac0, &mac_config);
   @endcode
  */
-void 
+void
 MSS_MAC_cfg_struct_def_init
 (
     mss_mac_cfg_t * cfg
@@ -584,7 +585,7 @@ MSS_MAC_cfg_struct_def_init
   Ethernet MAC and Ethernet PHY as well as the PHY type and PHY MII management
   interface address. It also specifies the allowed link speed and duplex mode.
   It is at this point that the application chooses if the link  speed and duplex
-  mode will be auto-negotiated with the link partner or forced to a specific 
+  mode will be auto-negotiated with the link partner or forced to a specific
   speed and duplex mode.
 
   @param this_mac
@@ -612,7 +613,7 @@ MSS_MAC_cfg_struct_def_init
     mss_mac_cfg_t cfg;
 
     MSS_MAC_cfg_struct_def_init(&cfg);
-    
+
     cfg.mac_addr[0] = 0xC0u;
     cfg.mac_addr[1] = 0xB1u;
     cfg.mac_addr[2] = 0x3Cu;
@@ -623,9 +624,9 @@ MSS_MAC_cfg_struct_def_init
     MSS_MAC_init(&g_mac0, &cfg);
   @endcode
  */
-void 
+void
 MSS_MAC_init
-( 
+(
     mss_mac_instance_t *this_mac,
     mss_mac_cfg_t * cfg
 );
@@ -696,7 +697,7 @@ MSS_MAC_update_hw_address
   The _MSS_MAC_set_tx_callback()_ function registers the function that will be
   called by the Ethernet MAC driver when a packet has been sent on the specified
   queue.
- 
+
   @param this_mac
     This parameter is a pointer to one of the global _mss_mac_instance_t_
     structures which identifies the MAC that the function is to operate on.
@@ -711,7 +712,7 @@ MSS_MAC_update_hw_address
   @param tx_complete_handler
     This parameter is a pointer to the function that will be called when a
     packet is sent by the Ethernet MAC on the selected queue.
-  
+
   @return
     This function does not return a value.
 
@@ -726,7 +727,7 @@ void MSS_MAC_set_tx_callback
 /***************************************************************************//**
   The _MSS_MAC_set_rx_callback()_ function registers the function that will be
   called by the Ethernet MAC driver when a packet is received.
-  
+
   @param this_mac
     This parameter is a pointer to one of the global _mss_mac_instance_t_
     structures which identifies the MAC that the function is to operate on.
@@ -748,7 +749,7 @@ void MSS_MAC_set_tx_callback
   Example:
   The example below demonstrates the use of the _MSS_MAC_set_rx_callback()_
   function. The _init()_ function calls the _MSS_MAC_set_rx_callback()_ function
-  to register the _rx_callback()_ receive callback function with the Ethernet 
+  to register the _rx_callback()_ receive callback function with the Ethernet
   MAC driver. The _MSS_MAC_receive_pkt()_ function is then called to assign the
   rx_buffer to an Ethernet MAC descriptor for packet reception. The
   _rx_callback()_ function will be called by the Ethernet MAC driver once a
@@ -758,10 +759,10 @@ void MSS_MAC_set_tx_callback
   packet. The _rx_callback()_ function will be called again every time a packet
   is received to process the received packet and reallocate _rx_buffer_ for
   packet reception.
-  
+
   @code
     uint8_t rx_buffer[MSS_MAC_MAX_RX_BUF_SIZE];
-    
+
     void rx_callback
     (
         void *this_mac,
@@ -776,7 +777,7 @@ void MSS_MAC_set_tx_callback
         MSS_MAC_receive_pkt((mss_mac_instance_t *)this_mac, queue_no,
                             p_rx_packet, caller_info, MSS_MAC_INT_ENABLE);
     }
-    
+
     void init(void)
     {
         MSS_MAC_set_rx_callback(rx_callback);
@@ -801,7 +802,7 @@ void MSS_MAC_set_rx_callback
     structures which identifies the MAC that the function is to operate on.
     There are between 1 and 4 such structures identifying pMAC0, eMAC0, pMAC1
     and eMAC1.
-    
+
   @param speed_duplex_select
     This parameter identifies the speed and duplex options to advertise to the
     link partner if autonegotiation is selected as the speed mode.
@@ -809,7 +810,7 @@ void MSS_MAC_set_rx_callback
   @param speed_mode
     This parameter selects between autonegotiation and one of the six speed and
     duplex options. Valid values are:
-    
+
      - _MSS_MAC_SPEED_AN_
      - _MSS_MAC_10_HDX_
      - _MSS_MAC_10_FDX_
@@ -842,7 +843,7 @@ void MSS_MAC_change_speed
   the packet to be sent. The Ethernet MAC driver indicates that the packet is
   sent by calling the transmit completion handler registered by a call to
   _MSS_MAC_set_tx_callback()_.
-  
+
   This function waits for all active transmission(s) on all queues to complete
   before initiating a new transmission.
 
@@ -863,10 +864,10 @@ void MSS_MAC_change_speed
 
   @param tx_buffer
     This parameter is a pointer to the buffer containing the packet to send.
-    
+
   @param tx_length
     This parameter specifies the length in bytes of the packet to send.
-    
+
   @param p_user_data
     This parameter is a pointer to an optional application defined data
     structure. Its usage is left to the application. It is intended to help the
@@ -874,7 +875,7 @@ void MSS_MAC_change_speed
     driver does not make use of this pointer. The Ethernet MAC driver will pass
     back this pointer to the application as part of the call to the transmit
     completion handler registered by the application.
-    
+
   @return
     This function returns the following values:
 
@@ -896,33 +897,33 @@ void MSS_MAC_change_speed
   an application defined _packet_t_ data structure, builds a packet and calls
   _send_packet()_. The _send_packet()_ function extracts the pointer to the
   buffer containing the data to transmit and its length from the _tx_packet_
-  data structure and passes these to _MSS_MAC_send_pkt()_. It also passes the 
+  data structure and passes these to _MSS_MAC_send_pkt()_. It also passes the
   pointer to _tx_packet_ as the _p_user_data_ parameter. The Ethernet MAC driver
-  calls _tx_complete_callback()_ once the packet is sent. The 
+  calls _tx_complete_callback()_ once the packet is sent. The
   _tx_complete_callback()_ function uses _p_user_data_, which points to
   _tx_packet_, to release memory allocated by the application to store the
   transmit packet.
   @code
-    
+
     void tx_complete_handler(void *this_mac, uint32_t queue_no,
                              mss_mac_tx_desc_t *cdesc, void * caller_info);
-    
+
     void init(void)
     {
         MSS_MAC_set_tx_callback(tx_complete_handler);
     }
-    
+
     void tx_complete_handler(void *this_mac, uint32_t queue_no,
                              mss_mac_tx_desc_t *cdesc, void * caller_info)
     {
         release_packet_memory(caller_info);
     }
-    
+
     void send_packet(app_packet_t * packet)
     {
         MSS_MAC_send_pkt(void *this_mac, 0, packet->buffer, packet->length, packet);
     }
-    
+
   @endcode
  */
 int32_t
@@ -1062,15 +1063,15 @@ MSS_MAC_send_pkts_fast
   need to be called again pointing to the same buffer if more packets are to be
   received into this same buffer after the packet has been processed by the
   application.
-  
+
   The _MSS_MAC_receive_pkt()_ function is non-blocking. It will return
-  immediately and does not wait for a packet to be received. The application 
+  immediately and does not wait for a packet to be received. The application
   needs to implement a receive callback function to be notified that a packet
   has been received.
-  
+
   The _p_user_data_ parameter can be optionally used to point to a memory
   management data structure managed by the application.
- 
+
   @param this_mac
     This parameter is a pointer to one of the global _mss_mac_instance_t_
     structures which identifies the MAC that the function is to operate on.
@@ -1086,7 +1087,7 @@ MSS_MAC_send_pkts_fast
     This parameter is a pointer to a memory buffer. It points to the memory that
     will be assigned to one of the Ethernet MAC's receive descriptors. It must
     point to a buffer large enough to contain the largest possible packet.
-  
+
   @param p_user_data
     This parameter is intended to help the application manage memory. Its usage
     is left to the application. The Ethernet MAC driver does not make use of
@@ -1094,7 +1095,7 @@ MSS_MAC_send_pkts_fast
     application as part of the call to the application's receive callback
     function to help the application associate the received packet with the
     memory it allocated prior to the call to _MSS_MAC_receive_pkt()_.
- 
+
   @param enable
     This parameter controls the enabling of the Ethernet MAC interrupt. If set
     to _MSS_MAC_INT_DISABLE_, the interrupt is left disabled by this function.
@@ -1109,14 +1110,14 @@ MSS_MAC_send_pkts_fast
   @return
     This function returns 1 on successfully assigning the buffer to a receive
     descriptor. It returns 0 otherwise.
-  
+
   Example:
   The example below demonstrates the use of the _MSS_MAC_receive_pkt()_ function
   to handle packet reception using two receive buffers. The _init()_ function
   calls the _MSS_MAC_set_rx_callback()_ function to register the _rx_callback()_
   receive callback function with the Ethernet MAC driver. The
   _MSS_MAC_receive_pkt()_ function is then called twice to assign _rx_buffer_1_
-  and _rx_buffer_2_ to Ethernet MAC descriptors for packet reception. The 
+  and _rx_buffer_2_ to Ethernet MAC descriptors for packet reception. The
   _rx_callback_ function will be called by the Ethernet MAC driver once a packet
   has been received into one of the receive buffers. The _rx_callback()_
   function calls the _process_rx_packet()_ application function to process the
@@ -1124,7 +1125,7 @@ MSS_MAC_send_pkts_fast
   buffer to receive another packet. The _rx_callback()_ function will be called
   again every time a packet is received to process the received packet and
   reallocate _rx_buffer_ for packet reception.
-  
+
   __Note:__ The use of the _p_user_data parameter_ to handle the buffer
   reassignment to the Ethernet MAC as part of the _rx_callback()_ function. This
   is a simplistic use of _p_user_data_. It is more likely that _p_user_data_
@@ -1137,7 +1138,7 @@ MSS_MAC_send_pkts_fast
   @code
     uint8_t rx_buffer_1[MSS_MAC_MAX_RX_BUF_SIZE];
     uint8_t rx_buffer_2[MSS_MAC_MAX_RX_BUF_SIZE];
-    
+
     void rx_callback
     (
         void *this_mac,
@@ -1152,7 +1153,7 @@ MSS_MAC_send_pkts_fast
         MSS_MAC_receive_pkt((mss_mac_instance_t *)this_mac, queue_no,
                             p_rx_packet, caller_info, MSS_MAC_INT_ENABLE);
     }
-    
+
     void init(void)
     {
         MSS_MAC_set_rx_callback(&g_mac_0, 0, rx_callback);
@@ -1192,12 +1193,12 @@ MSS_MAC_receive_pkt_isr
   and duplex mode of the link is also returned via the two pointers passed as
   parameter if the link is up, if the link is not up then these values willl not
   be updated.
-  
+
   This function also adjusts the Ethernet MAC's internal configuration if some
   of the link characteristics have changed since the previous call to this
   function. Calling this function periodically is important for maintaining the
   link operation.
-  
+
   @param this_mac
     This parameter is a pointer to one of the global _mss_mac_instance_t_
     structures which identifies the MAC that the function is to operate on.
@@ -1207,16 +1208,16 @@ MSS_MAC_receive_pkt_isr
   @param speed
     This parameter is a pointer to variable of type _mss_mac_speed_t_ where the
     current link speed will be stored if the link is up. This variable is not
-    updated if the link is down. 
-    
+    updated if the link is down.
+
     This parameter can be set to zero if the caller does not need to find out
     the link speed.
-  
+
   @param fullduplex
     This parameter is a pointer to an unsigned character where the current link
     duplex mode will be stored if the link is up. This variable is not updated
     if the link is down.
-  
+
     This parameter can be set to zero if the caller does not need to find out
     the link duplex.
 
@@ -1241,8 +1242,8 @@ uint8_t MSS_MAC_get_link_status
 
 /***************************************************************************//**
   The _MSS_MAC_read_stat()_  function reads the transmit and receive statistics
-  of the selected Ethernet MAC. This function can be used to read one of 26 
-  receive statistics and 20 transmitter statistics as defined in the 
+  of the selected Ethernet MAC. This function can be used to read one of 26
+  receive statistics and 20 transmitter statistics as defined in the
   _mss_mac_stat_t_ enumeration.
 
   Reading a statistics value automatically zeroes the associated statistics
@@ -1266,13 +1267,13 @@ uint8_t MSS_MAC_get_link_status
   Example:
   @code
     uint64_t tx_pkts_cnt = 0;
-    
+
     ...
-    
+
     tx_pkts_cnt += MSS_MAC_read_stat(FRAMES_TXED_OK);
   @endcode
  */
-uint32_t 
+uint32_t
 MSS_MAC_read_stat
 (
     const mss_mac_instance_t *this_mac,
@@ -1283,7 +1284,7 @@ MSS_MAC_read_stat
   @brief
     The _MSS_MAC_clear_statistics()_ function clears all the statistics counter
     registers for the selected MAC.
-    
+
   @param this_mac
     This parameter is a pointer to one of the global _mss_mac_instance_t_
     structures which identifies the MAC that the function is to operate on.
@@ -1304,10 +1305,10 @@ void MSS_MAC_clear_statistics
   with the Ethernet PHY. This function is used by the Ethernet PHY drivers
   provided alongside the Ethernet MAC driver. You normally only need to use this
   function if writing your own Ethernet PHY driver.
-  
+
   This function always accesses the pMAC registers as the same PHY is shared by
   both eMAC and pMAC and only has an MDIO connection to the pMAC.
- 
+
   @param this_mac
     This parameter is a pointer to one of the global _mss_mac_instance_t_
     structures which identifies the MAC that the function is to operate on.
@@ -1319,13 +1320,13 @@ void MSS_MAC_clear_statistics
     management interface. This address is typically defined through Ethernet PHY
     hardware configuration signals. Please refer to the Ethernet PHY's datasheet
     for details of how this address is assigned.
- 
+
   @param regaddr
     This parameter is the address of the Ethernet PHY register to be read. This
     address is the offset of the register within the Ethernet PHY's register
     map.
 
-  @return 
+  @return
     This function returns the 16-bit value of the requested register.
 
   Example:
@@ -1352,10 +1353,10 @@ MSS_MAC_read_phy_reg
   with the Ethernet PHY. This function is used by the Ethernet PHY drivers
   provided alongside the Ethernet MAC driver. You normally only need to use this
   function if writing your own Ethernet PHY driver.
-  
+
   This function always accesses the pMAC registers as the same PHY is shared by
   both eMAC and pMAC and only has an MDIO connection to the pMAC.
- 
+
   @param this_mac
     This parameter is a pointer to one of the global _mss_mac_instance_t_
     structures which identifies the MAC that the function is to operate on.
@@ -1367,7 +1368,7 @@ MSS_MAC_read_phy_reg
     management interface. This address is typically defined through Ethernet PHY
     hardware configuration signals. Please refer to the Ethernet PHY's datasheet
     for details of how this address is assigned.
- 
+
   @param regaddr
     This parameter is the address of the Ethernet register that will be written
     to. This address is the offset of the register within the Ethernet PHY's
@@ -1391,7 +1392,7 @@ MSS_MAC_read_phy_reg
     }
   @endcode
  */
-void 
+void
 MSS_MAC_write_phy_reg
 (
     const mss_mac_instance_t *this_mac,
@@ -1402,7 +1403,7 @@ MSS_MAC_write_phy_reg
 
 /***************************************************************************//**
   The _MSS_MAC_phy_reset_ function provides a mechanism for resetting the PHY
-  device attached to a given MSS Ethernet MAC peripheral. Both soft and hard 
+  device attached to a given MSS Ethernet MAC peripheral. Both soft and hard
   reset signals can be controlled via this function.
 
   This function is used by the Ethernet PHY drivers provided alongside the
@@ -1416,7 +1417,7 @@ MSS_MAC_write_phy_reg
   driver into the application. If this is not desirable the function can be
   disabled by ensuring the _MSS_MAC_PHY_HW_RESET_ and _MSS_MAC_PHY_HW_SRESET_
   are undefined.
-  
+
   @param this_mac
     This parameter is a pointer to one of the global _mss_mac_instance_t_
     structures which identifies the MAC that the function is to operate on.
@@ -1584,7 +1585,7 @@ MSS_MAC_read_TSU
   The _MSS_MAC_set_TSU_rx_mode()_ function configures time stamp recording for
   received packets. This allows recording the TSU value for received packets in
   the DMA descriptor for different types of packet.
-  
+
   The receive packet callback function can retrieve the packet time stamp from
   the DMA descriptor for processing by the application.
 
@@ -1654,7 +1655,7 @@ MSS_MAC_set_TSU_rx_mode
   The _MSS_MAC_set_TSU_tx_mode()_ function configures time stamp recording for
   transmitted packets. This allows recording the TSU value for transmitted
   packets in the DMA descriptor for different types of packet.
-  
+
   The transmit packet callback function can retrieve the packet time stamp from
   the DMA descriptor for processing by the application.
 
@@ -1773,7 +1774,7 @@ MSS_MAC_get_TSU_tx_mode
 
   @param oss_mode
     This parameter selects which OSS mode to use. Valid values are:
-    
+
     - _MSS_MAC_OSS_MODE_DISABLED_
     - _MSS_MAC_OSS_MODE_REPLACE_
     - _MSS_MAC_OSS_MODE_ADJUST_
@@ -1904,7 +1905,7 @@ MSS_MAC_set_TSU_unicast_addr
 /***************************************************************************//**
   The _MSS_MAC_get_TSU_unicast_addr()_ function retrieves the IP addresses that
   the Ethernet MAC uses to identify unicast PTP frames.
-  
+
   The receive IPv4 address and transmit IPv4 address can be retrieved
   separately.
 
@@ -1956,7 +1957,7 @@ MSS_MAC_set_VLAN_only_mode
 );
 
 /***************************************************************************//**
-  The _MSS_MAC_get_VLAN_only_mode()_ function retrieves the current VLAN only 
+  The _MSS_MAC_get_VLAN_only_mode()_ function retrieves the current VLAN only
   mode status. When VALN only mode is enabled, non VLAN tagged packets will be
   discarded.
 
@@ -2036,7 +2037,7 @@ MSS_MAC_get_stacked_VLAN
     This parameter of type _uint64_t_, holds the hash bitmap for the MAC which
     is used to enable matching against blocks of addresses based on a 6 bit
     hashing function.
-    
+
     As a short cut, setting a value of 0 also disables hash address matching.
 
   @return
@@ -2185,7 +2186,7 @@ MSS_MAC_get_hash
   Example:
   This example sets the hash bit for the multicast MAC address 01:80:C2:00:00:0E
   and also configures the Ethernet MAC to only use hashing to match multicast
-  addresses. The _calc_gem_hash_index()_ function calculates the bit index in 
+  addresses. The _calc_gem_hash_index()_ function calculates the bit index in
   the 64 bit hash value associated with a given MAC address.
   @code
     uint32_t calc_gem_hash_index(uint8_t *p_address)
@@ -2257,7 +2258,7 @@ MSS_MAC_get_hash_mode
 );
 
 /***************************************************************************//**
-  The _MSS_MAC_set_type_filter()_ function is used to configure the specific 
+  The _MSS_MAC_set_type_filter()_ function is used to configure the specific
   type filters in the Ethernet MAC. These filters allow selective reception of
   packets based on matching the type ID/length field in the packet.
 
@@ -2275,8 +2276,8 @@ MSS_MAC_get_hash_mode
     This parameter of type _uint16_t_, is the value to match against. Typical
     values for matching purposes will be greater than 0x600 (1536) as the field
     is used for packet length in some circumstances and as the Ethertype value
-    in others. 
-    
+    in others.
+
     Setting _value_ to 0 indicates disabling the filter.
 
   @return
@@ -2324,8 +2325,8 @@ MSS_MAC_set_type_filter
 
   @return
     This function returns a value of type _uint16_t_, which is the current
-    filter match value. 
-    
+    filter match value.
+
     A value of 0 indicates the filter is disabled.
  */
 uint16_t
@@ -2350,7 +2351,7 @@ MSS_MAC_get_type_filter
   @param filter
     This parameter of type _uint16_t_, selects which filter to configure. The
     valid range is 2 to 4 to match the numbering in the GEM documentation.
-    
+
     __Note:__ Filter 1 is reserved for the MAC address of the device and cannot
     be modified using this function.
 
@@ -2408,7 +2409,7 @@ MSS_MAC_set_sa_filter
   @param filter
     This parameter of type _uint16_t_, selects which filter to retrieve from.
     The valid range is 2 to 4 to match the numbering in the GEM documentation.
-    
+
     __Note:__ Filter 1 is reserved for the MAC address of the device and cannot
     be read using this function.
 
@@ -2450,7 +2451,7 @@ MSS_MAC_get_sa_filter
   to specific queues based on combinations of UDP port number and/or
   differentiated service/traffic class values. Packets can also be flagged for
   dropping based on the same criteria.
-  
+
   Packets that do not match a Type 1 or Type 2 filter are automatically routed
   to queue 0.
 
@@ -2798,7 +2799,7 @@ MSS_MAC_get_type_2_filter
   The _MSS_MAC_set_type_2_ethertype()_ function is used to configure the Type 2
   Ethertype matching blocks in the Ethernet MAC. These are used by Type 2
   filters to allow selection of packet types.
-  
+
   For consistent operation, the application should always use the
   _MSS_MAC_set_type_2_compare()_ and _MSS_MAC_set_type_2_ethertype()_ functions
   to set the filter match values before calling _MSS_MAC_set_type_2_filter()_.
@@ -2984,7 +2985,7 @@ MSS_MAC_get_type_2_ethertype
   They also allow for matching against VLAN IDs. The data matching can be
   performed against 4 consecutive bytes or against up to 2 consecutive bytes
   with an associated bit mask.
-  
+
   For consistent operation, the application should always use the
   _MSS_MAC_set_type_2_compare()_ and _MSS_MAC_set_type_2_ethertype()_ functions
   to set the filter match values before calling _MSS_MAC_set_type_2_filter()_.
@@ -3173,7 +3174,7 @@ MSS_MAC_get_type_2_compare
   and disable preemption and to determine which MAC (eMAC or pMAC) is used for
   reception in non preemption modes. The function also allows control of the
   preemption verification functionality.
-  
+
   The function only operates on the pMAC.
 
   @param this_mac
@@ -3199,7 +3200,7 @@ MSS_MAC_set_mmsl_mode
 /***************************************************************************//**
   The _MSS_MAC_get_mmsl_mode()_ function is used to retrieve the current
   configuration of the MAC Merge Sublayer component of the GEM.
-  
+
   The function only operates on the pMAC.
 
   @param this_mac
@@ -3229,7 +3230,7 @@ MSS_MAC_get_mmsl_mode
   GEM. The progress and completion status of the operation can be monitored by
   calling the _MSS_MAC_get_mmsl_status()_ function until the operation
   completes.
-  
+
   The function only operates on the pMAC.
 
   @param this_mac
@@ -3249,8 +3250,8 @@ MSS_MAC_start_preemption_verify
 
 /***************************************************************************//**
   The _MSS_MAC_get_mmsl_status()_ function is used to monitor the current state
-  of the MAC Merge Sublayer component of the GEM. The function returns the raw 
-  32 bit value from the MMSL Status register and the definitions in 
+  of the MAC Merge Sublayer component of the GEM. The function returns the raw
+  32 bit value from the MMSL Status register and the definitions in
   _mss_ethernet_mac_regs.h_ can be used to examine the status.
 
   The function only operates on the pMAC.
@@ -3276,7 +3277,7 @@ MSS_MAC_get_mmsl_status
 /***************************************************************************//**
   The _MSS_MAC_get_mmsl_stats()_ function is used to retrieve the statistics
   counts from the MAC Merge Sublayer component of the GEM.
-  
+
   The function only operates on the pMAC.
 
   @param this_mac
@@ -3307,7 +3308,7 @@ MSS_MAC_get_mmsl_stats
 
   This setting should be used with caution and the correct values
   will depend on the overall bus speed amongst other things.
-  
+
   __Note:__ This value may need to be configured to allow sending Jumbo frames
   of more than approximately 3,880 bytes depending on system configuration.
 
@@ -3334,10 +3335,10 @@ MSS_MAC_set_tx_cutthru
   The _MSS_MAC_set_rx_cutthru()_ function is used to set the receive cutthru
   level for the GEM DMA engine. The useful ranges are different for the eMAC
   and pMAC.
-  
+
   This setting should be used with caution and the correct values will depend on
   the overall bus speed amongst other things.
-  
+
   __Note:__ This value may need to be configured to allow receiving Jumbo frames
   of more than approximately 3,880 bytes depending on system configuration.
 
@@ -3521,8 +3522,8 @@ MSS_MAC_get_jumbo_frame_length
 
 /***************************************************************************//**
   The _MSS_MAC_set_pause_frame_copy_to_mem()_ function is used to control the
-  writing of pause frames into memory. 
-  
+  writing of pause frames into memory.
+
   The default operation is not to copy pause frames into memory.
 
   @param this_mac

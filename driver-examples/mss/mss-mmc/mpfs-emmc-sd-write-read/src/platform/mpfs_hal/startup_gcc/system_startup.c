@@ -1,12 +1,13 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file system_startup.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief first C code called on startup. Will call user code created outside
- * the HAL.
+ * @brief system_startup source file
+ *
+ * First C code called on startup. Will call user code created outside
  *
  */
 
@@ -159,7 +160,7 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
         stack_top = (ptrdiff_t)((uint8_t*)&__stack_top_h0$);
         hls = (HLS_DATA*)(stack_top - HLS_DEBUG_AREA_SIZE);
         hls->in_wfi_indicator = HLS_MAIN_HART_FIN_INIT;
-        
+
         /* Turn off peripheral RAM that is not being used */
         mss_turn_off_unused_ram_clks();
         /*
@@ -370,31 +371,31 @@ __attribute__((weak)) int main_other_hart(HLS_DATA* hls)
     {
 
     case 0U:
-        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h0));
+        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h0) : "memory");
         e51();
         break;
 
     case 1U:
         (void)init_pmp((uint8_t)1);
-        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h1));
+        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h1) : "memory");
         u54_1();
         break;
 
     case 2U:
         (void)init_pmp((uint8_t)2);
-        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h2));
+        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h2) : "memory");
         u54_2();
         break;
 
     case 3U:
         (void)init_pmp((uint8_t)3);
-        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h3));
+        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h3) : "memory");
         u54_3();
         break;
 
     case 4U:
         (void)init_pmp((uint8_t)4);
-        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h4));
+        __asm volatile ("add sp, x0, %1" : "=r"(dummy) : "r"(app_stack_top_h4) : "memory");
         u54_4();
         break;
 

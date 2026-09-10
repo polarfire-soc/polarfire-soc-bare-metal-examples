@@ -1,12 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_ethernet_mac.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) 10/100/1000 Mbps Ethernet
- * MAC bare metal software driver implementation.
+ * @brief mss_ethernet_mac source file
  *
  */
 
@@ -17,7 +16,7 @@
 #include "mpfs_hal/mss_hal.h"
 
 #if defined(MSS_MAC_PHY_HW_RESET) || defined(MSS_MAC_PHY_HW_SRESET)
-#include "drivers/mss_gpio/mss_gpio.h"
+#include "drivers/mss/mss_gpio/mss_gpio.h"
 #endif
 
 #include "drivers/mss/mss_ethernet_mac/mss_ethernet_registers.h"
@@ -370,7 +369,7 @@ MSS_MAC_init(mss_mac_instance_t *this_mac, mss_mac_cfg_t *cfg)
             this_mac->queue[queue_no].tx_restart = 0U;
             this_mac->queue[queue_no].tx_reenable = 0U;
         }
-#if 0        
+#if 0
         /* Initialize PHY interface */
         if(MSS_MAC_AUTO_DETECT_PHY_ADDRESS == cfg->phy_addr)
         {
@@ -762,7 +761,7 @@ MSS_MAC_get_link_status(const mss_mac_instance_t *this_mac,
 
 #if (MSS_MAC_PHY_INTERFACE == SGMII)
 /*----------------------------------------------------------------------
- * Make sure SGMII/1000baseX interface link is up. if interface is 
+ * Make sure SGMII/1000baseX interface link is up. if interface is
  * SGMII/1000baseX
  */
 #define MDIO_PHY_ADDR MSS_MAC_INTERFACE_MDIO_ADDR
@@ -771,11 +770,11 @@ MSS_MAC_get_link_status(const mss_mac_instance_t *this_mac,
         {
             uint16_t phy_reg;
             uint16_t sgmii_link_up;
-            
+
             /* Find out if link is up on SGMII link between MAC and external PHY. */
             phy_reg = MSS_MAC_read_phy_reg(MDIO_PHY_ADDR, MII_BMSR);
             sgmii_link_up = phy_reg & BMSR_LSTATUS;
-            
+
             if(0U == sgmii_link_up)
             {
                 /* Initiate auto-negotiation on the SGMII link. */
@@ -5519,7 +5518,7 @@ msgmii_autonegotiate(const mss_mac_instance_t *this_mac)
 static void coresgmii_init(void)
 {
     uint16_t phy_reg;
-    
+
     /* Reset C-SGMII. */
     MSS_MAC_write_phy_reg(CORE_SGMII_PHY_ADDR, 0x00U, 0x9000U);
     /* Register 0x04 of C-SGMII must be always be set to 0x0001. */
@@ -5534,23 +5533,23 @@ static void coresgmii_init(void)
 
 /*******************************************************************************
  *
- */ 
+ */
 static void coresgmii_autonegotiate(void)
 {
     uint16_t phy_reg;
     uint16_t autoneg_complete;
     volatile uint32_t sgmii_aneg_timeout = 1000000U;
-    
+
     uint8_t link_fullduplex;
     mss_mac_speed_t link_speed;
     uint8_t copper_link_up;
-     
+
     copper_link_up = MSS_MAC_phy_get_link_status(&link_speed, &link_fullduplex);
-    
+
     if(MSS_MAC_LINK_UP == copper_link_up)
     {
         SYSREG->MAC_CR = (SYSREG->MAC_CR & ~MAC_CONFIG_SPEED_MASK) | link_speed;
-        
+
         /* Configure duplex mode */
         if(MSS_MAC_HALF_DUPLEX == link_fullduplex)
         {
@@ -5561,14 +5560,14 @@ static void coresgmii_autonegotiate(void)
         {
             /* full duplex */
             MAC->CFG2 |= CFG2_FDX_MASK;
-        }  
+        }
         /* Initiate auto-negotiation on the SGMII link. */
         phy_reg = MSS_MAC_read_phy_reg(CORE_SGMII_PHY_ADDR, 0x00U);
         phy_reg |= 0x1000U;
         MSS_MAC_write_phy_reg(CORE_SGMII_PHY_ADDR, 0x00U, phy_reg);
         phy_reg |= 0x0200U;
         MSS_MAC_write_phy_reg(CORE_SGMII_PHY_ADDR, 0x00U, phy_reg);
-    
+
         /* Wait for SGMII auto-negotiation to complete. */
         do {
             phy_reg = MSS_MAC_read_phy_reg(CORE_SGMII_PHY_ADDR, MII_BMSR);

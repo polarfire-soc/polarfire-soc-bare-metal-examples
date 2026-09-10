@@ -1,11 +1,13 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_util.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Utility functions
+ * @brief mss_util source file
+ *
+ * There are utility functions
  *
  */
 
@@ -126,12 +128,12 @@ uint64_t readmcycle(void)
     return (read_csr(mcycle));
 }
 
-void sleep_ms(uint64_t msecs)
+void sleep_us(uint64_t usecs)
 {
     uint64_t starttime = readmtime();
     volatile uint64_t endtime = 0U;
 
-    while(endtime < (starttime+msecs)) {
+    while(endtime < (starttime+usecs)) {
         endtime = readmtime();
     }
 }

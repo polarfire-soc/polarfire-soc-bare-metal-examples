@@ -1,11 +1,12 @@
-/*******************************************************************************
- * (c) Copyright 2025 Microchip FPGA Embedded Systems Solutions.
- * 
+/**
+ * Copyright 2025 Microchip FPGA Embedded Systems Solutions.
+ *
  * SPDX-License-Identifier: MIT
  *
  * @file core_axi4protoconv.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief CoreAXI4ProtoConv IP bare metal driver implementation.
+ * @brief CoreAXI4ProtoConv source file
+ *
  * See file "core_axi4protoconv.h" for description of the functions implemented
  * in this file.
  *
@@ -24,12 +25,12 @@ extern "C" {
  */
 
 #define NULL_INSTANCE           (( PCDMA_instance_t* ) 0)
-#define NULL_VAL                ( 0)
+#define NULL_VAL                0U
 #define PCDMA_ADDR1_SHIFT       ( (uint8_t) (32) )
 #define CLEAR_ALL_S2MM_IRQ      (uint32_t)0x1DU
 #define CLEAR_ALL_MM2S_IRQ      (uint32_t)0x5U
-#define DISABLE                 0u
-#define ENABLE                  1u
+#define DISABLE                 0U
+#define ENABLE                  1U
 
 
 /*******************************************************************************
@@ -44,9 +45,9 @@ PCDMA_init
 )
 {
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
-    HAL_ASSERT( base_addr != 0u );
+    HAL_ASSERT( base_addr != NULL_VAL );
 
-    if( this_pcdma != NULL_INSTANCE )
+    if( this_pcdma != NULL_INSTANCE && base_addr != NULL_VAL )
     {
         /* Set base address of CoreAXI4ProtoConv hardware. */
         this_pcdma->base_address = base_addr;
@@ -83,12 +84,13 @@ void PCDMA_S2MM_configure
 {
 
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
-    HAL_ASSERT( xfr_size != 0u );
+    HAL_ASSERT( xfr_size != NULL_VAL );
     HAL_ASSERT( cmd_id <= S2MM_CMD_STS_FIFO_DEPTH_MAX );
     HAL_ASSERT( burst_type <= PCDMA_BURST_TYPE_INCR );
 
-    if((xfr_size != 0u) && (cmd_id <= S2MM_CMD_STS_FIFO_DEPTH_MAX) && \
-                                      (burst_type <= PCDMA_BURST_TYPE_INCR) )
+    if( (this_pcdma != NULL_INSTANCE) && (xfr_size != NULL_VAL) &&
+                                    (cmd_id <= S2MM_CMD_STS_FIFO_DEPTH_MAX) && \
+                                    (burst_type <= PCDMA_BURST_TYPE_INCR) )
     {
         /* Configure transfer size for the total number of bytes to be
          * transmitted.
@@ -158,11 +160,13 @@ uint32_t PCDMA_S2MM_get_status
 
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
 
-    if( this_pcdma != NULL_INSTANCE )
+    if( this_pcdma == NULL_INSTANCE )
     {
-        status = HAL_get_32bit_reg( this_pcdma->base_address, \
-                                         COREAXI4PROTOCONV_REGS_S2MM_STS);
+        return PCDMA_INVALID;
     }
+
+    status = HAL_get_32bit_reg( this_pcdma->base_address, \
+                                    COREAXI4PROTOCONV_REGS_S2MM_STS);
     return (status);
 }
 
@@ -180,12 +184,16 @@ void PCDMA_S2MM_enable_irq
 
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
 
-    reg_value = HAL_get_32bit_reg( this_pcdma->base_address, \
-                                        COREAXI4PROTOCONV_REGS_S2MM_INTRENB);
-    reg_value |= irq_type;
+    if ( this_pcdma != NULL_INSTANCE )
+    {
 
-    HAL_set_32bit_reg( this_pcdma->base_address, \
-                            COREAXI4PROTOCONV_REGS_S2MM_INTRENB, reg_value);
+        reg_value = HAL_get_32bit_reg( this_pcdma->base_address, \
+                                        COREAXI4PROTOCONV_REGS_S2MM_INTRENB);
+        reg_value |= irq_type;
+
+        HAL_set_32bit_reg( this_pcdma->base_address, \
+                                COREAXI4PROTOCONV_REGS_S2MM_INTRENB, reg_value);
+    }
 }
 
 /*******************************************************************************
@@ -202,12 +210,15 @@ void PCDMA_S2MM_disable_irq
 
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
 
-    reg_value = HAL_get_32bit_reg( this_pcdma->base_address, \
+    if ( this_pcdma != NULL_INSTANCE )
+    {
+        reg_value = HAL_get_32bit_reg( this_pcdma->base_address, \
                                         COREAXI4PROTOCONV_REGS_S2MM_INTRENB);
-    reg_value &= ~irq_type;
+        reg_value &= ~irq_type;
 
-    HAL_set_32bit_reg( this_pcdma->base_address, \
-                            COREAXI4PROTOCONV_REGS_S2MM_INTRENB, reg_value);
+        HAL_set_32bit_reg( this_pcdma->base_address, \
+                                COREAXI4PROTOCONV_REGS_S2MM_INTRENB, reg_value);
+    }
 }
 
 /*******************************************************************************
@@ -219,6 +230,13 @@ uint32_t PCDMA_S2MM_get_int_src
    PCDMA_instance_t  * this_pcdma
 )
 {
+    HAL_ASSERT( this_pcdma != NULL_INSTANCE );
+
+    if ( this_pcdma == NULL_INSTANCE )
+    {
+        return PCDMA_INVALID;
+    }
+
     return (HAL_get_32bit_reg( this_pcdma->base_address, \
                                     COREAXI4PROTOCONV_REGS_S2MM_INTRSRC));
 }
@@ -236,8 +254,11 @@ void PCDMA_S2MM_clr_int_src
 
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
 
-    HAL_set_32bit_reg( this_pcdma->base_address, \
-                            COREAXI4PROTOCONV_REGS_S2MM_INTRSRC, irq_type);
+    if ( this_pcdma != NULL_INSTANCE )
+    {
+        HAL_set_32bit_reg( this_pcdma->base_address, \
+                                COREAXI4PROTOCONV_REGS_S2MM_INTRSRC, irq_type);
+    }
 }
 
 #ifdef IP_Config_S2MM_UNDEFINED_BURST_LENGTH_ENABLE
@@ -251,11 +272,52 @@ uint32_t PCDMA_S2MM_get_len
    PCDMA_instance_t  * this_pcdma
 )
 {
+    HAL_ASSERT( this_pcdma != NULL_INSTANCE );
+
+    if ( this_pcdma == NULL_INSTANCE )
+    {
+        return PCDMA_INVALID;
+    }
+
     return (HAL_get_32bit_reg( this_pcdma->base_address, \
                                     COREAXI4PROTOCONV_REGS_S2MM_LEN));
 }
 
 #endif
+
+#ifdef IP_Config_S2MM_TUSER_DESCRIPTOR_ENABLE
+/*******************************************************************************
+ * PCDMA_S2MM_get_tuser_sideband()
+ * See "core_axi4protoconv.h" file for details of how to use this function.
+ */
+uint32_t PCDMA_S2MM_get_tuser_sideband
+(
+   PCDMA_instance_t  * this_pcdma
+)
+{
+    uint32_t tuser_value;
+    uint32_t mask;
+
+    HAL_ASSERT( this_pcdma != NULL_INSTANCE );
+    HAL_ASSERT( S2MM_TUSER_DESCR_WIDTH > NULL_VAL );
+    HAL_ASSERT( S2MM_TUSER_DESCR_WIDTH <= MAX_TUSER_WIDTH );
+
+    if ( (this_pcdma == NULL_INSTANCE) || (S2MM_TUSER_DESCR_WIDTH == NULL_VAL) \
+                                    || (S2MM_TUSER_DESCR_WIDTH > MAX_TUSER_WIDTH) )
+    {
+        return PCDMA_INVALID;
+    }
+
+    tuser_value = HAL_get_32bit_reg( this_pcdma->base_address,
+                                    COREAXI4PROTOCONV_REGS_S2MM_TUSER_SIDEBAND);
+
+    mask = (S2MM_TUSER_DESCR_WIDTH == MAX_TUSER_WIDTH) ?
+                                    0xFFFFFFFFU : ((1u << S2MM_TUSER_DESCR_WIDTH) - 1u);
+
+    return (tuser_value & mask);
+}
+#endif
+
 #endif
 
 #ifndef MM2S_ENABLE
@@ -274,12 +336,13 @@ void PCDMA_MM2S_configure
 {
 
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
-    HAL_ASSERT( xfr_size != 0u );
+    HAL_ASSERT( xfr_size != NULL_VAL );
     HAL_ASSERT( cmd_id <= MM2S_CMD_STS_FIFO_DEPTH_MAX );
     HAL_ASSERT( burst_type <= PCDMA_BURST_TYPE_INCR );
 
-    if((xfr_size != 0) && (cmd_id <= MM2S_CMD_STS_FIFO_DEPTH_MAX) && \
-                                     (burst_type <= PCDMA_BURST_TYPE_INCR) )
+    if( (this_pcdma != NULL_INSTANCE) && (xfr_size != NULL_VAL) &&
+                                    (cmd_id <= MM2S_CMD_STS_FIFO_DEPTH_MAX) && \
+                                    (burst_type <= PCDMA_BURST_TYPE_INCR) )
     {
         /* Configure transfer size for the total number of bytes to be
          * transmitted.
@@ -347,11 +410,14 @@ uint32_t PCDMA_MM2S_get_status
 
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
 
-    if( this_pcdma != NULL_INSTANCE )
+    if( this_pcdma == NULL_INSTANCE )
     {
-        status = HAL_get_32bit_reg( this_pcdma->base_address, \
-                                         COREAXI4PROTOCONV_REGS_MM2S_STS);
+        return PCDMA_INVALID;
     }
+
+    status = HAL_get_32bit_reg( this_pcdma->base_address, \
+                                    COREAXI4PROTOCONV_REGS_MM2S_STS);
+
     return status;
 }
 
@@ -369,12 +435,15 @@ void PCDMA_MM2S_enable_irq
 
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
 
-    reg_value = HAL_get_32bit_reg( this_pcdma->base_address, \
-                                        COREAXI4PROTOCONV_REGS_MM2S_INTRENB);
-    reg_value |= irq_type;
+    if ( this_pcdma != NULL_INSTANCE )
+    {
+        reg_value = HAL_get_32bit_reg( this_pcdma->base_address, \
+                                            COREAXI4PROTOCONV_REGS_MM2S_INTRENB);
+        reg_value |= irq_type;
 
-    HAL_set_32bit_reg( this_pcdma->base_address, \
-                            COREAXI4PROTOCONV_REGS_MM2S_INTRENB, reg_value);
+        HAL_set_32bit_reg( this_pcdma->base_address, \
+                                COREAXI4PROTOCONV_REGS_MM2S_INTRENB, reg_value);
+    }
 }
 
 /*******************************************************************************
@@ -391,12 +460,15 @@ void PCDMA_MM2S_disable_irq
 
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
 
-    reg_value = HAL_get_32bit_reg( this_pcdma->base_address, \
+    if ( this_pcdma != NULL_INSTANCE )
+    {
+        reg_value = HAL_get_32bit_reg( this_pcdma->base_address, \
                                         COREAXI4PROTOCONV_REGS_MM2S_INTRENB);
-    reg_value &= ~irq_type;
+        reg_value &= ~irq_type;
 
-    HAL_set_32bit_reg( this_pcdma->base_address, \
-                            COREAXI4PROTOCONV_REGS_MM2S_INTRENB, reg_value);
+        HAL_set_32bit_reg( this_pcdma->base_address, \
+                                COREAXI4PROTOCONV_REGS_MM2S_INTRENB, reg_value);
+    }
 }
 
 /*******************************************************************************
@@ -408,6 +480,13 @@ uint32_t PCDMA_MM2S_get_int_src
    PCDMA_instance_t  * this_pcdma
 )
 {
+    HAL_ASSERT( this_pcdma != NULL_INSTANCE );
+
+    if ( this_pcdma == NULL_INSTANCE )
+    {
+        return PCDMA_INVALID;
+    }
+
     return (HAL_get_32bit_reg( this_pcdma->base_address, \
                                     COREAXI4PROTOCONV_REGS_MM2S_INTRSRC));
 }
@@ -424,9 +503,42 @@ void PCDMA_MM2S_clr_int_src
 {
     HAL_ASSERT( this_pcdma != NULL_INSTANCE );
 
-    HAL_set_32bit_reg( this_pcdma->base_address, \
-                            COREAXI4PROTOCONV_REGS_MM2S_INTRSRC, irq_type);
+    if ( this_pcdma != NULL_INSTANCE )
+    {
+        HAL_set_32bit_reg( this_pcdma->base_address, \
+                                COREAXI4PROTOCONV_REGS_MM2S_INTRSRC, irq_type);
+    }
 }
+
+#ifdef IP_Config_MM2S_TUSER_DESCRIPTOR_ENABLE
+/*******************************************************************************
+ * PCDMA_MM2S_set_tuser_sideband()
+ * See "core_axi4protoconv.h" file for details of how to use this function.
+ */
+void PCDMA_MM2S_set_tuser_sideband
+(
+   PCDMA_instance_t  * this_pcdma,
+   uint32_t tuser_value
+)
+{
+    uint32_t mask;
+
+    HAL_ASSERT( this_pcdma != NULL_INSTANCE );
+    HAL_ASSERT( MM2S_TUSER_DESCR_WIDTH > NULL_VAL );
+    HAL_ASSERT( MM2S_TUSER_DESCR_WIDTH <= MAX_TUSER_WIDTH );
+
+    if ( (this_pcdma != NULL_INSTANCE) && (MM2S_TUSER_DESCR_WIDTH > NULL_VAL) \
+                                       && (MM2S_TUSER_DESCR_WIDTH <= MAX_TUSER_WIDTH) )
+    {
+        mask = (MM2S_TUSER_DESCR_WIDTH == MAX_TUSER_WIDTH) ?
+                                0xFFFFFFFFU : ((1u << MM2S_TUSER_DESCR_WIDTH) - 1u);
+
+        HAL_set_32bit_reg( this_pcdma->base_address,
+                                COREAXI4PROTOCONV_REGS_MM2S_TUSER_SIDEBAND,
+                                (tuser_value & mask));
+    }
+}
+#endif
 
 #endif
 
