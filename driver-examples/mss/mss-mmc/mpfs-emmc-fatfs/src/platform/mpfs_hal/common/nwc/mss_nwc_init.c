@@ -1,16 +1,16 @@
-/*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_nwc_init.c
- * @author Microchip-FPGA Embedded Systems Solutions
- * @brief north west corner, calls required startup code
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief mss_nwc initiation source file
+ *
+ * north west corner (NWC) initiation
+ *
+ * See file "mss_nwc_init.h" for description of the functions implemented
+ * in this file.
  *
  */
 
@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include "mpfs_hal/mss_hal.h"
 #include "mss_nwc_init.h"
-#include "simulation.h"
 
 #ifdef DEBUG_DDR_INIT
 #include "drivers/mss/mss_mmuart/mss_uart.h"
@@ -300,13 +299,11 @@ uint8_t mss_nwc_init(void)
      * The SGMII set-upset configures the external clock reference so this must
      * be called before configuring the MSS PLL
      */
-    SIM_FEEDBACK0(2);
     sgmii_setup();
 
     /*
      * Setup the MSS PLL
      */
-    SIM_FEEDBACK0(3);
     mss_pll_config();
 
     return error;
@@ -336,7 +333,7 @@ uint8_t mss_nwc_init_ddr(void)
 
     uint32_t  ddr_status;
     ddr_status = ddr_state_machine(DDR_SS__INIT);
-    next_time = 0U;
+    next_time = rdcycle() + DELAY_CYCLES_100MS;
     while((ddr_status & DDR_SETUP_DONE) != DDR_SETUP_DONE)
     {
         ddr_status = ddr_state_machine(DDR_SS_MONITOR);
@@ -358,7 +355,7 @@ uint8_t mss_nwc_init_ddr(void)
  */
 static uint64_t report_status_functions(MSS_REPORT_STATUS report_status, uint64_t next_time)
 {
-    if (next_time >= rdcycle())
+    if (next_time <= rdcycle())
     {
         switch(report_status)
         {

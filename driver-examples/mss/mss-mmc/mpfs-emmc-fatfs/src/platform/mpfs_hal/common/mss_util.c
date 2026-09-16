@@ -1,18 +1,16 @@
-/*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
+ * @file mss_util.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief mss_util source file
+ *
+ * There are utility functions
  *
  */
 
-/***************************************************************************
- * @file mss_util.c
- * @author Microchip-FPGA Embedded Systems Solutions
- * @brief Utility functions
- *
- */
 #include <stddef.h>
 #include <stdbool.h>
 #include "mpfs_hal/mss_hal.h"
@@ -130,12 +128,12 @@ uint64_t readmcycle(void)
     return (read_csr(mcycle));
 }
 
-void sleep_ms(uint64_t msecs)
+void sleep_us(uint64_t usecs)
 {
     uint64_t starttime = readmtime();
     volatile uint64_t endtime = 0U;
 
-    while(endtime < (starttime+msecs)) {
+    while(endtime < (starttime+usecs)) {
         endtime = readmtime();
     }
 }
@@ -225,4 +223,3 @@ void enable_branch_prediction(void)
 #ifdef __cplusplus
 }
 #endif
-
