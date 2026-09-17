@@ -58,7 +58,7 @@ DSTATUS mmc_di_if_init(void)
                 ;
         }
 
-        switch_external_mux(EMMC_MSSIO_CONFIGURATION);
+        switch_demux_using_fabric_ip(EMMC_MSSIO_CONFIGURATION);
 
         /* eMMC configuration */
         g_mmc.clk_rate = MSS_MMC_CLOCK_50MHZ;
