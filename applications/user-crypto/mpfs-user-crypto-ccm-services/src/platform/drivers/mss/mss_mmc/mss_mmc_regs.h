@@ -1,12 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_mmc_regs.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Register definitions of the PolarFire SoC Microprocessor Subsystem
- * (MSS) eMMC SD.
+ * @brief mss_mmc register header file
  *
  */
 
@@ -168,8 +167,8 @@ typedef struct {
 #define SRS3_RESP_LENGTH_48         (0x2u << 16)
 /* response type - response length 48 and check Busy after response */
 #define SRS3_RESP_LENGTH_48B        (0x3u << 16)
-/* RID - Response Interrupt Disable 
-   When set to 1, the Command Complete Interrupt (SRS12.CC) 
+/* RID - Response Interrupt Disable
+   When set to 1, the Command Complete Interrupt (SRS12.CC)
    will be disabled */
 #define SRS3_RESP_INTER_DISABLE     0x00000100u
 /* RECE - Response Error Check Enable.
@@ -303,6 +302,10 @@ typedef struct {
 #define SRS11_INT_CLOCK_STABLE              0x00000002u
 /* internal clock enable */
 #define SRS11_INT_CLOCK_ENABLE              0x00000001u
+/* Software Reset for DAT and CMD Line */
+#define SRS11_RESET_DATA_CMD_LINE_MASK      0x06000000u
+/* Software Reset for DAT and CMD line value clear */
+#define SRS11_RESET_DATA_CMD_LINE_CLEAR     0x0u
 
 /*-----------------------------------------------------------------------------
     @name Interrupt status register (SRS12) - masks
@@ -316,7 +319,7 @@ typedef struct {
 #define SRS12_ADMA_ERROR            0x02000000u
 /* Auto CMD (CMD12 or CMD23) error */
 #define SRS12_AUTO_CMD_ERROR        0x01000000u
-/* Current limit error host controller is not supplying power to SD card 
+/* Current limit error host controller is not supplying power to SD card
    due some failure. */
 #define SRS12_CURRENT_LIMIT_ERROR   0x00800000u
 /* Data end bit error */
@@ -496,7 +499,7 @@ typedef struct {
 #define SRS15_ASYNCHRONOUS_INT_EN       (0x1u << 30)
 /* 64-bit Addressing Specifies the addressing mode for DMA ending. */
 #define SRS15_64_BIT_ADDRESSING         0x20000000u
-/* Host Version 4.00 Enable 
+/* Host Version 4.00 Enable
 * Selects backward (SD Host 3.00 Version) compatibility mode
 * or SD Host 4.00 Version mode
 */
@@ -663,18 +666,33 @@ static inline uint32_t SRS17_GET_RETUNING_TIMER_COUNT(const uint32_t val)
  ------------------------------------------------------------------------------
 */
 /* PHY register addresses using */
-#define UIS_ADDR_HIGH_SPEED                 0x00u
-#define UIS_ADDR_DEFAULT_SPEED              0x01u
-#define UIS_ADDR_UHSI_SDR12                 0x02u
-#define UIS_ADDR_UHSI_SDR25                 0x03u
-#define UIS_ADDR_UHSI_SDR50                 0x04u
-#define UIS_ADDR_UHSI_DDR50                 0x05u
-#define UIS_ADDR_MMC_LEGACY                 0x06u
-#define UIS_ADDR_MMC_SDR                    0x07u
-#define UIS_ADDR_MMC_DDR                    0x08u
-#define UIS_ADDR_SDCLK                      0x0Bu
-#define UIS_ADDR_HS_SDCLK                   0x0Cu
-#define UIS_ADDR_DAT_STROBE                 0x0Du
+#define UIS_ADDR_HIGH_SPEED                 0x00u /* PHY reg address : 0x00 */
+#define UIS_ADDR_DEFAULT_SPEED              0x01u /* PHY reg address : 0x04 */
+#define UIS_ADDR_UHSI_SDR12                 0x02u /* PHY reg address : 0x08 */
+#define UIS_ADDR_UHSI_SDR25                 0x03u /* PHY reg address : 0x0C */
+#define UIS_ADDR_UHSI_SDR50                 0x04u /* PHY reg address : 0x10 */
+#define UIS_ADDR_UHSI_DDR50                 0x05u /* PHY reg address : 0x14 */
+#define UIS_ADDR_MMC_LEGACY                 0x06u /* PHY reg address : 0x18 */
+#define UIS_ADDR_MMC_SDR                    0x07u /* PHY reg address : 0x1C */
+#define UIS_ADDR_MMC_DDR                    0x08u /* PHY reg address : 0x20 */
+#define UIS_ADDR_DLL_LOC_VAL                0x09u /* PHY reg address : 0x24 */
+
+/* PDIHS (PHY_DELAY_INPUT_HIGH_SPEED) */
+#define UIS_ADDR_PDIHS                      0x0Au /* PHY reg address : 0x00 */
+#define UIS_ADDR_SDCLK                      0x0Bu /* PHY reg address : 0x28 */
+#define UIS_ADDR_HS_SDCLK                   0x0Cu /* PHY reg address : 0x2C */
+#define UIS_ADDR_DAT_STROBE                 0x0Du /* PHY reg address : 0x30 */
+
+#define UIS_ADDR_IFM_MODE                   0x0Eu /* PHY reg address : 0x34 */
+#define UIS_ADDR_DLL_RST                    0x0Fu /* PHY reg address : 0x38 */
+#define UIS_ADDR_DLL_MST_CTRL_PHASE_DET_SEL 0x10u /* PHY reg address : 0x3C */
+#define UIS_ADDR_DLL_MST_CTRL_DLL_LOCK      0x11u /* PHY reg address : 0x3C */
+#define UIS_ADDR_DLL_MST_CTRL_DLL_START     0x12u /* PHY reg address : 0x3C */
+
+#define UIS_ADDR_UNUSED_OR_READ_ONLY        0x13u /* PHY reg address : 0x00 */
+#define UIS_ADDR_DLL_OBS_DEC_SDM_CLK        0x14u /* PHY reg address : 0x40 */
+#define UIS_ADDR_DLL_OBS_DEC_SD_CLK         0x15u /* PHY reg address : 0x40 */
+#define UIS_ADDR_DLL_OBS_DEC_DAT_STRB       0x16u /* PHY reg address : 0x40 */
 
 /*---------------------------------------------------------------------------
     @name OCR register bits definitions of SD memory cards
@@ -762,7 +780,7 @@ static inline uint32_t SDCARD_REG_GET_EXT_SECURITY(uint32_t x)
     @name SD card function register bits, masks and macros definitions
  ----------------------------------------------------------------------------
 */
-/* Check function mode - is used to query if the card supports a specific 
+/* Check function mode - is used to query if the card supports a specific
    function or functions. */
 #define SDCARD_SWITCH_FUNC_MODE_SWITCH          (0x1u << 31)
 /* Set function mode  - is used to switch the functionality of the card.*/
@@ -876,7 +894,7 @@ static inline uint8_t SDCARD_SWICH_FUNC_GET_BUSY_STAT(const uint8_t* val, uint8_
 */
 /* The card is in idle state and running the initializing process. */
 #define SDCARD_RESP_R1_IDLE                 0x01u
-/* An erase sequence was cleared before executing because an out of 
+/* An erase sequence was cleared before executing because an out of
   erase sequence command was received. */
 #define SDCARD_RESP_R1_ERASE_RESET          0x02u
 /* An illegal command code was detected. */

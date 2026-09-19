@@ -5,7 +5,7 @@
  *
  * @file core10gbasekr_phy_link_training.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Core10GBaseKR PHY link training prototypes
+ * @brief Core10GBaseKR PHY link training header file
  *
  */
 

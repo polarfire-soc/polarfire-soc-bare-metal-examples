@@ -5,7 +5,7 @@
  *
  * @file core10gbasekr_phy_reg.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Core10GBaseKR PHY memory map
+ * @brief Core10GBaseKR PHY register header file
  *
  */
 

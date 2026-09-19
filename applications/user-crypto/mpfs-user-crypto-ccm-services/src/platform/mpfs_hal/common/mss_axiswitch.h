@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_axiswitch.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief 
+ * @brief mss_axiswitch header file
  *
  */
 

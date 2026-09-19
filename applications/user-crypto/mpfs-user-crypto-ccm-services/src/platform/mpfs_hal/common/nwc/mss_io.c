@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_io.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief MSS IO related code
+ * @brief mss_io source file
  *
  */
 

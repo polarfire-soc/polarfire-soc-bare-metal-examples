@@ -1,31 +1,14 @@
-/***************************************************************************//**
- * Copyright 2009-2023 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- *
- * CoreI2C software driver Application Programming Interface.
- * This file contains defines and function declarations allowing to interface
- * with the CoreI2C software driver.
+ * @file core_i2c.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief CoreI2C header file
  *
  */
+
 /*=========================================================================*//**
   @mainpage CoreI2C Bare Metal Driver.
    The CoreI2C bare metal software driver supports I2C master and slave
@@ -747,11 +730,11 @@ struct i2c_instance
     I2C device. The serial address initialized through this function is
     basically the primary slave address or slave address0.
     I2C_set_slave_second_addr() is used to set the secondary slave address
-    or slave address 1.  
+    or slave address 1.
     Note : ser_address parameter does not have any affect if fixed slave
            address is enabled in CoreI2C hardware design. CoreI2C will
            be always addressed with the hardware configured fixed slave
-           address.  
+           address.
     Note : ser_address parameter will not have any affect if the CoreI2C
            instance is only used in master mode.
 
@@ -766,11 +749,11 @@ struct i2c_instance
         - I2C_PCLK_DIV_960
         - I2C_PCLK_DIV_120
         - I2C_PCLK_DIV_60
-        - I2C_BCLK_DIV_8  
+        - I2C_BCLK_DIV_8
     Note: serial_clock_speed value does not have any affect if the fixed baud
           rate is enabled in CoreI2C hardware instance configuration dialogue
           window. The fixed baud rate divider value overrides the value passed
-          as parameter in this function.  
+          as parameter in this function.
     Note: serial_clock_speed value is not critical for devices that only operate
           as slaves and can be set to any of the above values.
 
@@ -840,11 +823,11 @@ void I2C_init
         - I2C_PCLK_DIV_960
         - I2C_PCLK_DIV_120
         - I2C_PCLK_DIV_60
-        - I2C_BCLK_DIV_8  
+        - I2C_BCLK_DIV_8
     Note: serial_clock_speed value does not have any affect if the fixed baud
           rate is enabled in CoreI2C hardware instance configuration dialogue
           window. The fixed baud rate divider value will supersede the value
-          passed as parameter in this function.  
+          passed as parameter in this function.
     Note: ser_clock_speed value is not critical for devices that only operate
           as slaves and can be set to any of the above values.
   @return None.
@@ -1198,13 +1181,13 @@ void I2C_write_read
     The return value indicates the current state of a CoreI2C channel or the
     outcome of the previous transaction if no transaction is in progress.
     Following are the return values are:
-     - I2C_SUCCESS  
+     - I2C_SUCCESS
        The last I2C transaction has completed successfully.
-     - I2C_IN_PROGRESS  
+     - I2C_IN_PROGRESS
        There is an I2C transaction in progress.
-     - I2C_FAILED  
+     - I2C_FAILED
        The last I2C transaction failed.
-     - I2C_TIMED_OUT  
+     - I2C_TIMED_OUT
        The request has failed to complete in the allotted time.
 
   @example
@@ -1249,11 +1232,11 @@ i2c_status_t I2C_get_status
   @return
     The return value indicates the outcome of the last I2C transaction. It can
     be one of the following:
-     - I2C_SUCCESS  
+     - I2C_SUCCESS
        The last I2C transaction has completed successfully.
-     - I2C_FAILED  
+     - I2C_FAILED
        The last I2C transaction failed.
-     - I2C_TIMED_OUT  
+     - I2C_TIMED_OUT
        The last transaction failed to complete within the time out delay given
        as second parameter.
 
@@ -1422,7 +1405,7 @@ void I2C_set_slave_tx_buffer
 
   @param rx_size
     Size of the slave receive buffer. This is the amount of memory allocated
-    to the buffer pointed by rx_buffer.  
+    to the buffer pointed by rx_buffer.
     Note: Indirectly, this buffer size specifies the maximum I2C write
           transaction length this CoreI2C channel targets. This is because
           this CoreI2C channel responds to further received bytes with
@@ -1818,7 +1801,7 @@ void I2C_smbus_init
     The irq_type specify the SMBUS interrupt(s) which will be enabled.
     The two possible interrupts are:
       - I2C_SMBALERT_IRQ
-      - I2C_SMBSUS_IRQ  
+      - I2C_SMBSUS_IRQ
     To enable both interrupts in one call, use I2C_SMBALERT_IRQ | I2C_SMBSUS_IRQ.
 
   @return
@@ -1865,7 +1848,7 @@ void I2C_enable_smbus_irq
     The irq_type specifies the SMBUS interrupt(s) which are disabled.
     The two possible interrupts are:
       • I2C_SMBALERT_IRQ
-      • I2C_SMBSUS_IRQ  
+      • I2C_SMBSUS_IRQ
     To disable both ints in one call, use I2C_SMBALERT_IRQ | I2C_SMBSUS_IRQ.
 
   @return
@@ -2139,10 +2122,10 @@ void I2C_clear_smbus_alert
   @return
     This function returns the status of the CoreI2C channel's interrupts as a
     single byte bitmap where a bit is set to indicate a pending interrupt.
-    The following are the bit positions associated with each interrupt type:  
-        Bit 0 - SMBUS_ALERT_IRQ  
-        Bit 1 - SMBSUS_IRQ  
-        Bit 2 - INTR_IRQ  
+    The following are the bit positions associated with each interrupt type:
+        Bit 0 - SMBUS_ALERT_IRQ
+        Bit 1 - SMBSUS_IRQ
+        Bit 2 - INTR_IRQ
     It returns 0, if there are no pending interrupts.
 
   @example

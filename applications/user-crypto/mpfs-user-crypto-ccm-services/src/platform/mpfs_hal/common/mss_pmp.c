@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_pmp.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC MSS PMP configuration using MSS configurator values.
+ * @brief mss_pmp source file
  *
  */
 

@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_hart_ints.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief MPFS local interrupt definitions
+ * @brief mss_hart_ints header file
  *
  * Definitions and functions associated with local interrupts for each hart.
  *

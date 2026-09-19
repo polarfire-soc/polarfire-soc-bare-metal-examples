@@ -1,11 +1,12 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_ddr_sgmii_phy_defs.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Register bit offsets and masks definitions for MPFS MSS DDR
+ * @brief Register bit offset and masks definition header file
+ *
  * This was generated directly from the RTL
  *
  */
@@ -432,7 +433,7 @@ typedef union{                                                         /*!< PLL_
 } CFG_DDR_SGMII_PHY_PLL_PHADJ_MAIN_TypeDef;
 
 typedef union{                                                         /*!< SSCG_REG_0_MAIN register definition*/
-  __IO   uint32_t                       SSCG_REG_0_MAIN;				/* todo: verify should be r/w, it is not in source file from Duolog */
+  __IO   uint32_t                       SSCG_REG_0_MAIN;
   struct
   {
     __I   uint32_t                       DIVVAL               :6;

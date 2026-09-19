@@ -1,15 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2008 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file core_pwm.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief CorePWM driver Application Programming Interface(API). This file
- * contains defines and function declarations allowing to interface with the
- * CorePWM software driver.
+ * @brief CorePWM header file
  *
  */
+
 /*=========================================================================*//**
   @mainpage CorePWM Bare Metal Driver.
 
@@ -30,7 +29,7 @@
       between different PWM outputs.
     - A function to generate left, centre, or right aligned PWM output waveforms.
     - Functions to enable and disable synchronous update of the PWM output
-       waveforms.
+      waveforms.
     - Functions to enable and disable pulse stretching of the PWM output waveforms.
     - Functions to configure and control the tachometer and measure the period of
       tachometer input signals.
@@ -219,20 +218,25 @@
 
   A typical sequence of function calls for measurement of a tachometer input
   signal is:
-  
-  Call the PWM_init() function to initialize the CorePWM instance and pass it
-  the values for the prescale and period; call the PWM_tach_init() function to
-  initialize a tachometer input and pass it a tachometer prescale value; call the
-  PWM_tach_set_mode() function to set the tachometer measurement mode; next call
-  the PWM_tach_enable_irq() function, if interrupts are required; then call the
-  PWM_enable_stretch_pulse() function to enable pulse stretching of the PWM
-  output; call the PWM_tach_clear_status() to trigger new measurement of the
-  tachometer input signal period, call the PWM_tach_read_status()function, if
-  interrupts are not used, to verify that input period value has been updated in
-  the TACHPULSEDUR register. Now, call the PWM_tach_read_value()function to read
-  the measured period of tachometer input signal; and finally call
-  PWM_disable_stretch_pulse() function to disable pulse stretching of the PWM
-  output and resume a previously programmed PWM output waveform pattern.
+
+    - Call the PWM_init() function to initialize the CorePWM instance and pass
+      it the values for the prescale and period.
+    - Call the PWM_tach_init() function to initialize a tachometer input and
+      pass it a tachometer prescale value.
+    - Call the PWM_tach_set_mode() function to set the tachometer measurement
+      mode.
+    - Call the PWM_tach_enable_irq() function, if interrupts are required.
+    - Call the PWM_enable_stretch_pulse() function to enable pulse stretching of
+      the PWM output.
+    - Call the PWM_tach_clear_status() to trigger new measurement of the
+      tachometer input signal period.
+    - Call the PWM_tach_read_status()function, if interrupts are not used, to
+      verify that input period value has been updated in the TACHPULSEDUR register.
+    - Call the PWM_tach_read_value()function to read the measured period of
+      tachometer input signal.
+    - Call PWM_disable_stretch_pulse() function to disable pulse stretching of
+      the PWM output and resume a previously programmed PWM output waveform
+      pattern.
 
   --------------------------------
   Interrupt Control
@@ -243,7 +247,7 @@
     - PWM_tach_disable_irq()
     - PWM_tach_clear_irq()
     - PWM_tach_get_irq_source()
-  
+
   The PWM_tach_get_irq_source() function is used to identify which CorePWM
   tachometer input channel has generated an interrupt, among all the tachometer
   input channels that have interrupts enabled.
@@ -253,7 +257,13 @@
 #ifndef CORE_PWM_H_
 #define CORE_PWM_H_
 
-#include "hal/cpu_types.h"
+#ifndef LEGACY_DIR_STRUCTURE
+#include "hal/hal.h"
+
+#else
+#include "hal.h"
+#include "hal_assert.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -265,7 +275,7 @@ extern "C" {
   CorePWM allows the tachometer input measurement mode to be configured. The
   following constants are used as an argument to the PWM_tach_set_mode()
   function to specify the tachometer input measurement mode.
-  
+
   | Constant           | Description                                            |
   |--------------------|--------------------------------------------------------|
   | TACH_CONTINUOUS    | Continuous measurement mode                            |
@@ -566,18 +576,18 @@ void PWM_disable_synch_update
     The pwm_id parameter identifies the target PWM output.
 
   @param duty_cycle
-    The duty_cycle parameter specifies the PWM output duty cycle.  
+    The duty_cycle parameter specifies the PWM output duty cycle.
     In General Purpose PWM mode:
        This parameter corresponds to the number of period ticks for which
        the PWM output remains high. The value of this parameter should be
-       between 0 and the value of the period selected for the calling the PWM_init().  
+       between 0 and the value of the period selected for the calling the PWM_init().
     In Low Ripple DAC mode:
        This parameter corresponds to the average density duty cycle. The value
        of this parameter should be between 0 and (2^APB_DWIDTH - 1), where
        APB_DWIDTH  is the value selected for the APB_DWIDTH in the instantiation
        of the CorePWM DirectCore hardware instance. This sets the average
        density of the PWM output high pulses to between 0% and 100% in proportion
-       to the duty_cycle value as a percentage of the (2^APB_DWIDTH - 1) value.  
+       to the duty_cycle value as a percentage of the (2^APB_DWIDTH - 1) value.
     Note: The only role that prescale and period play in Low Ripple DAC mode is
           to set the point when synchronized register updates will take place,
           if the shadow register is enabled for a PWM output.
@@ -617,8 +627,8 @@ void PWM_set_duty_cycle
   Note: The PWM_get_duty_cycle() function will return the value 0 when it is
         called after using the PWM_set_edges() function to set the PWM output
         waveform to toggle mode (50% duty cycle). A return value of 0 from the
-        PWM_get_duty_cycle() function normally means a 0% duty cycle, therefore
-        you must be alert to this exception if you use the PWM_set_edges()
+        PWM_get_duty_cycle() function normally means a 0% duty cycle, Therefore,
+        be alert to this exception if you use the PWM_set_edges()
         function to manipulate the PWM output waveform edges.
 
   @param pwm_inst
@@ -633,13 +643,13 @@ void PWM_set_duty_cycle
     The pos_edge parameter specifies the value of the period counter at which
     the PWM output identified by pwm_id will rise from low to high. The value
     of this parameter should be between 0 and the value of the period selected
-    for the call to PWM_init().
+    for calling PWM_init().
 
   @param neg_edge
     The neg_edge parameter specifies the value of the period counter at which
     the PWM output identified by pwm_id will fall from high to low. The value
     of this parameter should be between 0 and the value of the period selected
-    for the call to PWM_init().
+    for calling PWM_init().
 
   @return None
 
@@ -665,9 +675,9 @@ void PWM_set_edges
   The PWM_get_duty_cycle() function returns the current duty cycle of the
   specified PWM output. The duty cycle corresponds to the number of period
   ticks during which the output remains high and should be between 0 and the
-  value of the period selected for the call to PWM_init().
+  value of the period selected to call PWM_init().
 
-  Note: Duty Cycle (in %) is calculated as follows:  
+  Note: Duty Cycle (in %) is calculated as follows:
        ` Duty Cycle (%) = ( (returned duty cycle value) / (period +1) )*100`
 
   Note: The PWM_get_duty_cycle() function is intended to return the duty cycle
@@ -677,8 +687,8 @@ void PWM_set_edges
   Note: A returned duty cycle value of 0 normally means a 0% duty cycle. However,
         the PWM_get_duty_cycle() function also returns the value 0 when it is
         called after using the PWM_set_edges() function to set the PWM output
-        waveform to toggle mode. In this case a return value of 0 does not mean
-        a 0% duty cycle; rather it means that the PWM output waveform is in
+        waveform to toggle mode. In this case, a return value of 0 does not mean
+        a 0% duty cycle; rather, it means that the PWM output waveform is in
         toggle mode. See the description of the PWM_set_edges() function
         for a description of toggle mode. You must be alert to this exception if
         you use the PWM_set_edges() function to manipulate the PWM output
@@ -695,9 +705,9 @@ void PWM_set_edges
   @return
     This function returns the duty cycle of the PWM output as a 32-bit unsigned
     integer. The duty cycle is the number of period ticks during which the
-    output is high.  
+    output is high.
     Note: A returned duty cycle value of 0 normally means the PWM output is
-          constantly low, however it may also indicate that the PWM output
+          constantly low, However, it may also indicate that the PWM output
           waveform is set to toggle mode (50% duty cycle). See the note
           in the function description.
 
@@ -718,7 +728,7 @@ uint32_t PWM_get_duty_cycle
 /*-------------------------------------------------------------------------*//**
   The PWM_generate_aligned_wave() function aligns the duty_cycle of the PWM
   output waveform within the period of the PWM output waveform.
-  Three PWM output waveform alignment options are supported:
+  The following three PWM output waveform alignment options are supported:
     - Left Aligned Waveform
     - Center Aligned Waveform
     - Right Aligned Waveform
@@ -747,7 +757,7 @@ uint32_t PWM_get_duty_cycle
     The duty_cycle parameter specifies the PWM output duty cycle. The duty
     cycle corresponds to the number of period ticks for which the PWM output
     remains high. The value of this parameter should be between 0 and the value
-    of the period selected for the call to PWM_init().
+    of the period selected to call PWM_init().
 
   @param alignment_type
     The alignment_type parameter specifies required alignment for the PWM
@@ -788,7 +798,7 @@ void PWM_generate_aligned_wave
 
   Note: The configuration of the CorePWM instance in the hardware design must
         select the PWM output level - high or low - that is set when PWM pulse
-        stretching is enabled. For example, to measure 3- wire fan speed, the
+        stretching is enabled. For example, to measure 3-wire fan speed, the
         CorePWM hardware configuration should select a high stretch level for
         the PWM output.
 
@@ -864,7 +874,8 @@ void PWM_disable_stretch_pulse
   @param tach_prescale
     The tach_prescale value is used to select the PCLK prescale divisor for the
     CorePWM tachometer. This determines the period counter time base for
-    tachometer measurements. Allowed values of type pwm_tach_prescale_t are:
+    tachometer measurements. Following are the values allowed for type
+    pwm_tach_prescale_t:
        - TACH_PRESCALE_PCLK_DIV_1
        - TACH_PRESCALE_PCLK_DIV_2
        - TACH_PRESCALE_PCLK_DIV_4
@@ -913,7 +924,7 @@ void PWM_tach_init
 
   @param pwm_tachmode
     The pwm_tachmode parameter is used to specify the tachometer input
-    measurement mode. Allowed values for pwm_tachmode are:
+    measurement mode. Following values are allowed for pwm_tachmode:
       - TACH_CONTINUOUS
       - TACH_ONE_SHOT
 
@@ -1001,7 +1012,7 @@ void PWM_tach_clear_status
   The PWM_tach_read_status() function returns the current status for the
   specified tachometer input. This function returns 1 if the tachometer input
   period measurement has been updated at least once since the status bit was
-  cleared,otherwise it returns 0.
+  cleared,otherwise, it returns 0.
 
   @param pwm_inst
     Pointer to a pwm_inst structure holding all relevant data associated with
@@ -1013,7 +1024,7 @@ void PWM_tach_clear_status
 
   @return
     It returns 1 if the tachometer input period measurement has been updated
-    at least once since the status bit was cleared, otherwise it returns 0.
+    at least once since the status bit was cleared, otherwise, it returns 0.
 
   @example
   Read and assign the current status of tachometer input 1 to a variable.
@@ -1030,7 +1041,7 @@ uint16_t PWM_tach_read_status
 
 /*-------------------------------------------------------------------------*//**
   The PWM_tach_get_irq_source() function identifies which tachometer input
-  channel has generated an interrupt,among all the tachometer input channels
+  channel has generated an interrupt, among all the tachometer input channels
   with interrupts enabled.
 
   @param pwm_inst
@@ -1040,7 +1051,7 @@ uint16_t PWM_tach_read_status
 
   @return
     It returns the pwm_tach_id_t identifier of the tachometer input generating
-    the interrupt. It returns 0 if no tachometer input is generating an interrupt.
+    the interrupt. It returns 0, if no tachometer input is generating an interrupt.
 
   @example
   The following example returns the tachometer 1 identifier, PWM_TACH_1,
@@ -1077,8 +1088,9 @@ pwm_tach_id_t PWM_tach_get_irq_source
   @return None
 
   @example
-  This call to PWM_tach_enable_irq() allows tachometer input 1 to generate an
-  interrupt, when its input signal period measurement value is updated.
+  Calling the PWM_tach_enable_irq() function allows tachometer input 1 to
+  generate an interrupt, when its input signal period measurement value is
+  updated.
   @code
     PWM_tach_enable_irq(&the_pwm, PWM_TACH_1);
   @endcode
@@ -1104,7 +1116,7 @@ void PWM_tach_enable_irq
   @return None
 
   @example
-  This call to PWM_tach_disable_irq() prevents tachometer input 1 from
+  Calling the PWM_tach_disable_irq() function prevents tachometer input 1 from
   generating an interrupt when its input signal period measurement value is
   updated.
   @code
@@ -1122,7 +1134,7 @@ void PWM_tach_disable_irq
   specified tachometer input channel.
 
   Note: The PWM_tach_clear_irq() function  must be called as part of a PWM
-        tachometer interrupt service routine (ISR) in order to prevent the
+        tachometer Interrupt Service Routine (ISR) in order to prevent the
         same interrupt event retriggering a call to the PWM tachometer ISR.
 
   Note: Interrupts may also need to be cleared in the processor's interrupt
@@ -1139,8 +1151,8 @@ void PWM_tach_disable_irq
   @return None
 
   @example
-  This call to PWM_tach_clear_irq() clears a pending interrupt from tachometer
-  input 1.
+  Calling the PWM_tach_clear_irq() function clears a pending interrupt from
+  tachometer input 1.
   @code
     PWM_tach_clear_irq(&the_pwm, PWM_TACH_1);
   @endcode

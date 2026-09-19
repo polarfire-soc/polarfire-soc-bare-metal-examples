@@ -1,11 +1,13 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_beu.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC MSS MPU driver for configuring the Bus Error Unit
+ * @brief mss_beu source file
+ *
+ * PolarFire SoC MSS MPU driver for configuring the Bus Error Unit
  *
  */
 

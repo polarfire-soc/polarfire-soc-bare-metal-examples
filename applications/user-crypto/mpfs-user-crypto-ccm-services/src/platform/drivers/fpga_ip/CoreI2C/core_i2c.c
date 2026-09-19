@@ -1,9 +1,14 @@
-/*******************************************************************************
- * Copyright 2009-2023 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * CoreI2C software driver implementation.
+ * @file core_i2c.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief CoreI2C source file
+ *
+ * See file "core_i2c.h" for description of the functions implemented
+ * in this file.
  *
  */
 
@@ -100,13 +105,13 @@ void I2C_init
 {
     psr_t saved_psr;
     uint_fast16_t clock_speed = (uint_fast16_t)ser_clock_speed;
-    
+
     /*
      * We need to disable ints while doing this as there is no guarantee we
      * have not been called already and the ISR is active.
      */
     saved_psr = HAL_disable_interrupts();
-    
+
     /*
      * Initialize all items of the this_i2c data structure to zero. This
      * initializes all state variables to their init value. It relies on
@@ -114,7 +119,7 @@ void I2C_init
      * have an actual value of zero.
      */
     memset(this_i2c, 0, sizeof(i2c_instance_t));
-    
+
     /*
      * Set base address of I2C hardware used by this instance.
      */
@@ -124,7 +129,7 @@ void I2C_init
      * Update Serial address of the device
      */
     this_i2c->ser_address = ((uint_fast8_t)ser_address << 1u);
-    
+
     /*
      * Configure hardware.
      */
@@ -136,7 +141,7 @@ void I2C_init
 
     HAL_set_8bit_reg(this_i2c->base_address, ADDRESS, this_i2c->ser_address);
     HAL_set_8bit_reg(this_i2c->base_address, ADDRESS1, this_i2c->ser_address);
-    
+
     /*
      * Finally safe to enable interrupts.
      */
@@ -156,11 +161,11 @@ void I2C_channel_init
 {
     psr_t saved_psr;
     uint_fast16_t clock_speed = (uint_fast16_t)ser_clock_speed;
-    
+
     HAL_ASSERT(channel_number < I2C_MAX_CHANNELS);
     HAL_ASSERT(I2C_CHANNEL_0 != channel_number);
 
-    /* 
+    /*
      * Cannot allow channel 0 in this function as we will trash the hardware
      * base address and slave address.
      */
@@ -172,14 +177,14 @@ void I2C_channel_init
          * be active at this stage.
          */
         saved_psr = HAL_disable_interrupts();
-    
+
         /*
          * Initialize channel data.
          */
         memset(this_i2c_channel, 0, sizeof(i2c_instance_t));
-        
+
         this_i2c_channel->base_address =
-               ((this_i2c->base_address) & ~((addr_t)CHANNEL_MASK)) 
+               ((this_i2c->base_address) & ~((addr_t)CHANNEL_MASK))
             | (((addr_t)channel_number) << CHANNEL_BASE_SHIFT);
 
         this_i2c_channel->ser_address = this_i2c->ser_address;
@@ -279,7 +284,7 @@ void I2C_read
     volatile uint8_t stat_ctrl;
 
     saved_psr = HAL_disable_interrupts();
-    
+
     /* Update the transaction only when there is no transaction going on I2C */
     if( this_i2c->transaction == NO_TRANSACTION)
     {
@@ -302,7 +307,7 @@ void I2C_read
     this_i2c->master_status = I2C_IN_PROGRESS;
 
     this_i2c->options = options;
-    
+
     if(I2C_IN_PROGRESS == this_i2c->slave_status)
     {
         this_i2c->is_transaction_pending = 1u;
@@ -349,9 +354,9 @@ void I2C_write_read
     HAL_ASSERT(addr_offset != (uint8_t *)0);
     HAL_ASSERT(read_size > 0u);
     HAL_ASSERT(read_buffer != (uint8_t *)0);
-    
+
     this_i2c->master_status = I2C_FAILED;
-    
+
     if((read_size > 0u) && (offset_size > 0u))
     {
         psr_t saved_psr;
@@ -380,11 +385,11 @@ void I2C_write_read
         this_i2c->master_rx_buffer = read_buffer;
         this_i2c->master_rx_size = read_size;
         this_i2c->master_rx_idx = 0u;
-        
+
         /* Set I2C status in progress */
         this_i2c->master_status = I2C_IN_PROGRESS;
         this_i2c->options = options;
-        
+
         if(I2C_IN_PROGRESS == this_i2c->slave_status)
         {
             this_i2c->is_transaction_pending = 1u;
@@ -406,7 +411,7 @@ void I2C_write_read
 
         stat_ctrl = HAL_get_8bit_reg( this_i2c->base_address, STATUS);
         stat_ctrl = stat_ctrl;  /* Avoids lint warning. */
-            
+
         /* Enable the interrupt. ( Re-enable) */
         I2C_enable_irq( this_i2c );
 
@@ -492,7 +497,7 @@ void I2C_system_tick
             this_i2c->is_transaction_pending = 0;
 
             HAL_restore_interrupts( saved_psr );
-            
+
             /*
              * Make sure we do not incorrectly signal a timeout for subsequent
              * transactions.
@@ -520,11 +525,11 @@ void I2C_set_slave_tx_buffer
      * shared data without the I2C ISR interrupting us.
      */
     saved_psr = HAL_disable_interrupts();
-    
+
     this_i2c->slave_tx_buffer = tx_buffer;
     this_i2c->slave_tx_size = tx_size;
     this_i2c->slave_tx_idx = 0u;
-    
+
     HAL_restore_interrupts( saved_psr );
 }
 
@@ -565,7 +570,7 @@ void I2C_set_slave_mem_offset_length
 )
 {
     HAL_ASSERT(offset_length <= MAX_OFFSET_LENGTH);
-    
+
     /*
      * Single byte update, should be interrupt safe
      */
@@ -648,7 +653,7 @@ void I2C_disable_slave
      * hardware register without the I2C ISR interrupting us.
      */
     saved_psr = HAL_disable_interrupts();
-    
+
     /* Reset the assert acknowledge bit. */
     HAL_set_8bit_reg_field(this_i2c->base_address, AA, 0x00u);
 
@@ -659,7 +664,7 @@ void I2C_disable_slave
 }
 
 /*------------------------------------------------------------------------------
- * 
+ *
  */
 static void enable_slave_if_required
 (
@@ -686,9 +691,9 @@ void I2C_set_slave_second_addr
 )
 {
     uint8_t second_slave_address;
-    
+
     /*
-      This function does not support CoreI2C hardware configured with a fixed 
+      This function does not support CoreI2C hardware configured with a fixed
       second slave address.  The current implementation of the ADDR1[0] register
       bit makes it difficult for the driver to support both programmable and
       fixed second slave address, so we choose to support programmable only.
@@ -716,7 +721,7 @@ void I2C_disable_slave_second_addr
     /*
       We are disabling the second slave address by setting the value of the 2nd
       slave address to the primary slave address. The reason for using this method
-      of disabling 2nd slave address is that ADDRESS1[0] has different meaning 
+      of disabling 2nd slave address is that ADDRESS1[0] has different meaning
       depending on hardware configuration. Its use would likely interfere with
       the intended GCA setting.
      */
@@ -736,7 +741,7 @@ void I2C_set_gca
     i2c_instance_t * this_i2c
 )
 {
-    /* 
+    /*
      * This read modify write access should be interrupt safe as the address
      * register is not written to in the ISR.
      */
@@ -753,7 +758,7 @@ void I2C_clear_gca
     i2c_instance_t * this_i2c
 )
 {
-    /* 
+    /*
      * This read modify write access should be interrupt safe as the address
      * register is not written to in the ISR.
      */
@@ -776,11 +781,11 @@ void I2C_isr
     uint8_t clear_irq = 1u;
 
     status = HAL_get_8bit_reg( this_i2c->base_address, STATUS);
-    
+
     switch( status )
     {
         /************** MASTER TRANSMITTER / RECEIVER *******************/
-      
+
         case ST_START: /* start has been xmt'd */
         case ST_RESTART: /* repeated start has been xmt'd */
             HAL_set_8bit_reg_field( this_i2c->base_address, STA, 0x00u);
@@ -796,9 +801,9 @@ void I2C_isr
             }
 
             /*
-             * Clear the pending transaction. This condition will be true if the slave 
-             * has acquired the bus to carry out pending master transaction which 
-             * it had received during its slave transmission or reception mode. 
+             * Clear the pending transaction. This condition will be true if the slave
+             * has acquired the bus to carry out pending master transaction which
+             * it had received during its slave transmission or reception mode.
              */
             if(this_i2c->is_transaction_pending)
             {
@@ -814,7 +819,7 @@ void I2C_isr
                 this_i2c->transaction = this_i2c->pending_transaction;
             }
             break;
-            
+
         case ST_LOST_ARB:
               /* Set start bit.  Let's keep trying!  Don't give up! */
               HAL_set_8bit_reg_field(this_i2c->base_address, STA, 0x01u);
@@ -832,12 +837,12 @@ void I2C_isr
             this_i2c->transaction = NO_TRANSACTION;
             enable_slave_if_required(this_i2c);
             break;
-            
+
         case ST_SLAW_ACK:
         case ST_TX_DATA_ACK:
             /* data byte has been xmt'd with ACK, time to send stop bit or repeated start. */
             if (this_i2c->master_tx_idx < this_i2c->master_tx_size)
-            {    
+            {
                 HAL_set_8bit_reg(this_i2c->base_address, DATA, (uint_fast8_t)this_i2c->master_tx_buffer[this_i2c->master_tx_idx++]);
             }
             else if ( this_i2c->transaction == MASTER_RANDOM_READ_TRANSACTION )
@@ -859,7 +864,7 @@ void I2C_isr
                 /* Store the information of current I2C bus status in the bus_status*/
                 this_i2c->bus_status  = hold_bus;
                 if ( hold_bus == 0u )
-                { 
+                {
                     HAL_set_8bit_reg_field(this_i2c->base_address, STO, 0x01u);  /*xmt stop condition */
                     enable_slave_if_required(this_i2c);
                 }
@@ -874,8 +879,8 @@ void I2C_isr
 
           case ST_TX_DATA_NACK:
             /* data byte SENT, ACK to be received
-             * In fact, this means we've received a NACK (This may not be 
-             * obvious, but if we've rec'd an ACK then we would be in state 
+             * In fact, this means we've received a NACK (This may not be
+             * obvious, but if we've rec'd an ACK then we would be in state
              * 0x28!) hence, let's send a stop bit
              */
             HAL_set_8bit_reg_field(this_i2c->base_address, STO, 0x01u);/* xmt stop condition */
@@ -888,9 +893,9 @@ void I2C_isr
             this_i2c->transaction = NO_TRANSACTION;
             enable_slave_if_required(this_i2c);
             break;
-              
+
       /********************* MASTER (or slave?) RECEIVER *************************/
-      
+
       /* STATUS codes 08H, 10H, 38H are all covered in MTX mode */
         case ST_SLAR_ACK: /* SLA+R tx'ed. */
             /* Let's make sure we ACK the first data byte received (set AA bit in CTRL) unless
@@ -912,7 +917,7 @@ void I2C_isr
                 this_i2c->transaction = NO_TRANSACTION;
             }
             break;
-            
+
         case ST_SLAR_NACK: /* SLA+R tx'ed; let's release the bus (send a stop condition) */
             HAL_set_8bit_reg_field(this_i2c->base_address, STO, 0x01u);
             this_i2c->master_status = I2C_FAILED;
@@ -924,7 +929,7 @@ void I2C_isr
             this_i2c->transaction = NO_TRANSACTION;
             enable_slave_if_required(this_i2c);
             break;
-          
+
         case ST_RX_DATA_ACK: /* Data byte received, ACK returned */
             /* First, get the data */
             this_i2c->master_rx_buffer[this_i2c->master_rx_idx++] = HAL_get_8bit_reg(this_i2c->base_address, DATA);
@@ -935,17 +940,17 @@ void I2C_isr
                 HAL_set_8bit_reg_field(this_i2c->base_address, AA, 0x00u);
             }
             break;
-            
+
         case ST_RX_DATA_NACK: /* Data byte received, NACK returned */
             /* Get the data, then send a stop condition */
             this_i2c->master_rx_buffer[this_i2c->master_rx_idx] = HAL_get_8bit_reg(this_i2c->base_address, DATA);
-          
-            hold_bus = this_i2c->options & I2C_HOLD_BUS; 
+
+            hold_bus = this_i2c->options & I2C_HOLD_BUS;
 
             /* Store the information of current I2C bus status in the bus_status*/
             this_i2c->bus_status  = hold_bus;
             if ( hold_bus == 0u )
-            { 
+            {
                 HAL_set_8bit_reg_field(this_i2c->base_address, STO, 0x01u);  /*xmt stop condition */
 
                 /* Bus is released, now we can start listening to bus, if it is slave */
@@ -963,7 +968,7 @@ void I2C_isr
             this_i2c->transaction = NO_TRANSACTION;
             this_i2c->master_status = I2C_SUCCESS;
             break;
-        
+
         /******************** SLAVE RECEIVER **************************/
         case ST_GCA_NACK: /* NACK after, GCA addressing */
         case ST_SLA_NACK: /* Re-enable AA (assert ack) bit for future transmissions */
@@ -971,14 +976,14 @@ void I2C_isr
 
             this_i2c->transaction = NO_TRANSACTION;
             this_i2c->slave_status = I2C_SUCCESS;
-            
+
             /* Check if transaction was pending. If yes, set the START bit */
             if(this_i2c->is_transaction_pending)
             {
                 HAL_set_8bit_reg_field(this_i2c->base_address, STA, 0x01u);
             }
             break;
-            
+
         case ST_GCA_LA: /* Arbitr. lost (GCA rec'd) */
         case ST_SLV_LA: /* Arbitr. lost (SLA rec'd) */
             /*
@@ -1009,7 +1014,7 @@ void I2C_isr
             /* Only break from this case if the slave address must NOT be included at the
              * beginning of the received write data. */
             break;
-#endif            
+#endif
         case ST_GCA_ACK: /* DATA received; ACK sent after GCA */
         case ST_RDATA: /* DATA received; must clear DATA register */
             if((this_i2c->slave_rx_buffer != (uint8_t *)0)
@@ -1017,7 +1022,7 @@ void I2C_isr
             {
                 data = HAL_get_8bit_reg(this_i2c->base_address, DATA);
                 this_i2c->slave_rx_buffer[this_i2c->slave_rx_idx++] = data;
-                
+
 #ifdef INCLUDE_SLA_IN_RX_PAYLOAD
                 if((ST_RDATA == status) || (ST_GCA_ACK == status))
                 {
@@ -1030,14 +1035,14 @@ void I2C_isr
                 }
 #endif
             }
-            
+
             if(this_i2c->slave_rx_idx >= this_i2c->slave_rx_size)
             {
                 /* Rx buffer is full. NACK next received byte. */
-                HAL_set_8bit_reg_field(this_i2c->base_address, AA, 0x00u); 
+                HAL_set_8bit_reg_field(this_i2c->base_address, AA, 0x00u);
             }
             break;
-            
+
         case ST_RSTOP:
             /* STOP or repeated START occurred. */
             /* We cannot be sure if the transaction has actually completed as
@@ -1095,7 +1100,7 @@ void I2C_isr
 
             /* Mark any previous master write transaction as complete. */
             this_i2c->slave_status = I2C_SUCCESS;
-            
+
             /* Check if transaction was pending. If yes, set the START bit */
             if(this_i2c->is_transaction_pending)
             {
@@ -1109,7 +1114,7 @@ void I2C_isr
             this_i2c->transaction = NO_TRANSACTION;
 
             break;
-            
+
         case ST_SLV_RST: /* SMBUS ONLY: timeout state. must clear interrupt */
             /*
              * Set the transaction back to NO_TRANSACTION to allow user to do further
@@ -1132,7 +1137,7 @@ void I2C_isr
             enable_slave_if_required(this_i2c); /* Make sure AA is set correctly */
 
             break;
-            
+
         /****************** SLAVE TRANSMITTER **************************/
         case ST_SLAVE_SLAR_ACK: /* SLA+R received, ACK returned */
         case ST_SLARW_LA:       /* Arbitration lost, and: */
@@ -1165,20 +1170,20 @@ void I2C_isr
             /* Determine if this is the last data byte to send to the master. */
             if (this_i2c->slave_tx_idx >= this_i2c->slave_tx_size) /* last byte? */
             {
-                 HAL_set_8bit_reg_field(this_i2c->base_address, AA, 0x00u); 
+                 HAL_set_8bit_reg_field(this_i2c->base_address, AA, 0x00u);
                 /* Next read transaction will result in slave's transmit buffer
                  * being sent from the first byte. */
                 this_i2c->slave_tx_idx = 0u;
             }
             break;
-        
+
         case ST_SLAVE_RNACK:    /* Data byte has been transmitted; not-ACK has been received. */
         case ST_FINAL: /* Last Data byte tx'ed, ACK received */
             /* We assume that the transaction will be stopped by the master.
              * Reset slave_tx_idx so that a subsequent read will result in the slave's
              * transmit buffer being sent from the first byte. */
             this_i2c->slave_tx_idx = 0u;
-            HAL_set_8bit_reg_field(this_i2c->base_address, AA, 0x01u); 
+            HAL_set_8bit_reg_field(this_i2c->base_address, AA, 0x01u);
 
             /*  Mark previous state as complete */
             this_i2c->slave_status = I2C_SUCCESS;
@@ -1228,13 +1233,13 @@ void I2C_isr
 
             break;
     }
-    
+
     if ( clear_irq )
     {
         /* clear interrupt. */
         HAL_set_8bit_reg_field(this_i2c->base_address, SI, 0x00u);
     }
-    
+
     /* Read the status register to ensure the last I2C registers write took place
      * in a system built around a bus making use of posted writes. */
     status = HAL_get_8bit_reg( this_i2c->base_address, STATUS);
@@ -1244,7 +1249,7 @@ void I2C_isr
  * I2C_smbus_init()
  * See "i2c.h" for details of how to use this function.
  */
- 
+
 /*
  * SMBSUS_NO    = 1
  * SMBALERT_NO  = 1
@@ -1289,7 +1294,7 @@ void I2C_enable_smbus_irq
     {
         HAL_set_8bit_reg_field(this_i2c->base_address, SMBSUS_IE, 0x01u);
     }
-    
+
     HAL_restore_interrupts( saved_psr );
 }
 
@@ -1319,7 +1324,7 @@ void I2C_disable_smbus_irq
     {
         HAL_set_8bit_reg_field(this_i2c->base_address, SMBSUS_IE, 0x00u);
     }
-    
+
     HAL_restore_interrupts( saved_psr );
 }
 
@@ -1384,7 +1389,7 @@ void I2C_reset_smbus
      */
     saved_psr = HAL_disable_interrupts();
     HAL_set_8bit_reg_field(this_i2c->base_address, SMBUS_MST_RESET, 0x01u);
-    
+
     HAL_restore_interrupts( saved_psr );
 }
 
