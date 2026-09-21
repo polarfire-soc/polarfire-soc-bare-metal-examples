@@ -1,11 +1,14 @@
-/*******************************************************************************
- * Copyright 2009-2023 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
- * 
- * CoreI2C driver interrupt control.
- * 
+ *
+ * @file i2c_interrupt.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief CoreI2C i2c interrupt source file
+ *
  */
+
 #include "core_i2c.h"
 
 /*------------------------------------------------------------------------------

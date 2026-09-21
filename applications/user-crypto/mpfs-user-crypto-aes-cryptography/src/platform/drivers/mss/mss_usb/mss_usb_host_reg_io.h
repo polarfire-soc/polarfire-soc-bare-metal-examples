@@ -1,16 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_usb_host_reg_io.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
- *          USB Core Interface Layer (USB-CIFL)
- *            USBH-CIF
+ * @brief mss_usb host register header file
  *
  * This file provides interfaces to perform register and register bit level
- * read / write operations in USB Host mode.
+ * read/write operations in USB Host mode.
  *
  */
 
@@ -674,7 +672,7 @@ MSS_USBH_CIF_tx_ep_set_target_speed
 )
 {
     USB->ENDPOINT[ep_num].TX_TYPE &= ~TXTYPE_HOST_TARGET_EP_SPEED_MASK;
-    USB->ENDPOINT[ep_num].TX_TYPE |= (speed << 
+    USB->ENDPOINT[ep_num].TX_TYPE |= (speed <<
                                             TXTYPE_HOST_TARGET_EP_SPEED_SHIFT);
 }
 
@@ -684,7 +682,7 @@ MSS_USBH_CIF_tx_ep_get_target_speed
     mss_usb_ep_num_t ep_num
 )
 {
-    return ((mss_usb_device_speed_t)((USB->ENDPOINT[ep_num].TX_TYPE & 
+    return ((mss_usb_device_speed_t)((USB->ENDPOINT[ep_num].TX_TYPE &
       TXTYPE_HOST_TARGET_EP_SPEED_MASK) >> TXTYPE_HOST_TARGET_EP_SPEED_SHIFT));
 }
 
@@ -696,7 +694,7 @@ MSS_USBH_CIF_tx_ep_set_target_protocol
 )
 {
     USB->ENDPOINT[ep_num].TX_TYPE &= ~TXTYPE_HOST_TARGET_EP_PROTOCOL_MASK;
-    USB->ENDPOINT[ep_num].TX_TYPE |= (xfr_type << 
+    USB->ENDPOINT[ep_num].TX_TYPE |= (xfr_type <<
                                          TXTYPE_HOST_TARGET_EP_PROTOCOL_SHIFT);
 }
 
@@ -706,7 +704,7 @@ MSS_USBH_CIF_tx_ep_get_target_protocol
     mss_usb_ep_num_t ep_num
 )
 {
-    return ((mss_usb_xfr_type_t)((USB->ENDPOINT[ep_num].TX_TYPE & 
+    return ((mss_usb_xfr_type_t)((USB->ENDPOINT[ep_num].TX_TYPE &
     TXTYPE_HOST_TARGET_EP_PROTOCOL_MASK) >> TXTYPE_HOST_TARGET_EP_PROTOCOL_SHIFT));
 }
 
@@ -718,7 +716,7 @@ MSS_USBH_CIF_tx_ep_set_target_ep_no
 )
 {
     USB->ENDPOINT[ep_num].TX_TYPE &= ~TXTYPE_HOST_TARGET_EP_NUM_MASK;
-    USB->ENDPOINT[ep_num].TX_TYPE |= (tdev_ep_num << 
+    USB->ENDPOINT[ep_num].TX_TYPE |= (tdev_ep_num <<
                                               TXTYPE_HOST_TARGET_EP_NUM_SHIFT);
 }
 
@@ -728,7 +726,7 @@ MSS_USBH_CIF_tx_ep_get_target_ep_no
     mss_usb_ep_num_t ep_num
 )
 {
-    return ((mss_usb_ep_num_t)((USB->ENDPOINT[ep_num].TX_TYPE & 
+    return ((mss_usb_ep_num_t)((USB->ENDPOINT[ep_num].TX_TYPE &
           TXTYPE_HOST_TARGET_EP_NUM_MASK) >> TXTYPE_HOST_TARGET_EP_NUM_SHIFT));
 }
 
@@ -794,7 +792,7 @@ MSS_USBH_CIF_rx_ep_get_target_protocol
     mss_usb_ep_num_t ep_num
 )
 {
-    return ((mss_usb_xfr_type_t)((USB->ENDPOINT[ep_num].RX_TYPE & 
+    return ((mss_usb_xfr_type_t)((USB->ENDPOINT[ep_num].RX_TYPE &
     RXTYPE_HOST_TARGET_EP_PROTOCOL_MASK) >> RXTYPE_HOST_TARGET_EP_PROTOCOL_SHIFT));
 }
 
@@ -815,7 +813,7 @@ MSS_USBH_CIF_rx_ep_get_target_ep_no
     mss_usb_ep_num_t ep_num
 )
 {
-    return ((mss_usb_ep_num_t)((USB->ENDPOINT[ep_num].RX_TYPE & 
+    return ((mss_usb_ep_num_t)((USB->ENDPOINT[ep_num].RX_TYPE &
     RXTYPE_HOST_TARGET_EP_NUM_MASK) >> RXTYPE_HOST_TARGET_EP_NUM_SHIFT));
 }
 
@@ -852,7 +850,7 @@ MSS_USBH_CIF_rx_ep_set_reqpkt_count
 {
     /*
      * Used with AUTOREQ option.
-     * Multiple packets combined into a single bulk  packet within the FIFO count 
+     * Multiple packets combined into a single bulk  packet within the FIFO count
      * as one packet.
      */
     USB->RQ_PKT_CNT[ep_num] = count;
@@ -868,7 +866,7 @@ MSS_USBH_CIF_rx_ep_set_target_func_addr
     uint32_t addr
 )
 {
-    /* Device number of the target - initially zero, then determined by 
+    /* Device number of the target - initially zero, then determined by
      * enumeration process.
      */
     USB->TAR[ep_num].RX_FUNC_ADDR = (addr & 0x7Fu);
@@ -885,10 +883,10 @@ MSS_USBH_CIF_tx_ep_set_target_hub_addr
     uint32_t mtt
 )
 {
-    /* Device number of the target - initially zero, then determined by 
+    /* Device number of the target - initially zero, then determined by
      * enumeration process.
      */
-    USB->TAR[ep_num].TX_HUB_ADDR = ((uint8_t)(mtt << TARGET_DEVICE_HUB_MT_SHIFT) | 
+    USB->TAR[ep_num].TX_HUB_ADDR = ((uint8_t)(mtt << TARGET_DEVICE_HUB_MT_SHIFT) |
                                     (addr & 0x7Fu));
 }
 
@@ -903,10 +901,10 @@ MSS_USBH_CIF_rx_ep_set_target_hub_addr
     uint32_t mtt
 )
 {
-    /* Device number of the target - initially zero, then determined by 
+    /* Device number of the target - initially zero, then determined by
      * enumeration process.
      */
-    USB->TAR[ep_num].RX_HUB_ADDR = ((uint8_t)(mtt << TARGET_DEVICE_HUB_MT_SHIFT) | 
+    USB->TAR[ep_num].RX_HUB_ADDR = ((uint8_t)(mtt << TARGET_DEVICE_HUB_MT_SHIFT) |
                                     (addr & 0x7Fu));
 }
 

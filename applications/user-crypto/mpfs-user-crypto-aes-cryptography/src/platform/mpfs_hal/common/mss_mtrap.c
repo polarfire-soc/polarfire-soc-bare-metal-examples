@@ -1,12 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_mtrap.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief trap functions
+ * @brief mss_mtrap source file
  *
+ * See file "mss_mtrap.h" for description of the functions implemented
+ * in this file.
  */
 
 #include "mpfs_hal/mss_hal.h"

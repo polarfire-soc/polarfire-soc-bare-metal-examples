@@ -1,19 +1,19 @@
-/*******************************************************************************
- * (c) Copyright 2008-2023 Microchip FPGA Embedded Systems Solutions.
- * 
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
+ *
  * SPDX-License-Identifier: MIT
  *
  * @file coregpio_regs.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief CoreGPIO register definitions
+ * @brief CoreGPIO register header file
  *
  */
- 
+
 #ifndef __CORE_GPIO_REGISTERS_H
 #define __CORE_GPIO_REGISTERS_H    1
 
 /*------------------------------------------------------------------------------
- * 
+ *
  */
 #define IRQ_REG_OFFSET          0x80
 
@@ -23,7 +23,7 @@
 #define IRQ3_REG_OFFSET         0x8C
 
 /*------------------------------------------------------------------------------
- * 
+ *
  */
 #define GPIO_IN_REG_OFFSET      0x90
 
@@ -33,7 +33,7 @@
 #define GPIO_IN3_REG_OFFSET     0x9C
 
 /*------------------------------------------------------------------------------
- * 
+ *
  */
 #define GPIO_OUT_REG_OFFSET     0xA0
 

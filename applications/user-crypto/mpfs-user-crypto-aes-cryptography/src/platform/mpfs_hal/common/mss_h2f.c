@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * @file mss_m2f.c
+ * @file mss_h2f.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief M2F access data structures and functions.
+ * @brief mss_h2f source file
  *
  */
 

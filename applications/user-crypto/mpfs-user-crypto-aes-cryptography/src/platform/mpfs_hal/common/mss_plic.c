@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_plic.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC MSS PLIC and PRCI access data structures and functions.
+ * @brief mss_plic source file
  *
  * PLIC related data which cannot be placed in mss_plic.h
  *

@@ -1,17 +1,18 @@
-/***************************************************************************//**
- * Copyright 2013-2023 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * CoreSPI bare metal driver implementation for CoreSPI.
+ * @file core_spi.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief CoreSPI source file
+ *
+ * See file "core_spi.h" for description of the functions implemented
+ * in this file.
  *
  * This Core SPI driver provides functions for implementing SPI master or
  * SPI slave operations with the CoreSPI version 4.2.xxx It is not compatible
  * with CoreSPI version 3.0.xxx.
- *
- * @file core_spi.c
- * @author Microchip FPGA Embedded Systems Solutions
- * @brief CoreSPI software configuration
  *
  */
 
@@ -164,7 +165,7 @@ void SPI_configure_master_mode
 )
 {
     HAL_ASSERT( NULL_INSTANCE != this_spi );
-    
+
     if( NULL_INSTANCE != this_spi )
     {
         /* Disable the CoreSPI for a little while, while we configure the CoreSPI */
@@ -201,7 +202,7 @@ void SPI_set_slave_select
 
     HAL_ASSERT( NULL_INSTANCE != this_spi );
     HAL_ASSERT( SPI_MAX_NB_OF_SLAVES > slave );
-    
+
     if( ( NULL_INSTANCE != this_spi ) && ( SPI_MAX_NB_OF_SLAVES > slave ) )
     {
         /* This function is only intended to be used with an SPI master */
@@ -233,7 +234,7 @@ void SPI_clear_slave_select
 
     HAL_ASSERT( NULL_INSTANCE != this_spi );
     HAL_ASSERT( SPI_MAX_NB_OF_SLAVES > slave );
-    
+
     if( ( NULL_INSTANCE != this_spi ) && ( SPI_MAX_NB_OF_SLAVES > slave ) )
     {
         /* This function is only intended to be used with an SPI master. */
@@ -495,7 +496,7 @@ void SPI_transfer_block
 
 /***************************************************************************//**
  * SPI_transfer_block_store_all_resp()
- * See "core_spi.h" for details of how to use this function. 
+ * See "core_spi.h" for details of how to use this function.
  */
 void SPI_transfer_block_store_all_resp
 (
@@ -1206,7 +1207,7 @@ void SPI_isr
                 read_slave_rx_fifo( this_spi );
                 rx_size = this_spi->slave_rx_idx;
                 /*
-                 * Re-enable command interrupt if required. 
+                 * Re-enable command interrupt if required.
                  * Must be done before re loading FIFO to ensure stale response
                  * data is not pushed into the FIFO.
                  */
@@ -1279,7 +1280,7 @@ static void fill_slave_tx_fifo
 }
 
 /***************************************************************************//**
- * 
+ *
  */
 static void read_slave_rx_fifo
 (
@@ -1287,7 +1288,7 @@ static void read_slave_rx_fifo
 )
 {
     uint32_t rx_frame;
-    
+
     if( SPI_SLAVE_XFER_BLOCK == this_spi->slave_xfer_mode ) /* Block handling mode. */
     {
         while( !HAL_get_8bit_reg_field( this_spi->base_addr, STATUS_RXEMPTY ) )

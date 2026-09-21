@@ -1,7 +1,11 @@
-/*******************************************************************************
- * Copyright 2009-2023 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
+ *
+ * @file core_smbus_regs.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief CoreI2C smbus register header file
  *
  */
 
@@ -85,7 +89,7 @@
 #define TARGET_ADDR_OFFSET    0x08u
 #define TARGET_ADDR_MASK      0xFEu
 #define TARGET_ADDR_SHIFT     1u
- 
+
 /*
  * DIR bit.
  */

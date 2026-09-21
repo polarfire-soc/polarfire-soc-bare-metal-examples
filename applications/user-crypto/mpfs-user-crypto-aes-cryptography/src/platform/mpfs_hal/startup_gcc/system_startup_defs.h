@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file system_startup_defs.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Defines for the system_startup_defs.c
+ * @brief system_startup_defs header file
  *
  */
 

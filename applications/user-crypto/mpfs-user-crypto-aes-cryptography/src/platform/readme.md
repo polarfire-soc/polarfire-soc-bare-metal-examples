@@ -8,7 +8,7 @@
   |-- drivers
   |     |- fpga_ip
   |     |     | .
-  |     |     | .  
+  |     |     | .
   |     |-  mss
   |     |     |- mss-ethernet-mac
   |     |     |- mss-can
@@ -17,7 +17,7 @@
   |     |     |     .
   |     |     |     .
   |     |     |- mss-mmc
-  |     |     |- mss-watchdog  
+  |     |     |- mss-watchdog
   |     |           |- mss-watchdog.c
   |     |           |- mss-watchdog.h
   |     |

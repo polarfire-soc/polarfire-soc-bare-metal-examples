@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file cpu_types.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief 
+ * @brief cpu_types header file
  *
  */
 

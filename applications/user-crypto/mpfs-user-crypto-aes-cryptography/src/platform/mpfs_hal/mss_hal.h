@@ -1,12 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_hal.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief MPFS HAL include file. This is the file intended for application to
- * include so that all the other MPFS files are then accessible to it.
+ * @brief mss_hal header file
+ *
+ * MPFS HAL include file. This is the file intended for application to include
+ * so that all the other MPFS files are then accessible to it.
  *
  */
 
@@ -22,6 +24,7 @@ typedef long            ssize_t;
 #endif
 #endif
 
+#include "mpfs_hal_version.h"
 #include "common/mss_assert.h"
 #include "common/mss_legacy_defines.h"
 #include "common/mss_beu_def.h"

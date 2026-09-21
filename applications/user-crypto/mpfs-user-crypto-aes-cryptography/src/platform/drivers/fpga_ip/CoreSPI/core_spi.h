@@ -1,45 +1,14 @@
-/***************************************************************************//**
- * Copyright 2013-2023 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- *
- * Core SPI bare metal software driver public API.
- *
- * This Core SPI driver provides functions for implementing SPI master or
- * SPI slave operations with the CoreSPI version 4.2.xxx It is not compatible
- * with CoreSPI version 3.0.xxx.
- *
- * The Core SPI driver supports two classes of data transfer operation:
- * SPI frame operation or SPI block transfer operations.
- *
- * Frame operations allow transferring individual SPI frames from 4 to 32-bits
- * in length. Block operations allow transferring blocks of data organized as
- * 8-bit frames.
- *
  * @file core_spi.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief CoreSPI prototypes
- * 
+ * @brief CoreSPI header file
+ *
  */
- 
+
 /*=========================================================================*//**
   @mainpage Core SPI Bare Metal Driver.
 
@@ -76,21 +45,21 @@
   used to configure the CoreSPI instance as a master or slave as required by
   the application.
 
-  When CoreSPI wishes to communicate with a specific slave device, call 
+  When CoreSPI wishes to communicate with a specific slave device, call
   the SPI_set_slave_select() function with the slave number as an argument.
-  This function selects the slave device. A previously selected slave gets 
+  This function selects the slave device. A previously selected slave gets
   unselected by calling the SPI_clear_slave_select() function.
-  
+
   ==============================================================================
   Theory of Operation
-  ==============================================================================  
-  The CoreSPI driver functions are grouped into the following categories:  
+  ==============================================================================
+  The CoreSPI driver functions are grouped into the following categories:
     •   Initialization
     •   Configuration for either master or slave operations
     •   SPI master frame transfer control
     •   SPI master block transfer control
     •   SPI slave frame transfer control
-    •   SPI slave block transfer control  
+    •   SPI slave block transfer control
 
   Frame transfers allow CoreSPI to write or read up to 32-bits of data in a
   single SPI transaction. For example, a frame transfer of 12-bits might be used
@@ -148,56 +117,56 @@
 
   -------------------------------------
   SPI Master Frame Transfer Control
-  -------------------------------------  
-  The following functions are used as a part of the SPI master frame transfers:  
+  -------------------------------------
+  The following functions are used as a part of the SPI master frame transfers:
     •   SPI_set_slave_select()
     •   SPI_transfer_frame()
-    •   SPI_clear_slave_select()  
-  
+    •   SPI_clear_slave_select()
+
   The master must first select the target slave or slaves to be addressed by
-  calling the SPI_set_slave_select() function. This causes the relevant select 
+  calling the SPI_set_slave_select() function. This causes the relevant select
   line(s) to become asserted while data is clocked out onto the SPI data line.
-  
+
   A function call is then made to SPI_transfer_frame() specifying the value
   of the data frame to be sent and returning the value read.
-  
-  After the transfer is complete, use the SPI_clear_slave_select() function 
-  to prevent this slave select line from being asserted during subsequent SPI 
-  transactions. A call to this function is required only if the master is 
+
+  After the transfer is complete, use the SPI_clear_slave_select() function
+  to prevent this slave select line from being asserted during subsequent SPI
+  transactions. A call to this function is required only if the master is
   communicating with multiple slave devices.
 
   -------------------------------------
   SPI Master Block Transfer Control
-  -------------------------------------  
-  The following functions are used as a part of the SPI master block transfers:  
+  -------------------------------------
+  The following functions are used as a part of the SPI master block transfers:
     •   SPI_set_slave_select()
     •   SPI_transfer_block()
-    •   SPI_clear_slave_select()      
-  
+    •   SPI_clear_slave_select()
+
   The master must first select the target slave or slaves by calling
-  SPI_set_slave_select(). This causes the relevant slave select line(s) to 
+  SPI_set_slave_select(). This causes the relevant slave select line(s) to
   become asserted while data is clocked out onto the SPI data line.
   Alternatively, a general purpose input/output (GPIO) can be used to control
   the state of the target slave device's chip select signal.
-  
+
   A call is then made to the SPI_transfer_block() function. The parameters of
   this function specify the following:
     •   The number of bytes to be transmitted
     •   A pointer to the buffer containing the data to be transmitted
     •   The number of bytes to be received
     •   A pointer to the buffer where the received data gets stored
-   
+
   The number of bytes to be transmitted can be set to zero to indicate that the
   transfer is purely a block read transfer. The number of bytes to be received
   can be set to zero to specify that the transfer is purely a block write
-  transfer. 
-  
+  transfer.
+
   Block mode transfers as implemented by the driver are effectively half duplex
   as we do not store the values received from the slave device whilst we are
-  transmitting. If full duplex operation is required, the driver 
+  transmitting. If full duplex operation is required, the driver
   SPI_transfer_block() function can serve as a starting point for implementing
   full duplex block transfers.
-  
+
   The SPI_clear_slave_select() function can be used after the transfer is
   complete to prevent this slave select line from being asserted during
   subsequent SPI transactions. A call to this function is only required if
@@ -205,11 +174,11 @@
 
   -------------------------------------
   SPI Slave Frame Transfer Control
-  -------------------------------------  
-  The following functions are used as a part of the SPI slave frame transfers:  
+  -------------------------------------
+  The following functions are used as a part of the SPI slave frame transfers:
     •   SPI_set_frame_rx_handler()
     •   SPI_set_slave_tx_frame()
-   
+
   The SPI_set_frame_rx_handler() function specifies the receive handler
   function that is called when a frame of data has been received by the
   SPI when it is configured as a slave. The receive handler function specified
@@ -217,26 +186,26 @@
   SPI slave by the remote SPI master. The receive handler function must be
   implemented as part of the application. It is only required if the SPI slave
   is the target of SPI frame write transactions.
-  
+
   The SPI_set_slave_tx_frame() function specifies the frame data that is
   returned to the SPI master. The frame data specified through this function
   is the value that will be read over the SPI bus by the remote SPI master,
-  when it initiates a transaction. Call the SPI_set_slave_tx_frame() function 
+  when it initiates a transaction. Call the SPI_set_slave_tx_frame() function
   only if the SPI slave is the target of SPI read transactions. That is, if
   data is meant to be read over CoreSPI.
-  
+
   If both frame handlers are required, call the SPI_set_frame_rx_handler()
-  first, otherwise the initial TX frame gets discarded when SPI_set_frame_rx_handler() 
+  first, otherwise the initial TX frame gets discarded when SPI_set_frame_rx_handler()
   clears the FIFOs as part of its initialization.
 
   -------------------------------------
   SPI Slave Block Transfer Control
-  -------------------------------------  
-  The following functions are used as a part of the SPI slave block transfers:  
+  -------------------------------------
+  The following functions are used as a part of the SPI slave block transfers:
     •   SPI_set_slave_block_buffers()
-    •   SPI_set_cmd_handler()  
+    •   SPI_set_cmd_handler()
     •   SPI_set_cmd_response()
-   
+
   The SPI_set_slave_block_buffers() function is used to configure an SPI slave
   for block transfer operations. It specifies the following:
     •   The buffer containing the data that will be returned to the remote SPI
@@ -245,7 +214,7 @@
        stored
     •   The optional handler function that will be called after the receive
         buffer is filled
-      
+
   The SPI_set_cmd_handler() function specifies a command handler function that
   is called by the driver once a specific number of frames have been
   received after the SPI chip select signal becomes active. The number of
@@ -253,12 +222,12 @@
   the parameters to the SPI_set_cmd_handler() function. The command handler
   function is implemented as a part of the application making use of the SPI
   driver and typically calls the SPI_set_cmd_response() function.
-  
+
   The SPI_set_cmd_response() function specifies the data that gets returned
   to the master. Typically, the SPI_set_slave_block_buffers() function is
   called as a part of the system initialisation to specify the data sent to
   the master while the command bytes are being received. The transmit buffer
-  specified through calling the SPI_set_slave_block_buffers() function would 
+  specified through calling the SPI_set_slave_block_buffers() function would
   also typically include one or more bytes allowing the turn around time
   for the command handler function to execute and call the
   SPI_set_cmd_response() function.
@@ -282,15 +251,15 @@ extern "C" {
 /*-------------------------------------------------------------------------*//**
  SPI FIFO Depth
  =======================================
- SPI_MAX_FIFO_DEPTH & SPI_MIN_FIFO_DEPTH constants define the maximum and minimum 
- FIFO depths allowed for the CoreSPI instance. User need to inform the driver of 
+ SPI_MAX_FIFO_DEPTH & SPI_MIN_FIFO_DEPTH constants define the maximum and minimum
+ FIFO depths allowed for the CoreSPI instance. User need to inform the driver of
  the FIFO depth for each CoreSPI instance to ensure that the FIFOs are managed correctly.
- 
+
   | Constant           | Description                           				|
   |--------------------|----------------------------------------------------|
   | SPI_MAX_FIFO_DEPTH | Maximum FIFO depth allowed for the CoreSPI instance|
   | SPI_MIN_FIFO_DEPTH | Minimum FIFO depth allowed for the CoreSPI instance|
-  
+
  */
 #define SPI_MAX_FIFO_DEPTH               32u
 #define SPI_MIN_FIFO_DEPTH               1u
@@ -310,12 +279,12 @@ typedef struct spi_instance spi_instance_t;
  Declaring and Implementing Slave Frame Transmit Handler Functions:
     Slave transmit frame update handler functions should follow the following
     prototype:
-        void slave_tx_frame_update_handler ( spi_instance_t * this_spi );  
+        void slave_tx_frame_update_handler ( spi_instance_t * this_spi );
     The actual name of the transmit handler is unimportant. You can use any name
     of your choice for the frame update handler.
 
-    A common handler function may be used when multiple CoreSPI instances are 
-	configured as slave, as the particular slave device currently requiring 
+    A common handler function may be used when multiple CoreSPI instances are
+	configured as slave, as the particular slave device currently requiring
 	service is indicated by the function parameter.
  */
 typedef void (*spi_slave_frame_tx_handler_t)( spi_instance_t * this_spi );
@@ -328,11 +297,11 @@ typedef void (*spi_slave_frame_tx_handler_t)( spi_instance_t * this_spi );
   Declaring and Implementing the Slave Frame Receive Handler Functions:
      The Slave frame receive handler functions should follow the following
      prototype:
-         void slave_frame_receive_handler(uint32_t rx_frame);  
+         void slave_frame_receive_handler(uint32_t rx_frame);
      The actual name of the receive handler is unimportant. You can use any name
      of your choice for the receive frame handler. The rx_frame parameter contains
 	 the value of the received frame.
-    
+
      Separate handler functions are required for each slave instance as there is
      no indication of the slave requiring service passed to the handler.
 
@@ -346,12 +315,12 @@ typedef void (*spi_frame_rx_handler_t)( uint32_t rx_frame );
 
   Declaring and Implementing Slave Block Receive Handler Functions:
      Slave block receive handler functions should follow the following prototype:
-         void spi_block_rx_handler ( uint8_t * rx_buff, uint16_t rx_size );  
+         void spi_block_rx_handler ( uint8_t * rx_buff, uint16_t rx_size );
      The actual name of the receive handler is unimportant. You can use any name
-     of your choice for the receive frame handler. The rx_buff parameter contains 
-	 a pointer to the start of the received block. The rx_size parameter contains 
+     of your choice for the receive frame handler. The rx_buff parameter contains
+	 a pointer to the start of the received block. The rx_size parameter contains
 	 the number of bytes of the received block.
-    
+
      Separate handler functions are required for each slave instance as there is
      no indication of the slave requiring service passed to the handler.
 
@@ -390,7 +359,7 @@ typedef enum __spi_sxfer_mode_t
 /***************************************************************************//**
   There is one instance of this structure for each of the core SPIs. Instances
   of this structure are used to identify a specific SPI. A pointer to an
-  instance of the spi_instance_t structure is passed as the first parameter to 
+  instance of the spi_instance_t structure is passed as the first parameter to
   SPI driver functions to identify which SPI should perform the requested operation.
   */
 struct spi_instance{
@@ -445,7 +414,7 @@ struct spi_instance{
   called for each CoreSPI instance with a unique this_spi and base_addr
   parameter combination. The SPI_init() function must be called before any
   other CoreSPI driver functions are called.
-  
+
   After calling the SPI_init() the CoreSPI is configured as a master,
   all interrupt sources will be masked and all the slaves are deselected.
 
@@ -585,7 +554,7 @@ void SPI_set_slave_select
 /***************************************************************************//**
   The SPI_clear_slave_select() function is used by a CoreSPI master to
   deselect a specific slave. This function causes the relevant slave select
-  signal to be de-asserted. 
+  signal to be de-asserted.
 
   @param this_spi
   The this_spi parameter is a pointer to a spi_instance_t structure that identifies
@@ -634,8 +603,8 @@ void SPI_clear_slave_select
 
   @param tx_bits
   The tx_bits parameter is a 32-bit word containing the value that will be
-  transmitted. If the frame size configured for the CoreSPI is less than 32-bits, 
-  the upper bits will be ignored.  
+  transmitted. If the frame size configured for the CoreSPI is less than 32-bits,
+  the upper bits will be ignored.
   Note: The bit length of the value to be transmitted to the slave is
   set when the CoreSPI is instantiated in the hardware design.
 
@@ -644,7 +613,7 @@ void SPI_clear_slave_select
   from the slave. If the frame size configured for the CoreSPI in question is
   less that 32-bits, the upper bits will be 0.
 
-  @example 
+  @example
   @code
   #define SPI0_BASE_ADDR 0xC2000000
 
@@ -668,9 +637,9 @@ uint32_t SPI_transfer_frame
 /***************************************************************************//**
   The SPI_transfer_block() function is used by the SPI master to transmit and
   receive blocks of data organized as a specified number of 8-bit frames. It
-  can be used for the following:  
-    •    Writing a data block to a slave  
-    •    Reading a data block from a slave  
+  can be used for the following:
+    •    Writing a data block to a slave
+    •    Reading a data block from a slave
     •    Sending a command to a slave followed by reading the outcome of
          the command in a single SPI transaction.
 
@@ -680,17 +649,17 @@ uint32_t SPI_transfer_frame
   a g_core_spi global data structure defined within the application code.
 
   @param cmd_buffer
-  The cmd_buffer parameter is a pointer to the buffer that contains the data 
-  sent by the master from the beginning of the transfer. This pointer can be 
+  The cmd_buffer parameter is a pointer to the buffer that contains the data
+  sent by the master from the beginning of the transfer. This pointer can be
   null (0) if the master does not need to send a command before reading data.
 
   @param cmd_byte_size
-  The cmd_byte_size parameter specifies the number of bytes in cmd_buffer that 
+  The cmd_byte_size parameter specifies the number of bytes in cmd_buffer that
   will be sent. A value ‘0’ indicates that no data needs to be sent to the slave.
 
   @param rx_buffer
   The rx_buffer parameter is a pointer to the buffer that stores the data received
-  from the slave after sending the command. This pointer can be null (0) if the 
+  from the slave after sending the command. This pointer can be null (0) if the
   master does not receive any data from the slave.
 
   @param rx_byte_size
@@ -738,22 +707,22 @@ void SPI_transfer_block
 );
 
 /***************************************************************************//**
-  The SPI_transfer_block_store_all_resp() function is used by the SPI master 
-  to transmit and receive blocks of data organized as a specified number 
-  of 8-bit frames. It can be used for the following:  
-    •    Writing a data block to a slave  
-    •    Reading a data block from a slave  
+  The SPI_transfer_block_store_all_resp() function is used by the SPI master
+  to transmit and receive blocks of data organized as a specified number
+  of 8-bit frames. It can be used for the following:
+    •    Writing a data block to a slave
+    •    Reading a data block from a slave
     •    Sending a command to a slave followed by reading the outcome of
          the command in a single SPI transaction
-  
+
   @param this_spi
   The this_spi parameter is a pointer to a spi_instance_t structure that identifies
   the CoreSPI hardware block to operate on. This parameter must point to
   a g_core_spi global data structure defined within the application code.
 
   @param cmd_buffer
-  The cmd_buffer parameter is a pointer to the buffer that contains the data sent by 
-  the master from the beginning of the transfer. This pointer can be null (0) 
+  The cmd_buffer parameter is a pointer to the buffer that contains the data sent by
+  the master from the beginning of the transfer. This pointer can be null (0)
   if the master does not need to send a command before reading data.
 
   @param cmd_byte_size
@@ -763,7 +732,7 @@ void SPI_transfer_block
 
   @param rx_data_buffer
   The rx_data_buffer parameter is a pointer to the buffer that stores the data received
-  from the slave after sending the command. This pointer can be null (0) if the 
+  from the slave after sending the command. This pointer can be null (0) if the
   master does not receive any data from the slave.
 
   @param rx_byte_size
@@ -790,9 +759,9 @@ void SPI_transfer_block
       {
           0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A
       };
-	  
+
 	  uint8_t cmd_rx_buffer[CMD_RX_BUFFER]={0};
-      
+
 	  SPI_init( &g_spi0, SPI0_BASE_ADDR, 8 );
 
       SPI_configure_master_mode( &g_spi0 );
@@ -877,7 +846,7 @@ void SPI_set_frame_rx_handler
 
   @param frame_value
   The frame_value parameter contains the value of the frame to be sent to the
-  master.  
+  master.
   Note: The bit length of the value to be transmitted to the master is
   set when the CoreSPI is instantiated in the hardware design.
 
@@ -923,26 +892,26 @@ void SPI_set_slave_tx_frame
 
 /***************************************************************************//**
   The SPI_set_slave_block_buffers() function is used to configure an SPI slave
-  for block transfer operations. It specifies one or more of the following:  
-    •   The data that is transmitted when accessed by a master.  
-    •   The buffer where the data received from a master is stored.  
+  for block transfer operations. It specifies one or more of the following:
+    •   The data that is transmitted when accessed by a master.
+    •   The buffer where the data received from a master is stored.
     •   The handler function that must be called after the receive buffer has
-        been filled.  
-    •   The number of bytes that must be received from the master before calling 
+        been filled.
+    •   The number of bytes that must be received from the master before calling
 		the recieve handler function.
-    These parameters allow the following use cases:  
+    These parameters allow the following use cases:
     •   Slave performing an action after receiving a block of data from a
         master containing a command. This action is performed by the
-        receive handler based on the content of the receive data buffer.  
+        receive handler based on the content of the receive data buffer.
     •   Slave returning a block of data to the master. The type of information
         is always the same but the actual values change over time. For example,
-        returning the voltage of a predefined set of analog inputs.  
+        returning the voltage of a predefined set of analog inputs.
     •   Slave returning data based on a command contained in the first part of
         the SPI transaction. For example, reading the voltage of the analog
         input specified by the first data byte by the master. This is achieved
         by using the SPI_set_slave_block_buffers() function in conjunction with
-        functions SPI_set_cmd_handler() and SPI_set_cmd_response().  
-        
+        functions SPI_set_cmd_handler() and SPI_set_cmd_response().
+
         See the SPI_set_cmd_handler() function description for details of
         this use case.
 
@@ -962,11 +931,11 @@ void SPI_set_slave_tx_frame
   tx_buffer. This parameter can be set to ‘0’ if the SPI slave is not
   intended to be the target of SPI read transactions. The driver returns 0s
   to the master if there is no buffer specified or the master reads beyond the
-  end of the buffer.  
-  Note: If SPI_transfer_block() is used to read from this slave and there is 
-  no command handler involved, the buffer size here must be at least the 
-  combined length of the command and response specified by the master. 
-  On receiving this data, the master discards the data bytes equal to 
+  end of the buffer.
+  Note: If SPI_transfer_block() is used to read from this slave and there is
+  no command handler involved, the buffer size here must be at least the
+  combined length of the command and response specified by the master.
+  On receiving this data, the master discards the data bytes equal to
   command length bytes from the start of the received buffer.
 
   @param rx_buffer
@@ -979,9 +948,9 @@ void SPI_set_slave_tx_frame
   The rx_buff_size parameter specifies the size of the receive buffer. It is
   also the number of bytes that must be received before the receive handler
   is called, if a receive handler is specified using the block_rx_handler
-  parameter. Any bytes received in excess of the size specified by the 
-  rx_buff_size parameter are discarded. This parameter can be set to ‘0’ 
-  if the SPI slave is not intended to be the target of SPI write or 
+  parameter. Any bytes received in excess of the size specified by the
+  rx_buff_size parameter are discarded. This parameter can be set to ‘0’
+  if the SPI slave is not intended to be the target of SPI write or
   write-read transactions.
 
   @param block_rx_handler
@@ -1121,24 +1090,24 @@ void SPI_isr
   The SPI_set_cmd_handler() function specifies a command handler function that
   will be called when the number of bytes received reaches the command size
   specified as cmd_size parameter.
-  
-  This function is used by the SPI slaves performing block transfers. Its 
+
+  This function is used by the SPI slaves performing block transfers. Its
   purpose is to allow an SPI slave to decide the data that will be returned to
   the master while an SPI transaction is taking place. Typically, one or more
   command bytes are sent by the master to request some specific data. The slave
-  interprets the command byte(s) while one or more turn-around bytes are 
+  interprets the command byte(s) while one or more turn-around bytes are
   transmitted. The slave adjusts its transmit data buffer based on the command
   during the turn around time.
 
   The following table provides an example of the use of this function where the
   SPI slave returns data bytes D0 to D6 based on the value of a command. The
-  3 bytes long command is made up of a command opcode byte followed by an 
-  address byte followed by a size byte. The cmd_handler() function specified 
+  3 bytes long command is made up of a command opcode byte followed by an
+  address byte followed by a size byte. The cmd_handler() function specified
   through an earlier call to SPI_set_cmd_handler() is called by the CoreSPI
-  driver once the third byte is received. The cmd_handler() function 
+  driver once the third byte is received. The cmd_handler() function
   interprets the command bytes and calls SPI_set_cmd_response() to set the SPI
   slave's response transmit buffer with the data to be transmitted after the
-  turnaround bytes (T0 to T3). The number of turnaround bytes must be 
+  turnaround bytes (T0 to T3). The number of turnaround bytes must be
   sufficient to give enough time for the cmd_handler() to execute. The number
   of turnaround bytes is specified by the protocol used on top of the SPI
   transport layer so that master and slave agree on the number of turn around
@@ -1147,8 +1116,8 @@ void SPI_isr
 |Timestamp| SPI Transaction         |         Bytes         | Comments      |
 |---------|-------------|----------------------|---------------|
 | t0|COMMAND|C  A  S |C - command opcode byte, A - address byte, S - size byte|
-|t1| TURN-AROUND|T0 T1 |cmd_handler() called here (T0 to T3 are TURN-AROUND bytes)|   
-|t2|TURN-AROUND|T2 T3|SPI_set_cmd_response() called here by implementation of cmd_handler()   
+|t1| TURN-AROUND|T0 T1 |cmd_handler() called here (T0 to T3 are TURN-AROUND bytes)|
+|t2|TURN-AROUND|T2 T3|SPI_set_cmd_response() called here by implementation of cmd_handler()
 ||	|  |to set the data that will be transmitted by the SPI slave.|
 |t3| DATA | D0 D1 D2 D3 D4 D5 D6 |Data transmition (SPI slave return data bytes)|
 
@@ -1160,7 +1129,7 @@ void SPI_isr
 
   @param cmd_handler
   The cmd_handler parameter is a pointer to a function with the prototype:
-      void cmd_handler(uint8_t * rx_buff, uint32_t rx_size);  
+      void cmd_handler(uint8_t * rx_buff, uint32_t rx_size);
   It specifies the function that will be called when the number of bytes
   specified by the cmd_size parameter has been received.
 
@@ -1268,7 +1237,7 @@ void SPI_set_cmd_handler
   that must be returned to the host in the data phase of an SPI transaction.
 
   @param resp_buff_size
-  The resp_buff_size parameter specifies the size of the buffer pointed by the 
+  The resp_buff_size parameter specifies the size of the buffer pointed by the
   resp_tx_buffer parameter.
 
   @return

@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_sysreg.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Hardware register definitions.
+ * @brief mss_sysreg header file
  *
  */
 

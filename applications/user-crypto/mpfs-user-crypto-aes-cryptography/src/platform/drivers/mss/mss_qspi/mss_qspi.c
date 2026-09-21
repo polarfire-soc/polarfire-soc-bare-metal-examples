@@ -1,12 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_qspi.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) QSPI bare metal software
- * driver implementation.
+ * @brief mss_qspi source file
+ *
+ * See file "mss_qspi.h" for description of the functions implemented
+ * in this file.
  *
  */
 
@@ -20,6 +22,28 @@ static void default_status_hanlder(uint32_t value);
 static volatile uint32_t g_irq_rd_byte_size = 0u;
 static void * g_rd_buffer;
 static volatile mss_qspi_status_handler_t g_handler;
+
+static inline void MSS_QSPI_SleepExtRO_ExtRW()
+{
+    /*
+     * This delay is needed only for the EXT_RO and EXT_RW modes
+     * with out this delay the TXDATAX1 FIFO is not getting updated
+     * with proper data.
+     * Ex: if the bytes to send are 267 then the last 3 bytes that
+     * are getting written into the TXDATAX1 FIFO are not properly
+     * written.
+     * Where as this delay is not needed for other modes like NORMAL,
+     * FULL_QUAD/FULL_DUAL.
+     */
+    volatile uint32_t reg = QSPI->CONTROL;
+    reg &= (uint32_t )((uint32_t )CTRL_QMODE12_MASK | (uint32_t )CTRL_QMODE0_MASK);
+    reg = reg >> CTRL_QMODE0;
+
+    if(reg > MSS_QSPI_NORMAL && reg < MSS_QSPI_DUAL_FULL)
+    {
+        sleep_us(10);
+    }
+}
 
 /***************************************************************************//**
  * See mss_qspi.h for details of how to use this function.
@@ -146,7 +170,7 @@ void MSS_QSPI_polled_transfer_block
      * Where as this delay is not needed for other modes like NORMAL,
      * FULL_QUAD/FULL_DUAL.
      */
-    sleep_ms(10);
+    MSS_QSPI_SleepExtRO_ExtRW();
     for (idx = (cbytes - (cbytes % 4u)); idx < cbytes; ++idx)
     {
         while (QSPI->STATUS & STTS_TFFULL_MASK){};
@@ -258,7 +282,7 @@ uint8_t MSS_QSPI_irq_transfer_block
          * Where as this delay is not needed for other modes like SPI,
          * FULL_QUAD/FULL_DUAL.
          */
-        sleep_ms(10);
+        MSS_QSPI_SleepExtRO_ExtRW();
         for (idx = (cbytes - (cbytes % 4u)); idx < cbytes; ++idx)
         {
             while (QSPI->STATUS & STTS_TFFULL_MASK){};
@@ -280,7 +304,7 @@ uint8_t MSS_QSPI_irq_transfer_block
      * the data available in RXFIFO is incorrect.
      */
     if (rd_byte_size != 0)
-       sleep_ms(10);
+       sleep_us(10);
 
     return 0;
 }

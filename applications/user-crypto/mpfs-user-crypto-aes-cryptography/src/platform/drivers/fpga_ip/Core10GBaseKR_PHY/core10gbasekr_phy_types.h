@@ -5,7 +5,7 @@
  *
  * @file core10gbasekr_phy_types.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Core10GBaseKR_PHY Types
+ * @brief Core10GBaseKR_PHY type definition header file
  *
  */
 
