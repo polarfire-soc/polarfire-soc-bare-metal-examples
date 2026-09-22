@@ -1,15 +1,16 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_usb_config.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
+ * @brief mss_usb configuration header file
  *
  * MSS USB Driver stack configuration parameters.
  * User must choose the constant definitions in this file to select the mode of
  * operation.
+ *
  * The constants defined in this file are used by MSS USB driver stack to
  * function as per configuration.
  *

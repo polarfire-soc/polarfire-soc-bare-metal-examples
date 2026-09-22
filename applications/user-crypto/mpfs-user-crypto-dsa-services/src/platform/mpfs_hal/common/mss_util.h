@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_util.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief MACROs defines and prototypes associated with utility functions
+ * @brief mss_util header file
  *
  */
 
@@ -44,7 +44,7 @@ extern "C" {
  */
 uint64_t readmcycle(void);
 
-void sleep_ms(uint64_t msecs);
+void sleep_us(uint64_t usecs);
 void sleep_cycles(uint64_t ncycles);
 
 

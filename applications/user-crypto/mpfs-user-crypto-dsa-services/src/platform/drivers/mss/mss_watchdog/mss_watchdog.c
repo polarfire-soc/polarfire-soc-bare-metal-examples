@@ -1,12 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_watchdog.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) Watchdog bare metal
- * software driver implementation.
+ * @brief mss_watchdog source file
+ *
+ * See file "mss_watchdog.h" for description of the functions implemented
+ * in this file.
  *
  */
 
@@ -15,7 +17,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 WATCHDOG_TypeDef* wdog_hw_base[10] = {(WATCHDOG_TypeDef*)0x20001000,
                                       (WATCHDOG_TypeDef*)0x20101000,

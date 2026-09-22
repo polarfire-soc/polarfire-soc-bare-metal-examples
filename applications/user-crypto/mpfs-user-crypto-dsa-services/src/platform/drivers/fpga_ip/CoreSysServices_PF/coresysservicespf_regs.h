@@ -1,9 +1,12 @@
-/*******************************************************************************
- * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Register bit offsets and masks definitions for CoreSysServices_PF driver.
+ * @file coresysservicespf_regs.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief CoreSysServices_PF register header file
+ *
  */
 
 #ifndef __CORE_SYSSERV_PF_REGISTERS

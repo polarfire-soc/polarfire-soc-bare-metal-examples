@@ -1,13 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_usb_device.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
- *         USB Logical Layer (USB-LL)
- *           USBD driver
+ * @brief mss_usb device register source file
+ *
+ * See file "mss_usb_device.h" for description of the functions implemented
+ * in this file.
  *
  * USBD driver implementation:
  * This source file implements the common functionality of USB device mode,

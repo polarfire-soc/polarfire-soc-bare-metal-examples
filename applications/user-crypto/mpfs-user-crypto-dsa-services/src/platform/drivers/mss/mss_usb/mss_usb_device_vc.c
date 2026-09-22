@@ -1,13 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_usb_device_vc.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
- *          USB Logical Layer (USB-LL)
- *            USBD Video class driver
+ * @brief mss_usb device register VC source file
+ *
+ * See file "mss_usb_device_vc.h" for description of the functions implemented
+ * in this file.
  *
  * USBD Video class driver implementation:
  * This source file implements USB video class functionality.
@@ -22,7 +23,7 @@
 extern "C" {
 #endif
 
-#ifdef MSS_USB_DEVICE_ENABLED 
+#ifdef MSS_USB_DEVICE_ENABLED
 
 #define UV_CLASS_INTERFACE_NUM                          0x00
 
@@ -64,6 +65,9 @@ extern "C" {
 
 /* get status with self powered(SP) and remote wakeup(RW) bits */
 #define GET_STATUS_RW_SP                                0x83
+
+/* video probe control request */
+#define GET_REQUEST_DEF                                 0x87
 
 #define BCDUSB_NUMBER_OF_USB_1_DOT_0                    0x0100
 #define BCDUSB_NUMBER_OF_USB_2_DOT_0                    0x0200
@@ -218,24 +222,24 @@ uint8_t uvc_conf_descr[] = {
     /*------------ Configuration Descriptor ----------------------------------*/
     0x09,                                 /* Descriptor Size */
     0x02,                                 /* Configuration Descriptor Type */
-    0xA7,0x00,                            /* Length of this descriptor and all 
+    0xA7,0x00,                            /* Length of this descriptor and all
                                            sub descriptors */
     0x02,                                 /* Number of interfaces */
     0x01,                                 /* Configuration number */
     0x00,                                 /* Configuration string index */
-    0x80,                                 /* Config characteristics - Bus 
+    0x80,                                 /* Config characteristics - Bus
                                            powered */
-    0xFA,                                 /* Max power consumption of device 
+    0xFA,                                 /* Max power consumption of device
                                            (in 2mA unit) : 500mA */
     /*------------ Interface Association Descriptor --------------------------*/
     0x08,                                 /* Descriptor Size */
-    11,                                   /* Interface Association Descriptor 
+    11,                                   /* Interface Association Descriptor
                                            Type: 11 */
-    0x00,                                 /* I/f number of first VideoControl 
+    0x00,                                 /* I/f number of first VideoControl
                                            i/f */
     0x02,                                 /* Number of Video i/f */
     0x0E,                                 /* CC_VIDEO : Video i/f class code */
-    0x03,                                 /* SC_VIDEO_INTERFACE_COLLECTION : 
+    0x03,                                 /* SC_VIDEO_INTERFACE_COLLECTION :
                                            Subclass code */
     0x00,                                 /* Protocol : Not used */
     0x00,                                 /* String desc index for interface */
@@ -246,21 +250,21 @@ uint8_t uvc_conf_descr[] = {
     0x00,                                 /* Alternate setting number */
     0x00,                                 /* Number of end points */
     0x0E,                                 /* CC_VIDEO : Interface class */
-    0x01,                                 /* CC_VIDEOCONTROL : Interface sub 
+    0x01,                                 /* CC_VIDEOCONTROL : Interface sub
                                            class */
     0x00,                                 /* Interface protocol code */
     0x00,                                 /* Interface descriptor string index*/
     /*------------ Class specific VC Interface Header Descriptor  ------------*/
     0x0D,                                 /* Descriptor size */
-    0x24,                                 /* Class Specific I/f Header 
+    0x24,                                 /* Class Specific I/f Header
                                            Descriptor type */
     0x01,                                 /* Descriptor Sub type : VC_HEADER */
     0x00,0x01,                            /* Revision of class spec : 1.0 */
-    0x27,0x00,                            /* Total Size of class specific 
+    0x27,0x00,                            /* Total Size of class specific
                                            descriptors (till Output terminal) */
     0x80,0x8D,0x5B,0x00,                  /* Clock frequency:48MHz(Deprecated)*/
     0x01,                                 /* Number of streaming interfaces */
-    0x01,                                 /* Video streaming I/f 1 belongs to 
+    0x01,                                 /* Video streaming I/f 1 belongs to
                                            VC i/f */
     /*------------ Input (Camera) Terminal Descriptor Descriptor  ------------*/
     0x11,                                 /* Descriptor size */
@@ -273,7 +277,7 @@ uint8_t uvc_conf_descr[] = {
     0x00,0x00,                            /* No optical zoom supported */
     0x00,0x00,                            /* No optical zoom supported */
     0x00,0x00,                            /* No optical zoom supported */
-    0x02,                                 /* Size of controls field for this 
+    0x02,                                 /* Size of controls field for this
                                            terminal : 2 bytes */
     0x00,0x00,                            /* No controls supported */
     /*----------- Output Terminal Descriptor ---------------------------------*/
@@ -283,7 +287,7 @@ uint8_t uvc_conf_descr[] = {
     0x02,                                 /* ID of this terminal */
     0x01,0x01,                            /* USB Streaming terminal type */
     0x00,                                 /* No association terminal */
-    0x01,                                 /* Source ID : 1 : Connected to Extn 
+    0x01,                                 /* Source ID : 1 : Connected to Extn
                                            Unit */
     0x00,                                 /* String desc index : Not used */
     /* Video Streaming (VS) Interface Descriptor */
@@ -293,10 +297,10 @@ uint8_t uvc_conf_descr[] = {
     0x04,                                 /* Interface Descriptor type */
     0x01,                                 /* Interface number */
     0x00,                                 /* Alternate setting number */
-    0x00,                                 /* Number of end points : Zero 
+    0x00,                                 /* Number of end points : Zero
                                            Bandwidth */
     0x0E,                                 /* Interface class : CC_VIDEO */
-    0x02,                                 /* Interface sub class : 
+    0x02,                                 /* Interface sub class :
                                            CC_VIDEOSTREAMING */
     0x00,                                 /* Interface protocol code: Undefined */
     0x00,                                 /* Interface descriptor string index */
@@ -305,15 +309,15 @@ uint8_t uvc_conf_descr[] = {
     0x24,                                 /* Class-specific VS I/f Type */
     0x01,                                 /* Descriptotor Subtype : Input Header */
     0x01,                                 /* 1 format desciptor follows */
-    0x4D,0x00,                            /* Total size of Class specific VS 
+    0x4D,0x00,                            /* Total size of Class specific VS
                                            descr: 41 Bytes */
     0x81,                                 /* EP address for BULK video data */
     0x00,                                 /* No dynamic format change supported */
     0x02,                                 /* Output terminal ID : 4 */
-    0x00,                                 /* Still image capture method 1 
+    0x00,                                 /* Still image capture method 1
                                            supported */
     0x01,                                 /* Hardware trigger NOT supported */
-    0x00,                                 /* Hardware to initiate still image 
+    0x00,                                 /* Hardware to initiate still image
                                            capture NOT supported */
     0x01,                                 /* Size of controls field : 1 byte */
     0x00,                                 /* D2: Compression quality supported */
@@ -321,57 +325,57 @@ uint8_t uvc_conf_descr[] = {
     0x1B,                                 /* Descriptor size */
     0x24,                                 /* Class-specific VS I/f Type */
     0x04,                                 /* Subtype : uncompressed format I/F */
-    0x01,                                 /* Format desciptor index (only one 
+    0x01,                                 /* Format desciptor index (only one
                                            format is supported) */
     0x01,                                 /* number of frame descriptor followed */
-    0x59,0x55,0x59,0x32,                  /* GUID, globally unique identifier 
-                                           used to identify streaming-encoding 
+    0x59,0x55,0x59,0x32,                  /* GUID, globally unique identifier
+                                           used to identify streaming-encoding
                                            format: YUY2  */
     0x00,0x00,0x10,0x00,
     0x80,0x00,0x00,0xAA,
     0x00,0x38,0x9B,0x71,
-    0x10,                                 /* Number of bits per pixel used to 
-                                           specify color in the decoded video 
-                                           frame. 0 if not applicable: 10 bit 
+    0x10,                                 /* Number of bits per pixel used to
+                                           specify color in the decoded video
+                                           frame. 0 if not applicable: 10 bit
                                            per pixel */
-    0x01,                                 /* Optimum Frame Index for this 
+    0x01,                                 /* Optimum Frame Index for this
                                            stream: 1 */
-    0x00,                                 /* X dimension of the picture aspect 
-                                           ratio: Non-interlaced in progressive 
+    0x00,                                 /* X dimension of the picture aspect
+                                           ratio: Non-interlaced in progressive
                                            scan */
-    0x00,                                 /* Y dimension of the picture aspect 
-                                           ratio: Non-interlaced in progressive 
+    0x00,                                 /* Y dimension of the picture aspect
+                                           ratio: Non-interlaced in progressive
                                            scan*/
-    0x00,                                 /* Interlace Flags: Progressive 
+    0x00,                                 /* Interlace Flags: Progressive
                                            scanning, no interlace */
-    0x00,                                 /* duplication of the video stream 
+    0x00,                                 /* duplication of the video stream
                                            restriction: 0 - no restriction */
     /* Class specific Uncompressed VS Frame descriptor */
     0x1E,                                 /* Descriptor size */
     0x24,                                 /* Descriptor type*/
     0x05,                                 /* Subtype: uncompressed frame I/F */
     0x01,                                 /* Frame Descriptor Index */
-    0x02,                                 /* Still image capture method 1 
+    0x02,                                 /* Still image capture method 1
                                            supported, fixed frame rate */
     WBVAL(USB_VIDEO_CAMERA_FRAME_WIDTH),  /* Width in pixel: 160-QVGA */
     WBVAL(USB_VIDEO_CAMERA_FRAME_HEIGHT), /* Height in pixel 120-QVGA */
-    DBVAL(MIN_BIT_RATE),                  /* Min bit rate bits/s. Not specified, 
+    DBVAL(MIN_BIT_RATE),                  /* Min bit rate bits/s. Not specified,
                                            taken from MJPEG */
-    DBVAL(MAX_BIT_RATE),                  /* Max bit rate bits/s. Not specified, 
+    DBVAL(MAX_BIT_RATE),                  /* Max bit rate bits/s. Not specified,
                                            taken from MJPEG */
-    DBVAL(MAX_FRAME_SIZE),                /* Maximum video or still frame size 
+    DBVAL(MAX_FRAME_SIZE),                /* Maximum video or still frame size
                                            in bytes(Deprecated) */
     DBVAL(INTERVAL),                      /* Default Frame Interval */
-    0x01,                                 /* Frame interval(Frame Rate) types: 
+    0x01,                                 /* Frame interval(Frame Rate) types:
                                            Only one frame interval supported */
     DBVAL(INTERVAL),                      /* Shortest Frame Interval */
     /* Color Matching Descriptor */
     0x06,                                 /* bLength */
     0x24,                                 /* bDescriptorType : CS_INTERFACE */
     0x0D,                                 /* bDescriptorSubType: VS_COLORFORMAT */
-    0x01,                                 /* bColorPrimarie : 1: BT.709, sRGB 
+    0x01,                                 /* bColorPrimarie : 1: BT.709, sRGB
                                            (default) */
-    0x01,                                 /* bTransferCharacteristics : 1: 
+    0x01,                                 /* bTransferCharacteristics : 1:
                                            BT.709 (default) */
     0x04,                                 /* bMatrixCoefficients : 1: BT. 709. */
     /* Standard Video Streaming Interface Descriptor (Alternate Setting 1) */
@@ -379,10 +383,10 @@ uint8_t uvc_conf_descr[] = {
     0x04,                                 /* Interface Descriptor type */
     0x01,                                 /* Interface number */
     0x01,                                 /* Alternate setting number */
-    0x01,                                 /* Number of end points : Zero 
+    0x01,                                 /* Number of end points : Zero
                                            Bandwidth */
     0x0E,                                 /* Interface class : CC_VIDEO */
-    0x02,                                 /* Interface sub class : 
+    0x02,                                 /* Interface sub class :
                                            CC_VIDEOSTREAMING */
     0x00,                                 /* Interface protocol code: Undefined */
     0x00,                                 /* Interface descriptor string index */
@@ -391,13 +395,13 @@ uint8_t uvc_conf_descr[] = {
     0x5,                                  /* Endpoint Descriptor Type */
     0x81,                                 /* Endpoint address and description */
     USB_TRANSFER_TYPE_ISOCHRONOUS,        /* Isochronous End point */
-    0x00, 0x14,                           /* max packet size : 3 packets per 
+    0x00, 0x14,                           /* max packet size : 3 packets per
                                            microframe */
-    /* 0x00, 0x0C, */                     /* max packet size : 2 packets per 
+    /* 0x00, 0x0C, */                     /* max packet size : 2 packets per
                                            microframe */
-    /* 0x00, 0x04, */                     /* max packet size : 1 packets per 
+    /* 0x00, 0x04, */                     /* max packet size : 1 packets per
                                            microframe */
-    0x01                                  /* Servicing interval for data 
+    0x01                                  /* Servicing interval for data
                                            transfers */
 };
 
@@ -491,7 +495,7 @@ UVC_get_descriptor_cb
 
 /***************************************************************************//**
  UVC_init_cb() call-back is called by USB Device mode driver on receiving
- SET_CONFIGURATION command. The Video class specific configurations are 
+ SET_CONFIGURATION command. The Video class specific configurations are
  performed by this function.
  */
 static uint8_t
@@ -543,7 +547,7 @@ UVC_init_cb
 }
 
 /***************************************************************************//**
- UVC_release_cb() call-back is called by USB Device mode driver on 
+ UVC_release_cb() call-back is called by USB Device mode driver on
  receiving a command to clear the configuration.
  */
 static uint8_t
@@ -602,6 +606,12 @@ UVC_process_request_cb
                 case GET_STATUS_RW_SP:
                    memset(&videoProbeControl,0xff,34);
                   *buf_pp = (uint8_t*)&videoProbeControl;
+                  *length = setup_pkt->length;
+                break;
+
+                case GET_REQUEST_DEF:
+                   memset(&videoProbeControl, 0xff, 34);
+                  *buf_pp = (uint8_t*) &videoProbeControl;
                   *length = setup_pkt->length;
                 break;
 

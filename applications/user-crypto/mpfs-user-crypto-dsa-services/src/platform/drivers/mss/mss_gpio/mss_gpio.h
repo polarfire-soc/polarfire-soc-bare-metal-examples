@@ -1,12 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_gpio.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) GPIO bare metal software
- * driver public API.
+ * @brief mss_gpio header file
  *
  */
 
@@ -78,19 +77,20 @@
   --------------------------------
   Initialization
   --------------------------------
-  The MSS GPIO driver is initialized through a call to the MSS_GPIO_init()
-  function. The MSS_GPIO_init() function must be called before any other MSS
-  GPIO driver functions can be called.
+  The MSS GPIO driver is initialized by calling the MSS_GPIO_init() function.
+  The MSS_GPIO_init() function must be called before calling any other MSS GPIO.
 
   --------------------------------
   Configuration
   --------------------------------
-  Each GPIO port is individually configured through a call to the
-  MSS_GPIO_config() function. Configuration includes deciding if a GPIO port
-  will be used as an input, an output or both. GPIO ports configured as inputs
-  can be further configured to generate interrupts based on the input's state.
-  Interrupts can be level or edge sensitive. The MSS_GPIO_config_byte() function
-  can be used to configure eight consecutive GPIO ports identically. The
+  Each GPIO port is individually configured by calling the MSS_GPIO_config()
+  function. Configuration includes deciding if a GPIO port will be used as an
+  input, or an output, or both. GPIO ports configured as inputs can be further
+  configured to generate interrupts based on the input's state. Interrupts can
+  be level or edge sensitive. Level interrupts will clear once the interrupt
+  source is removed. Edge sensitive interrupts hold their value until it is
+  cleared by MSS_GPIO_clear_irq(). The MSS_GPIO_config_byte() function can be
+  used to configure eight consecutive GPIO ports identically. The
   MSS_GPIO_config_byte() function can be used to configure all available GPIO
   ports identically.
 
@@ -126,9 +126,9 @@
   GPIO2 bit0 interrupt is available on the direct input pin on the PLIC. In this
   case, the GPIO0 bit 0 interrupt is not available on the direct input pin on
   the PLIC. The GPIO0 non-direct input is asserted as an OR of all the GPIO0
-  interrupts, which don't have a direct interrupt input on PLIC. These are
-  connected to corresponding non-direct input pin. The following table explains
-  all the GPIO direct and non-direct interrupt connectivity options.
+  interrupts, which does not have a direct interrupt input on PLIC. These are
+  connected to the corresponding non-direct input pin. The following table
+  explains all the GPIO direct and non-direct interrupt connectivity options.
 
   | PLIC | GPIO_INTERRUPT_FAB_CR = 0 | GPIO_INTERRUPT_FAB_CR = 1 |
   |------|---------------------------|---------------------------|
@@ -158,10 +158,10 @@
 
 
     Note:
-    GPIO_INTERRUPT_FAB_CR controls the multiplexing in above table. It is your
-    responsibility to set up the GPIO_INTERRUPT_FAB_CR bits in application code.
-    You must make sure that you are using the valid combination of GPIO0/1/2
-    interrupt per above table.
+    GPIO_INTERRUPT_FAB_CR controls the multiplexing in preceding table. It is
+    your responsibility to set up the GPIO_INTERRUPT_FAB_CR bits in application
+    code. You must make sure that you are using the valid combination of
+    GPIO0/1/2 interrupt per preceding table.
 
  *//*=========================================================================*/
 #ifndef MSS_GPIO_H_
@@ -175,7 +175,7 @@ extern "C" {
 
 /*-------------------------------------------------------------------------*//**
   The mss_gpio_id_t enumeration identifies individual GPIO ports as an
-  argument to functions:
+  argument to the following functions:
     - MSS_GPIO_config()
     - MSS_GPIO_set_output() and MSS_GPIO_drive_inout()
     - MSS_GPIO_enable_irq(), MSS_GPIO_disable_irq(), and MSS_GPIO_clear_irq()
@@ -444,7 +444,7 @@ void MSS_GPIO_init
     The port_id parameter identifies the GPIO port to be configured. An
     enumeration item of the form MSS_GPIO_n, where n is the number of the GPIO
     port, identifies the GPIO port. For example, MSS_GPIO_0 identifies the first
-    GPIO port, and MSS_GPIO_31 identifies the last GPIO port.
+    GPIO port and MSS_GPIO_31 identifies the last GPIO port.
 
   @param config
     The config parameter specifies the configuration to be applied to the GPIO
@@ -555,8 +555,8 @@ static inline void MSS_GPIO_set_outputs
     The gpio parameter specifies the GPIO block that needs to be configured.
 
   @param config
-    The config parameter specifies the configuration to be applied to the all
-    the GPIO ports. It is a bitwise OR of the required I/O mode and the required
+    The config parameter specifies the configuration applied to all the GPIO
+    ports. It is a bitwise OR of the required I/O mode and the required
     interrupt mode. The interrupt mode is not relevant if the GPIO is configured
     as an output only.
     - These I/O mode constants are allowed:
@@ -592,7 +592,7 @@ void MSS_GPIO_config_all
 );
 
 /*-------------------------------------------------------------------------*//**
-  MSS_GPIO_config_byte() configures the gpio ports byte-wise (consecutive 8
+  MSS_GPIO_config_byte() configures the GPIO ports byte-wise (consecutive eight
   ports).
 
   @param gpio
@@ -686,7 +686,7 @@ void MSS_GPIO_set_output
 );
 
 /*-------------------------------------------------------------------------*//**
-  MSS_GPIO_get_inputs() reads the current state all GPIO ports configured as
+  MSS_GPIO_get_inputs() reads the current state of all GPIO ports configured as
   inputs.
 
   @param gpio
@@ -821,11 +821,15 @@ static inline uint32_t MSS_GPIO_get_outputs(GPIO_TypeDef const * gpio)
   block. When the non-direct interrupt is asserted, this function determines
   which exact GPIO bit(s) caused the interrupt.
 
+  Note:
+  Non-direct level-sensitive interrupts may already be cleared before this
+  calling this function.
+
   @param gpio
     The gpio parameter specifies the GPIO block that needs to be configured.
 
   @return
-     This function returns a 32-bit unsigned integer value of the IRQ register.
+    This function returns a 32-bit unsigned integer value of the IRQ register.
 
   @example
     In the non-direct interrupt ISR, read the IRQ register to know which GPIO
@@ -878,13 +882,13 @@ MSS_GPIO_get_irq(GPIO_TypeDef const * gpio)
     The port_id parameter identifies the GPIO port for which you want to change
     the output state. An enumeration item of the form MSS_GPIO_n, where n is the
     number of the GPIO port, identifies the GPIO port. For example, MSS_GPIO_0
-    identifies the first GPIO port, and MSS_GPIO_31 identifies the last GPIO
+    identifies the first GPIO port and MSS_GPIO_31 identifies the last GPIO
     port.
 
   @param inout_state
     The inout_state parameter specifies the state of the GPIO port identified by
     the port_id parameter.
-    - Allowed values of type mss_gpio_inout_state_t are as follows:
+    - Following are the allowed values of type mss_gpio_inout_state_t:
       - MSS_GPIO_DRIVE_HIGH
       - MSS_GPIO_DRIVE_LOW
       - MSS_GPIO_HIGH_Z (High impedance)
@@ -928,9 +932,9 @@ void MSS_GPIO_drive_inout
     The port_id parameter identifies the GPIO port for which you want to enable
     interrupt generation. An enumeration item of the form MSS_GPIO_n, where n is
     the number of the GPIO port, identifies the GPIO port. For example,
-    MSS_GPIO_0 identifies the first GPIO port, and MSS_GPIO_31 identifies the
+    MSS_GPIO_0 identifies the first GPIO port and MSS_GPIO_31 identifies the
     last GPIO port.
-    
+
   @return
     This function does not return a value.
 
@@ -968,14 +972,14 @@ void MSS_GPIO_enable_irq
     The port_id parameter identifies the GPIO port for which you want to disable
     interrupt generation. An enumeration item of the form MSS_GPIO_n, where n is
     the number of the GPIO port, identifies the GPIO port. For example,
-    MSS_GPIO_0 identifies the first GPIO port, and MSS_GPIO_31 identifies the
+    MSS_GPIO_0 identifies the first GPIO port and MSS_GPIO_31 identifies the
     last GPIO port.
 
   @return
     This function does not return a value.
 
   @example
-    The call to MSS_GPIO_disable_irq() in the following example prevents GPIO 8
+    In the following example, calling the MSS_GPIO_disable_irq() prevents GPIO 8
     from generating interrupts:
   @code
     MSS_GPIO_disable_irq(MSS_GPIO_8);
@@ -988,7 +992,7 @@ void MSS_GPIO_disable_irq
 );
 
 /*-------------------------------------------------------------------------*//**
-  MSS_GPIO_clear_irq() clear a pending interrupt from the specified GPIO input.
+  MSS_GPIO_clear_irq() clears a pending interrupt from the specified GPIO input.
 
   Note:
   The MSS_GPIO_clear_irq() function must be called as part of any GPIO
@@ -1002,7 +1006,7 @@ void MSS_GPIO_disable_irq
     The port_id parameter identifies the GPIO port for which you want to clear
     the interrupt. An enumeration item of the form MSS_GPIO_n, where n is the
     number of the GPIO port, identifies the GPIO port. For example, MSS_GPIO_0
-    identifies the first GPIO port, and MSS_GPIO_31 identifies the last GPIO
+    identifies the first GPIO port and MSS_GPIO_31 identifies the last GPIO
     port.
 
   @return

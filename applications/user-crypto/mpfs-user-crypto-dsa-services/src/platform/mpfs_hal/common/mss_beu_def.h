@@ -1,11 +1,13 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_beu_def.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Bus Error Unit (BEU) fixed defines
+ * @brief mss_beu defines header file
+ *
+ * Bus Error Unit (BEU) fixed defines
  *
  */
 

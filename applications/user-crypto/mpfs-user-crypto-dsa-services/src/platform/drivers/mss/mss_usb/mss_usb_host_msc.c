@@ -1,14 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_usb_host_msc.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
- *          USB Logical Layer (USB-LL)
- *            USBH-MSC class driver.
+ * @brief mss_usb host MSC source file
  *
+ * See file "mss_usb_host_msc.h" for description of the functions implemented
+ * in this file.
  *
  * This file implements Host side MSC class specific initialization
  * and request handling.
@@ -214,7 +214,7 @@ MSS_USBH_MSC_task
 {
     uint8_t std_req_buf[USB_SETUP_PKT_LEN] = {0};
     static volatile uint32_t wait_mili = 0u;
-    
+
     switch (g_msc_state)
     {
         case USBH_MSC_IDLE:
@@ -292,7 +292,7 @@ MSS_USBH_MSC_task
 
             memset(std_req_buf, 0u, 8*(sizeof(uint8_t)));
             std_req_buf[1] = USB_STD_REQ_SET_CONFIG;
-            
+
             /* bConfigurationValue*/
             std_req_buf[2] = g_msd_conf_desc[5];
             g_msc_state = USBH_MSC_WAIT_SET_CONFIG;
@@ -616,7 +616,7 @@ MSS_USBH_MSC_task
                 g_usbh_msc_rx_event = 0u;
                 g_msc_state = USBH_MSC_SCSI_READ_CAPACITY_SPHASE;
 
-                /* standard Read Capacity response size is 8bytes. 
+                /* standard Read Capacity response size is 8bytes.
                  * We need this info later so keep it in g_bot_readcap
                  */
                 MSS_USBH_read_in_pipe(g_msd_tdev_addr,
@@ -706,13 +706,13 @@ MSS_USBH_MSC_task
 
             crrent_mili = MSS_USBH_get_milis();
 
-            /* Found that the Sandisc devices are reporting NAKTIMEOUT error. 
-             * This is mostly happening when moving from DATA phase to Status 
-             * phase of the SCSI read/write command. At this stage restarting 
+            /* Found that the Sandisc devices are reporting NAKTIMEOUT error.
+             * This is mostly happening when moving from DATA phase to Status
+             * phase of the SCSI read/write command. At this stage restarting
              * the status phase is able to get the device to respond properly.
-             * The NAKLIMIT is device specific. The WIndows hosts allow up to 
-             * 5Sec before declaring NAKTIMOUT. MSS USB allows to wait up to 
-             * ~4Sec. Hence waiting for another 1 Sec here hoping that the 
+             * The NAKLIMIT is device specific. The WIndows hosts allow up to
+             * 5Sec before declaring NAKTIMOUT. MSS USB allows to wait up to
+             * ~4Sec. Hence waiting for another 1 Sec here hoping that the
              * device is recovered by then.
              */
             if (MSC_BOT_STATUS_WAITCOMPLETE == g_msc_bot_state)
@@ -734,7 +734,7 @@ MSS_USBH_MSC_task
             }
         }
         break;
-        
+
         default:
         {
             ASSERT(0);  /*Reset recovery should be tried.*/
@@ -1109,7 +1109,7 @@ usbh_msc_cep_done_cb
 )
 {
     g_usbh_msc_cep_event = status;
-    
+
     return (USB_SUCCESS);
 }
 
@@ -1190,7 +1190,7 @@ usbh_msc_tx_complete_cb
 
                 case MSC_BOT_STATUS_WAITCOMPLETE:
                 break;
-                
+
                 default:
                     ASSERT(0);  /* g_msc_bot_state must not be in any other state */
                 break;

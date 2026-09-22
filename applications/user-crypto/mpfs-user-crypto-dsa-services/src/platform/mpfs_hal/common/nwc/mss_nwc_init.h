@@ -1,11 +1,13 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_nwc_init.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief defines for mss_nwc_init.c
+ * @brief mss_nwc initiation header file
+ *
+ * north west corner (NWC) initiation
  *
  */
 

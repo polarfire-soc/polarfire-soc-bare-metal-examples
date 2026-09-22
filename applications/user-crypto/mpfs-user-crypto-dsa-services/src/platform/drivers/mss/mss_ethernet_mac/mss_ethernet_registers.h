@@ -1,11 +1,13 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_ethernet_registers.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief This file contains the type definitions for the GEM Ethernet MAC as
+ * @brief mss_ethernet_mac register header file
+ *
+ * This file contains the type definitions for the GEM Ethernet MAC as
  * implemented for the PolarFire SoC Microprocessor Subsystem (MSS). This also
  * covers the subset implemented for the FU540 on the Aloe board with the
  * proviso that many of the registers will not be present on that device.
@@ -25,9 +27,17 @@ extern "C" {
 /*----------------------------------------------------------------------------*/
 /*----------------------------------- MAC -----------------------------------*/
 /*----------------------------------------------------------------------------*/
+#if !defined(__I)
 #define __I  const volatile
+#endif
+
+#if !defined(__O)
 #define __O  volatile
+#endif
+
+#if !defined(__IO)
 #define __IO volatile
+#endif
 
 typedef struct
 {
@@ -201,15 +211,15 @@ typedef struct
     __IO uint32_t  TRANSMIT_Q1_PTR;                     /* 0x0440 */
     __IO uint32_t  TRANSMIT_Q2_PTR;                     /* 0x0444 */
     __IO uint32_t  TRANSMIT_Q3_PTR;                     /* 0x0448 */
-         uint32_t  reserved13[13];                      /* 0x044C - 0x047C */ 
+         uint32_t  reserved13[13];                      /* 0x044C - 0x047C */
     __IO uint32_t  RECEIVE_Q1_PTR;                      /* 0x0480 */
     __IO uint32_t  RECEIVE_Q2_PTR;                      /* 0x0484 */
     __IO uint32_t  RECEIVE_Q3_PTR;                      /* 0x0488 */
-         uint32_t  reserved14[5];                       /* 0x048C - 0x049C */ 
+         uint32_t  reserved14[5];                       /* 0x048C - 0x049C */
     __IO uint32_t  DMA_RXBUF_SIZE_Q1;                   /* 0x04A0 */
     __IO uint32_t  DMA_RXBUF_SIZE_Q2;                   /* 0x04A4 */
     __IO uint32_t  DMA_RXBUF_SIZE_Q3;                   /* 0x04A8 */
-         uint32_t  reserved15[4];                       /* 0x04AC - 0x04B8 */ 
+         uint32_t  reserved15[4];                       /* 0x04AC - 0x04B8 */
     __IO uint32_t  CBS_CONTROL;                         /* 0x04BC */
     __IO uint32_t  CBS_IDLESLOPE_Q_A;                   /* 0x04C0 */
     __IO uint32_t  CBS_IDLESLOPE_Q_B;                   /* 0x04C4 */
@@ -217,9 +227,9 @@ typedef struct
     __IO uint32_t  TX_BD_CONTROL;                       /* 0x04CC */
     __IO uint32_t  RX_BD_CONTROL;                       /* 0x04D0 */
     __IO uint32_t  UPPER_RX_Q_BASE_ADDR;                /* 0x04D4 */
-         uint32_t  reserved16[5];                       /* 0x04D8 - 0x04E8 */ 
+         uint32_t  reserved16[5];                       /* 0x04D8 - 0x04E8 */
     __IO uint32_t  WD_COUNTER;                          /* 0x04EC */
-         uint32_t  reserved17[2];                       /* 0x04F0 - 0x04F4 */ 
+         uint32_t  reserved17[2];                       /* 0x04F0 - 0x04F4 */
     __IO uint32_t  AXI_TX_FULL_THRESH0;                 /* 0x04F8 */
     __IO uint32_t  AXI_TX_FULL_THRESH1;                 /* 0x04FC */
     __IO uint32_t  SCREENING_TYPE_1_REGISTER_0;         /* 0x0500 */
@@ -233,23 +243,23 @@ typedef struct
     __IO uint32_t  SCREENING_TYPE_2_REGISTER_3;         /* 0x054C */
          uint32_t  reserved18b[12];                     /* 0x0550 - 0x057C */
     __IO uint32_t  TX_SCHED_CTRL;                       /* 0x0580 */
-         uint32_t  reserved19[3];                       /* 0x0584 - 0x058C */ 
+         uint32_t  reserved19[3];                       /* 0x0584 - 0x058C */
     __IO uint32_t  BW_RATE_LIMIT_Q0TO3;                 /* 0x0590 */
-         uint32_t  reserved20[3];                       /* 0x0594 - 0x059C */ 
+         uint32_t  reserved20[3];                       /* 0x0594 - 0x059C */
     __IO uint32_t  TX_Q_SEG_ALLOC_Q0TO3;                /* 0x05A0 */
-         uint32_t  reserved21[23];                      /* 0x05A4 - 0x05FC */ 
+         uint32_t  reserved21[23];                      /* 0x05A4 - 0x05FC */
     __IO uint32_t  INT_Q1_ENABLE;                       /* 0x0600 */
     __IO uint32_t  INT_Q2_ENABLE;                       /* 0x0604 */
     __IO uint32_t  INT_Q3_ENABLE;                       /* 0x0608 */
-         uint32_t  reserved22[5];                       /* 0x060C - 0x061C */ 
+         uint32_t  reserved22[5];                       /* 0x060C - 0x061C */
     __IO uint32_t  INT_Q1_DISABLE;                      /* 0x0620 */
     __IO uint32_t  INT_Q2_DISABLE;                      /* 0x0624 */
     __IO uint32_t  INT_Q3_DISABLE;                      /* 0x0628 */
-         uint32_t  reserved23[5];                       /* 0x062C - 0x063C */ 
+         uint32_t  reserved23[5];                       /* 0x062C - 0x063C */
     __IO uint32_t  INT_Q1_MASK;                         /* 0x0640 */
     __IO uint32_t  INT_Q2_MASK;                         /* 0x0644 */
     __IO uint32_t  INT_Q3_MASK;                         /* 0x0648 */
-         uint32_t  reserved24[37];                      /* 0x064C - 0x06DC */ 
+         uint32_t  reserved24[37];                      /* 0x064C - 0x06DC */
     __IO uint32_t  SCREENING_TYPE_2_ETHERTYPE_REG_0;    /* 0x06E0 */
     __IO uint32_t  SCREENING_TYPE_2_ETHERTYPE_REG_1;    /* 0x06E4 */
     __IO uint32_t  SCREENING_TYPE_2_ETHERTYPE_REG_2;    /* 0x06E8 */
@@ -268,12 +278,12 @@ typedef struct
     __IO uint32_t  ENST_START_TIME_Q1;                  /* 0x0804 */
     __IO uint32_t  ENST_START_TIME_Q2;                  /* 0x0808 */
     __IO uint32_t  ENST_START_TIME_Q3;                  /* 0x080C */
-         uint32_t  reserved27[4];                       /* 0x0810 - 0x081C */ 
+         uint32_t  reserved27[4];                       /* 0x0810 - 0x081C */
     __IO uint32_t  ENST_ON_TIME_Q0;                     /* 0x0820 */
     __IO uint32_t  ENST_ON_TIME_Q1;                     /* 0x0824 */
     __IO uint32_t  ENST_ON_TIME_Q2;                     /* 0x0828 */
     __IO uint32_t  ENST_ON_TIME_Q3;                     /* 0x082C */
-         uint32_t  reserved28[4];                       /* 0x0830 - 0x083C */ 
+         uint32_t  reserved28[4];                       /* 0x0830 - 0x083C */
     __IO uint32_t  ENST_OFF_TIME_Q0;                    /* 0x0840 */
     __IO uint32_t  ENST_OFF_TIME_Q1;                    /* 0x0844 */
     __IO uint32_t  ENST_OFF_TIME_Q2;                    /* 0x0848 */
@@ -290,7 +300,7 @@ typedef struct
     __IO uint32_t  MMSL_INT_ENABLE;                     /* 0x0F1C */
     __IO uint32_t  MMSL_INT_DISABLE;                    /* 0x0F20 */
     __IO uint32_t  MMSL_INT_MASK;                       /* 0x0F24 */
-         uint32_t  reserved30[54];                      /* 0x0F28 - 0x0FFC */ 
+         uint32_t  reserved30[54];                      /* 0x0F28 - 0x0FFC */
 } MAC_TypeDef;
 
 typedef struct
@@ -298,7 +308,7 @@ typedef struct
     __IO uint32_t  NETWORK_CONTROL;                /* 0x1000 */
     __IO uint32_t  NETWORK_CONFIG;                 /* 0x1004 */
     __IO uint32_t  NETWORK_STATUS;                 /* 0x1008 */
-         uint32_t  reserved31;                     /* 0x100C */ 
+         uint32_t  reserved31;                     /* 0x100C */
     __IO uint32_t  DMA_CONFIG;                     /* 0x1010 */
     __IO uint32_t  TRANSMIT_STATUS;                /* 0x1014 */
     __IO uint32_t  RECEIVE_Q_PTR;                  /* 0x1018 */
@@ -314,15 +324,15 @@ typedef struct
     __IO uint32_t  PBUF_TXCUTTHRU;                 /* 0x1040 */
     __IO uint32_t  PBUF_RXCUTTHRU;                 /* 0x1044 */
     __IO uint32_t  JUMBO_MAX_LENGTH;               /* 0x1048 */
-         uint32_t  reserved32[2];                  /* 0x104C - 0x1050 */ 
+         uint32_t  reserved32[2];                  /* 0x104C - 0x1050 */
     __IO uint32_t  AXI_MAX_PIPELINE;               /* 0x1054 */
-         uint32_t  reserved33;                     /* 0x1058 */ 
+         uint32_t  reserved33;                     /* 0x1058 */
     __IO uint32_t  INT_MODERATION;                 /* 0x105C */
     __IO uint32_t  SYS_WAKE_TIME;                  /* 0x1060 */
     __IO uint32_t  FATAL_OR_NON_FATAL_INT_SEL;     /* 0x1064 */
     __IO uint32_t  LOCKUP_CONFIG;                  /* 0x1068 */
     __IO uint32_t  RX_MAC_LOCKUP_TIME;             /* 0x106C */
-         uint32_t  reserved34[4];                  /* 0x1070 - 0x107C */ 
+         uint32_t  reserved34[4];                  /* 0x1070 - 0x107C */
     __IO uint32_t  HASH_BOTTOM;                    /* 0x1080 */
     __IO uint32_t  HASH_TOP;                       /* 0x1084 */
     __IO uint32_t  SPEC_ADD1_BOTTOM;               /* 0x1088 */
@@ -401,7 +411,7 @@ typedef struct
     __IO uint32_t  RX_TCP_CK_ERRORS;               /* 0x11AC */
     __IO uint32_t  RX_UDP_CK_ERRORS;               /* 0x11B0 */
     __IO uint32_t  AUTO_FLUSHED_PKTS;              /* 0x11B4 */
-         uint32_t  reserved35;                     /* 0x10B8 */ 
+         uint32_t  reserved35;                     /* 0x10B8 */
     __IO uint32_t  TSU_TIMER_INCR_SUB_NSEC;        /* 0x11BC */
     __IO uint32_t  TSU_TIMER_MSB_SEC;              /* 0x11C0 */
     __IO uint32_t  TSU_STROBE_MSB_SEC;             /* 0x11C4 */
@@ -478,7 +488,7 @@ typedef struct
     __IO uint32_t  ENST_CONTROL;                   /* 0x1820 */
 } eMAC_TypeDef;
 
-#ifdef __cplusplus                       
+#ifdef __cplusplus
 }
 #endif
 

@@ -1,13 +1,17 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_usb_device_msd.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
- *          USB Logical Layer (USB-LL)
- *            USBD-MSC class driver
+ * @brief mss_usb device MSD source file
+ *
+ * See file "mss_usb_device_msd.h" for description of the functions implemented
+ * in this file.
+ *
+ * PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack USB Logical
+ * Layer (USB-LL) USBD-MSC class driver
  *
  * USBD-MSC class driver implementation:
  * This source file implements Mass storage class functionality.
@@ -1746,7 +1750,7 @@ static uint8_t usbd_msc_process_read_capacity_10(void)
     g_xfr_buf_ptr = (uint8_t*)0;
     g_xfr_buf_len = 0u;
     g_req_type = SCSI_IN;
-    
+
     /*Data Direction must be D2H (IN)*/
     if(!(g_bot_cbw.flags & 0x80u))
     {

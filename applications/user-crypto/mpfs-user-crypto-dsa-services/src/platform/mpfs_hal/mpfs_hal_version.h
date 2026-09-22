@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mpfs_hal_version.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolareFire SoC Hardware Abstraction layer - MPFS HAL version.
+ * @brief mpfs_hal_version header file
  *
  */
 
@@ -17,8 +17,9 @@ extern "C" {
 #endif
 
 #define MPFS_HAL_VERSION_MAJOR 2
-#define MPFS_HAL_VERSION_MINOR 2
-#define MPFS_HAL_VERSION_PATCH 107
+#define MPFS_HAL_VERSION_MINOR 3
+#define MPFS_HAL_VERSION_PATCH 110
+#define MPFS_HAL_VERSION_STRING "2.3.110"
 
 #ifdef __cplusplus
 }

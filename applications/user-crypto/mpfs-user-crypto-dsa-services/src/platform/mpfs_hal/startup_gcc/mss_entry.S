@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_entry.S
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief entry functions.
+ * @brief mss_entry assembly file
  *
  */
 
@@ -92,20 +92,7 @@ _start:
     li  x30,0
     li  x31,0
 
-    # enable FPU and accelerator if present, setting ignored on E51
-    li t0, MSTATUS_FS | MSTATUS_XS
-    csrs mstatus, t0
-
-    # Init floating point control register to zero
-    # skip if e51
-    csrr a0, mhartid
-    beqz a0, .no_float
-#ifdef __riscv_flen
-    fscsr x0
-#endif
-.no_float:
-
-     # make sure XLEN agrees with compilation choice, if not will loop here
+    # make sure XLEN agrees with compilation choice, if not will loop here
 .LxlenCheck:
     csrr t0, misa
 #if __riscv_xlen == 64
@@ -292,20 +279,7 @@ _start_non_bootloader_amp_image:
     bne a4, a5, 1b
     /* assume ints in init state */
     /* assume PMP's set as required */
-    # enable FPU and accelerator if present, setting ignored on E51
-    li t0, MSTATUS_FS | MSTATUS_XS
-    csrs mstatus, t0
-
-    # Init floating point control register to zero
-    # skip if e51
-    csrr a0, mhartid
-    beqz a0, .no_float
-#ifdef __riscv_flen
-    fscsr x0
-#endif
-.no_float:
-
-     # make sure XLEN agrees with compilation choice, if not will loop here
+    # make sure XLEN agrees with compilation choice, if not will loop here
 .LxlenCheck:
     csrr t0, misa
 #if __riscv_xlen == 64
@@ -540,12 +514,10 @@ trap_vector:
     STORE t6,31*REGBYTES(sp)
     # Invoke the handler.
     mv a0, sp                          # a0 <- regs
-    # Please note: mtval is the newer name for register mbadaddr
-    # If you get a compile failure here, use the newer name
-    # At this point (2019), both are supported in latest compiler
-    # older compiler versions only support mbadaddr, so going with this.
-    # See: https://github.com/riscv/riscv-gcc/issues/133
-    csrr a1, mbadaddr                 # useful for anaysis when things go wrong
+    # A previous name for mtval was mbadaddr. Support for mbadaddr was removed
+    # from the GNU assembler in 2024, see commit:
+    # "RISC-V: Removed privileged spec 1.9.1 support in assembler."
+    csrr a1, mtval                    # useful for analysis when things go wrong
     csrr a2, mepc
     jal trap_from_machine_mode
 

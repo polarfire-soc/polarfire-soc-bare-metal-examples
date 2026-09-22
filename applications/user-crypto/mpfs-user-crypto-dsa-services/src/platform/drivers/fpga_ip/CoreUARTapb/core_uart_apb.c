@@ -1,13 +1,15 @@
-/*******************************************************************************
- * (c) Copyright 2007-2023 Microchip FPGA Embedded Systems Solutions.
- * 
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
+ *
  * SPDX-License-Identifier: MIT
  *
  * @file core_uart_apb.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief CoreUARTapb driver implementation. See file "core_uart_apb.h" for 
- * description of the functions implemented in this file.
- * 
+ * @brief CoreUARTapb source file
+ *
+ * See file "core_uart_apb.h" for description of the functions implemented in
+ * this file.
+ *
  */
 
 #include "coreuartapb_regs.h"
@@ -29,7 +31,7 @@ extern "C" {
 #define BAUDVALUE_MSB ( (uint16_t) (0xFF00) )
 #define BAUDVALUE_SHIFT ( (uint8_t) (5) )
 
-#define STATUS_ERROR_OFFSET STATUS_PARITYERR_SHIFT 
+#define STATUS_ERROR_OFFSET STATUS_PARITYERR_SHIFT
 
 /***************************************************************************//**
  * UART_init()
@@ -45,7 +47,7 @@ UART_init
 )
 {
     uint8_t rx_full;
-    
+
     HAL_ASSERT( this_uart != NULL_INSTANCE )
     HAL_ASSERT( line_config <= MAX_LINE_CONFIG )
     HAL_ASSERT( baud_value <= MAX_BAUD_VALUE )
@@ -59,15 +61,15 @@ UART_init
          */
         HAL_set_8bit_reg( base_addr, CTRL1, (uint_fast8_t)(baud_value &
                                                        BAUDVALUE_LSB ) );
-    
+
         /*
-         * Extract higher 5-bits of baud value and store in higher 5-bits 
+         * Extract higher 5-bits of baud value and store in higher 5-bits
          * of CTRL2, along with line configuration in lower 3 three bits.
          */
-        HAL_set_8bit_reg( base_addr, CTRL2, (uint_fast8_t)line_config | 
+        HAL_set_8bit_reg( base_addr, CTRL2, (uint_fast8_t)line_config |
                                            (uint_fast8_t)((baud_value &
                                    BAUDVALUE_MSB) >> BAUDVALUE_SHIFT ) );
-    
+
         this_uart->base_address = base_addr;
 #ifndef NDEBUG
         {
@@ -84,9 +86,9 @@ UART_init
             config &= (uint8_t)(~CTRL2_BAUDVALUE_MASK);
             HAL_ASSERT( baud_val == baud_value );
             HAL_ASSERT( config == line_config );
-        }        
+        }
 #endif
-        
+
         /*
          * Flush the receive FIFO of data that may have been received before the
          * driver was initialized.
@@ -125,7 +127,7 @@ UART_send
     HAL_ASSERT( this_uart != NULL_INSTANCE )
     HAL_ASSERT( tx_buffer != NULL_BUFFER )
     HAL_ASSERT( tx_size > 0 )
-      
+
     if( (this_uart != NULL_INSTANCE) &&
         (tx_buffer != NULL_BUFFER)   &&
         (tx_size > (size_t)0) )
@@ -158,12 +160,12 @@ UART_fill_tx_fifo
 {
     uint8_t tx_ready;
     size_t size_sent = 0u;
-    
+
     HAL_ASSERT( this_uart != NULL_INSTANCE )
     HAL_ASSERT( tx_buffer != NULL_BUFFER )
     HAL_ASSERT( tx_size > 0 )
-      
-    /* Fill the UART's Tx FIFO until the FIFO is full or the complete input 
+
+    /* Fill the UART's Tx FIFO until the FIFO is full or the complete input
      * buffer has been written. */
     if( (this_uart != NULL_INSTANCE) &&
         (tx_buffer != NULL_BUFFER)   &&
@@ -181,7 +183,7 @@ UART_fill_tx_fifo
                                                               STATUS_TXRDY_MASK;
             } while ( (tx_ready) && ( size_sent < tx_size ) );
         }
-    }    
+    }
     return size_sent;
 }
 
@@ -200,11 +202,11 @@ UART_get_rx
     uint8_t new_status;
     uint8_t rx_full;
     size_t rx_idx = 0u;
-    
+
     HAL_ASSERT( this_uart != NULL_INSTANCE )
     HAL_ASSERT( rx_buffer != NULL_BUFFER )
     HAL_ASSERT( buff_size > 0 )
-      
+
     if( (this_uart != NULL_INSTANCE) &&
         (rx_buffer != NULL_BUFFER)   &&
         (buff_size > 0u) )
@@ -230,10 +232,10 @@ UART_get_rx
  * UART_polled_tx_string()
  * See "core_uart_apb.h" for details of how to use this function.
  */
-void 
+void
 UART_polled_tx_string
-( 
-    UART_instance_t * this_uart, 
+(
+    UART_instance_t * this_uart,
     const uint8_t * p_sz_string
 )
 {
@@ -242,7 +244,7 @@ UART_polled_tx_string
 
     HAL_ASSERT( this_uart != NULL_INSTANCE )
     HAL_ASSERT( p_sz_string != NULL_BUFFER )
-    
+
     if( ( this_uart != NULL_INSTANCE ) && ( p_sz_string != NULL_BUFFER ) )
     {
         char_idx = 0U;
@@ -282,7 +284,7 @@ UART_get_rx_status
      */
     if( this_uart != NULL_INSTANCE )
     {
-        status = ( ( this_uart->status & STATUS_ERROR_MASK ) >> 
+        status = ( ( this_uart->status & STATUS_ERROR_MASK ) >>
                                           STATUS_ERROR_OFFSET );
         /*
          * Clear the sticky status for this instance.

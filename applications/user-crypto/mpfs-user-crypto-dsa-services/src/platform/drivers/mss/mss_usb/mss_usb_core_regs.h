@@ -1,13 +1,14 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_usb_core_regs.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack
- *          USB Core Interface Layer (USB-CIFL)
- *            USB-CIF driver
+ * @brief mss_usb core register header file
+ *
+ * PolarFire SoC Microprocessor Subsystem (MSS) USB Driver Stack USB Core
+ * Interface Layer (USB-CIFL) USB-CIF driver
  *
  * Register bit offset and mask definitions for PolarFire SoC MSS USB.
  *

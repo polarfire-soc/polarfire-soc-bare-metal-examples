@@ -1,12 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_pdma.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief PolarFire SoC Microprocessor Subsystem (MSS) PDMA bare metal software
- * driver public APIs.
+ * @brief mss_pdma header file
  *
  */
 
@@ -94,7 +93,7 @@
   Interrupt control
   --------------------------------
   The PDMA has two interrupts per channel which are used to signal either a
-  successful completion of the transfer or a transfer error. These interrupts 
+  successful completion of the transfer or a transfer error. These interrupts
   are enabled by the application software by a call to MSS_PDMA_setup_transfer()
   function. The  MSS_PDMA_get_transfer_complete_status() function will indicate
   the DMA transfer success status for selected DMA channel. The
@@ -119,7 +118,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 #include <stdint.h>
 
@@ -127,7 +126,7 @@ extern "C" {
 /*----------------------------------PDMA--------------------------------------*/
 
 /*----------------------------------------------------------------------------/*
-  The mss_pdma_channel_id_t enumeration is used to identify peripheral DMA 
+  The mss_pdma_channel_id_t enumeration is used to identify peripheral DMA
   channels. It is used as function parameter to specify the PDMA channel used.
  */
 typedef enum __pdma_channel_id
@@ -216,7 +215,7 @@ typedef struct _pdmaregs
     const volatile  uint64_t exec_source;     /* Source current address. */
 } mss_pdma_t;
 
-/* Callback function handler 
+/* Callback function handler
  * The callback function handler is used by application to identify the MSS
  * PDMA interrupt. When the interrupt happens, a callback function of this type
  * will be invoked about the generated interrupt. The function parameter will
@@ -252,12 +251,12 @@ typedef void (*mss_pdma_int_handler_t)(uint8_t interrupt_type);
            - Force Order.
 
   @param mss_pdma_operation_t
-            A callback function to the application. This function will be invoked 
+            A callback function to the application. This function will be invoked
             when the PDMA transfer done or transfer error interrupt is generated.
             The callback function handler will be called only interrupt mode.
             For polling mode, the null pointer can be sent to the function as a
             parameter.
-       
+
    @return pdma_error_id_t
            The function returns error signals of type mss_pdma_error_id_t.
 

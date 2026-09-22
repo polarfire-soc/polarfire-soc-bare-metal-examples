@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file mss_irq_handler_stubs.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief MPFS MSS Interrupt Function stubs.
+ * @brief mss_irq_handler_stubs header file
  *
  * The functions below will only be linked with the application code if the user
  * does not provide an implementation for these functions. These functions are

@@ -5,7 +5,7 @@
  *
  * @file uint_32_bit_masks.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief unsigned 32 bit masks
+ * @brief unsigned 32 bit masks header file
  *
  */
 

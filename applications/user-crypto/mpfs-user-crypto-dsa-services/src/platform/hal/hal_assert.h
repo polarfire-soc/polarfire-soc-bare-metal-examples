@@ -1,11 +1,11 @@
-/*******************************************************************************
+/**
  * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file hal_assert.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief 
+ * @brief hal_assert header file
  *
  */
 

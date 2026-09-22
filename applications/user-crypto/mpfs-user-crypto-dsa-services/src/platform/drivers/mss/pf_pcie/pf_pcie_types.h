@@ -1,9 +1,13 @@
-/*******************************************************************************
- * Copyright 2019-2020 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2020 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire and PolarFire SoC PCIe subsystem software driver public 
+ * @file pf_pcie_types.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief pf_pcie type definition header file
+ *
+ * PolarFire and PolarFire SoC PCIe subsystem software driver public
  * data structures.
  *
  */
@@ -20,9 +24,9 @@ extern "C" {
   PCIe AXI master and slave table size enum i.e PCIe ATR_SIZE
   PCIe ATR_SIZE is 6 bits long and defines the Address Translation Space Size.
   This space size in bytes is equal to 2^(ATR_SIZE +1).
-  
-  The pf_pcie_atr_size_t type specifies the table sizes supported by the 
-  PolarFire PCIe driver for the initialization of the PCIe AXI4 master and 
+
+  The pf_pcie_atr_size_t type specifies the table sizes supported by the
+  PolarFire PCIe driver for the initialization of the PCIe AXI4 master and
   slave address translation tables.
 */
 typedef enum
@@ -70,7 +74,7 @@ typedef enum
 /*****************************************************************************
   The pf_pcie_bar_type_t type specifies the bar types supported by the driver
   for the initialization of the PCIe AXI4 master address translation table.
-  
+
   PCIe BAR type enum for 32-bit and 64-bit memory.
 */
 typedef enum
@@ -81,8 +85,8 @@ typedef enum
 } pf_pcie_bar_type_t;
 
 /*****************************************************************************
-  The pf_pcie_tlp_type_t type specifies the transaction layer packet types 
-  supported by the driver for the initialization of the PCIe AXI4 master and 
+  The pf_pcie_tlp_type_t type specifies the transaction layer packet types
+  supported by the driver for the initialization of the PCIe AXI4 master and
   slave address translation tables.
 */
 typedef enum
@@ -97,20 +101,20 @@ typedef enum
 
 /*****************************************************************************
   The pf_pcie_ep_dma_status_t type communicates the status of the DMA transfer
-  initiated by the most recent call to the PF_PCIE_dma_write() or 
+  initiated by the most recent call to the PF_PCIE_dma_write() or
   PF_PCIE_dma_read() function. It indicates if a transfer is in progress, and
   if this is not the case, indicates the outcome of the latest transfer. This
   type is returned by the PF_PCIE_dma_get_transfer_status() function and used
-  as a parameter for the handler functions registered with the PCIe driver. 
+  as a parameter for the handler functions registered with the PCIe driver.
   The following table shows the different statuses of an endpoint DMA transfer
   indicated by the pf_pcie_ep_dma_status_t type.
 
   - PF_PCIE_EP_DMA_NOT_INITIALIZED   - The DMA controller is not initialized
   - PF_PCIE_EP_DMA_IN_PROGRESS       - A DMA transfer is in progress.
-  - PF_PCIE_EP_DMA_COMPLETED         - The most recent DMA transfer initiated 
+  - PF_PCIE_EP_DMA_COMPLETED         - The most recent DMA transfer initiated
                                        by a call to PF_PCIE_dma_write() or
                                        PF_PCIE_dma_read() has completed successfully.
-  - PF_PCIE_EP_DMA_ERROR             - An error is detected in a DMA controller 
+  - PF_PCIE_EP_DMA_ERROR             - An error is detected in a DMA controller
                                        transfer, source, or destination completion.
  */
 typedef enum
@@ -151,16 +155,16 @@ typedef void (*pf_pcie_read_callback_t)(pf_pcie_ep_dma_status_t status);
   The pf_pcie_info_t structure contains the PCIe system(device or bridge) vendor id,
   bus, device and function number.
 
-  bus_num 
+  bus_num
     Specifies the bus number of the PCIe system.
-    
+
   device_num
     Specifies the device number of the PCIe system.
 
-  fun_num 
+  fun_num
     Specifies the function number of the PCIe system.
 
-  vendor_id 
+  vendor_id
     Specifies the vendor id of PCIe endpoint or bridge or switch.
 
 */
@@ -173,7 +177,7 @@ typedef struct
 } pf_pcie_info_t;
 
 /*****************************************************************************
-  The pf_pcie_bar_info_t structure contains information about the memory 
+  The pf_pcie_bar_info_t structure contains information about the memory
   allocated on the host processor for the PCIe endpoint. It is used in the
   PF_PCIE_allocate_memory() function.
 
@@ -182,7 +186,7 @@ typedef struct
     PCIe endpoint BAR.
 
   bar_size
-    Specifies the size of the memory allocated on the host processor for 
+    Specifies the size of the memory allocated on the host processor for
     the PCIe endpoint BAR.
 
 */
@@ -203,8 +207,8 @@ typedef struct
 }pf_pcie_bar_info_t;
 
 /******************************************************************************
-  The pf_pcie_ebuff_t structure is used in PCIe enumeration process to store 
-  the number of bridges and devices attached to the PCIe root port. The 
+  The pf_pcie_ebuff_t structure is used in PCIe enumeration process to store
+  the number of bridges and devices attached to the PCIe root port. The
   PF_PCIE_enumeration() function returns this structure to the application
   during PCIe enumeration.
 
@@ -218,8 +222,8 @@ typedef struct
 
   no_of_bridges_attached
     Specifies the numbers of PCIe bridges attached to the PCIe system.
-  
-  no_of_devices_attached 
+
+  no_of_devices_attached
     Specifies the numbers of PCIe endpoints attached on the PCIe system.
 
 */
@@ -233,7 +237,7 @@ typedef struct
 /*****************************************************************************
 PCIe AXI4 Master ATR table configuration structure.
   The user must create a record of the pf_pcie_master_atr_cfg_t type to hold
-  the configuration of the PCIe AXI4 master ATR table. The 
+  the configuration of the PCIe AXI4 master ATR table. The
   PF_PCIE_master_atr_table_init() function is used to create this configuration
   record by entering the desired values.
 
@@ -242,13 +246,13 @@ PCIe AXI4 Master ATR table configuration structure.
         • PF_PCIE_ATR_TABLE_ENABLE
         • PF_PCIE_ATR_TABLE_DISABLE
   bar_type
-    Sets the PCIe BAR type memory on AXI4 master ATR table to 32-bit or 
+    Sets the PCIe BAR type memory on AXI4 master ATR table to 32-bit or
     64-bit memory.
         • PF_PCIE_BAR_TYPE_32BIT_MEM
         • PF_PCIE_BAR_TYPE_32BIT_PREFET_MEM
         • PF_PCIE_BAR_TYPE_64BIT_PREFET_MEM
   bar_size
-    Specifies the size of the PCIe BAR space. The pf_pcie_atr_size_t type is 
+    Specifies the size of the PCIe BAR space. The pf_pcie_atr_size_t type is
     used assign the bar size.
 
         • PF_PCIE_SIZE_4KB
@@ -262,7 +266,7 @@ PCIe AXI4 Master ATR table configuration structure.
         • PF_PCIE_SIZE_512TB
 
   table_size
-    Specifies the size of the PCIe AXI4 master address translation table. 
+    Specifies the size of the PCIe AXI4 master address translation table.
     The pf_pcie_atr_size_t type is used to assign the table size.
         • PF_PCIE_SIZE_4KB
         • PF_PCIE_SIZE_8KB
@@ -276,21 +280,21 @@ PCIe AXI4 Master ATR table configuration structure.
   src_addr
     Specifies the lower 32-bit source address of the PCIe AXI4 master address
     translation space.
-  
+
   src_addr_msb
-    Specifies the upper 32-bit (63:32-bit) source address of the PCIe AXI4 
+    Specifies the upper 32-bit (63:32-bit) source address of the PCIe AXI4
     master address translation space.
-    
+
   trns_addr
-    Specifies the translated lower 32-bit address of the PCIe AXI4 master 
+    Specifies the translated lower 32-bit address of the PCIe AXI4 master
     address translation space.
-  
+
   trns_addr_msb
     Specifies the translated upper 32-bit(63:32-bit) address of the PCIe AXI4
-    master address translation space. 
+    master address translation space.
 
 */
-typedef struct 
+typedef struct
 {
     uint32_t state;
     pf_pcie_bar_type_t bar_type;
@@ -305,14 +309,14 @@ typedef struct
 PCIe AXI4 Slave ATR table configuration structure.
   The user must create a record of the pf_pcie_slave_atr_cfg_t type to hold the
   configuration of the PCIe AXI4 slave ATR table. The PF_PCIE_slave_atr_table_init()
-  function is used to craete this configuration record by entering the desired values. 
-  
+  function is used to craete this configuration record by entering the desired values.
+
   state
     Enables and disables the translation address table implementation.
         • PF_PCIE_ATR_TABLE_ENABLE
         • PF_PCIE_ATR_TABLE_DISABLE
   size
-    Specifies the size of the PCIe AXI4 slave address translation table. 
+    Specifies the size of the PCIe AXI4 slave address translation table.
     The pf_pcie_atr_size_t type is used to assign the table size.
         • PF_PCIE_SIZE_4KB
         • PF_PCIE_SIZE_8KB
@@ -323,25 +327,25 @@ PCIe AXI4 Slave ATR table configuration structure.
         ............
         ............
         • PF_PCIE_SIZE_512TB
-  
+
   src_addr
-    Specifies the lower 32-bit source address of the PCIe AXI4 slave address 
+    Specifies the lower 32-bit source address of the PCIe AXI4 slave address
     translation space.
-  
+
   src_addr_msb
-    Specifies the upper 32-bit (63:32-bit) source address of the PCIe AXI4 
+    Specifies the upper 32-bit (63:32-bit) source address of the PCIe AXI4
     slave address translation space.
-  
+
   trns_addr
-    Specifies the translated lower 32-bit address of the PCIe AXI4 slave 
+    Specifies the translated lower 32-bit address of the PCIe AXI4 slave
     address translation space.
-  
+
   trns_addr_msb
-    Specifies the translated upper 32-bit (63:32-bit) address of the PCIe 
+    Specifies the translated upper 32-bit (63:32-bit) address of the PCIe
     AXI4 slave address translation space.
 
 */
-typedef struct 
+typedef struct
 {
     uint32_t state;
     pf_pcie_atr_size_t size;

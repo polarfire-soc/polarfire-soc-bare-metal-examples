@@ -1,45 +1,30 @@
-/*******************************************************************************
+/**
  * Copyright 2019-2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * @file core_sysservices_pf.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief CoreSysServices_PF header file
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- *
- * This file contains the application programming interface for the
- * CoreSysServices_PF bare metal driver.
  */
+
 /*=========================================================================*//**
   @mainpage CoreSysServices_PF Bare Metal Driver.
 
   @section intro_sec Introduction
   The PolarFire System Services (PF_SYSTEM_SERVICES) SgCore enables executing
-  the system services on the PolarFire and PolarFire SoC device. The system services 
-  are the system controller actions initiated by the System Controller's System 
-  Service Interface (SSI). The PolarFire System Services "SgCore" provides a 
-  method to initiate these system services. The PF_SYSTEM_SERVICES interacts 
-  with the system controller on SSI and Mailbox interface to initiate system 
+  the system services on the PolarFire and PolarFire SoC device. The system services
+  are the system controller actions initiated by the System Controller's System
+  Service Interface (SSI). The PolarFire System Services "SgCore" provides a
+  method to initiate these system services. The PF_SYSTEM_SERVICES interacts
+  with the system controller on SSI and Mailbox interface to initiate system
   services, exchange data required for that services, and to know the successful
   completion or error status.
 
-  The PF_SYSTEM_SERVICES provides an APB interface for controlling the registers 
+  The PF_SYSTEM_SERVICES provides an APB interface for controlling the registers
   functions for controlling the PF_SYSTEM_SERVICES as part of a bare metal system
-  register implemented within it. This software driver provides a set of where no 
+  register implemented within it. This software driver provides a set of where no
   part of an operating system but the implementation of the adaptation layer
   operating system is available. This driver is adapted for use in
   between this driver and the operating system's driver model is outside the
@@ -125,7 +110,7 @@
       - SYS_nonce_service ()
 
   Executing Fabric Services
-  
+
   The CoreSysServices_PF driver is used to execute fabric services using the
   following functions:
       - SYS_digest_check_service()
@@ -137,11 +122,11 @@
   The error codes for each service are different. See individual function
   description to know the exact meanings of the error codes for each service.
 
-  The function descriptions in this file mainly focus on the details required 
+  The function descriptions in this file mainly focus on the details required
   by the user to use the APIs provided by this driver to execute the services.
-  To know the complete details of the system services, see the 
+  To know the complete details of the system services, see the
   PolarFire FPGA and PolarFire SoC FPGA System Services [document](https://onlinedocs.microchip.com/pr/GUID-1409CF11-8EF9-4C24-A94E-70979A688632-en-US-3/index.html)
-    
+
   *//*=========================================================================*/
 #ifndef __CORE_SYSSERV_PF_H
 #define __CORE_SYSSERV_PF_H 1
@@ -171,21 +156,21 @@ extern "C" {
 * they do not overlap with the status code returned by the system controller for
 * any of the system service.
 *
-* SYS_SUCCESS  
+* SYS_SUCCESS
 *   System service executed successfully
 *
-* SYS_PARAM_ERR  
+* SYS_PARAM_ERR
 *   System service cannot be executed as one or more parameters are not as
 *   expected by this driver. No read/write access is performed with the
 *   IP.
 *
-* SS_USER_BUSY_TIMEOUT  
+* SS_USER_BUSY_TIMEOUT
 *   The System service request is initiated and the driver timed-out while
 *   waiting for the system service to complete. The System Service
 *   completion is indicated by de-assertion of the SS_USER_BUSY bit by the
 *   IP.
 *
-* SS_USER_RDVLD_TIMEOUT  
+* SS_USER_RDVLD_TIMEOUT
 *   The System service request is initiated and the driver timed-out while
 *   waiting for SS_USER_RDVLD bit, which indicates availability of data to
 *   be read from the mailbox, to become active.
@@ -232,19 +217,19 @@ extern "C" {
 #define SYS_NONCE_PUK_FETCH_ERROR                       1u
 #define SYS_NONCE_SEED_GEN_ERROR                        2u
 
-/** 
+/**
  * # Secure Nvm Write Error Codes
  *
- * SNVM_WRITE_INVALID_SNVMADDR  
+ * SNVM_WRITE_INVALID_SNVMADDR
  *   Illegal page address
  *
- * SNVM_WRITE_FAILURE  
+ * SNVM_WRITE_FAILURE
  *   PNVM program/verify failed
  *
- * SNVM_WRITE_SYSTEM_ERROR  
+ * SNVM_WRITE_SYSTEM_ERROR
  *   PUF or storage failure
  *
- * SNVM_WRITE_NOT_PERMITTED  
+ * SNVM_WRITE_NOT_PERMITTED
  *   Write is not permitted
  */
 #define SNVM_WRITE_INVALID_SNVMADDR                     1u
@@ -252,16 +237,16 @@ extern "C" {
 #define SNVM_WRITE_SYSTEM_ERROR                         3u
 #define SNVM_WRITE_NOT_PERMITTED                        4u
 
-/** 
+/**
  * # Secure Nvm Read Error Codes
  *
- * SNVM_READ_INVALID_SNVMADDR  
+ * SNVM_READ_INVALID_SNVMADDR
  *   Illegal page address
  *
- * SNVM_READ_AUTHENTICATION_FAILURE  
+ * SNVM_READ_AUTHENTICATION_FAILURE
  *   Storage corrupt or incorrect USK
  *
- * SNVM_READ_SYSTEM_ERROR  
+ * SNVM_READ_SYSTEM_ERROR
  *   PUF or storage failure
  *
  */
@@ -269,64 +254,64 @@ extern "C" {
 #define SNVM_READ_AUTHENTICATION_FAILURE                2u
 #define SNVM_READ_SYSTEM_ERROR                          3u
 
-/** 
+/**
  * # Digital Signature Service Error Codes
  *
- * DIGITAL_SIGNATURE_FEK_FAILURE_ERROR  
+ * DIGITAL_SIGNATURE_FEK_FAILURE_ERROR
  *   Error retrieving FEK
  *
- * DIGITAL_SIGNATURE_DRBG_ERROR  
+ * DIGITAL_SIGNATURE_DRBG_ERROR
  *   Failed to generate nonce
  *
- * DIGITAL_SIGNATURE_ECDSA_ERROR  
+ * DIGITAL_SIGNATURE_ECDSA_ERROR
  *   ECDSA failed
  */
 #define DIGITAL_SIGNATURE_FEK_FAILURE_ERROR             1u
 #define DIGITAL_SIGNATURE_DRBG_ERROR                    2u
 #define DIGITAL_SIGNATURE_ECDSA_ERROR                   3u
 
-/** 
+/**
  * # Digest Check Error Codes
  *
  * NOTE: When these error occur, the DIGEST tamper flag is triggered.
  *
- * DIGEST_CHECK_FABRICERR  
+ * DIGEST_CHECK_FABRICERR
  *   Fabric digest check error
  *
- * DIGEST_CHECK_CCERR  
+ * DIGEST_CHECK_CCERR
  *   UFS Fabric Configuration (CC) segment digest check error
  *
- * DIGEST_CHECK_SNVMERR  
+ * DIGEST_CHECK_SNVMERR
  *   ROM digest in SNVM segment digest check error
  *
- * DIGEST_CHECK_ULERR  
+ * DIGEST_CHECK_ULERR
  *   UFS UL segment digest check error
  *
- * DIGEST_CHECK_UK0ERR  
+ * DIGEST_CHECK_UK0ERR
  *   UKDIGEST0 in User Key segment digest check error
  *
- * DIGEST_CHECK_UK1ERR  
+ * DIGEST_CHECK_UK1ERR
  *   UKDIGEST1 in User Key segment digest check error
  *
- * DIGEST_CHECK_UK2ERR  
+ * DIGEST_CHECK_UK2ERR
  *   UKDIGEST2 in User Key segment (UPK1) digest check error
  *
- * DIGEST_CHECK_UK3ERR  
+ * DIGEST_CHECK_UK3ERR
  *   UKDIGEST3 in User Key segment (UK1) digest check error
  *
- * DIGEST_CHECK_UK4ERR  
+ * DIGEST_CHECK_UK4ERR
  *   UKDIGEST4 in User Key segment (DPK) digest check error
  *
- * DIGEST_CHECK_UK5ERR  
+ * DIGEST_CHECK_UK5ERR
  *   UKDIGEST5 in User Key segment (UPK2) digest check error
  *
- * DIGEST_CHECK_UK6ERR  
+ * DIGEST_CHECK_UK6ERR
  *   UKDIGEST6 in User Key segment (UK2) digest check error
  *
- * DIGEST_CHECK_UPERR  
+ * DIGEST_CHECK_UPERR
  *   UFS Permanent Lock (UPERM) segment digest check error
  *
- * DIGEST_CHECK_SYSERR  
+ * DIGEST_CHECK_SYSERR
  *   M3 ROM, Factory and Factory Key Segments digest check error
  *
  */
@@ -347,111 +332,111 @@ extern "C" {
 /**
  * # Bitstream Authentication and Iap Bitstream Authentication Return Status
  *
- * BSTREAM_AUTH_CHAINING_MISMATCH_ERR  
+ * BSTREAM_AUTH_CHAINING_MISMATCH_ERR
  *   Validator or hash chaining mismatch. Incorrectly constructed bitstream or
  *   wrong key used.
  *
- * BSTREAM_AUTH_UNEXPECTED_DATA_ERR  
+ * BSTREAM_AUTH_UNEXPECTED_DATA_ERR
  *   Unexpected data received.
  *   Additional data received after end of EOB component.
  *
- * BSTREAM_AUTH_INVALID_ENCRY_KEY_ERR  
+ * BSTREAM_AUTH_INVALID_ENCRY_KEY_ERR
  *   Invalid/corrupt encryption key.
  *   The requested key mode is disabled or the key could not be read/reconstructed.
  *
- * BSTREAM_AUTH_INVALID_HEADER_ERR  
+ * BSTREAM_AUTH_INVALID_HEADER_ERR
  *   Invalid component header
  *
- * BSTREAM_AUTH_BACK_LEVEL_NOT_SATISFIED_ERR  
+ * BSTREAM_AUTH_BACK_LEVEL_NOT_SATISFIED_ERR
  *   Back level not satisfied
  *
- * BSTREAM_AUTH_ILLEGAL_BITSTREAM_MODE_ERR  
+ * BSTREAM_AUTH_ILLEGAL_BITSTREAM_MODE_ERR
  *   Illegal bitstream mode.
  *   Requested bitstream mode is disabled by user security.
  *
- * BSTREAM_AUTH_DNS_BINDING_MISMATCH_ERR  
+ * BSTREAM_AUTH_DNS_BINDING_MISMATCH_ERR
  *   DSN binding mismatch
  *
- * BSTREAM_AUTH_ILLEGAL_COMPONENT_SEQUENCE_ERR  
+ * BSTREAM_AUTH_ILLEGAL_COMPONENT_SEQUENCE_ERR
  *   Illegal component sequence
  *
- * BSTREAM_AUTH_INSUFF_DEVICE_CAPAB_ERR  
+ * BSTREAM_AUTH_INSUFF_DEVICE_CAPAB_ERR
  *   Insufficient device capabilities
  *
- * BSTREAM_AUTH_INCORRECT_DEVICEID_ERR  
+ * BSTREAM_AUTH_INCORRECT_DEVICEID_ERR
  *   Incorrect DEVICEID
  *
- * BSTREAM_AUTH_PROTOCOL_VERSION_ERR  
+ * BSTREAM_AUTH_PROTOCOL_VERSION_ERR
  *   Unsupported bitstream protocol version (regeneration required)
  *
- * BSTREAM_AUTH_VERIFY_ERR  
+ * BSTREAM_AUTH_VERIFY_ERR
  *   Verify not permitted on this bitstream
  *
- * BSTREAM_AUTH_INVALID_DEV_CERT_ERR  
+ * BSTREAM_AUTH_INVALID_DEV_CERT_ERR
  *   Invalid Device Certificate.
  *   Device SCAC is invalid or not present.
  *
- * BSTREAM_AUTH_INVALID_DIB_ERR  
+ * BSTREAM_AUTH_INVALID_DIB_ERR
  *   Invalid DIB
  *
- * BSTREAM_AUTH_SPI_NOT_MASTER_ERR  
+ * BSTREAM_AUTH_SPI_NOT_MASTER_ERR
  *   Device not in SPI Master Mode.
  *   Error may occur only when bitstream is executed through IAP mode.
  *
- * BSTREAM_AUTH_AUTOIAP_NO_VALID_IMAGE_ERR  
+ * BSTREAM_AUTH_AUTOIAP_NO_VALID_IMAGE_ERR
  *   No valid images found.
  *   Error may occur when bitstream is executed through Auto Update mode.
  *   Occurs when no valid image pointers are found.
  *
- * BSTREAM_AUTH_INDEXIAP_NO_VALID_IMAGE_ERR  
+ * BSTREAM_AUTH_INDEXIAP_NO_VALID_IMAGE_ERR
  *   No valid images found.
  *   Error may occur when bitstream is executed through IAP mode via Index Mode.
  *   Occurs when No valid image pointers are found.
  *
- * BSTREAM_AUTH_NEWER_DESIGN_VERSION_ERR  
+ * BSTREAM_AUTH_NEWER_DESIGN_VERSION_ERR
  *   Programmed design version is newer than AutoUpdate image found.
  *   Error may occur when bitstream is executed through Auto Update mode.
  *
- * BSTREAM_AUTH_INVALID_IMAGE_ERR  
+ * BSTREAM_AUTH_INVALID_IMAGE_ERR
  *   Selected image was invalid and no recovery was performed due to valid design
  *   in device.
  *   Error may occur only when bitstream is executed through Auto Update or IAP mode
  *   (This error is here for completeness but only can be observed by running the
  *   READ_DEBUG_INFO instruction and looking at IAP Error code field).
  *
- * BSTREAM_AUTH_IMAGE_PROGRAM_FAILED_ERR  
+ * BSTREAM_AUTH_IMAGE_PROGRAM_FAILED_ERR
  *   Selected and Recovery image failed to program.
  *   Error may occur only when bitstream is executed through Auto Update or
  *   IAP mode
  *   (This error is here for completeness but only can be observed by running the
  *   READ_DEBUG_INFO instruction and looking at IAP Error code field).
  *
- * BSTREAM_AUTH_ABORT_ERR  
+ * BSTREAM_AUTH_ABORT_ERR
  *   Abort.
  *   Non-bitstream instruction executed during bitstream loading.
  *
- * BSTREAM_AUTH_NVMVERIFY_ERR  
+ * BSTREAM_AUTH_NVMVERIFY_ERR
  *   Fabric/UFS verification failed (min or weak limit)
  *
- * BSTREAM_AUTH_PROTECTED_ERR  
+ * BSTREAM_AUTH_PROTECTED_ERR
  *   Device security prevented modification of non-volatile memory
  *
- * BSTREAM_AUTH_NOTENA  
+ * BSTREAM_AUTH_NOTENA
  *   Programming mode not enabled
  *
- * BSTREAM_AUTH_PNVMVERIFY  
+ * BSTREAM_AUTH_PNVMVERIFY
  *   pNVM verify operation failed
  *
- * BSTREAM_AUTH_SYSTEM  
+ * BSTREAM_AUTH_SYSTEM
  *   System hardware error (PUF or DRBG)
  *
- * BSTREAM_AUTH_BADCOMPONENT  
+ * BSTREAM_AUTH_BADCOMPONENT
  *   An internal error was detected in a component payload
  *
- * BSTREAM_AUTH_HVPROGERR  
+ * BSTREAM_AUTH_HVPROGERR
  *   HV programming subsystem failure (pump failure)
  *
- * BSTREAM_AUTH_HVSTATE  
+ * BSTREAM_AUTH_HVSTATE
  *   HV programming subsystem in unexpected state (internal error)
  *
  */
@@ -488,10 +473,10 @@ extern "C" {
 
 /***************************************************************************//**
  * # Mailbox ECC Status
- *  Provides ECC status when the mailbox is read. The values are as follows:  
- *  00: No ECC errors detected, data is correct.  
- *  01: Exactly one bit error occurred and has been corrected.  
- *  10: Exactly two bits error occurred and no correction performed.  
+ *  Provides ECC status when the mailbox is read. The values are as follows:
+ *  00: No ECC errors detected, data is correct.
+ *  01: Exactly one bit error occurred and has been corrected.
+ *  10: Exactly two bits error occurred and no correction performed.
  *  11: Reserved.
  */
 #define SYS_MBOX_ECC_NO_ERROR_MASK                      0x00u
@@ -573,46 +558,46 @@ extern "C" {
 #define AUTHENTICATED_TEXT_DATA_LEN                     220u
 #endif
 
-/** 
+/**
  * # Digest Check Input Options
  *
- * DIGEST_CHECK_FABRIC  
+ * DIGEST_CHECK_FABRIC
  *   Carry out digest check on Fabric
  *
- * DIGEST_CHECK_CC  
+ * DIGEST_CHECK_CC
  *   Carry out digest check on UFS Fabric Configuration (CC) segment
  *
- * DIGEST_CHECK_SNVM  
+ * DIGEST_CHECK_SNVM
  *   Carry out digest check on ROM digest in SNVM segment
  *
- * DIGEST_CHECK_UL  
+ * DIGEST_CHECK_UL
  *   Carry out digest check on UFS UL segment
  *
- * DIGEST_CHECK_UKDIGEST0  
+ * DIGEST_CHECK_UKDIGEST0
  *   Carry out digest check on UKDIGEST0 in User Key segment
  *
- * DIGEST_CHECK_UKDIGEST1  
+ * DIGEST_CHECK_UKDIGEST1
  *   Carry out digest check on UKDIGEST1 in User Key segment
  *
- * DIGEST_CHECK_UKDIGEST2  
+ * DIGEST_CHECK_UKDIGEST2
  *   Carry out digest check on UKDIGEST2 in User Key segment (UPK1)
  *
- * DIGEST_CHECK_UKDIGEST3  
+ * DIGEST_CHECK_UKDIGEST3
  *   Carry out digest check on UKDIGEST3 in User Key segment (UK1)
  *
- * DIGEST_CHECK_UKDIGEST4  
+ * DIGEST_CHECK_UKDIGEST4
  *   Carry out digest check on UKDIGEST4 in User Key segment (DPK)
  *
- * DIGEST_CHECK_UKDIGEST5  
+ * DIGEST_CHECK_UKDIGEST5
  *   Carry out digest check on UKDIGEST5 in User Key segment (UPK2)
  *
- * DIGEST_CHECK_UKDIGEST6  
+ * DIGEST_CHECK_UKDIGEST6
  *   Carry out digest check on UKDIGEST6 in User Key segment (UK2)
  *
- * DIGEST_CHECK_UPERM  
+ * DIGEST_CHECK_UPERM
  *   Carry out digest check on UFS Permanent lock (UPERM) segment
  *
- * DIGEST_CHECK_SYS  
+ * DIGEST_CHECK_SYS
  *   Carry out digest check on Factory and Factory Key Segments
  *
  */
@@ -867,7 +852,7 @@ uint8_t SYS_read_envm_parameter
  * @param op_type      The op_type parameter specifies the operational parameter
  *                     to generate the 256-bits unique response.
  *
- * @param p_response   The p_response parameter is a pointer to a buffer where 
+ * @param p_response   The p_response parameter is a pointer to a buffer where
  *                     the data returned which is the response by system controller
  *                     is copied.
  *
@@ -1055,10 +1040,10 @@ uint8_t SYS_secure_nvm_read
  *                     starts from 11th word (offset 10) in the Mailbox.
  *
  * @return          This function returns the status code returned by the
- *                  system controller for this service. A '0' status code means 
- *                  that the service was executed successfully and a non-zero 
- *                  value indicates error. See the document link 
- *                  provided in the theory of operation section to know more 
+ *                  system controller for this service. A '0' status code means
+ *                  that the service was executed successfully and a non-zero
+ *                  value indicates error. See the document link
+ *                  provided in the theory of operation section to know more
  *                  about the service and service response.
  */
 uint8_t SYS_nonce_service
@@ -1111,7 +1096,7 @@ uint8_t SYS_bitstream_authenticate_service
  *
  * @param spi_idx
  *              The spi_idx parameter specifies the index in the SPI directory to
- *              be used where the IAP bit-stream is stored.  
+ *              be used where the IAP bit-stream is stored.
  *  Note: To support recovery SPI_IDX=1 should be an empty slot and the recovery
  *        image should be located in SPI_IDX=0. Since SPI_IDX=1 should be an
  *        empty slot, it shouldn’t be passed into the system service.
@@ -1132,15 +1117,15 @@ uint8_t SYS_IAP_image_authenticate_service
  * The SYS_digest_check_service() function is used to Recalculates and compares
  * digests of selected non-volatile memories. If the fabric digest is to be
  * checked, then the user design must follow all prerequisite steps for the
- * FlashFreeze service before invoking this service.  
+ * FlashFreeze service before invoking this service.
  * This service is applicable to bitstreams stored in SPI Flash memory only.
  * @param options
  *              The options parameter specifies the digest check options which
  *              indicate the area on which the digest check should be performed.
  *              Below is the list of options. You can OR these options to indicate
- *              to perform digest check on multiple segments.  
+ *              to perform digest check on multiple segments.
  *              Note: The options parameter is of 2 bytes when used with PF
- *              device and 4 bytes when used with PolarFire SoC device.  
+ *              device and 4 bytes when used with PolarFire SoC device.
  *                  Options[i]     | Description
  *                  ---------------|----------------------------------
  *                     0x01        | Fabric digest
@@ -1183,7 +1168,7 @@ uint8_t SYS_digest_check_service
 );
 
 /***************************************************************************//**
- * The SYS_iap_service() function is used to IAP service. The IAP service allows 
+ * The SYS_iap_service() function is used to IAP service. The IAP service allows
  * the user to reprogram the device without the need for an external master.  The
  * user design writes the bitstream to be programmed into a SPI Flash connected
  * to the SPI port.  When the service is invoked, the System Controller
@@ -1215,7 +1200,7 @@ uint8_t SYS_digest_check_service
  *              IAP_VERIFY_BY_SPIIDX_CMD      |  Index in the SPI directory.
  *              IAP_PROGRAM_BY_SPIADDR_CMD    |  SPI address in the SPI Flash memory
  *              IAP_VERIFY_BY_SPIADDR_CMD     |  SPI address in the SPI Flash memory
- *              IAP_AUTOUPDATE_CMD            |  spiaddr is ignored as No index/address required for this command.  
+ *              IAP_AUTOUPDATE_CMD            |  spiaddr is ignored as No index/address required for this command.
  *
  * @param mb_offset     The mb_offset parameter specifies the offset from
  *                      the start of Mailbox where the data related to this service

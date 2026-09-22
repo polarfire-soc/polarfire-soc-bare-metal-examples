@@ -5,7 +5,7 @@
  *
  * @file core10gbasekr_phy.h
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief Core10GBaseKR_PHY prototypes
+ * @brief Core10GBaseKR_PHY header file
  *
  */
 

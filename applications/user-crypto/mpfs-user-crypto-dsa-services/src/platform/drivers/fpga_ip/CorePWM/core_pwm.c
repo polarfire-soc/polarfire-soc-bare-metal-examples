@@ -1,17 +1,19 @@
-/*******************************************************************************
+/**
  * Copyright 2008 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * @file core_pwm.c
  * @author Microchip FPGA Embedded Systems Solutions
- * @brief CorePWM driver implementation.
+ * @brief CorePWM source file
+ *
+ * See file "core_pwm.h" for description of the functions implemented
+ * in this file.
  *
  */
+
 #include "core_pwm.h"
 #include "corepwm_regs.h"
-#include "hal/hal.h"
-#include "hal/hal_assert.h"
 
 #ifdef __cplusplus
 extern "C" {
