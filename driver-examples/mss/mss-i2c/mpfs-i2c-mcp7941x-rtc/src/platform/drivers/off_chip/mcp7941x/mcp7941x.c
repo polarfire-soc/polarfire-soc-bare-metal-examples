@@ -12,7 +12,7 @@
  * Include section  
  ************************************************************/
 
-#include <drivers/off-chip/mcp7941x/mcp7941x.h>
+#include <drivers/off_chip/mcp7941x/mcp7941x.h>
 #include <stdint.h>
 #include <string.h>
 #include "mpfs_hal/mss_hal.h"

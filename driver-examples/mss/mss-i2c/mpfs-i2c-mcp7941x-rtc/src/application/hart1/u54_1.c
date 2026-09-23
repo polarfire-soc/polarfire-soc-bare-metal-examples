@@ -17,7 +17,7 @@
 #include "mpfs_hal/common/mss_util.h"
 #include "drivers/mss/mss_i2c/mss_i2c.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
-#include "drivers/off-chip/mcp7941x/mcp7941x.h"
+#include "drivers/off_chip/mcp7941x/mcp7941x.h"
 
 #define RX_BUFF_SIZE    6U
 #define P_BUFF_SIZE     20U
@@ -109,11 +109,12 @@ void u54_1 (void)
         __asm("wfi");
     }while(0 == (read_csr(mip) & MIP_MSIP));
 
-    /* The hart is out of WFI, clear the SW interrupt. Hear onwards Application
-     * can enable and use any interrupts as required */
-    clear_soft_interrupt();
+
 #endif
-  __enable_irq();
+    /* The hart is out of WFI, clear the SW interrupt. Hear onwards Application
+        * can enable and use any interrupts as required */
+    clear_soft_interrupt();
+
     PLIC_init();
 
 
@@ -141,6 +142,7 @@ void u54_1 (void)
     mcp7941x_time_t* cur_time ;
     mcp7941x_time_t set_time;
 
+    __enable_irq();
 
     /*application loop */
 
