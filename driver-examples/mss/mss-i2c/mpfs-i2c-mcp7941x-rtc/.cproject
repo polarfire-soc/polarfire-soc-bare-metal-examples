@@ -503,10 +503,5 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297;ilg.gnumcueclipse.managedbuild.cross.riscv.config.elf.debug.1758100297.;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.190460338;ilg.gnumcueclipse.managedbuild.cross.riscv.tool.c.compiler.input.1726880214">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-	</storageModule>
+	<storageModule moduleId="scannerConfiguration"/>
 </cproject>
