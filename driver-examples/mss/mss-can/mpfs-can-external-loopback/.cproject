@@ -111,10 +111,8 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<sourceEntries>
-						<entry excluding="src/platform/drivers/off_chip|src/platform/mpfs_hal/common/mss_beu.c|src/platform/drivers/mss|src/platform/drivers/mss/mss_timer" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/platform/drivers/mss/mss_can"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/platform/drivers/mss/mss_mmuart"/>
+				<sourceEntries>
+						<entry excluding="src/platform/drivers/off_chip/pac1934|src/platform/drivers/mss/mss_usb|src/platform/drivers/mss/mss_timer|src/platform/drivers/mss/mss_sys_services|src/platform/drivers/mss/mss_spi|src/platform/drivers/mss/mss_rtc|src/platform/drivers/mss/mss_qspi|src/platform/drivers/mss/mss_pdma|src/platform/drivers/mss/mss_mmc|src/platform/drivers/mss/mss_gpio|src/platform/drivers/mss/mss_i2c|src/platform/drivers/mss/mss_watchdog|src/platform/drivers/mss/mss_ethernet_mac|src/platform/drivers/mss/pf_pcie" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -236,10 +234,8 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<sourceEntries>
-						<entry excluding="src/platform/drivers/off_chip|src/platform/mpfs_hal/common/mss_beu.c|src/platform/drivers/mss|src/platform/drivers/mss/mss_timer" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/platform/drivers/mss/mss_can"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/platform/drivers/mss/mss_mmuart"/>
+				<sourceEntries>
+						<entry excluding="src/platform/drivers/off_chip/pac1934|src/platform/drivers/mss/mss_usb|src/platform/drivers/mss/mss_timer|src/platform/drivers/mss/mss_sys_services|src/platform/drivers/mss/mss_spi|src/platform/drivers/mss/mss_rtc|src/platform/drivers/mss/mss_qspi|src/platform/drivers/mss/mss_pdma|src/platform/drivers/mss/mss_mmc|src/platform/drivers/mss/mss_gpio|src/platform/drivers/mss/mss_i2c|src/platform/drivers/mss/mss_watchdog|src/platform/drivers/mss/mss_ethernet_mac|src/platform/drivers/mss/pf_pcie" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -359,10 +355,8 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<sourceEntries>
-						<entry excluding="src/platform/drivers/off_chip|src/platform/mpfs_hal/common/mss_beu.c|src/platform/drivers/mss|src/platform/drivers/mss/mss_timer" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/platform/drivers/mss/mss_can"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/platform/drivers/mss/mss_mmuart"/>
+				<sourceEntries>
+						<entry excluding="src/platform/drivers/off_chip/pac1934|src/platform/drivers/mss/mss_usb|src/platform/drivers/mss/mss_timer|src/platform/drivers/mss/mss_sys_services|src/platform/drivers/mss/mss_spi|src/platform/drivers/mss/mss_rtc|src/platform/drivers/mss/mss_qspi|src/platform/drivers/mss/mss_pdma|src/platform/drivers/mss/mss_mmc|src/platform/drivers/mss/mss_gpio|src/platform/drivers/mss/mss_i2c|src/platform/drivers/mss/mss_watchdog|src/platform/drivers/mss/mss_ethernet_mac|src/platform/drivers/mss/pf_pcie" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -482,10 +476,8 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<sourceEntries>
-						<entry excluding="src/platform/drivers/off_chip|src/platform/mpfs_hal/common/mss_beu.c|src/platform/drivers/mss|src/platform/drivers/mss/mss_timer" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/platform/drivers/mss/mss_can"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/platform/drivers/mss/mss_mmuart"/>
+				<sourceEntries>
+						<entry excluding="src/platform/drivers/off_chip/pac1934|src/platform/drivers/mss/mss_usb|src/platform/drivers/mss/mss_timer|src/platform/drivers/mss/mss_sys_services|src/platform/drivers/mss/mss_spi|src/platform/drivers/mss/mss_rtc|src/platform/drivers/mss/mss_qspi|src/platform/drivers/mss/mss_pdma|src/platform/drivers/mss/mss_mmc|src/platform/drivers/mss/mss_gpio|src/platform/drivers/mss/mss_i2c|src/platform/drivers/mss/mss_watchdog|src/platform/drivers/mss/mss_ethernet_mac|src/platform/drivers/mss/pf_pcie" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
