@@ -1,12 +1,16 @@
-/*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * PolarFire SoC Microprocessor Subsystem(MSS) CAN bare metal software driver 
- * implementation.
+ * @file mss_can.c
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief mss_can source file
+ *
+ * See file "mss_can.h" for description of the functions implemented
+ * in this file.
+ *
  */
-
 
 /*******************************************************************************
  * Include files
@@ -84,10 +88,10 @@ MSS_CAN_init
 
     for (mailbox_number = 0u; mailbox_number < CAN_RX_MAILBOX; mailbox_number++)
     {
-        ret_value = MSS_CAN_config_buffer_n(this_can, mailbox_number, 
+        ret_value = MSS_CAN_config_buffer_n(this_can, mailbox_number,
                                             &canrxobj);
     }
-   
+
     /* Configure CAN controller */
     if (CAN_SPEED_MANUAL == bitrate)
     {
@@ -107,7 +111,7 @@ MSS_CAN_init
             return (CAN_TSEG2_TOO_SMALL);
         }
         temp = pcan_config->CFG_SJW;
-        if ((temp > pcan_config->CFG_TSEG1) || 
+        if ((temp > pcan_config->CFG_TSEG1) ||
             (temp > pcan_config->CFG_TSEG2))
         {
             return (CAN_SJW_TOO_BIG);
@@ -131,7 +135,7 @@ MSS_CAN_init
  * MSS_CAN_set_config_reg()
  * See "mss_can.h" for details of how to use this function.
  */
-void 
+void
 MSS_CAN_set_config_reg
 (
     mss_can_instance_t* this_can,
@@ -140,16 +144,16 @@ MSS_CAN_set_config_reg
 {
     /* Clear all pending interrupts */
     this_can->hw_reg->IntStatus.L = DISABLE;
-    
-    /* Disable CAN Device */  
+
+    /* Disable CAN Device */
     this_can->hw_reg->Command.RUN_STOP = DISABLE;
-    
-    /* Disable receive interrupts. */  
+
+    /* Disable receive interrupts. */
     this_can->hw_reg->IntEbl.RX_MSG = DISABLE;
-    
+
     /* Disable interrupts from CAN device. */
     this_can->hw_reg->IntEbl.INT_EBL = DISABLE;
-    
+
     /* Sets configuration bits */
     this_can->hw_reg->Config.L = cfg;
     MSS_CAN_start(this_can);
@@ -193,7 +197,7 @@ MSS_CAN_start
 
     /* Enable CAN Device*/
     this_can->hw_reg->Command.RUN_STOP = ENABLE;
-    
+
     /* Enable CAN Interrupt at NVIC level- if supported */
 #ifdef MSS_CAN_ENABLE_INTERRUPTS
     if (if (&g_mss_can_0_lo == this_can) || (&g_mss_can_0_hi == this_can))
@@ -208,7 +212,7 @@ MSS_CAN_start
 
     /* Enable receive interrupts. */
     this_can->hw_reg->IntEbl.RX_MSG = ENABLE;
-    
+
     /* Enable interrupts from CAN device.*/
     this_can->hw_reg->IntEbl.INT_EBL = ENABLE;
 
@@ -235,7 +239,7 @@ uint32_t
 MSS_CAN_get_id
 (
     pmss_can_msgobject pmsg
-) 
+)
 {
     if (pmsg->IDE)
     {
@@ -393,7 +397,7 @@ MSS_CAN_set_rtr_message_n
     {
         return (CAN_BASIC_CAN_MAILBOX);
     }
-   
+
     /* Is buffer configured for RTR auto-replay? */
     if (this_can->hw_reg->RxMsg[mailbox_number].RXB.RTRREPLY == 0u)
     {
@@ -426,10 +430,10 @@ MSS_CAN_get_rtr_message_abort_n
         /* Mailbox is configured for basic CAN */
         return (CAN_BASIC_CAN_MAILBOX);
     }
-   
+
     /* Set abort request */
     this_can->hw_reg->RxMsg[mailbox_number].RXB.RTRABORT = 1u;
-   
+
     /* Check the abort is granted */
     if (this_can->hw_reg->RxMsg[mailbox_number].RXB.RTRREPLYPEND == 0u)
     {
@@ -456,13 +460,13 @@ MSS_CAN_config_buffer
 {
     uint8_t success = CAN_NO_MSG;
     uint8_t mailbox_number;
-       
+
     /* Is a buffer configured for Basic CAN? */
     if (this_can->basic_can_rx_mb == 0u)
     {
         return (CAN_INVALID_MAILBOX);
     }
-   
+
     /* Find next BASIC CAN buffer that has a message available */
     for (mailbox_number = CAN_RX_MAILBOX - this_can->basic_can_rx_mb;  \
                               mailbox_number < CAN_RX_MAILBOX; mailbox_number++)
@@ -477,14 +481,14 @@ MSS_CAN_config_buffer
         if (mailbox_number < (CAN_RX_MAILBOX - 1))
         {
             /* set link flag, if not last buffer */
-            this_can->hw_reg->RxMsg[mailbox_number].RXB.L = 
+            this_can->hw_reg->RxMsg[mailbox_number].RXB.L =
                                           (CAN_RX_WPNH_EBL | CAN_RX_WPNL_EBL | \
                                           CAN_RX_BUFFER_EBL | CAN_RX_INT_EBL | \
                                           CAN_RX_LINK_EBL);
         }
         else
         {
-            this_can->hw_reg->RxMsg[mailbox_number].RXB.L = 
+            this_can->hw_reg->RxMsg[mailbox_number].RXB.L =
                                           (CAN_RX_WPNH_EBL | CAN_RX_WPNL_EBL | \
                                           CAN_RX_BUFFER_EBL | CAN_RX_INT_EBL);
         }
@@ -510,7 +514,7 @@ MSS_CAN_config_buffer_n
     {
         return (CAN_BASIC_CAN_MAILBOX);
     }
-   
+
     /* Configure mailbox */
     this_can->hw_reg->RxMsg[mailbox_number].ID = pmsg->ID;
     this_can->hw_reg->RxMsg[mailbox_number].DATALOW = pmsg->DATALOW;
@@ -542,7 +546,7 @@ MSS_CAN_get_message_n
     {
         return (CAN_BASIC_CAN_MAILBOX);
     }
-   
+
     /* Check that a new message is available and get it */
     if ((ENABLE == this_can->hw_reg->Command.RUN_STOP) &&
         (this_can->hw_reg->RxMsg[mailbox_number].RXB.MSGAV))
@@ -569,7 +573,7 @@ MSS_CAN_get_message_n
     {
         return (CAN_NO_MSG);
     }
-} 
+}
 
 /*******************************************************************************
  * MSS_CAN_get_message()
@@ -584,13 +588,13 @@ MSS_CAN_get_message
 {
     uint8_t success = CAN_NO_MSG;
     uint8_t mailbox_number;
-        
+
     /* Is a buffer configured for Basic CAN? */
     if (this_can->basic_can_rx_mb == 0u)
     {
         return (CAN_INVALID_MAILBOX);
     }
-   
+
     /* Find next BASIC CAN buffer that has a message available */
     for (mailbox_number = CAN_RX_MAILBOX-this_can->basic_can_rx_mb;  \
                              mailbox_number < CAN_RX_MAILBOX; mailbox_number++)
@@ -609,7 +613,7 @@ MSS_CAN_get_message
 
             /* Get DLC, IDE and RTR and time stamp.*/
             pmsg->L = this_can->hw_reg->RxMsg[mailbox_number].RXB.L;
-        
+
             /* Ack that it's been removed from the FIFO */
             this_can->hw_reg->RxMsg[mailbox_number].RXB.MSGAV = ENABLE;
             success = CAN_VALID_MSG;
@@ -631,13 +635,13 @@ MSS_CAN_get_message_av
 {
     uint8_t success = CAN_NO_MSG;
     uint8_t mailbox_number;
-        
+
     /* Is a buffer configured for Basic CAN? */
     if (this_can->basic_can_rx_mb == 0u)
     {
         return (CAN_INVALID_MAILBOX);
     }
-   
+
     /* Find next BASIC CAN buffer that has a message available */
     for (mailbox_number = CAN_RX_MAILBOX-this_can->basic_can_rx_mb;  \
                              mailbox_number < CAN_RX_MAILBOX; mailbox_number++)
@@ -650,7 +654,7 @@ MSS_CAN_get_message_av
         }
     }
     return (success);
-} 
+}
 
 /***************************************************************************//**
  * MSS_CAN_send_message_n()
@@ -670,14 +674,14 @@ MSS_CAN_send_message_n
         /* Message not sent. */
         return (CAN_NO_MSG);
     }
-      
+
     /* Is buffer configured for Full CAN? */
     if (mailbox_number >= (CAN_TX_MAILBOX - this_can->basic_can_tx_mb))
     {
         /* mailbox is configured for basic CAN */
         return (CAN_BASIC_CAN_MAILBOX);
     }
-   
+
     if (this_can->hw_reg->TxMsg[mailbox_number].TXB.TXREQ == 0u)
     {
         /* If the Tx buffer isn't busy.... */
@@ -713,12 +717,12 @@ MSS_CAN_send_message_abort_n
         /* mailbox is configured for basic CAN */
         return (CAN_BASIC_CAN_MAILBOX);
     }
-   
+
     /* Set abort request */
-    this_can->hw_reg->TxMsg[mailbox_number].TXB.L = 
+    this_can->hw_reg->TxMsg[mailbox_number].TXB.L =
     ((this_can->hw_reg->TxMsg[mailbox_number].TXB.L & ~CAN_TX_REQ) | \
      CAN_TX_ABORT);
-   
+
     /* Check the abort is granted */
     if (this_can->hw_reg->TxMsg[mailbox_number].TXB.TXABORT == 0u)
     {
@@ -744,13 +748,13 @@ MSS_CAN_send_message_ready
 {
     uint8_t success = CAN_ERR;
     uint8_t mailbox_number;
-    
+
     /* Is a buffer configured for Basic CAN? */
     if (this_can->basic_can_tx_mb == 0u)
     {
        return (CAN_INVALID_MAILBOX);
     }
-   
+
     /* Find next BASIC CAN buffer that is available */
     for (mailbox_number = CAN_TX_MAILBOX-this_can->basic_can_tx_mb; \
                              mailbox_number < CAN_TX_MAILBOX; mailbox_number++)
@@ -762,7 +766,7 @@ MSS_CAN_send_message_ready
             break;
         }
     }
-    
+
     return (success);
 }
 
@@ -779,13 +783,13 @@ MSS_CAN_send_message
 {
     uint8_t success = CAN_NO_MSG;
     uint8_t mailbox_number;
-  
+
     /* Is a buffer configured for Basic CAN? */
     if (this_can->basic_can_tx_mb == 0u)
     {
         return (CAN_INVALID_MAILBOX);
     }
-   
+
     /* Find next BASIC CAN buffer that is available */
     for (mailbox_number = CAN_TX_MAILBOX-this_can->basic_can_tx_mb;  \
                              mailbox_number < CAN_TX_MAILBOX; mailbox_number++)
@@ -828,7 +832,7 @@ MSS_CAN_get_mask_n
     {
         return (CAN_BASIC_CAN_MAILBOX);
     }
-    
+
     *pamr = this_can->hw_reg->RxMsg[mailbox_number].AMR.L;
     *pacr = this_can->hw_reg->RxMsg[mailbox_number].ACR.L;
     *pdta_acr = this_can->hw_reg->RxMsg[mailbox_number].ACR_D;
@@ -914,7 +918,7 @@ MSS_CAN_get_error_status
     *status = this_can->hw_reg->ErrorStatus.L;
 
     /* 00 Error Active, 01 Error Passive, 1x Bus Off */
-    return ((uint8_t)(((*status) >> CAN_ERROR_STATUS_SHIFT) & 
+    return ((uint8_t)(((*status) >> CAN_ERROR_STATUS_SHIFT) &
                       CAN_ERROR_STATUS_MASK));
 }
 
@@ -1003,7 +1007,7 @@ static void global_init
     {
         this_wd->hw_reg = MSS_CAN_1_HI_BASE;
         this_wd->irqn = CAN1_PLIC;
-        this_wd->int_type = 0; 
+        this_wd->int_type = 0;
     }
     else
     {
@@ -1011,7 +1015,7 @@ static void global_init
     }
 }
 
-#ifndef MSS_CAN_USER_ISR 
+#ifndef MSS_CAN_USER_ISR
 /***************************************************************************//**
  * CAN interrupt service routine.
  * CAN_IRQHandler is included within the RISC-V vector table as part of the
@@ -1029,7 +1033,7 @@ uint8_t External_can0_plic_IRQHandler(void)
 #endif
     return 0;
 }
-    
+
 uint8_t can1_IRQHandler(void)
 {
 #ifdef MSS_CAN_ENABLE_INTERRUPTS
