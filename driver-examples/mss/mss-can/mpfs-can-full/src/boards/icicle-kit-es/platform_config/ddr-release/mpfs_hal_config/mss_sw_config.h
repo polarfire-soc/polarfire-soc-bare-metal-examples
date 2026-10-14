@@ -149,7 +149,7 @@
  * 1 => Clears memory
  * Note: If you are the zero stage bootloader, set this to one.
  */
-#ifndef MPFS_HAL_CLEAR_MEMORY
+#if(IMAGE_LOADED_BY_BOOTLOADER == 0)
 #define MPFS_HAL_CLEAR_MEMORY  1
 #endif
 
