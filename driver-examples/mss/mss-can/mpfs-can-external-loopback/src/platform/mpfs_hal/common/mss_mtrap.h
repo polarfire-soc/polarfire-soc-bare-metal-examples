@@ -1,29 +1,13 @@
-/*
-    Copyright (c) 2013, The Regents of the University of California (Regents).
-    All Rights Reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-    1. Redistributions of source code must retain the above copyright
-       notice, this list of conditions and the following disclaimer.
-    2. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.
-    3. Neither the name of the Regents nor the
-       names of its contributors may be used to endorse or promote products
-       derived from this software without specific prior written permission.
-
-    IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
-    SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING
-    OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF REGENTS HAS
-    BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-    REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-    THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-    PURPOSE. THE SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED
-    HEREUNDER IS PROVIDED "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE
-    MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-*/
+/**
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * @file mss_mtrap.h
+ * @author Microchip FPGA Embedded Systems Solutions
+ * @brief mss_mtrap header file
+ *
+ */
 
 /***********************************************************************************
  * Record of Microchip changes
@@ -44,6 +28,10 @@ extern "C" {
 #define IPI_SOFT          0x01
 #define IPI_FENCE_I       0x02
 #define IPI_SFENCE_VMA    0x04
+
+#define IRQ_M_BEU         0x80
+#define IRQ_M_LOCAL_MIN   16
+#define IRQ_M_LOCAL_MAX   63
 
 #define MACHINE_STACK_SIZE  (RISCV_PGSIZE)    /* this is 4k for HLS and 4k for the stack*/
 #define MENTRY_HLS_OFFSET   (INTEGER_CONTEXT_SIZE + SOFT_FLOAT_CONTEXT_SIZE)
