@@ -1,28 +1,39 @@
-/*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+/**
+ * Copyright 2023 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
  * MPFS HAL Embedded Software
  *
  */
+
 /*******************************************************************************
- * 
+ *
  * file name : mpfs-ddr-loaded-by-boot-loader.ld
- * Use this linker script when the program is fully located in DDR. The 
+ * Use this linker script when the program is fully located in DDR. The
  * assumption is DDR has already been initialized by another program.
+ *
  * This linker script can be used with a debugger or when compiled and loaded
  * by a boot-loader.
- * Please see the project mpfs-hal-run-from-ddr-1 located in the Bare Metal
- * library under examples/mpfs-hal for an example of it use.
- * https://github.com/polarfire-soc/polarfire-soc-bare-metal-library
- * 
+ * The loading program passes two parameters in a0 and a1
+ *     a0  - The hartid is passed here
+ *     a1  - A pointer to Hart Local Storage (HLS) is passed here
+ *           The HLS is a small amount of memory dedicated to each hart.
+ *           The HLS also contains a pointer to shared memory.
+ *           The shared memory is accessible by all harts if used. It is
+ *           allocated by the boot-loader if the MPFS_HAL_SHARED_MEM_ENABLED
+ *           is defined in the mss_sw_config.h file project configuration file.
+ * Please see the project mpfs-hal-run-from-ddr-u54-1 located in the Bare Metal
+ * examples under examples/mpfs-hal for an example of it use.
+ *
+ * https://github.com/polarfire-soc/polarfire-soc-bare-metal-examples
+ *
  * You can find details on the PolarFireSoC Memory map in the mpfs-memory-hierarchy.md
  * which can be found under the link below:
  * https://github.com/polarfire-soc/polarfire-soc-documentation
- * 
+ *
  */
- 
+
 OUTPUT_ARCH( "riscv" )
 ENTRY(_start)
 
@@ -33,27 +44,20 @@ ENTRY(_start)
 The MSS reset vector for each hart is stored securely in the MPFS.
 The most common usage will be where the reset vector for each hart will be set
 to the start of the envm at address 0x2022_0100, giving 128K-256B of contiguous
-non-volatile storage. Normally this is where the initial boot-loader will 
-reside. (Note: The first 256B page of envm is used for metadata associated with 
-secure boot. When not using secure boot (mode 0,1), this area is still reserved 
+non-volatile storage. Normally this is where the initial boot-loader will
+reside. (Note: The first 256B page of envm is used for metadata associated with
+secure boot. When not using secure boot (mode 0,1), this area is still reserved
 by convention. It allows easier transition from non-secure to secure boot flow
 during the development process.
-When debugging a bare metal program that is run out of reset from envm, a linker 
-script will be used whereby the program will run from LIM instead of envm.
-In this case, the reset vector in the linker script is normally set to the 
-start of LIM, 0x0800_0000.
-This means you are not continually programming the envm each time you load a 
-program and there is no limitation with break points when debugging.
-See the mpfs-lim.ld example linker script when runing from LIM.
 
 ------------------------------------------------------------------------------*/
 
 MEMORY
 {
-    /* In this example, our reset vector is set to point to the */
-    /* start at page 1 of the envm */
     envm (rx) : ORIGIN  = 0x20220100, LENGTH = 128k - 0x100
-    dtim (rwx) : ORIGIN  = 0x01000000, LENGTH = 7k       
+    dtim (rwx) : ORIGIN  = 0x01000000, LENGTH = 7k
+    /* This 1K of DTIM is used to run code when switching the envm clock */
+    switch_code_dtim (rx) : ORIGIN = 0x01001c00, LENGTH = 1k
     e51_itim (rwx)     : ORIGIN = 0x01800000, LENGTH = 28k
     u54_1_itim (rwx)   : ORIGIN = 0x01808000, LENGTH = 28k
     u54_2_itim (rwx)   : ORIGIN = 0x01810000, LENGTH = 28k
@@ -61,8 +65,6 @@ MEMORY
     u54_4_itim (rwx)   : ORIGIN = 0x01820000, LENGTH = 28k
     l2lim (rwx)        : ORIGIN = 0x08000000, LENGTH = 256k
     scratchpad(rwx)    : ORIGIN = 0x0A000000, LENGTH = 256k
-    /* This 1K of DTIM is used to run code when switching the envm clock */
-    switch_code_dtim (rx) : ORIGIN = 0x01001c00, LENGTH = 1k 
     /* DDR sections example */
     ddr_cached_32bit (rwx) : ORIGIN  = 0x80000000, LENGTH = 768M
     ddr_non_cached_32bit (rwx) : ORIGIN  = 0xC0000000, LENGTH = 256M
@@ -71,21 +73,41 @@ MEMORY
     ddr_non_cached_38bit (rwx) : ORIGIN  = 0x1400000000, LENGTH = 0k
     ddr_wcb_38bit (rwx) : ORIGIN  = 0x1800000000, LENGTH  = 0k
 }
-HEAP_SIZE           = 0k;               /* needs to be calculated for your application if using */
+HEAP_SIZE           = 8k;   /* needs to be calculated for your application */
 
 /*
- * Stack size for our single hart U54 application.
+ * There is common area for shared variables, accessed from a pointer in a harts HLS
  */
-STACK_SIZE_U54_APPLICATION = 8k;
+SIZE_OF_COMMON_HART_MEM = 4k;
 
 /*
- * A small amount of unitialised memory used to store information
- * obtained from the boot-loader on start-up
+ * The stack size needs to be calculated for your application. It must be aligned.
+ * Also Thread local storage (AKA hart local storage) is allocated for each hart
+ * as part of the stack.
+ * So the memory map will look like once apportion in startup code:
+ * stack hart0
+ * HLS hart 0
+ * stack hart1
+ * HLS hart 1
+ * etc
+ * Actual Stack size per hart = (STACK_SIZE_PER_HART - HLS_DEBUG_AREA_SIZE)
+ * note: HLS_DEBUG_AREA_SIZE is defined in mss_sw_config.h
  */
-UNITITALISED_MEM = 16B;
+/*
+ * Stack size for each hart's application.
+ * These are the stack sizes that will be allocated to each hart before starting
+ * each hart's application function, e51(), u54_1(), u54_2(), u54_3(), u54_4().
+ */
+STACK_SIZE_E51_APPLICATION = 0k;
+STACK_SIZE_U54_1_APPLICATION = 8k;
+STACK_SIZE_U54_2_APPLICATION = 8k;
+STACK_SIZE_U54_3_APPLICATION = 8k;
+STACK_SIZE_U54_4_APPLICATION = 8k;
+
+
 
 /* reset address 0xC0000000 */
-SECTION_START_ADDRESS           = 0x80000000; 
+SECTION_START_ADDRESS           = 0x80000000;
 
 
 SECTIONS
@@ -96,7 +118,7 @@ SECTIONS
     .text : ALIGN(0x10)
     {
          __text_load = LOADADDR(.text);
-         __text_start = .; 
+         __text_start = .;
          *(.text.init)
         . = ALIGN(0x10);
         *(.text .text.* .gnu.linkonce.t.*)
@@ -114,7 +136,7 @@ SECTIONS
 
         *(.rodata .rodata.* .gnu.linkonce.r.*)
         *(.sdata2 .sdata2.* .gnu.linkonce.s2.*)
-        *(.gcc_except_table) 
+        *(.gcc_except_table)
         *(.eh_frame_hdr)
         *(.eh_frame)
 
@@ -140,35 +162,26 @@ SECTIONS
         __text_end = .;
     } > ddr_cached_32bit
 
-    .l2_scratchpad : ALIGN(0x10)
-    { 
-        __l2_scratchpad_load = LOADADDR(.l2_scratchpad);
-        __l2_scratchpad_start = .;
-        __l2_scratchpad_vma_start = .; 
-        *(.l2_scratchpad)
-        . = ALIGN(0x10);
-        __l2_scratchpad_end = .;
-        __l2_scratchpad_vma_end = .;
-    } >scratchpad AT> ddr_cached_32bit
-
     /* short/global data section */
     .sdata : ALIGN(0x10)
     {
         __sdata_load = LOADADDR(.sdata);
-        __sdata_start = .; 
-        /* offset used with gp(gloabl pointer) are +/- 12 bits, so set point to middle of expected sdata range */
-        /* If sdata more than 4K, linker used direct addressing. Perhaps we should add check/warning to linker script if sdata is > 4k */
+        __sdata_start = .;
+        /* offset used with gp(gloabl pointer) are +/- 12 bits, so set
+           point to middle of expected sdata range */
+        /* If sdata more than 4K, linker used direct addressing.
+           Perhaps we should add check/warning to linker script if sdata is > 4k */
         __global_pointer$ = . + 0x800;
         *(.sdata .sdata.* .gnu.linkonce.s.*)
         . = ALIGN(0x10);
         __sdata_end = .;
     } > ddr_cached_32bit
- 
+
     /* data section */
     .data : ALIGN(0x10)
-    { 
+    {
         __data_load = LOADADDR(.data);
-        __data_start = .; 
+        __data_start = .;
         *(.got.plt) *(.got)
         *(.shdata)
         *(.data .data.* .gnu.linkonce.d.*)
@@ -188,7 +201,7 @@ SECTIONS
 
     /* sbss section */
     .bss : ALIGN(0x10)
-    { 
+    {
         __bss_start = .;
         *(.shbss)
         *(.bss .bss.* .gnu.linkonce.b.*)
@@ -208,40 +221,58 @@ SECTIONS
         . = ALIGN(0x10);
         _heap_end = __heap_end;
     } > ddr_cached_32bit
-  
+
     /* must be on 4k boundary- corresponds to page size */
     .stack : ALIGN(0x1000)
     {
         PROVIDE(__app_stack_bottom = .);
-        . += STACK_SIZE_U54_APPLICATION;
+
+        PROVIDE(__stack_bottom_h0$ = .);
+        PROVIDE(__app_stack_bottom_h0 = .);
+        . += STACK_SIZE_E51_APPLICATION;
+        PROVIDE(__app_stack_top_h0 = .);
+        PROVIDE(__stack_top_h0$ = .);
+
+        PROVIDE(__stack_bottom_h1$ = .);
+        PROVIDE(__app_stack_bottom_h1$ = .);
+        . += STACK_SIZE_U54_1_APPLICATION;
+        PROVIDE(__app_stack_top_h1 = .);
+        PROVIDE(__stack_top_h1$ = .);
+
+        PROVIDE(__stack_bottom_h2$ = .);
+        PROVIDE(__app_stack_bottom_h2 = .);
+        . += STACK_SIZE_U54_2_APPLICATION;
+        PROVIDE(__app_stack_top_h2 = .);
+        PROVIDE(__stack_top_h2$ = .);
+
+        PROVIDE(__stack_bottom_h3$ = .);
+        PROVIDE(__app_stack_bottom_h3 = .);
+        . += STACK_SIZE_U54_3_APPLICATION;
+        PROVIDE(__app_stack_top_h3 = .);
+        PROVIDE(__stack_top_h3$ = .);
+
+        PROVIDE(__stack_bottom_h4$ = .);
+        PROVIDE(__app_stack_bottom_h4 = .);
+        . += STACK_SIZE_U54_4_APPLICATION;
+        PROVIDE(__app_stack_top_h4 = .);
+        PROVIDE(__stack_top_h4$ = .);
+
         PROVIDE(__app_stack_top = .);
     } > ddr_cached_32bit
-    
-    /* 
-     * used by a program loaded by a bootloader to store information passed 
+
+    /*
+     * used by a program loaded by a bootloader to store information passed
      * from boot-loader
      * a0 holds the hart ID
      * a1 hold pointer to device data, which includes pointer to shared memory
      * when enabled by setting MPFS_HAL_SHARED_MEM_ENABLED define in the
      * mss_sw_config.h
      */
-    .no_init : ALIGN(0x10)
+    .app_hart_common : /* ALIGN(0x1000) */
     {
-        PROVIDE(__uninit_bottom$ = .);
-        . += UNITITALISED_MEM;
-        PROVIDE(__uninit_top_h$ = .);
-        /*
-         * following not used but need to be provided for compilation
-         */
-         PROVIDE(__stack_bottom_h0$ = .);
-         PROVIDE(__stack_bottom_h1$ = .);
-         PROVIDE(__stack_bottom_h2$ = .);
-         PROVIDE(__stack_bottom_h3$ = .);
-         PROVIDE(__stack_bottom_h4$ = .);
-         PROVIDE(__stack_top_h0$ = .);
-         PROVIDE(__stack_top_h1$ = .);
-         PROVIDE(__stack_top_h2$ = .);
-         PROVIDE(__stack_top_h3$ = .);
-         PROVIDE(__stack_top_h4$ = .);
+        PROVIDE(__app_hart_common_start = .);
+        . += SIZE_OF_COMMON_HART_MEM;
+        PROVIDE(__app_hart_common_end = .);
     } > ddr_cached_32bit
 }
+
